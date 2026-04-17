@@ -33,10 +33,7 @@ export function ExerciseCard({
   onDelete,
 }: ExerciseCardProps) {
   const styles = createStyles(tokens);
-  const setChips = Array.from(
-    { length: exercise.sets },
-    (_, setNumber) => `${exercise.id}-set-${setNumber + 1}`,
-  );
+  const setsRepsLabel = `${exercise.sets}x${exercise.reps}`;
   const [editingWeight, setEditingWeight] = useState(false);
   const [tempWeight, setTempWeight] = useState(baseWeight.toString());
 
@@ -73,11 +70,9 @@ export function ExerciseCard({
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{exercise.muscleGroup}</Text>
         </View>
-        {setChips.map((setKey) => (
-          <View key={setKey} style={styles.repChip}>
-            <Text style={styles.repChipText}>{exercise.reps}</Text>
-          </View>
-        ))}
+        <View style={styles.repChip}>
+          <Text style={styles.repChipText}>{setsRepsLabel}</Text>
+        </View>
       </View>
 
       {exercise.notes.length > 0 && (
