@@ -1,0 +1,22 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "allowJs": false,
+    "types": ["react", "react-native"],
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true
+  },
+  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts", "App.tsx", "index.ts"],
+  "exclude": [
+    "android/**",
+    "ios/**",
+    "node_modules/**",
+    ".expo/**",
+    "dist/**",
+    "web-build/**"
+  ]
+}
