@@ -609,7 +609,11 @@ export function WorkoutScreen() {
           onEditExercise={handleOpenEdit}
           onDeleteExercise={handleDeleteExercise}
           onAdjustWeight={(exerciseId, delta) => {
-            const currentValue = userWeights[exerciseId] ?? 0;
+            const fallback =
+              workouts
+                .flatMap((w) => w.exercises)
+                .find((e) => e.id === exerciseId)?.baseWeight ?? 0;
+            const currentValue = userWeights[exerciseId] ?? fallback;
             void runMutation({
               type: 'setExerciseWeight',
               exerciseId,

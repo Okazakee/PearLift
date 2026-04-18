@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -36,6 +36,7 @@ export function ExerciseCard({
   const setsRepsLabel = `${exercise.sets}x${exercise.reps}`;
   const [editingWeight, setEditingWeight] = useState(false);
   const [tempWeight, setTempWeight] = useState(baseWeight.toString());
+  const submitGuardRef = useRef(false);
 
   const step = baseWeight >= 20 ? 2.5 : 1;
   const handleWeightAdjust = (direction: -1 | 1) => {
@@ -43,14 +44,18 @@ export function ExerciseCard({
   };
 
   const handleWeightSubmit = () => {
+    if (submitGuardRef.current) return;
+    submitGuardRef.current = true;
     const parsed = Number(tempWeight);
     if (!Number.isFinite(parsed) || parsed < 0) {
       setEditingWeight(false);
       setTempWeight(baseWeight.toString());
+      submitGuardRef.current = false;
       return;
     }
     onAdjustWeight(parsed - baseWeight);
     setEditingWeight(false);
+    submitGuardRef.current = false;
   };
 
   return (

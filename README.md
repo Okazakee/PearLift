@@ -68,7 +68,6 @@ bun run web
 ## Documentation
 
 - [F-Droid + Play Store release plan](docs/PEARLIFT_FDROID_PLAYSTORE_RELEASE_PLAN.md)
-- [P2P + relay sync plan](docs/PEARLIFT_P2P_RELAY_SYNC_PLAN.md)
 
 ## Notes
 

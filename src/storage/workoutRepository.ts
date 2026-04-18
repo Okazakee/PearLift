@@ -209,25 +209,47 @@ type SyncMetadataRow = {
 
 export class WorkoutRepository {
   private initialized = false;
+  private initPromise: Promise<void> | null = null;
+  private writeQueue: Promise<void> = Promise.resolve();
 
   constructor(private readonly deviceId: string) {}
+
+  private enqueueWrite<T>(fn: () => Promise<T>): Promise<T> {
+    // expo-sqlite uses a single native connection; overlapping transactions can fail with:
+    // "cannot start a transaction within a transaction".
+    const run = this.writeQueue.then(fn, fn);
+    this.writeQueue = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
 
   async initialize() {
     if (this.initialized) {
       return;
     }
-
-    const db = await getDatabase();
-    const row = await db.getFirstAsync<{ total: number }>(
-      'SELECT COUNT(*) as total FROM workouts WHERE deleted_at IS NULL',
-    );
-    const total = row?.total ?? 0;
-
-    if (total === 0) {
-      await this.seedInitialState(db);
+    if (this.initPromise) {
+      return this.initPromise;
     }
 
-    this.initialized = true;
+    this.initPromise = (async () => {
+      const db = await getDatabase();
+      const row = await db.getFirstAsync<{ total: number }>(
+        'SELECT COUNT(*) as total FROM workouts WHERE deleted_at IS NULL',
+      );
+      const total = row?.total ?? 0;
+
+      if (total === 0) {
+        await this.enqueueWrite(async () => this.seedInitialState(db));
+      }
+
+      this.initialized = true;
+    })().finally(() => {
+      this.initPromise = null;
+    });
+
+    return this.initPromise;
   }
 
   async getSnapshot(): Promise<WorkoutStoreSnapshot> {
@@ -248,321 +270,327 @@ export class WorkoutRepository {
 
   async applyMutation(mutation: WorkoutMutation) {
     await this.initialize();
-    const db = await getDatabase();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
 
-    await db.withTransactionAsync(async () => {
-      switch (mutation.type) {
-        case 'setThemeMode': {
-          await this.writeSetting(db, 'themeMode', mutation.themeMode);
-          await this.recordMutation(db, 'setting', 'themeMode', 'upsert', {
-            themeMode: mutation.themeMode,
-          });
-          break;
-        }
-        case 'setCurrentWeek': {
-          await this.writeSetting(
-            db,
-            'currentWeek',
-            String(Math.max(1, mutation.currentWeek)),
-          );
-          await this.recordMutation(db, 'setting', 'currentWeek', 'upsert', {
-            currentWeek: Math.max(1, mutation.currentWeek),
-          });
-          break;
-        }
-        case 'setCurrentDay': {
-          await this.writeSetting(db, 'currentDay', mutation.currentDay);
-          await this.recordMutation(db, 'setting', 'currentDay', 'upsert', {
-            currentDay: mutation.currentDay,
-          });
-          break;
-        }
-        case 'setRestDuration': {
-          await this.writeSetting(
-            db,
-            'restDuration',
-            String(Math.max(0, mutation.restDuration)),
-          );
-          await this.recordMutation(db, 'setting', 'restDuration', 'upsert', {
-            restDuration: Math.max(0, mutation.restDuration),
-          });
-          break;
-        }
-        case 'setExerciseWeight': {
-          const timestamp = nowIso();
-          await db.runAsync(
-            `INSERT INTO user_weights (exercise_id, value, updated_at)
+      await db.withTransactionAsync(async () => {
+        switch (mutation.type) {
+          case 'setThemeMode': {
+            await this.writeSetting(db, 'themeMode', mutation.themeMode);
+            await this.recordMutation(db, 'setting', 'themeMode', 'upsert', {
+              themeMode: mutation.themeMode,
+            });
+            break;
+          }
+          case 'setCurrentWeek': {
+            await this.writeSetting(
+              db,
+              'currentWeek',
+              String(Math.max(1, mutation.currentWeek)),
+            );
+            await this.recordMutation(db, 'setting', 'currentWeek', 'upsert', {
+              currentWeek: Math.max(1, mutation.currentWeek),
+            });
+            break;
+          }
+          case 'setCurrentDay': {
+            await this.writeSetting(db, 'currentDay', mutation.currentDay);
+            await this.recordMutation(db, 'setting', 'currentDay', 'upsert', {
+              currentDay: mutation.currentDay,
+            });
+            break;
+          }
+          case 'setRestDuration': {
+            await this.writeSetting(
+              db,
+              'restDuration',
+              String(Math.max(0, mutation.restDuration)),
+            );
+            await this.recordMutation(db, 'setting', 'restDuration', 'upsert', {
+              restDuration: Math.max(0, mutation.restDuration),
+            });
+            break;
+          }
+          case 'setExerciseWeight': {
+            const timestamp = nowIso();
+            await db.runAsync(
+              `INSERT INTO user_weights (exercise_id, value, updated_at)
              VALUES (?, ?, ?)
              ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
-            mutation.exerciseId,
-            Math.max(0, roundToHalf(mutation.value)),
-            timestamp,
-          );
-          await this.recordMutation(
-            db,
-            'weight',
-            mutation.exerciseId,
-            'upsert',
-            {
-              value: Math.max(0, roundToHalf(mutation.value)),
-            },
-          );
-          break;
-        }
-        case 'addExercise': {
-          const existing = await this.getExercisesForWorkout(
-            db,
-            mutation.workoutId,
-          );
-          const nextPosition =
-            existing.length > 0
-              ? Math.max(...existing.map((exercise) => exercise.position)) + 1
-              : 0;
-          const exerciseId = createExerciseId(mutation.exercise.name);
-          const timestamp = nowIso();
-          await db.runAsync(
-            `INSERT INTO exercises (
+              mutation.exerciseId,
+              Math.max(0, roundToHalf(mutation.value)),
+              timestamp,
+            );
+            await this.recordMutation(
+              db,
+              'weight',
+              mutation.exerciseId,
+              'upsert',
+              {
+                value: Math.max(0, roundToHalf(mutation.value)),
+              },
+            );
+            break;
+          }
+          case 'addExercise': {
+            const existing = await this.getExercisesForWorkout(
+              db,
+              mutation.workoutId,
+            );
+            const nextPosition =
+              existing.length > 0
+                ? Math.max(...existing.map((exercise) => exercise.position)) + 1
+                : 0;
+            const exerciseId = createExerciseId(mutation.exercise.name);
+            const timestamp = nowIso();
+            await db.runAsync(
+              `INSERT INTO exercises (
               id, workout_id, name, sets, reps, base_weight,
               muscle_group, notes, position, updated_at, deleted_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
-            exerciseId,
-            mutation.workoutId,
-            mutation.exercise.name,
-            mutation.exercise.sets,
-            mutation.exercise.reps,
-            0,
-            mutation.exercise.muscleGroup,
-            mutation.exercise.notes,
-            nextPosition,
-            timestamp,
-          );
-          await db.runAsync(
-            `INSERT INTO user_weights (exercise_id, value, updated_at)
+              exerciseId,
+              mutation.workoutId,
+              mutation.exercise.name,
+              mutation.exercise.sets,
+              mutation.exercise.reps,
+              0,
+              mutation.exercise.muscleGroup,
+              mutation.exercise.notes,
+              nextPosition,
+              timestamp,
+            );
+            await db.runAsync(
+              `INSERT INTO user_weights (exercise_id, value, updated_at)
              VALUES (?, ?, ?)
              ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
-            exerciseId,
-            0,
-            timestamp,
-          );
-          await this.recordMutation(db, 'exercise', exerciseId, 'upsert', {
-            workoutId: mutation.workoutId,
-            exercise: {
-              ...mutation.exercise,
-              id: exerciseId,
-              baseWeight: 0,
-              position: nextPosition,
-            },
-          });
-          break;
-        }
-        case 'editExercise': {
-          const current = await db.getFirstAsync<ExerciseRow>(
-            `SELECT id, workout_id, name, sets, reps, base_weight, muscle_group, notes, position
-             FROM exercises WHERE id = ? AND deleted_at IS NULL`,
-            mutation.exerciseId,
-          );
-          if (!current) {
+              exerciseId,
+              0,
+              timestamp,
+            );
+            await this.recordMutation(db, 'exercise', exerciseId, 'upsert', {
+              workoutId: mutation.workoutId,
+              exercise: {
+                ...mutation.exercise,
+                id: exerciseId,
+                baseWeight: 0,
+                position: nextPosition,
+              },
+            });
             break;
           }
-          const next = {
-            ...current,
-            name: mutation.updates.name ?? current.name,
-            sets: mutation.updates.sets ?? current.sets,
-            reps: mutation.updates.reps ?? current.reps,
-            base_weight: mutation.updates.baseWeight ?? current.base_weight,
-            muscle_group: mutation.updates.muscleGroup ?? current.muscle_group,
-            notes: mutation.updates.notes ?? current.notes,
-            position: mutation.updates.position ?? current.position,
-          };
-          const timestamp = nowIso();
-          await db.runAsync(
-            `UPDATE exercises
+          case 'editExercise': {
+            const current = await db.getFirstAsync<ExerciseRow>(
+              `SELECT id, workout_id, name, sets, reps, base_weight, muscle_group, notes, position
+             FROM exercises WHERE id = ? AND deleted_at IS NULL`,
+              mutation.exerciseId,
+            );
+            if (!current) {
+              break;
+            }
+            const next = {
+              ...current,
+              name: mutation.updates.name ?? current.name,
+              sets: mutation.updates.sets ?? current.sets,
+              reps: mutation.updates.reps ?? current.reps,
+              base_weight: mutation.updates.baseWeight ?? current.base_weight,
+              muscle_group:
+                mutation.updates.muscleGroup ?? current.muscle_group,
+              notes: mutation.updates.notes ?? current.notes,
+              position: mutation.updates.position ?? current.position,
+            };
+            const timestamp = nowIso();
+            await db.runAsync(
+              `UPDATE exercises
              SET name = ?, sets = ?, reps = ?, base_weight = ?, muscle_group = ?, notes = ?, position = ?, updated_at = ?
              WHERE id = ?`,
-            next.name,
-            next.sets,
-            next.reps,
-            next.base_weight,
-            next.muscle_group,
-            next.notes,
-            next.position,
-            timestamp,
-            mutation.exerciseId,
-          );
-          await this.recordMutation(
-            db,
-            'exercise',
-            mutation.exerciseId,
-            'upsert',
-            {
-              workoutId: mutation.workoutId,
-              updates: mutation.updates,
-            },
-          );
-          break;
-        }
-        case 'deleteExercise': {
-          const timestamp = nowIso();
-          await db.runAsync(
-            'UPDATE exercises SET deleted_at = ?, updated_at = ? WHERE id = ?',
-            timestamp,
-            timestamp,
-            mutation.exerciseId,
-          );
-          await db.runAsync(
-            'DELETE FROM user_weights WHERE exercise_id = ?',
-            mutation.exerciseId,
-          );
-          await this.reindexExercises(db, mutation.workoutId);
-          await this.recordMutation(
-            db,
-            'exercise',
-            mutation.exerciseId,
-            'delete',
-            {
-              workoutId: mutation.workoutId,
-            },
-          );
-          break;
-        }
-        case 'reorderExercise': {
-          const ordered = await this.getExercisesForWorkout(
-            db,
-            mutation.workoutId,
-          );
-          const index = ordered.findIndex(
-            (exercise) => exercise.id === mutation.exerciseId,
-          );
-          if (index === -1) {
-            break;
-          }
-          const target = mutation.direction === 'up' ? index - 1 : index + 1;
-          if (target < 0 || target >= ordered.length) {
-            break;
-          }
-          [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
-          const timestamp = nowIso();
-          for (const [position, exercise] of ordered.entries()) {
-            await db.runAsync(
-              'UPDATE exercises SET position = ?, updated_at = ? WHERE id = ?',
-              position,
+              next.name,
+              next.sets,
+              next.reps,
+              next.base_weight,
+              next.muscle_group,
+              next.notes,
+              next.position,
               timestamp,
-              exercise.id,
+              mutation.exerciseId,
             );
+            await this.recordMutation(
+              db,
+              'exercise',
+              mutation.exerciseId,
+              'upsert',
+              {
+                workoutId: mutation.workoutId,
+                updates: mutation.updates,
+              },
+            );
+            break;
           }
-          await this.recordMutation(
-            db,
-            'exercise',
-            mutation.exerciseId,
-            'reorder',
-            {
-              workoutId: mutation.workoutId,
-              direction: mutation.direction,
-            },
-          );
-          break;
-        }
-        case 'replaceWeekConfigs': {
-          const timestamp = nowIso();
-          await db.runAsync('DELETE FROM week_configs');
-          for (const [index, week] of mutation.weekConfigs.entries()) {
+          case 'deleteExercise': {
+            const timestamp = nowIso();
             await db.runAsync(
-              `INSERT INTO week_configs (id, name, load_modifier, rir, sort_order, updated_at)
+              'UPDATE exercises SET deleted_at = ?, updated_at = ? WHERE id = ?',
+              timestamp,
+              timestamp,
+              mutation.exerciseId,
+            );
+            await db.runAsync(
+              'DELETE FROM user_weights WHERE exercise_id = ?',
+              mutation.exerciseId,
+            );
+            await this.reindexExercises(db, mutation.workoutId);
+            await this.recordMutation(
+              db,
+              'exercise',
+              mutation.exerciseId,
+              'delete',
+              {
+                workoutId: mutation.workoutId,
+              },
+            );
+            break;
+          }
+          case 'reorderExercise': {
+            const ordered = await this.getExercisesForWorkout(
+              db,
+              mutation.workoutId,
+            );
+            const index = ordered.findIndex(
+              (exercise) => exercise.id === mutation.exerciseId,
+            );
+            if (index === -1) {
+              break;
+            }
+            const target = mutation.direction === 'up' ? index - 1 : index + 1;
+            if (target < 0 || target >= ordered.length) {
+              break;
+            }
+            [ordered[index], ordered[target]] = [
+              ordered[target],
+              ordered[index],
+            ];
+            const timestamp = nowIso();
+            for (const [position, exercise] of ordered.entries()) {
+              await db.runAsync(
+                'UPDATE exercises SET position = ?, updated_at = ? WHERE id = ?',
+                position,
+                timestamp,
+                exercise.id,
+              );
+            }
+            await this.recordMutation(
+              db,
+              'exercise',
+              mutation.exerciseId,
+              'reorder',
+              {
+                workoutId: mutation.workoutId,
+                direction: mutation.direction,
+              },
+            );
+            break;
+          }
+          case 'replaceWeekConfigs': {
+            const timestamp = nowIso();
+            await db.runAsync('DELETE FROM week_configs');
+            for (const [index, week] of mutation.weekConfigs.entries()) {
+              await db.runAsync(
+                `INSERT INTO week_configs (id, name, load_modifier, rir, sort_order, updated_at)
                VALUES (?, ?, ?, ?, ?, ?)`,
-              index + 1,
-              week.name,
-              week.loadModifier,
-              week.rir,
-              index,
-              timestamp,
-            );
+                index + 1,
+                week.name,
+                week.loadModifier,
+                week.rir,
+                index,
+                timestamp,
+              );
+            }
+            await this.recordMutation(db, 'program', 'week-configs', 'upsert', {
+              weekConfigs: mutation.weekConfigs.map((week, index) => ({
+                ...week,
+                id: index + 1,
+              })),
+            });
+            break;
           }
-          await this.recordMutation(db, 'program', 'week-configs', 'upsert', {
-            weekConfigs: mutation.weekConfigs.map((week, index) => ({
-              ...week,
-              id: index + 1,
-            })),
-          });
-          break;
-        }
-        case 'replaceDayConfigs': {
-          const runtime = await this.readRuntimeState(db);
-          const nextDayConfigs = normalizeDayConfigs(
-            runtime.workouts,
-            mutation.dayConfigs,
-          );
-          const alignedWorkouts = alignWorkoutsToDays(
-            runtime.workouts,
-            nextDayConfigs,
-          );
-          const timestamp = nowIso();
+          case 'replaceDayConfigs': {
+            const runtime = await this.readRuntimeState(db);
+            const nextDayConfigs = normalizeDayConfigs(
+              runtime.workouts,
+              mutation.dayConfigs,
+            );
+            const alignedWorkouts = alignWorkoutsToDays(
+              runtime.workouts,
+              nextDayConfigs,
+            );
+            const timestamp = nowIso();
 
-          await db.runAsync('DELETE FROM day_configs');
-          for (const [index, day] of nextDayConfigs.entries()) {
-            await db.runAsync(
-              `INSERT INTO day_configs (id, name, icon, sort_order, updated_at)
+            await db.runAsync('DELETE FROM day_configs');
+            for (const [index, day] of nextDayConfigs.entries()) {
+              await db.runAsync(
+                `INSERT INTO day_configs (id, name, icon, sort_order, updated_at)
                VALUES (?, ?, ?, ?, ?)`,
-              day.id,
-              day.name,
-              day.icon,
-              index,
-              timestamp,
-            );
-          }
+                day.id,
+                day.name,
+                day.icon,
+                index,
+                timestamp,
+              );
+            }
 
-          for (const [index, workout] of alignedWorkouts.entries()) {
-            await db.runAsync(
-              `INSERT INTO workouts (id, name, description, sort_order, updated_at, deleted_at)
+            for (const [index, workout] of alignedWorkouts.entries()) {
+              await db.runAsync(
+                `INSERT INTO workouts (id, name, description, sort_order, updated_at, deleted_at)
                VALUES (?, ?, ?, ?, ?, NULL)
                ON CONFLICT(id) DO UPDATE SET name = excluded.name, description = excluded.description, sort_order = excluded.sort_order, updated_at = excluded.updated_at, deleted_at = NULL`,
-              workout.id,
-              workout.name,
-              workout.description,
-              index,
+                workout.id,
+                workout.name,
+                workout.description,
+                index,
+                timestamp,
+              );
+            }
+
+            const nextCurrentDay = nextDayConfigs[0]?.id ?? runtime.currentDay;
+            const currentDayStillExists = nextDayConfigs.some(
+              (day) => day.id === runtime.currentDay,
+            );
+            await this.writeSetting(
+              db,
+              'currentDay',
+              currentDayStillExists ? runtime.currentDay : nextCurrentDay,
+            );
+            await this.recordMutation(db, 'program', 'day-configs', 'upsert', {
+              dayConfigs: nextDayConfigs,
+            });
+            break;
+          }
+          case 'resetAllData': {
+            await this.replaceAllState(db, buildDefaultRuntimeState());
+            await this.recordMutation(db, 'app', 'reset', 'reset', {
+              reason: 'user-reset',
+            });
+            break;
+          }
+          case 'restoreRuntimeState': {
+            await this.replaceAllState(db, mutation.runtime);
+            const timestamp = nowIso();
+            await this.upsertSyncMetadata(
+              db,
+              METADATA_KEYS.lastRestoreAt,
               timestamp,
             );
+            await this.recordMutation(db, 'app', 'restore', 'restore', {
+              source: mutation.source,
+              restoredAt: timestamp,
+            });
+            break;
           }
-
-          const nextCurrentDay = nextDayConfigs[0]?.id ?? runtime.currentDay;
-          const currentDayStillExists = nextDayConfigs.some(
-            (day) => day.id === runtime.currentDay,
-          );
-          await this.writeSetting(
-            db,
-            'currentDay',
-            currentDayStillExists ? runtime.currentDay : nextCurrentDay,
-          );
-          await this.recordMutation(db, 'program', 'day-configs', 'upsert', {
-            dayConfigs: nextDayConfigs,
-          });
-          break;
+          default: {
+            const exhaustiveCheck: never = mutation;
+            return exhaustiveCheck;
+          }
         }
-        case 'resetAllData': {
-          await this.replaceAllState(db, buildDefaultRuntimeState());
-          await this.recordMutation(db, 'app', 'reset', 'reset', {
-            reason: 'user-reset',
-          });
-          break;
-        }
-        case 'restoreRuntimeState': {
-          await this.replaceAllState(db, mutation.runtime);
-          const timestamp = nowIso();
-          await this.upsertSyncMetadata(
-            db,
-            METADATA_KEYS.lastRestoreAt,
-            timestamp,
-          );
-          await this.recordMutation(db, 'app', 'restore', 'restore', {
-            source: mutation.source,
-            restoredAt: timestamp,
-          });
-          break;
-        }
-        default: {
-          const exhaustiveCheck: never = mutation;
-          return exhaustiveCheck;
-        }
-      }
+      });
     });
   }
 
@@ -572,23 +600,25 @@ export class WorkoutRepository {
     lastBackupRevision: number;
   }) {
     await this.initialize();
-    const db = await getDatabase();
-    await db.withTransactionAsync(async () => {
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.lastBackupAt,
-        input.lastBackupAt,
-      );
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.lastBackupEventId,
-        input.lastBackupEventId,
-      );
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.lastBackupRevision,
-        String(input.lastBackupRevision),
-      );
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.withTransactionAsync(async () => {
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.lastBackupAt,
+          input.lastBackupAt,
+        );
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.lastBackupEventId,
+          input.lastBackupEventId,
+        );
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.lastBackupRevision,
+          String(input.lastBackupRevision),
+        );
+      });
     });
   }
 
@@ -631,42 +661,46 @@ export class WorkoutRepository {
     recoverySource?: AppSetupState['recoverySource'];
   }) {
     await this.initialize();
-    const db = await getDatabase();
     const timestamp = nowIso();
-    await db.withTransactionAsync(async () => {
-      await this.upsertSyncMetadata(db, METADATA_KEYS.setupCompleted, 'true');
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.setupSyncMode,
-        input.syncMode,
-      );
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.setupIdentityProvisionedAt,
-        input.identityProvisionedAt,
-      );
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.setupSeenRecoveryOptions,
-        input.hasSeenRecoveryOptions === false ? 'false' : 'true',
-      );
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.setupRecoverySource,
-        input.recoverySource ?? 'start-fresh',
-      );
-      await this.upsertSyncMetadata(
-        db,
-        METADATA_KEYS.setupCompletedAt,
-        timestamp,
-      );
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.withTransactionAsync(async () => {
+        await this.upsertSyncMetadata(db, METADATA_KEYS.setupCompleted, 'true');
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.setupSyncMode,
+          input.syncMode,
+        );
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.setupIdentityProvisionedAt,
+          input.identityProvisionedAt,
+        );
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.setupSeenRecoveryOptions,
+          input.hasSeenRecoveryOptions === false ? 'false' : 'true',
+        );
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.setupRecoverySource,
+          input.recoverySource ?? 'start-fresh',
+        );
+        await this.upsertSyncMetadata(
+          db,
+          METADATA_KEYS.setupCompletedAt,
+          timestamp,
+        );
+      });
     });
   }
 
   async setSyncMode(syncMode: SyncMode) {
     await this.initialize();
-    const db = await getDatabase();
-    await this.upsertSyncMetadata(db, METADATA_KEYS.setupSyncMode, syncMode);
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.upsertSyncMetadata(db, METADATA_KEYS.setupSyncMode, syncMode);
+    });
   }
 
   private async seedInitialState(db: SQLiteDatabase) {
