@@ -1,0 +1,16 @@
+{
+  "name": "pearlift-rest-timer-fgs",
+  "version": "0.0.1",
+  "description": "Android foreground service rest timer for PearLift (Expo module).",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  },
+  "dependencies": {
+    "expo-modules-core": "*"
+  }
+}
