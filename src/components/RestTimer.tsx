@@ -1,5 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import * as Haptics from 'expo-haptics';
+import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -26,9 +28,12 @@ const MIN_DURATION = 30;
 const MAX_DURATION = 600;
 const STEP = 15;
 const CHANNEL_ID = 'rest-timer';
+const COMPLETION_SOUND =
+  'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleW1mcYaGflxTYYqhtax6USpFjMvl3LKBXlxjdIGCd2RjcIqgtLSMakVFhLbZ48CghXlxcnl2alZcc46fr6+TdE9Hi7XI0sGnmY+IhYN8bmBeZ3+PlZ2ejnhdd5i60t3MubKsnp2bkYV0ZWVte4SNk5KKfm5rgZ2vvsrFu7KtrK6poZWIeXRzd36EioqGgHhxcIWcr7zBvba0s7W2saqfi4J9fX9/gYKBfnp3d4GUnKm2vL27ubq7u7mvn46Bf39/f39+fXt4dXiBkZyqtr3Avrq4t7W0rKCUiYOBgIB+fHp4dXN4hJOgrrm+v7y3s7CtqaWckoqFg4KBf316eHZ3fIqXo6+5vL26trKuqqahmZGLhoSCgX99e3l4eHyGk5+rsbi6uLWyr6yppZ6WjoiFg4GAfnt5eHl+h5OeqLK3t7azsK2qqKSfmJCKhoOBf358enl5fYaSmqWusbKxr62rqainop2Vj4qGg4F/fXt6en2FkJiks7e5t7SxrquopaGbk42IhYOAfn17e3x/iJObpK6ztLOwr6yqp6Sgm5SNiYWDgH5+fHt9gYqTm6OrsLGwra2rqaeinpqUjoqGg4GAf359fYGIkJeeo6iqqqmopaOhnpuXkY2JhoOBgH9+f4GGjJKYnqGjoqGgn52bmJWRjouIhoSCgYCAgoSIjZGWmZubnJuamJeVk5COi4mHhYSDg4OEhomMj5KUlZWVlJOSkI+NjIqJiIeGhoaGh4mKjI6PkJCQkI+Ojo2MjIuKioqJiYmJiouMjY6Ojo6OjY2NjYyMjIuLi4uLi4uLjIyMjY2NjY2NjY2NjY2NjYyMjIyMjIyMjIyMjIyMjI2NjY2NjY2NjY2NjY2NjY2NjYyM';
 
 let notificationHandlerConfigured = false;
 let notificationChannelConfigured = false;
+let completionSoundRef: Audio.Sound | null = null;
 
 function formatSeconds(total: number) {
   const minutes = Math.floor(total / 60);
@@ -69,6 +74,47 @@ async function ensureNotificationPermission() {
   if (current.granted) return true;
   const asked = await Notifications.requestPermissionsAsync();
   return asked.granted;
+}
+
+async function prepareCompletionSound() {
+  if (completionSoundRef) return;
+  try {
+    await Audio.setAudioModeAsync({
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: true,
+      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
+      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+    });
+    const { sound } = await Audio.Sound.createAsync(
+      { uri: COMPLETION_SOUND },
+      { shouldPlay: false },
+    );
+    completionSoundRef = sound;
+  } catch {
+    // ignore initialization failures
+  }
+}
+
+async function playCompletionSound() {
+  if (!completionSoundRef) {
+    await prepareCompletionSound();
+  }
+  if (!completionSoundRef) return;
+  try {
+    await completionSoundRef.setPositionAsync(0);
+    await completionSoundRef.playAsync();
+  } catch {
+    // ignore playback failures
+  }
+}
+
+function triggerCompletionFeedback() {
+  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+  if (Platform.OS === 'web') {
+    navigator.vibrate([200, 100, 200, 100, 200]);
+  } else {
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }
 }
 
 export function RestTimer({
@@ -150,8 +196,17 @@ export function RestTimer({
     }
 
     completionSignaledRef.current = true;
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    void playCompletionSound();
+    void triggerCompletionFeedback();
   }, [isRunning, timeLeft]);
+
+  useEffect(() => {
+    if (isRunning) {
+      void activateKeepAwakeAsync();
+    } else {
+      deactivateKeepAwake();
+    }
+  }, [isRunning]);
 
   const progress = duration > 0 ? ((duration - timeLeft) / duration) * 100 : 0;
 

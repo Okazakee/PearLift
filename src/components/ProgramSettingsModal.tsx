@@ -98,6 +98,9 @@ export function ProgramSettingsModal({
     onDayConfigsChange(dayConfigs.filter((_, i) => i !== index));
   };
 
+  const atLimit =
+    activeTab === 'weeks' ? weekConfigs.length >= 4 : dayConfigs.length >= 7;
+
   return (
     <Modal
       visible={open}
@@ -328,8 +331,11 @@ export function ProgramSettingsModal({
           </ScrollView>
 
           <Pressable
-            style={styles.addButton}
-            onPress={activeTab === 'weeks' ? addWeek : addDay}
+            style={[styles.addButton, atLimit && styles.addButtonDisabled]}
+            onPress={
+              atLimit ? undefined : activeTab === 'weeks' ? addWeek : addDay
+            }
+            disabled={atLimit}
           >
             <Text style={styles.addButtonText}>
               {activeTab === 'weeks' ? 'Add Week' : 'Add Day'}
@@ -486,6 +492,11 @@ function createStyles(tokens: ThemeTokens) {
       backgroundColor: tokens.colors.primary,
       paddingVertical: tokens.spacing.md,
       alignItems: 'center',
+    },
+    addButtonDisabled: {
+      backgroundColor: withAlpha(tokens.colors.textPrimary, 0.1),
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
     },
     addButtonText: {
       color: tokens.colors.onPrimary,
