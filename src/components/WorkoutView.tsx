@@ -131,11 +131,12 @@ export function WorkoutView({
             />
           ))}
         </View>
-      </ScrollView>
 
-      <Pressable style={styles.fab} onPress={onOpenAddExercise}>
-        <MaterialIcons name="add" size={24} color={tokens.colors.onPrimary} />
-      </Pressable>
+        <Pressable style={styles.addButton} onPress={onOpenAddExercise}>
+          <MaterialIcons name="add" size={20} color={tokens.colors.primary} />
+          <Text style={styles.addButtonText}>Add Exercise</Text>
+        </Pressable>
+      </ScrollView>
     </View>
   );
 }
@@ -143,7 +144,7 @@ export function WorkoutView({
 function createStyles(
   tokens: ThemeTokens,
   contentBottomPadding: number,
-  fabBottom: number,
+  _fabBottom: number,
 ) {
   return StyleSheet.create({
     container: {
@@ -259,20 +260,23 @@ function createStyles(
       gap: tokens.spacing.md,
     },
     fab: {
-      position: 'absolute',
-      right: 22,
-      bottom: fabBottom,
-      width: 54,
-      height: 54,
-      borderRadius: 16,
-      backgroundColor: tokens.colors.primary,
+      display: 'none',
+    },
+    addButton: {
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: tokens.colors.primary,
-      shadowOpacity: 0.3,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 6 },
-      elevation: 8,
+      gap: tokens.spacing.xs,
+      paddingVertical: tokens.spacing.md,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+    },
+    addButtonText: {
+      color: tokens.colors.primary,
+      fontSize: tokens.type.body,
+      fontWeight: '600',
     },
   });
 }

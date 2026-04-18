@@ -92,7 +92,7 @@ function coerceThemeMode(value: string | null | undefined): 'light' | 'dark' {
 }
 
 function coerceSyncMode(value: string | null | undefined): SyncMode {
-  if (value === 'relay-backup' || value === 'full-sync-later') {
+  if (value === 'd2d-sync') {
     return value;
   }
   return 'local-only';
@@ -101,11 +101,7 @@ function coerceSyncMode(value: string | null | undefined): SyncMode {
 function coerceRecoverySource(
   value: string | null | undefined,
 ): AppSetupState['recoverySource'] {
-  if (
-    value === 'start-fresh' ||
-    value === 'relay-restore' ||
-    value === 'local-import'
-  ) {
+  if (value === 'start-fresh' || value === 'local-import') {
     return value;
   }
   return null;

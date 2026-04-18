@@ -28,8 +28,7 @@ interface SyncSetupScreenProps {
 }
 
 function modeTitle(mode: SyncMode) {
-  if (mode === 'relay-backup') return 'Encrypted relay backup';
-  if (mode === 'full-sync-later') return 'Prepare full sync later';
+  if (mode === 'd2d-sync') return 'Device-to-Device sync';
   return 'Local only';
 }
 
@@ -53,7 +52,7 @@ export function SyncSetupScreen({
     [tokens, topInset, bottomInset],
   );
 
-  const relayEnabled = selectedMode !== 'local-only';
+  const d2dEnabled = selectedMode === 'd2d-sync';
 
   return (
     <Modal visible={open} animationType="slide" onRequestClose={onClose}>
@@ -104,30 +103,9 @@ export function SyncSetupScreen({
             <Pressable
               style={[
                 styles.modeCard,
-                selectedMode === 'relay-backup' && styles.modeCardActive,
+                selectedMode === 'd2d-sync' && styles.modeCardActive,
               ]}
-              onPress={() => setSelectedMode('relay-backup')}
-            >
-              <MaterialIcons
-                name="cloud"
-                size={18}
-                color={tokens.colors.textPrimary}
-              />
-              <View style={styles.modeTextWrap}>
-                <Text style={styles.modeTitle}>Encrypted relay backup</Text>
-                <Text style={styles.modeBody}>
-                  Publish encrypted snapshots and restore from any configured
-                  relay.
-                </Text>
-              </View>
-            </Pressable>
-
-            <Pressable
-              style={[
-                styles.modeCard,
-                selectedMode === 'full-sync-later' && styles.modeCardActive,
-              ]}
-              onPress={() => setSelectedMode('full-sync-later')}
+              onPress={() => setSelectedMode('d2d-sync')}
             >
               <MaterialIcons
                 name="devices"
@@ -135,9 +113,9 @@ export function SyncSetupScreen({
                 color={tokens.colors.textPrimary}
               />
               <View style={styles.modeTextWrap}>
-                <Text style={styles.modeTitle}>Prepare full sync later</Text>
+                <Text style={styles.modeTitle}>Device-to-Device sync</Text>
                 <Text style={styles.modeBody}>
-                  Keep relay backups on and stay ready for peer sync rollout.
+                  Sync directly between your devices using QR code pairing.
                 </Text>
               </View>
             </Pressable>
@@ -181,19 +159,19 @@ export function SyncSetupScreen({
             <Pressable
               style={[
                 styles.secondaryButton,
-                (!relayEnabled || busy) && styles.disabled,
+                (!d2dEnabled || busy) && styles.disabled,
               ]}
               onPress={() => {
                 void onRestoreRelayBackup();
               }}
-              disabled={!relayEnabled || busy}
+              disabled={!d2dEnabled || busy}
             >
               <MaterialIcons
                 name="cloud-download"
                 size={18}
                 color={tokens.colors.primary}
               />
-              <Text style={styles.secondaryButtonText}>Restore from relay</Text>
+              <Text style={styles.secondaryButtonText}>Pair Device</Text>
             </Pressable>
 
             <View style={styles.infoRow}>

@@ -70,14 +70,18 @@ function formatSyncSummary(status: SyncStatus | null) {
   }
 
   if (status.syncMode === 'local-only') {
-    return 'Local-only mode active. Relay backup is currently disabled.';
+    return 'Local-only mode active. Data stored on this device.';
+  }
+
+  if (status.syncMode === 'd2d-sync') {
+    return 'Device-to-Device sync active.';
   }
 
   if (!status.lastBackupAt) {
-    return `No relay backup yet. ${status.pendingChanges} pending local change(s).`;
+    return `No backup yet. ${status.pendingChanges} pending change(s).`;
   }
 
-  const pieces = [`Last relay backup: ${status.lastBackupAt}`];
+  const pieces = [`Last backup: ${status.lastBackupAt}`];
   if (status.pendingChanges > 0) {
     pieces.push(`${status.pendingChanges} local change(s) not backed up yet`);
   }
@@ -112,8 +116,6 @@ export function WorkoutScreen() {
   const [syncSetupOpen, setSyncSetupOpen] = useState(false);
   const [syncSetupBusy, setSyncSetupBusy] = useState(false);
   const [syncSetupError, setSyncSetupError] = useState<string | null>(null);
-  const [onboardingBusy, setOnboardingBusy] = useState(false);
-  const [onboardingError, setOnboardingError] = useState<string | null>(null);
   const [timerExpanded, setTimerExpanded] = useState(false);
 
   useEffect(() => {
@@ -394,7 +396,7 @@ export function WorkoutScreen() {
     setPendingImport(null);
   };
 
-  const handleBackupToRelay = useCallback(async () => {
+  const _handleBackupToRelay = useCallback(async () => {
     if (!syncCoordinator) {
       return;
     }
@@ -404,19 +406,19 @@ export function WorkoutScreen() {
       await reload();
       await refreshSyncStatus();
       Alert.alert(
-        'Relay backup complete',
-        `Published snapshot ${result.snapshotVersion} to ${result.relayUrls.length} relay(s).`,
+        'Backup complete',
+        `Snapshot ${result.snapshotVersion} saved.`,
       );
       setLocalBackupOpen(false);
     } catch (error) {
       logError('sync/backup failed', error);
-      Alert.alert('Relay backup failed', getErrorMessage(error));
+      Alert.alert('Backup failed', getErrorMessage(error));
     } finally {
       setSyncBusy(false);
     }
   }, [refreshSyncStatus, reload, syncCoordinator]);
 
-  const handleRestoreFromRelay = useCallback(async () => {
+  const _handleRestoreFromRelay = useCallback(async () => {
     if (!syncCoordinator) {
       return;
     }
@@ -426,92 +428,26 @@ export function WorkoutScreen() {
       await reload();
       await refreshSyncStatus();
       Alert.alert(
-        'Relay restore complete',
-        `Restored snapshot ${restored.snapshotVersion} from ${restored.relayUrl}.`,
+        'Restore complete',
+        `Restored snapshot ${restored.snapshotVersion}.`,
       );
       setLocalBackupOpen(false);
     } catch (error) {
       logError('sync/restore failed', error);
-      Alert.alert('Relay restore failed', getErrorMessage(error));
+      Alert.alert('Restore failed', getErrorMessage(error));
     } finally {
       setSyncBusy(false);
     }
   }, [refreshSyncStatus, reload, syncCoordinator]);
 
   const finishOnboarding = useCallback(async () => {
+    if (syncCoordinator) {
+      await syncCoordinator.completeSetup('local-only', 'start-fresh');
+    }
     await reload();
     await refreshSetupStatus();
     await refreshSyncStatus();
-    setOnboardingError(null);
-  }, [refreshSetupStatus, refreshSyncStatus, reload]);
-
-  const handleOnboardingStartFresh = useCallback(
-    async (mode: SyncMode) => {
-      if (!syncCoordinator) return;
-      setOnboardingBusy(true);
-      setOnboardingError(null);
-      try {
-        await syncCoordinator.completeSetup(mode, 'start-fresh');
-        await finishOnboarding();
-      } catch (error) {
-        logError('onboarding/start-fresh failed', error);
-        setOnboardingError(getErrorMessage(error));
-      } finally {
-        setOnboardingBusy(false);
-      }
-    },
-    [finishOnboarding, syncCoordinator],
-  );
-
-  const handleOnboardingRestoreRelay = useCallback(
-    async (mode: SyncMode) => {
-      if (!syncCoordinator) return;
-      setOnboardingBusy(true);
-      setOnboardingError(null);
-      try {
-        await syncCoordinator.completeSetup(mode, 'relay-restore');
-        await syncCoordinator.restoreLatestIfEnabled();
-        await finishOnboarding();
-      } catch (error) {
-        logError('onboarding/restore-relay failed', error);
-        setOnboardingError(getErrorMessage(error));
-      } finally {
-        setOnboardingBusy(false);
-      }
-    },
-    [finishOnboarding, syncCoordinator],
-  );
-
-  const handleOnboardingImportLocal = useCallback(
-    async (mode: SyncMode) => {
-      if (!syncCoordinator) return;
-      setOnboardingBusy(true);
-      setOnboardingError(null);
-      try {
-        await syncCoordinator.completeSetup(mode, 'local-import');
-        const picked = await File.pickFileAsync(undefined, 'application/json');
-        const pickedFile = Array.isArray(picked) ? picked[0] : picked;
-        if (!pickedFile) {
-          throw new Error('No file selected.');
-        }
-
-        const fileText = await pickedFile.text();
-        const migrated = parseAndMigrateBackup(fileText);
-        await runMutation({
-          type: 'restoreRuntimeState',
-          runtime: migrated.runtime,
-          source: 'local-import',
-        });
-        await finishOnboarding();
-      } catch (error) {
-        logError('onboarding/import-local failed', error);
-        setOnboardingError(getErrorMessage(error));
-      } finally {
-        setOnboardingBusy(false);
-      }
-    },
-    [finishOnboarding, runMutation, syncCoordinator],
-  );
+  }, [syncCoordinator, reload, refreshSetupStatus, refreshSyncStatus]);
 
   const handleSyncSetupSaveMode = useCallback(
     async (mode: SyncMode) => {
@@ -569,7 +505,7 @@ export function WorkoutScreen() {
       await refreshSetupStatus();
       await refreshSyncStatus();
     } catch (error) {
-      logError('sync-setup/restore-relay failed', error);
+      logError('sync-setup/restore failed', error);
       setSyncSetupError(getErrorMessage(error));
     } finally {
       setSyncSetupBusy(false);
@@ -631,14 +567,7 @@ export function WorkoutScreen() {
           tokens={tokens}
           topInset={insets.top}
           bottomInset={insets.bottom}
-          blocking
-          busy={onboardingBusy}
-          initialMode={syncMode}
-          identityFingerprint={setupStatus.identityFingerprint}
-          errorMessage={onboardingError}
-          onStartFresh={handleOnboardingStartFresh}
-          onRestoreRelay={handleOnboardingRestoreRelay}
-          onImportLocal={handleOnboardingImportLocal}
+          onComplete={finishOnboarding}
         />
       </SafeAreaView>
     );
@@ -764,12 +693,6 @@ export function WorkoutScreen() {
           onClose={() => setLocalBackupOpen(false)}
           onExport={handleExportBackup}
           onImport={handleImportBackup}
-          onBackupToRelay={() => {
-            void handleBackupToRelay();
-          }}
-          onRestoreFromRelay={() => {
-            void handleRestoreFromRelay();
-          }}
           onOpenSyncSetup={handleOpenSyncSetup}
         />
 

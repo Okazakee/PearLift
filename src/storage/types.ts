@@ -1,13 +1,9 @@
 import type { PearLiftRuntimeState } from '../backup/types';
 import type { DayConfig, Exercise, WeekConfig, WorkoutDay } from '../types';
 
-export type SyncMode = 'local-only' | 'relay-backup' | 'full-sync-later';
+export type SyncMode = 'local-only' | 'd2d-sync';
 
-export type SetupRecoverySource =
-  | 'start-fresh'
-  | 'relay-restore'
-  | 'local-import'
-  | null;
+export type SetupRecoverySource = 'start-fresh' | 'local-import' | null;
 
 export interface AppSetupState {
   hasCompletedOnboarding: boolean;
@@ -90,7 +86,7 @@ export type WorkoutMutation =
   | {
       type: 'restoreRuntimeState';
       runtime: PearLiftRuntimeState;
-      source: 'local-import' | 'relay-restore' | 'migration';
+      source: 'local-import' | 'migration';
     };
 
 export interface WorkoutStoreSnapshot extends PearLiftRuntimeState {

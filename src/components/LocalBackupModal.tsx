@@ -14,8 +14,6 @@ interface LocalBackupModalProps {
   onClose: () => void;
   onExport: () => void;
   onImport: () => void;
-  onBackupToRelay: () => void;
-  onRestoreFromRelay: () => void;
   onOpenSyncSetup: () => void;
 }
 
@@ -28,12 +26,10 @@ export function LocalBackupModal({
   onClose,
   onExport,
   onImport,
-  onBackupToRelay,
-  onRestoreFromRelay,
   onOpenSyncSetup,
 }: LocalBackupModalProps) {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
-  const relayEnabled = syncMode !== 'local-only';
+  const d2dEnabled = syncMode === 'd2d-sync';
 
   return (
     <Modal
@@ -55,6 +51,56 @@ export function LocalBackupModal({
               />
             </Pressable>
           </View>
+
+          {d2dEnabled ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Device Sync</Text>
+              <Text style={styles.message}>
+                Sync directly with another device using QR code pairing.
+              </Text>
+              <View style={styles.statusBanner}>
+                <MaterialIcons
+                  name="devices"
+                  size={18}
+                  color={tokens.colors.primary}
+                />
+                <Text style={styles.statusText}>{syncSummary}</Text>
+              </View>
+              <View style={styles.actions}>
+                <Pressable
+                  style={[styles.actionButton, busy && styles.disabledButton]}
+                  onPress={onOpenSyncSetup}
+                  disabled={busy}
+                >
+                  <MaterialIcons
+                    name="qr-code"
+                    size={18}
+                    color={tokens.colors.onPrimary}
+                  />
+                  <Text style={styles.actionText}>Pair Device</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Device Sync</Text>
+              <Text style={styles.message}>
+                Device-to-device sync can be enabled in Sync Setup.
+              </Text>
+              <Pressable
+                style={[styles.secondaryButton, busy && styles.disabledButton]}
+                onPress={onOpenSyncSetup}
+                disabled={busy}
+              >
+                <MaterialIcons
+                  name="tune"
+                  size={18}
+                  color={tokens.colors.primary}
+                />
+                <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
+              </Pressable>
+            </View>
+          )}
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Local JSON</Text>
@@ -89,73 +135,6 @@ export function LocalBackupModal({
               </Pressable>
             </View>
           </View>
-
-          {relayEnabled ? (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Encrypted Relay Backup</Text>
-              <Text style={styles.message}>
-                Store an encrypted snapshot on configured Nostr relays and
-                restore it later on another device.
-              </Text>
-              <View style={styles.statusBanner}>
-                <MaterialIcons
-                  name="cloud-done"
-                  size={18}
-                  color={tokens.colors.primary}
-                />
-                <Text style={styles.statusText}>{syncSummary}</Text>
-              </View>
-              <View style={styles.actions}>
-                <Pressable
-                  style={[styles.actionButton, busy && styles.disabledButton]}
-                  onPress={onBackupToRelay}
-                  disabled={busy}
-                >
-                  <MaterialIcons
-                    name="cloud-upload"
-                    size={18}
-                    color={tokens.colors.onPrimary}
-                  />
-                  <Text style={styles.actionText}>Backup to Relay</Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.secondaryButton,
-                    busy && styles.disabledButton,
-                  ]}
-                  onPress={onRestoreFromRelay}
-                  disabled={busy}
-                >
-                  <MaterialIcons
-                    name="cloud-download"
-                    size={18}
-                    color={tokens.colors.primary}
-                  />
-                  <Text style={styles.secondaryText}>Restore Latest</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Encrypted Relay Backup</Text>
-              <Text style={styles.message}>
-                Relay backup is currently off because you selected Local-only
-                mode.
-              </Text>
-              <Pressable
-                style={[styles.secondaryButton, busy && styles.disabledButton]}
-                onPress={onOpenSyncSetup}
-                disabled={busy}
-              >
-                <MaterialIcons
-                  name="tune"
-                  size={18}
-                  color={tokens.colors.primary}
-                />
-                <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
-              </Pressable>
-            </View>
-          )}
         </View>
       </View>
     </Modal>

@@ -160,7 +160,7 @@ export class SyncCoordinator {
     await this.repository.applyMutation({
       type: 'restoreRuntimeState',
       runtime: migrated.runtime,
-      source: 'relay-restore',
+      source: 'local-import',
     });
     await this.repository.setBackupCheckpoint({
       lastBackupAt: restored.createdAt,
