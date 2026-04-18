@@ -1,24 +1,39 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { SyncMode } from '../storage/types';
 import type { ThemeTokens } from '../theme/tokens';
+import { withAlpha } from '../theme/tokens';
 
 interface LocalBackupModalProps {
   open: boolean;
   tokens: ThemeTokens;
+  syncMode: SyncMode;
+  syncSummary: string;
+  busy: boolean;
   onClose: () => void;
   onExport: () => void;
   onImport: () => void;
+  onBackupToRelay: () => void;
+  onRestoreFromRelay: () => void;
+  onOpenSyncSetup: () => void;
 }
 
 export function LocalBackupModal({
   open,
   tokens,
+  syncMode,
+  syncSummary,
+  busy,
   onClose,
   onExport,
   onImport,
+  onBackupToRelay,
+  onRestoreFromRelay,
+  onOpenSyncSetup,
 }: LocalBackupModalProps) {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const relayEnabled = syncMode !== 'local-only';
 
   return (
     <Modal
@@ -31,7 +46,7 @@ export function LocalBackupModal({
         <Pressable style={styles.backdrop} onPress={onClose} />
         <View style={styles.card}>
           <View style={styles.header}>
-            <Text style={styles.title}>Local Backup</Text>
+            <Text style={styles.title}>Backup & Sync</Text>
             <Pressable style={styles.closeButton} onPress={onClose}>
               <MaterialIcons
                 name="close"
@@ -41,29 +56,106 @@ export function LocalBackupModal({
             </Pressable>
           </View>
 
-          <Text style={styles.message}>
-            Export your workout data to a JSON file or import from a previously
-            saved backup.
-          </Text>
-
-          <View style={styles.actions}>
-            <Pressable style={styles.actionButton} onPress={onExport}>
-              <MaterialIcons
-                name="download"
-                size={18}
-                color={tokens.colors.onPrimary}
-              />
-              <Text style={styles.actionText}>Export Backup</Text>
-            </Pressable>
-            <Pressable style={styles.actionButton} onPress={onImport}>
-              <MaterialIcons
-                name="upload"
-                size={18}
-                color={tokens.colors.onPrimary}
-              />
-              <Text style={styles.actionText}>Import Backup</Text>
-            </Pressable>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Local JSON</Text>
+            <Text style={styles.message}>
+              Export your workout data to a JSON file or import a previous local
+              backup.
+            </Text>
+            <View style={styles.actions}>
+              <Pressable
+                style={[styles.actionButton, busy && styles.disabledButton]}
+                onPress={onExport}
+                disabled={busy}
+              >
+                <MaterialIcons
+                  name="download"
+                  size={18}
+                  color={tokens.colors.onPrimary}
+                />
+                <Text style={styles.actionText}>Export Backup</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.actionButton, busy && styles.disabledButton]}
+                onPress={onImport}
+                disabled={busy}
+              >
+                <MaterialIcons
+                  name="upload"
+                  size={18}
+                  color={tokens.colors.onPrimary}
+                />
+                <Text style={styles.actionText}>Import Backup</Text>
+              </Pressable>
+            </View>
           </View>
+
+          {relayEnabled ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Encrypted Relay Backup</Text>
+              <Text style={styles.message}>
+                Store an encrypted snapshot on configured Nostr relays and
+                restore it later on another device.
+              </Text>
+              <View style={styles.statusBanner}>
+                <MaterialIcons
+                  name="cloud-done"
+                  size={18}
+                  color={tokens.colors.primary}
+                />
+                <Text style={styles.statusText}>{syncSummary}</Text>
+              </View>
+              <View style={styles.actions}>
+                <Pressable
+                  style={[styles.actionButton, busy && styles.disabledButton]}
+                  onPress={onBackupToRelay}
+                  disabled={busy}
+                >
+                  <MaterialIcons
+                    name="cloud-upload"
+                    size={18}
+                    color={tokens.colors.onPrimary}
+                  />
+                  <Text style={styles.actionText}>Backup to Relay</Text>
+                </Pressable>
+                <Pressable
+                  style={[
+                    styles.secondaryButton,
+                    busy && styles.disabledButton,
+                  ]}
+                  onPress={onRestoreFromRelay}
+                  disabled={busy}
+                >
+                  <MaterialIcons
+                    name="cloud-download"
+                    size={18}
+                    color={tokens.colors.primary}
+                  />
+                  <Text style={styles.secondaryText}>Restore Latest</Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Encrypted Relay Backup</Text>
+              <Text style={styles.message}>
+                Relay backup is currently off because you selected Local-only
+                mode.
+              </Text>
+              <Pressable
+                style={[styles.secondaryButton, busy && styles.disabledButton]}
+                onPress={onOpenSyncSetup}
+                disabled={busy}
+              >
+                <MaterialIcons
+                  name="tune"
+                  size={18}
+                  color={tokens.colors.primary}
+                />
+                <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
+              </Pressable>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -84,7 +176,7 @@ function createStyles(tokens: ThemeTokens) {
     },
     card: {
       width: '100%',
-      maxWidth: 480,
+      maxWidth: 520,
       borderRadius: tokens.radius.xl,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
@@ -111,10 +203,38 @@ function createStyles(tokens: ThemeTokens) {
       alignItems: 'center',
       justifyContent: 'center',
     },
+    section: {
+      gap: tokens.spacing.sm,
+      padding: tokens.spacing.md,
+      borderRadius: tokens.radius.lg,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.04),
+    },
+    sectionTitle: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
     message: {
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.body,
       lineHeight: 20,
+    },
+    statusBanner: {
+      flexDirection: 'row',
+      gap: tokens.spacing.xs,
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: tokens.spacing.sm,
+      borderRadius: tokens.radius.md,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.1),
+    },
+    statusText: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.label,
+      fontWeight: '600',
+      flex: 1,
     },
     actions: {
       gap: tokens.spacing.sm,
@@ -129,8 +249,28 @@ function createStyles(tokens: ThemeTokens) {
       justifyContent: 'center',
       gap: tokens.spacing.xs,
     },
+    secondaryButton: {
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.35),
+      backgroundColor: withAlpha(tokens.colors.primary, 0.08),
+      minHeight: 44,
+      paddingHorizontal: tokens.spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: tokens.spacing.xs,
+    },
+    disabledButton: {
+      opacity: 0.55,
+    },
     actionText: {
       color: tokens.colors.onPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
+    secondaryText: {
+      color: tokens.colors.primary,
       fontSize: tokens.type.body,
       fontWeight: '700',
     },

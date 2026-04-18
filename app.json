@@ -40,7 +40,10 @@
             "enableShrinkResourcesInReleaseBuilds": true
           }
         }
-      ]
+      ],
+      "expo-sqlite",
+      "expo-secure-store",
+      "expo-notifications"
     ]
   }
 }

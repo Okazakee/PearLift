@@ -1,6 +1,15 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import * as Notifications from 'expo-notifications';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  AppState,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 
@@ -10,16 +19,56 @@ interface RestTimerProps {
   onDurationChange: (value: number) => void;
   fabBottom: number;
   panelBottom: number;
+  onExpandedChange?: (expanded: boolean) => void;
 }
 
 const MIN_DURATION = 30;
 const MAX_DURATION = 600;
 const STEP = 15;
+const CHANNEL_ID = 'rest-timer';
+
+let notificationHandlerConfigured = false;
+let notificationChannelConfigured = false;
 
 function formatSeconds(total: number) {
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function getRemainingSeconds(targetEndAt: number) {
+  return Math.max(0, Math.ceil((targetEndAt - Date.now()) / 1000));
+}
+
+function ensureNotificationHandler() {
+  if (notificationHandlerConfigured) return;
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+  notificationHandlerConfigured = true;
+}
+
+async function ensureNotificationChannel() {
+  if (Platform.OS !== 'android' || notificationChannelConfigured) return;
+  await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+    name: 'Rest Timer',
+    importance: Notifications.AndroidImportance.MAX,
+    vibrationPattern: [0, 250, 250, 250],
+    sound: 'default',
+  });
+  notificationChannelConfigured = true;
+}
+
+async function ensureNotificationPermission() {
+  const current = await Notifications.getPermissionsAsync();
+  if (current.granted) return true;
+  const asked = await Notifications.requestPermissionsAsync();
+  return asked.granted;
 }
 
 export function RestTimer({
@@ -28,11 +77,17 @@ export function RestTimer({
   onDurationChange,
   fabBottom,
   panelBottom,
+  onExpandedChange,
 }: RestTimerProps) {
   const [expanded, setExpanded] = useState(false);
   const [isRunning, setIsRunning] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [timeLeft, setTimeLeft] = useState(duration);
+  const [targetEndAt, setTargetEndAt] = useState<number | null>(null);
+
+  const scheduledNotificationIdRef = useRef<string | null>(null);
+  const completionSignaledRef = useRef(false);
+
   const isComplete = timeLeft === 0 && !isRunning;
   const styles = useMemo(
     () => createStyles(tokens, isComplete, isRunning, fabBottom, panelBottom),
@@ -40,25 +95,105 @@ export function RestTimer({
   );
 
   useEffect(() => {
-    setTimeLeft(duration);
-  }, [duration]);
+    ensureNotificationHandler();
+    void ensureNotificationChannel();
+  }, []);
 
   useEffect(() => {
-    if (!isRunning) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsRunning(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+    onExpandedChange?.(expanded);
+  }, [expanded, onExpandedChange]);
 
-    return () => clearInterval(timer);
-  }, [isRunning]);
+  useEffect(() => {
+    if (!isRunning) {
+      setTimeLeft((current) => {
+        if (current > duration) {
+          return duration;
+        }
+        return current;
+      });
+    }
+  }, [duration, isRunning]);
+
+  useEffect(() => {
+    if (!isRunning || targetEndAt == null) return;
+
+    const syncRemaining = () => {
+      const next = getRemainingSeconds(targetEndAt);
+      setTimeLeft(next);
+      if (next <= 0) {
+        setIsRunning(false);
+        setTargetEndAt(null);
+      }
+    };
+
+    syncRemaining();
+    const timer = setInterval(syncRemaining, 250);
+
+    const appStateSubscription = AppState.addEventListener(
+      'change',
+      (state) => {
+        if (state === 'active') {
+          syncRemaining();
+        }
+      },
+    );
+
+    return () => {
+      clearInterval(timer);
+      appStateSubscription.remove();
+    };
+  }, [isRunning, targetEndAt]);
+
+  useEffect(() => {
+    if (timeLeft > 0 || isRunning || completionSignaledRef.current) {
+      return;
+    }
+
+    completionSignaledRef.current = true;
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  }, [isRunning, timeLeft]);
 
   const progress = duration > 0 ? ((duration - timeLeft) / duration) * 100 : 0;
+
+  const cancelScheduledAlert = async () => {
+    if (!scheduledNotificationIdRef.current) return;
+    try {
+      await Notifications.cancelScheduledNotificationAsync(
+        scheduledNotificationIdRef.current,
+      );
+    } catch {
+      // ignore stale id failures
+    } finally {
+      scheduledNotificationIdRef.current = null;
+    }
+  };
+
+  const scheduleFinishAlert = async (secondsUntilFinish: number) => {
+    await cancelScheduledAlert();
+    if (secondsUntilFinish <= 0) {
+      return;
+    }
+
+    const granted = await ensureNotificationPermission();
+    if (!granted) {
+      return;
+    }
+
+    const identifier = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Rest complete',
+        body: 'Back to your next set.',
+        sound: 'default',
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: Math.max(1, secondsUntilFinish),
+        channelId: CHANNEL_ID,
+      },
+    });
+
+    scheduledNotificationIdRef.current = identifier;
+  };
 
   const handleAdjustDuration = (delta: number) => {
     const next = Math.max(
@@ -66,6 +201,38 @@ export function RestTimer({
       Math.min(MAX_DURATION, duration + delta),
     );
     onDurationChange(next);
+    if (!isRunning) {
+      setTimeLeft(next);
+      completionSignaledRef.current = false;
+    }
+  };
+
+  const handleToggleRunning = () => {
+    if (isRunning) {
+      setIsRunning(false);
+      setTargetEndAt(null);
+      void cancelScheduledAlert();
+      return;
+    }
+
+    const startFrom = timeLeft > 0 ? timeLeft : duration;
+    if (startFrom <= 0) {
+      return;
+    }
+
+    completionSignaledRef.current = false;
+    setTimeLeft(startFrom);
+    setTargetEndAt(Date.now() + startFrom * 1000);
+    setIsRunning(true);
+    void scheduleFinishAlert(startFrom);
+  };
+
+  const handleReset = () => {
+    setTimeLeft(duration);
+    setIsRunning(false);
+    setTargetEndAt(null);
+    completionSignaledRef.current = false;
+    void cancelScheduledAlert();
   };
 
   if (!expanded) {
@@ -85,102 +252,100 @@ export function RestTimer({
   }
 
   return (
-    <View style={styles.panel}>
-      <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <MaterialIcons
-            name="timer"
-            size={18}
-            color={tokens.colors.textPrimary}
-          />
-          <Text style={styles.label}>Rest Timer</Text>
+    <View pointerEvents="box-none" style={styles.panelContainer}>
+      <View style={styles.panel}>
+        <View style={styles.header}>
+          <View style={styles.titleRow}>
+            <MaterialIcons
+              name="timer"
+              size={18}
+              color={tokens.colors.textPrimary}
+            />
+            <Text style={styles.label}>Rest Timer</Text>
+          </View>
+          <Pressable onPress={() => setExpanded(false)}>
+            <MaterialIcons
+              name="close"
+              size={18}
+              color={tokens.colors.textSecondary}
+            />
+          </Pressable>
         </View>
-        <Pressable onPress={() => setExpanded(false)}>
-          <MaterialIcons
-            name="close"
-            size={18}
-            color={tokens.colors.textSecondary}
-          />
-        </Pressable>
-      </View>
 
-      <View style={styles.circleOuter}>
-        <View style={styles.circleInner}>
-          <Text style={styles.value}>{formatSeconds(timeLeft)}</Text>
-          {isComplete && <Text style={styles.doneText}>REST COMPLETE!</Text>}
-        </View>
-      </View>
-      <View style={styles.progressTrack}>
-        <View style={[styles.progressFill, { width: `${progress}%` }]} />
-      </View>
-
-      <View style={styles.controlRow}>
-        <Pressable
-          style={styles.iconButton}
-          onPress={() => {
-            setTimeLeft(duration);
-            setIsRunning(false);
-          }}
-        >
-          <MaterialIcons
-            name="replay"
-            size={18}
-            color={tokens.colors.textPrimary}
-          />
-        </Pressable>
-        <Pressable
-          style={styles.playPauseButton}
-          onPress={() => setIsRunning((prev) => !prev)}
-        >
-          <MaterialIcons
-            name={isRunning ? 'pause' : 'play-arrow'}
-            size={30}
-            color={
-              isRunning ? tokens.colors.accentWarning : tokens.colors.onPrimary
-            }
-          />
-        </Pressable>
-        <Pressable
-          style={[styles.iconButton, showSettings && styles.iconButtonActive]}
-          onPress={() => setShowSettings((prev) => !prev)}
-        >
-          <MaterialIcons
-            name="tune"
-            size={18}
-            color={
-              showSettings ? tokens.colors.primary : tokens.colors.textPrimary
-            }
-          />
-        </Pressable>
-      </View>
-      {showSettings && (
-        <View style={styles.settingsPanel}>
-          <Text style={styles.settingsLabel}>Adjust rest duration</Text>
-          <View style={styles.settingsRow}>
-            <Pressable
-              style={styles.iconButton}
-              onPress={() => handleAdjustDuration(-STEP)}
-            >
-              <MaterialIcons
-                name="remove"
-                size={18}
-                color={tokens.colors.textPrimary}
-              />
-            </Pressable>
-            <Text style={styles.duration}>{formatSeconds(duration)}</Text>
-            <Pressable
-              style={styles.iconButton}
-              onPress={() => handleAdjustDuration(STEP)}
-            >
-              <MaterialIcons
-                name="add"
-                size={18}
-                color={tokens.colors.textPrimary}
-              />
-            </Pressable>
+        <View style={styles.circleOuter}>
+          <View style={styles.circleInner}>
+            <Text style={styles.value}>{formatSeconds(timeLeft)}</Text>
+            {isComplete && <Text style={styles.doneText}>REST COMPLETE!</Text>}
           </View>
         </View>
-      )}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${progress}%` }]} />
+        </View>
+
+        <View style={styles.controlRow}>
+          <Pressable style={styles.iconButton} onPress={handleReset}>
+            <MaterialIcons
+              name="replay"
+              size={18}
+              color={tokens.colors.textPrimary}
+            />
+          </Pressable>
+          <Pressable
+            style={styles.playPauseButton}
+            onPress={handleToggleRunning}
+          >
+            <MaterialIcons
+              name={isRunning ? 'pause' : 'play-arrow'}
+              size={30}
+              color={
+                isRunning
+                  ? tokens.colors.accentWarning
+                  : tokens.colors.onPrimary
+              }
+            />
+          </Pressable>
+          <Pressable
+            style={[styles.iconButton, showSettings && styles.iconButtonActive]}
+            onPress={() => setShowSettings((prev) => !prev)}
+          >
+            <MaterialIcons
+              name="tune"
+              size={18}
+              color={
+                showSettings ? tokens.colors.primary : tokens.colors.textPrimary
+              }
+            />
+          </Pressable>
+        </View>
+        {showSettings && (
+          <View style={styles.settingsPanel}>
+            <Text style={styles.settingsLabel}>Adjust rest duration</Text>
+            <View style={styles.settingsRow}>
+              <Pressable
+                style={styles.iconButton}
+                onPress={() => handleAdjustDuration(-STEP)}
+              >
+                <MaterialIcons
+                  name="remove"
+                  size={18}
+                  color={tokens.colors.textPrimary}
+                />
+              </Pressable>
+              <Text style={styles.duration}>{formatSeconds(duration)}</Text>
+              <Pressable
+                style={styles.iconButton}
+                onPress={() => handleAdjustDuration(STEP)}
+              >
+                <MaterialIcons
+                  name="add"
+                  size={18}
+                  color={tokens.colors.textPrimary}
+                />
+              </Pressable>
+            </View>
+          </View>
+        )}
+      </View>
     </View>
   );
 }
@@ -211,18 +376,22 @@ function createStyles(
       shadowOffset: { width: 0, height: 4 },
       elevation: 6,
     },
-    panel: {
+    panelContainer: {
       position: 'absolute',
-      left: 12,
-      right: 12,
+      left: 0,
+      right: 0,
       bottom: panelBottom,
+      alignItems: 'center',
+      paddingHorizontal: 12,
+    },
+    panel: {
+      width: '100%',
+      maxWidth: 420,
       borderRadius: tokens.radius.xl,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
       backgroundColor: withAlpha(tokens.colors.surface, 0.98),
       padding: tokens.spacing.md,
-      maxWidth: 400,
-      alignSelf: 'center',
       gap: tokens.spacing.sm,
     },
     titleRow: {

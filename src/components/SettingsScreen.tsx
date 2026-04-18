@@ -21,6 +21,7 @@ interface SettingsScreenProps {
   buildType: string;
   onClose: () => void;
   onOpenGithub: () => void;
+  onOpenSyncSetup: () => void;
 }
 
 export function SettingsScreen({
@@ -34,6 +35,7 @@ export function SettingsScreen({
   buildType,
   onClose,
   onOpenGithub,
+  onOpenSyncSetup,
 }: SettingsScreenProps) {
   const styles = createStyles(tokens, topInset, bottomInset);
 
@@ -103,6 +105,28 @@ export function SettingsScreen({
               <Text style={styles.infoLabel}>Build type</Text>
               <Text style={styles.infoValue}>{buildType}</Text>
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons
+                name="sync"
+                size={18}
+                color={tokens.colors.primary}
+              />
+              <Text style={styles.sectionTitle}>Sync & Backup</Text>
+            </View>
+            <Text style={styles.rowSubtitle}>
+              Review setup mode, relay backup preference, and recovery flow.
+            </Text>
+            <Pressable style={styles.githubButton} onPress={onOpenSyncSetup}>
+              <MaterialIcons
+                name="tune"
+                size={20}
+                color={tokens.colors.onPrimary}
+              />
+              <Text style={styles.githubButtonText}>Open Sync Setup</Text>
+            </Pressable>
           </View>
 
           <View style={styles.section}>

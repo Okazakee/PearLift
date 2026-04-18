@@ -1,9 +1,15 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Linking, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Linking,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -12,7 +18,6 @@ import {
 import {
   computeImportDiff,
   getBackupFileName,
-  LOCAL_STATE_STORAGE_KEY,
   parseAndMigrateBackup,
   serializePwaBackupV2,
   toPwaBackupV2,
@@ -23,42 +28,25 @@ import { Header } from '../components/Header';
 import { ImportPreviewModal } from '../components/ImportPreviewModal';
 import { LocalBackupModal } from '../components/LocalBackupModal';
 import { Navigation } from '../components/Navigation';
+import { OnboardingScreen } from '../components/OnboardingScreen';
 import { ProgramSettingsModal } from '../components/ProgramSettingsModal';
 import { RestTimer } from '../components/RestTimer';
 import { SettingsScreen } from '../components/SettingsScreen';
+import { SyncSetupScreen } from '../components/SyncSetupScreen';
 import { WorkoutView } from '../components/WorkoutView';
 import { APP_CONFIG } from '../config/app';
-import {
-  buildInitialWeights,
-  defaultDayConfigs,
-  defaultWeekConfigs,
-  defaultWorkouts,
-} from '../data/workouts';
+import { defaultDayConfigs } from '../data/workouts';
+import type { SyncMode } from '../storage/types';
+import { useWorkoutStore } from '../storage/useWorkoutStore';
+import { WorkoutRepository } from '../storage/workoutRepository';
+import { IdentityService } from '../sync/identityService';
+import type { SetupStatus, SyncStatus } from '../sync/types';
 import type { ThemeMode } from '../theme/tokens';
 import { getThemeTokens } from '../theme/tokens';
-import type {
-  DayConfig,
-  Exercise,
-  UserWeights,
-  WeekConfig,
-  WorkoutDay,
-  WorkoutSession,
-} from '../types';
-
-function cloneWorkouts() {
-  return JSON.parse(JSON.stringify(defaultWorkouts)) as WorkoutSession[];
-}
+import type { Exercise } from '../types';
 
 function roundToHalf(value: number) {
   return Math.round(value * 2) / 2;
-}
-
-function createExerciseId(name: string) {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-  return `${slug || 'exercise'}-${Date.now().toString(36)}`;
 }
 
 function getErrorMessage(error: unknown) {
@@ -76,19 +64,32 @@ function logError(scope: string, error: unknown) {
   console.error(`[${scope}]`, error);
 }
 
+function formatSyncSummary(status: SyncStatus | null) {
+  if (!status) {
+    return 'Preparing sync status.';
+  }
+
+  if (status.syncMode === 'local-only') {
+    return 'Local-only mode active. Relay backup is currently disabled.';
+  }
+
+  if (!status.lastBackupAt) {
+    return `No relay backup yet. ${status.pendingChanges} pending local change(s).`;
+  }
+
+  const pieces = [`Last relay backup: ${status.lastBackupAt}`];
+  if (status.pendingChanges > 0) {
+    pieces.push(`${status.pendingChanges} local change(s) not backed up yet`);
+  }
+  if (status.lastRestoreAt) {
+    pieces.push(`last restore: ${status.lastRestoreAt}`);
+  }
+  return pieces.join(' - ');
+}
+
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
-  const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
-  const [currentWeek, setCurrentWeek] = useState<number>(1);
-  const [currentDay, setCurrentDay] = useState<WorkoutDay>('push');
-  const [workouts, setWorkouts] = useState<WorkoutSession[]>(cloneWorkouts);
-  const [userWeights, setUserWeights] = useState<UserWeights>(() =>
-    buildInitialWeights(defaultWorkouts),
-  );
-  const [weekConfigs, setWeekConfigs] =
-    useState<WeekConfig[]>(defaultWeekConfigs);
-  const [dayConfigs, setDayConfigs] = useState<DayConfig[]>(defaultDayConfigs);
-  const [restDuration, setRestDuration] = useState(150);
+  const [repository, setRepository] = useState<WorkoutRepository | null>(null);
   const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
   const [exerciseModalMode, setExerciseModalMode] = useState<'add' | 'edit'>(
     'add',
@@ -105,9 +106,48 @@ export function WorkoutScreen() {
     settings: [],
     totalChanges: 0,
   });
-  const [isHydratingState, setIsHydratingState] = useState(true);
-  const persistTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastPersistedPayloadRef = useRef<string | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
+  const [syncBusy, setSyncBusy] = useState(false);
+  const [syncSetupOpen, setSyncSetupOpen] = useState(false);
+  const [syncSetupBusy, setSyncSetupBusy] = useState(false);
+  const [syncSetupError, setSyncSetupError] = useState<string | null>(null);
+  const [onboardingBusy, setOnboardingBusy] = useState(false);
+  const [onboardingError, setOnboardingError] = useState<string | null>(null);
+  const [timerExpanded, setTimerExpanded] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    const identityService = new IdentityService();
+
+    identityService
+      .getOrCreateDeviceId()
+      .then((deviceId) => {
+        if (!cancelled) {
+          setRepository(new WorkoutRepository(deviceId));
+        }
+      })
+      .catch((error) => {
+        logError('identity/device-id failed', error);
+        Alert.alert('Setup unavailable', getErrorMessage(error));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const { snapshot, syncCoordinator, isReady, reload, applyMutation } =
+    useWorkoutStore(repository);
+
+  const themeMode: ThemeMode = snapshot?.themeMode ?? 'dark';
+  const currentWeek = snapshot?.currentWeek ?? 1;
+  const currentDay = snapshot?.currentDay ?? defaultDayConfigs[0]?.id ?? 'push';
+  const workouts = snapshot?.workouts ?? [];
+  const userWeights = snapshot?.userWeights ?? {};
+  const weekConfigs = snapshot?.weekConfigs ?? [];
+  const dayConfigs = snapshot?.dayConfigs ?? defaultDayConfigs;
+  const restDuration = snapshot?.restDuration ?? 150;
 
   const tokens = useMemo(
     () => getThemeTokens(themeMode, { enableDynamicColor: false }),
@@ -123,9 +163,9 @@ export function WorkoutScreen() {
       timerFabBottom: floatingBottom + 8,
       timerPanelBottom: floatingBottom,
       workoutFabBottom: floatingBottom + 8,
-      contentBottomPadding: floatingBottom + 96,
+      contentBottomPadding: floatingBottom + (timerExpanded ? 360 : 96),
     };
-  }, [insets.bottom, tokens.spacing.sm]);
+  }, [insets.bottom, timerExpanded, tokens.spacing.sm]);
 
   const currentWorkout = useMemo(() => {
     return (
@@ -139,6 +179,55 @@ export function WorkoutScreen() {
     );
   }, [workouts, currentDay]);
 
+  const refreshSyncStatus = useCallback(async () => {
+    if (!syncCoordinator) {
+      setSyncStatus(null);
+      return;
+    }
+    try {
+      const nextStatus = await syncCoordinator.getStatus();
+      setSyncStatus(nextStatus);
+    } catch (error) {
+      logError('sync/status failed', error);
+    }
+  }, [syncCoordinator]);
+
+  const refreshSetupStatus = useCallback(async () => {
+    if (!syncCoordinator) {
+      setSetupStatus(null);
+      return;
+    }
+    try {
+      const nextStatus = await syncCoordinator.getSetupStatus();
+      setSetupStatus(nextStatus);
+    } catch (error) {
+      logError('sync/setup-status failed', error);
+    }
+  }, [syncCoordinator]);
+
+  useEffect(() => {
+    if (!syncCoordinator || !snapshot) {
+      return;
+    }
+    void refreshSyncStatus();
+    void refreshSetupStatus();
+  }, [syncCoordinator, snapshot, refreshSyncStatus, refreshSetupStatus]);
+
+  useEffect(() => {
+    if (!localBackupOpen) {
+      return;
+    }
+    void refreshSyncStatus();
+  }, [localBackupOpen, refreshSyncStatus]);
+
+  const runMutation = useCallback(
+    async (mutation: Parameters<typeof applyMutation>[0]) => {
+      await applyMutation(mutation);
+      await refreshSyncStatus();
+    },
+    [applyMutation, refreshSyncStatus],
+  );
+
   const getWeek = useCallback(
     (weekId?: number) =>
       weekConfigs.find((week) => week.id === (weekId ?? currentWeek)) ??
@@ -150,153 +239,13 @@ export function WorkoutScreen() {
     (exerciseId: string, weekId?: number) => {
       const week = getWeek(weekId);
       const fallback =
-        workouts.flatMap((w) => w.exercises).find((e) => e.id === exerciseId)
-          ?.baseWeight ?? 0;
+        workouts
+          .flatMap((workout) => workout.exercises)
+          .find((exercise) => exercise.id === exerciseId)?.baseWeight ?? 0;
       const baseWeight = userWeights[exerciseId] ?? fallback;
       return roundToHalf(baseWeight * (week?.loadModifier ?? 1));
     },
     [getWeek, workouts, userWeights],
-  );
-
-  const updateWeight = useCallback((exerciseId: string, value: number) => {
-    setUserWeights((prev) => ({
-      ...prev,
-      [exerciseId]: Math.max(0, roundToHalf(value)),
-    }));
-  }, []);
-
-  const addExercise = useCallback(
-    (
-      workoutId: WorkoutDay,
-      input: Omit<Exercise, 'id' | 'position' | 'baseWeight'>,
-    ) => {
-      const id = createExerciseId(input.name);
-      setWorkouts((prev) =>
-        prev.map((workout) => {
-          if (workout.id !== workoutId) return workout;
-          const position =
-            workout.exercises.length > 0
-              ? Math.max(...workout.exercises.map((e) => e.position)) + 1
-              : 0;
-          return {
-            ...workout,
-            exercises: [
-              ...workout.exercises,
-              { id, baseWeight: 0, position, ...input },
-            ],
-          };
-        }),
-      );
-      setUserWeights((prev) => ({ ...prev, [id]: 0 }));
-    },
-    [],
-  );
-
-  const editExercise = useCallback(
-    (workoutId: WorkoutDay, exerciseId: string, updates: Partial<Exercise>) => {
-      setWorkouts((prev) =>
-        prev.map((workout) => {
-          if (workout.id !== workoutId) return workout;
-          return {
-            ...workout,
-            exercises: workout.exercises.map((exercise) =>
-              exercise.id === exerciseId
-                ? { ...exercise, ...updates }
-                : exercise,
-            ),
-          };
-        }),
-      );
-    },
-    [],
-  );
-
-  const deleteExercise = useCallback(
-    (workoutId: WorkoutDay, exerciseId: string) => {
-      setWorkouts((prev) =>
-        prev.map((workout) => {
-          if (workout.id !== workoutId) return workout;
-          return {
-            ...workout,
-            exercises: workout.exercises.filter(
-              (exercise) => exercise.id !== exerciseId,
-            ),
-          };
-        }),
-      );
-      setUserWeights((prev) => {
-        const next = { ...prev };
-        delete next[exerciseId];
-        return next;
-      });
-    },
-    [],
-  );
-
-  const reorderExercises = useCallback(
-    (workoutId: WorkoutDay, exerciseId: string, direction: 'up' | 'down') => {
-      setWorkouts((prev) =>
-        prev.map((workout) => {
-          if (workout.id !== workoutId) return workout;
-          const ordered = [...workout.exercises].sort(
-            (a, b) => a.position - b.position,
-          );
-          const index = ordered.findIndex(
-            (exercise) => exercise.id === exerciseId,
-          );
-          if (index === -1) return workout;
-          const target = direction === 'up' ? index - 1 : index + 1;
-          if (target < 0 || target >= ordered.length) return workout;
-
-          [ordered[index], ordered[target]] = [ordered[target], ordered[index]];
-          return {
-            ...workout,
-            exercises: ordered.map((exercise, i) => ({
-              ...exercise,
-              position: i,
-            })),
-          };
-        }),
-      );
-    },
-    [],
-  );
-
-  const handleDayConfigsChange = useCallback(
-    (nextDayConfigs: DayConfig[]) => {
-      setDayConfigs(nextDayConfigs);
-      setWorkouts((prev) => {
-        const byId = new Map(prev.map((workout) => [workout.id, workout]));
-        return nextDayConfigs.map((day, index) => {
-          const existing = byId.get(day.id);
-          if (existing) return existing;
-          return {
-            id: day.id,
-            name: `${day.name} Day`,
-            description: `Custom session ${index + 1}`,
-            exercises: [],
-          };
-        });
-      });
-
-      if (
-        !nextDayConfigs.some((day) => day.id === currentDay) &&
-        nextDayConfigs[0]
-      ) {
-        setCurrentDay(nextDayConfigs[0].id);
-      }
-    },
-    [currentDay],
-  );
-
-  const handleWeekConfigsChange = useCallback(
-    (nextWeekConfigs: WeekConfig[]) => {
-      setWeekConfigs(nextWeekConfigs);
-      if (!nextWeekConfigs.some((week) => week.id === currentWeek)) {
-        setCurrentWeek(nextWeekConfigs[0]?.id ?? 1);
-      }
-    },
-    [currentWeek],
   );
 
   const handleOpenAdd = () => {
@@ -311,14 +260,24 @@ export function WorkoutScreen() {
     setExerciseModalOpen(true);
   };
 
-  const handleExerciseSubmit = (
+  const handleExerciseSubmit = async (
     payload: Omit<Exercise, 'id' | 'position' | 'baseWeight'>,
   ) => {
     if (exerciseModalMode === 'edit' && editingExercise) {
-      editExercise(currentWorkout.id, editingExercise.id, payload);
+      await runMutation({
+        type: 'editExercise',
+        workoutId: currentWorkout.id,
+        exerciseId: editingExercise.id,
+        updates: payload,
+      });
       return;
     }
-    addExercise(currentWorkout.id, payload);
+
+    await runMutation({
+      type: 'addExercise',
+      workoutId: currentWorkout.id,
+      exercise: payload,
+    });
   };
 
   const handleDeleteExercise = (exercise: Exercise) => {
@@ -330,7 +289,13 @@ export function WorkoutScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => deleteExercise(currentWorkout.id, exercise.id),
+          onPress: () => {
+            void runMutation({
+              type: 'deleteExercise',
+              workoutId: currentWorkout.id,
+              exerciseId: exercise.id,
+            });
+          },
         },
       ],
     );
@@ -339,127 +304,27 @@ export function WorkoutScreen() {
   const handleResetData = () => {
     Alert.alert(
       'Reset all data?',
-      'This will reset exercises, weights, weeks, days, and timer settings.',
+      'This will reset exercises, weights, weeks, days, timer settings, and sync state history.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
           text: 'Reset',
           style: 'destructive',
           onPress: () => {
-            setCurrentWeek(1);
-            setCurrentDay('push');
-            setWeekConfigs(defaultWeekConfigs);
-            setDayConfigs(defaultDayConfigs);
-            setWorkouts(cloneWorkouts());
-            setUserWeights(buildInitialWeights(defaultWorkouts));
-            setRestDuration(150);
+            void runMutation({ type: 'resetAllData' });
           },
         },
       ],
     );
   };
 
-  const buildCurrentRuntimeState = useCallback(
-    () => ({
-      workouts,
-      userWeights,
-      weekConfigs,
-      dayConfigs,
-      currentWeek,
-      currentDay,
-      restDuration,
-      themeMode,
-    }),
-    [
-      workouts,
-      userWeights,
-      weekConfigs,
-      dayConfigs,
-      currentWeek,
-      currentDay,
-      restDuration,
-      themeMode,
-    ],
-  );
-
-  const buildCurrentBackupData = useCallback(
-    () => toPwaBackupV2(buildCurrentRuntimeState()),
-    [buildCurrentRuntimeState],
-  );
-
-  const applyImportedState = useCallback((imported: MigratedBackupResult) => {
-    const next = imported.runtime;
-    setWorkouts(next.workouts);
-    setUserWeights(next.userWeights);
-    setWeekConfigs(next.weekConfigs);
-    setDayConfigs(next.dayConfigs);
-    setCurrentWeek(next.currentWeek);
-    setCurrentDay(next.currentDay);
-    setRestDuration(next.restDuration);
-    setThemeMode(next.themeMode);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function hydrateState() {
-      try {
-        const raw = await AsyncStorage.getItem(LOCAL_STATE_STORAGE_KEY);
-        if (!raw || cancelled) return;
-        const migrated = parseAndMigrateBackup(raw);
-        if (cancelled) return;
-        lastPersistedPayloadRef.current = raw;
-        applyImportedState(migrated);
-      } catch (error) {
-        logError('state/hydrate failed', error);
-      } finally {
-        if (!cancelled) {
-          setIsHydratingState(false);
-        }
-      }
-    }
-
-    hydrateState();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [applyImportedState]);
-
-  useEffect(() => {
-    if (isHydratingState) return;
-
-    const payload = serializePwaBackupV2(buildCurrentRuntimeState());
-    if (payload === lastPersistedPayloadRef.current) {
+  const handleExportBackup = useCallback(async () => {
+    if (!snapshot) {
       return;
     }
-
-    if (persistTimeoutRef.current) {
-      clearTimeout(persistTimeoutRef.current);
-    }
-
-    persistTimeoutRef.current = setTimeout(() => {
-      AsyncStorage.setItem(LOCAL_STATE_STORAGE_KEY, payload)
-        .then(() => {
-          lastPersistedPayloadRef.current = payload;
-        })
-        .catch((error) => {
-          logError('state/persist failed', error);
-        });
-    }, 350);
-
-    return () => {
-      if (persistTimeoutRef.current) {
-        clearTimeout(persistTimeoutRef.current);
-        persistTimeoutRef.current = null;
-      }
-    };
-  }, [buildCurrentRuntimeState, isHydratingState]);
-
-  const handleExportBackup = useCallback(async () => {
     try {
       const fileName = getBackupFileName();
-      const payload = serializePwaBackupV2(buildCurrentRuntimeState());
+      const payload = serializePwaBackupV2(snapshot);
       const file = new File(Paths.cache, fileName);
       file.create({ overwrite: true, intermediates: true });
       file.write(payload, { encoding: 'utf8' });
@@ -478,9 +343,12 @@ export function WorkoutScreen() {
       logError('backup/export failed', error);
       Alert.alert('Export failed', getErrorMessage(error));
     }
-  }, [buildCurrentRuntimeState]);
+  }, [snapshot]);
 
   const handleImportBackup = useCallback(async () => {
+    if (!snapshot) {
+      return;
+    }
     try {
       const picked = await File.pickFileAsync(undefined, 'application/json');
       const pickedFile = Array.isArray(picked) ? picked[0] : picked;
@@ -491,7 +359,7 @@ export function WorkoutScreen() {
       const fileText = await pickedFile.text();
       const migrated = parseAndMigrateBackup(fileText);
       const summary = computeImportDiff(
-        buildCurrentBackupData(),
+        toPwaBackupV2(snapshot),
         migrated.backup,
       );
 
@@ -503,19 +371,210 @@ export function WorkoutScreen() {
       logError('backup/import failed', error);
       Alert.alert('Import failed', getErrorMessage(error));
     }
-  }, [buildCurrentBackupData]);
+  }, [snapshot]);
 
-  const handleConfirmImport = () => {
+  const handleConfirmImport = useCallback(async () => {
     if (!pendingImport) return;
-    applyImportedState(pendingImport);
-    setImportPreviewOpen(false);
-    setPendingImport(null);
-  };
+    try {
+      await runMutation({
+        type: 'restoreRuntimeState',
+        runtime: pendingImport.runtime,
+        source: 'local-import',
+      });
+      setImportPreviewOpen(false);
+      setPendingImport(null);
+    } catch (error) {
+      logError('backup/import confirm failed', error);
+      Alert.alert('Import failed', getErrorMessage(error));
+    }
+  }, [pendingImport, runMutation]);
 
   const handleCancelImport = () => {
     setImportPreviewOpen(false);
     setPendingImport(null);
   };
+
+  const handleBackupToRelay = useCallback(async () => {
+    if (!syncCoordinator) {
+      return;
+    }
+    setSyncBusy(true);
+    try {
+      const result = await syncCoordinator.backupNow();
+      await reload();
+      await refreshSyncStatus();
+      Alert.alert(
+        'Relay backup complete',
+        `Published snapshot ${result.snapshotVersion} to ${result.relayUrls.length} relay(s).`,
+      );
+      setLocalBackupOpen(false);
+    } catch (error) {
+      logError('sync/backup failed', error);
+      Alert.alert('Relay backup failed', getErrorMessage(error));
+    } finally {
+      setSyncBusy(false);
+    }
+  }, [refreshSyncStatus, reload, syncCoordinator]);
+
+  const handleRestoreFromRelay = useCallback(async () => {
+    if (!syncCoordinator) {
+      return;
+    }
+    setSyncBusy(true);
+    try {
+      const restored = await syncCoordinator.restoreLatestIfEnabled();
+      await reload();
+      await refreshSyncStatus();
+      Alert.alert(
+        'Relay restore complete',
+        `Restored snapshot ${restored.snapshotVersion} from ${restored.relayUrl}.`,
+      );
+      setLocalBackupOpen(false);
+    } catch (error) {
+      logError('sync/restore failed', error);
+      Alert.alert('Relay restore failed', getErrorMessage(error));
+    } finally {
+      setSyncBusy(false);
+    }
+  }, [refreshSyncStatus, reload, syncCoordinator]);
+
+  const finishOnboarding = useCallback(async () => {
+    await reload();
+    await refreshSetupStatus();
+    await refreshSyncStatus();
+    setOnboardingError(null);
+  }, [refreshSetupStatus, refreshSyncStatus, reload]);
+
+  const handleOnboardingStartFresh = useCallback(
+    async (mode: SyncMode) => {
+      if (!syncCoordinator) return;
+      setOnboardingBusy(true);
+      setOnboardingError(null);
+      try {
+        await syncCoordinator.completeSetup(mode, 'start-fresh');
+        await finishOnboarding();
+      } catch (error) {
+        logError('onboarding/start-fresh failed', error);
+        setOnboardingError(getErrorMessage(error));
+      } finally {
+        setOnboardingBusy(false);
+      }
+    },
+    [finishOnboarding, syncCoordinator],
+  );
+
+  const handleOnboardingRestoreRelay = useCallback(
+    async (mode: SyncMode) => {
+      if (!syncCoordinator) return;
+      setOnboardingBusy(true);
+      setOnboardingError(null);
+      try {
+        await syncCoordinator.completeSetup(mode, 'relay-restore');
+        await syncCoordinator.restoreLatestIfEnabled();
+        await finishOnboarding();
+      } catch (error) {
+        logError('onboarding/restore-relay failed', error);
+        setOnboardingError(getErrorMessage(error));
+      } finally {
+        setOnboardingBusy(false);
+      }
+    },
+    [finishOnboarding, syncCoordinator],
+  );
+
+  const handleOnboardingImportLocal = useCallback(
+    async (mode: SyncMode) => {
+      if (!syncCoordinator) return;
+      setOnboardingBusy(true);
+      setOnboardingError(null);
+      try {
+        await syncCoordinator.completeSetup(mode, 'local-import');
+        const picked = await File.pickFileAsync(undefined, 'application/json');
+        const pickedFile = Array.isArray(picked) ? picked[0] : picked;
+        if (!pickedFile) {
+          throw new Error('No file selected.');
+        }
+
+        const fileText = await pickedFile.text();
+        const migrated = parseAndMigrateBackup(fileText);
+        await runMutation({
+          type: 'restoreRuntimeState',
+          runtime: migrated.runtime,
+          source: 'local-import',
+        });
+        await finishOnboarding();
+      } catch (error) {
+        logError('onboarding/import-local failed', error);
+        setOnboardingError(getErrorMessage(error));
+      } finally {
+        setOnboardingBusy(false);
+      }
+    },
+    [finishOnboarding, runMutation, syncCoordinator],
+  );
+
+  const handleSyncSetupSaveMode = useCallback(
+    async (mode: SyncMode) => {
+      if (!syncCoordinator) return;
+      setSyncSetupBusy(true);
+      setSyncSetupError(null);
+      try {
+        await syncCoordinator.updateSyncMode(mode);
+        await refreshSetupStatus();
+        await refreshSyncStatus();
+      } catch (error) {
+        logError('sync-setup/save-mode failed', error);
+        setSyncSetupError(getErrorMessage(error));
+      } finally {
+        setSyncSetupBusy(false);
+      }
+    },
+    [refreshSetupStatus, refreshSyncStatus, syncCoordinator],
+  );
+
+  const handleSyncSetupImportLocal = useCallback(async () => {
+    setSyncSetupBusy(true);
+    setSyncSetupError(null);
+    try {
+      const picked = await File.pickFileAsync(undefined, 'application/json');
+      const pickedFile = Array.isArray(picked) ? picked[0] : picked;
+      if (!pickedFile) {
+        throw new Error('No file selected.');
+      }
+
+      const fileText = await pickedFile.text();
+      const migrated = parseAndMigrateBackup(fileText);
+      await runMutation({
+        type: 'restoreRuntimeState',
+        runtime: migrated.runtime,
+        source: 'local-import',
+      });
+      await refreshSetupStatus();
+      await refreshSyncStatus();
+    } catch (error) {
+      logError('sync-setup/import-local failed', error);
+      setSyncSetupError(getErrorMessage(error));
+    } finally {
+      setSyncSetupBusy(false);
+    }
+  }, [refreshSetupStatus, refreshSyncStatus, runMutation]);
+
+  const handleSyncSetupRestoreRelay = useCallback(async () => {
+    if (!syncCoordinator) return;
+    setSyncSetupBusy(true);
+    setSyncSetupError(null);
+    try {
+      await syncCoordinator.restoreLatestIfEnabled();
+      await reload();
+      await refreshSetupStatus();
+      await refreshSyncStatus();
+    } catch (error) {
+      logError('sync-setup/restore-relay failed', error);
+      setSyncSetupError(getErrorMessage(error));
+    } finally {
+      setSyncSetupBusy(false);
+    }
+  }, [refreshSetupStatus, refreshSyncStatus, reload, syncCoordinator]);
 
   const handleOpenGithub = async () => {
     const repoUrl = APP_CONFIG.githubRepoUrl;
@@ -531,6 +590,60 @@ export function WorkoutScreen() {
     }
   };
 
+  const handleOpenSyncSetup = () => {
+    setSettingsOpen(false);
+    setSyncSetupError(null);
+    setSyncSetupOpen(true);
+  };
+
+  const syncMode = setupStatus?.setup.syncMode ?? 'local-only';
+  const onboardingBlocking = !(
+    setupStatus?.setup.hasCompletedOnboarding ?? false
+  );
+
+  if (!isReady || !snapshot || !setupStatus) {
+    return (
+      <SafeAreaView
+        edges={['left', 'right']}
+        style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
+      >
+        <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+        <View style={styles.loadingShell}>
+          <ActivityIndicator size="large" color={tokens.colors.primary} />
+          <Text
+            style={[styles.loadingText, { color: tokens.colors.textSecondary }]}
+          >
+            Preparing local database and setup state...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (onboardingBlocking) {
+    return (
+      <SafeAreaView
+        edges={['left', 'right']}
+        style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
+      >
+        <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+        <OnboardingScreen
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          blocking
+          busy={onboardingBusy}
+          initialMode={syncMode}
+          identityFingerprint={setupStatus.identityFingerprint}
+          errorMessage={onboardingError}
+          onStartFresh={handleOnboardingStartFresh}
+          onRestoreRelay={handleOnboardingRestoreRelay}
+          onImportLocal={handleOnboardingImportLocal}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView
       edges={['left', 'right']}
@@ -543,9 +656,12 @@ export function WorkoutScreen() {
           topInset={insets.top}
           onOpenLocalBackup={() => setLocalBackupOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
-          onToggleTheme={() =>
-            setThemeMode((prev) => (prev === 'dark' ? 'light' : 'dark'))
-          }
+          onToggleTheme={() => {
+            void runMutation({
+              type: 'setThemeMode',
+              themeMode: themeMode === 'dark' ? 'light' : 'dark',
+            });
+          }}
           onResetData={handleResetData}
         />
 
@@ -556,17 +672,29 @@ export function WorkoutScreen() {
           weekConfigs={weekConfigs}
           userWeights={userWeights}
           getAdjustedWeight={getAdjustedWeight}
-          onWeekChange={setCurrentWeek}
+          onWeekChange={(nextWeek) => {
+            void runMutation({ type: 'setCurrentWeek', currentWeek: nextWeek });
+          }}
           onOpenProgramSettings={() => setProgramSettingsOpen(true)}
           onOpenAddExercise={handleOpenAdd}
           onEditExercise={handleOpenEdit}
           onDeleteExercise={handleDeleteExercise}
-          onAdjustWeight={(exerciseId, delta) =>
-            updateWeight(exerciseId, (userWeights[exerciseId] ?? 0) + delta)
-          }
-          onMoveExercise={(exerciseId, direction) =>
-            reorderExercises(currentWorkout.id, exerciseId, direction)
-          }
+          onAdjustWeight={(exerciseId, delta) => {
+            const currentValue = userWeights[exerciseId] ?? 0;
+            void runMutation({
+              type: 'setExerciseWeight',
+              exerciseId,
+              value: currentValue + delta,
+            });
+          }}
+          onMoveExercise={(exerciseId, direction) => {
+            void runMutation({
+              type: 'reorderExercise',
+              workoutId: currentWorkout.id,
+              exerciseId,
+              direction,
+            });
+          }}
           contentBottomPadding={layout.contentBottomPadding}
           fabBottom={layout.workoutFabBottom}
         />
@@ -574,16 +702,24 @@ export function WorkoutScreen() {
         <RestTimer
           tokens={tokens}
           duration={restDuration}
-          onDurationChange={setRestDuration}
+          onDurationChange={(duration) => {
+            void runMutation({
+              type: 'setRestDuration',
+              restDuration: duration,
+            });
+          }}
           fabBottom={layout.timerFabBottom}
           panelBottom={layout.timerPanelBottom}
+          onExpandedChange={setTimerExpanded}
         />
 
         <Navigation
           tokens={tokens}
           currentDay={currentDay}
           dayConfigs={dayConfigs}
-          onDayChange={setCurrentDay}
+          onDayChange={(day) => {
+            void runMutation({ type: 'setCurrentDay', currentDay: day });
+          }}
           bottomPadding={layout.navBottomPadding}
           minHeight={layout.navHeight}
         />
@@ -594,7 +730,9 @@ export function WorkoutScreen() {
           tokens={tokens}
           initialExercise={editingExercise}
           onClose={() => setExerciseModalOpen(false)}
-          onSubmit={handleExerciseSubmit}
+          onSubmit={(payload) => {
+            void handleExerciseSubmit(payload);
+          }}
         />
 
         <ProgramSettingsModal
@@ -603,16 +741,36 @@ export function WorkoutScreen() {
           weekConfigs={weekConfigs}
           dayConfigs={dayConfigs}
           onClose={() => setProgramSettingsOpen(false)}
-          onWeekConfigsChange={handleWeekConfigsChange}
-          onDayConfigsChange={handleDayConfigsChange}
+          onWeekConfigsChange={(nextWeekConfigs) => {
+            void runMutation({
+              type: 'replaceWeekConfigs',
+              weekConfigs: nextWeekConfigs,
+            });
+          }}
+          onDayConfigsChange={(nextDayConfigs) => {
+            void runMutation({
+              type: 'replaceDayConfigs',
+              dayConfigs: nextDayConfigs,
+            });
+          }}
         />
 
         <LocalBackupModal
           open={localBackupOpen}
           tokens={tokens}
+          syncMode={syncMode}
+          syncSummary={formatSyncSummary(syncStatus)}
+          busy={syncBusy}
           onClose={() => setLocalBackupOpen(false)}
           onExport={handleExportBackup}
           onImport={handleImportBackup}
+          onBackupToRelay={() => {
+            void handleBackupToRelay();
+          }}
+          onRestoreFromRelay={() => {
+            void handleRestoreFromRelay();
+          }}
+          onOpenSyncSetup={handleOpenSyncSetup}
         />
 
         <ImportPreviewModal
@@ -620,7 +778,9 @@ export function WorkoutScreen() {
           tokens={tokens}
           summary={importSummary}
           onClose={handleCancelImport}
-          onConfirm={handleConfirmImport}
+          onConfirm={() => {
+            void handleConfirmImport();
+          }}
         />
 
         <SettingsScreen
@@ -634,6 +794,22 @@ export function WorkoutScreen() {
           buildType={APP_CONFIG.buildType}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
+          onOpenSyncSetup={handleOpenSyncSetup}
+        />
+
+        <SyncSetupScreen
+          open={syncSetupOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          currentMode={syncMode}
+          busy={syncSetupBusy}
+          errorMessage={syncSetupError}
+          identityFingerprint={setupStatus.identityFingerprint}
+          onClose={() => setSyncSetupOpen(false)}
+          onSaveMode={handleSyncSetupSaveMode}
+          onImportLocalBackup={handleSyncSetupImportLocal}
+          onRestoreRelayBackup={handleSyncSetupRestoreRelay}
         />
       </View>
     </SafeAreaView>
@@ -646,5 +822,16 @@ const styles = StyleSheet.create({
   },
   appShell: {
     flex: 1,
+  },
+  loadingShell: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  loadingText: {
+    fontSize: 14,
+    textAlign: 'center',
   },
 });
