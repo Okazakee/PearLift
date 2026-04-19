@@ -1,3 +1,4 @@
+import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
@@ -23,6 +24,7 @@ import {
   AppPromptModal,
 } from '../components/AppPromptModal';
 import { BootstrapScreen } from '../components/BootstrapScreen';
+import { DonateModal } from '../components/DonateModal';
 import { Header } from '../components/Header';
 import { ImportPreviewModal } from '../components/ImportPreviewModal';
 import { LocalBackupModal } from '../components/LocalBackupModal';
@@ -33,6 +35,7 @@ import { RestTimer } from '../components/RestTimer';
 import { SettingsScreen } from '../components/SettingsScreen';
 import { WorkoutView } from '../components/WorkoutView';
 import { APP_CONFIG } from '../config/app';
+import { type DonationTarget, getDonationTargets } from '../config/donation';
 import { defaultDayConfigs } from '../data/workouts';
 import type { WorkoutMutation } from '../storage/types';
 import { useWorkoutStore } from '../storage/useWorkoutStore';
@@ -75,6 +78,7 @@ export function WorkoutScreen() {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [programSettingsOpen, setProgramSettingsOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [donateModalOpen, setDonateModalOpen] = useState(false);
   const [localBackupOpen, setLocalBackupOpen] = useState(false);
   const [importPreviewOpen, setImportPreviewOpen] = useState(false);
   const [pendingImport, setPendingImport] =
@@ -171,6 +175,7 @@ export function WorkoutScreen() {
     () => getThemeTokens(effectiveThemeMode, { enableDynamicColor: false }),
     [effectiveThemeMode],
   );
+  const donationTargets = useMemo(() => getDonationTargets(), []);
   const layout = useMemo(() => {
     const navBottomPadding = Math.max(insets.bottom, 8) + tokens.spacing.sm;
     const navHeight = 64 + navBottomPadding;
@@ -572,6 +577,33 @@ export function WorkoutScreen() {
     }
   };
 
+  const handleOpenDonationTarget = useCallback(
+    async (target: DonationTarget) => {
+      try {
+        const canOpen = await Linking.canOpenURL(target.uri);
+        if (!canOpen) {
+          showPrompt('Cannot open wallet link', target.uri);
+          return;
+        }
+        await Linking.openURL(target.uri);
+      } catch (error) {
+        showPrompt('Cannot open wallet link', getErrorMessage(error));
+      }
+    },
+    [showPrompt],
+  );
+
+  const handleCopyDonationTarget = useCallback(
+    async (target: DonationTarget) => {
+      try {
+        await Clipboard.setStringAsync(target.copyValue);
+      } catch (error) {
+        showPrompt('Copy failed', getErrorMessage(error));
+      }
+    },
+    [showPrompt],
+  );
+
   const handleQueueWeekChange = useCallback(
     (nextWeek: number) => {
       setPendingCurrentWeek(nextWeek);
@@ -855,6 +887,20 @@ export function WorkoutScreen() {
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
+          onOpenDonate={() => setDonateModalOpen(true)}
+        />
+
+        <DonateModal
+          open={donateModalOpen}
+          tokens={tokens}
+          targets={donationTargets}
+          onClose={() => setDonateModalOpen(false)}
+          onOpenTarget={(target) => {
+            void handleOpenDonationTarget(target);
+          }}
+          onCopyTarget={(target) => {
+            void handleCopyDonationTarget(target);
+          }}
         />
 
         <AppPromptModal

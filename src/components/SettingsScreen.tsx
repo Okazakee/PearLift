@@ -34,6 +34,7 @@ interface SettingsScreenProps {
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
+  onOpenDonate: () => void;
 }
 
 export function SettingsScreen({
@@ -52,6 +53,7 @@ export function SettingsScreen({
   onClose,
   onResetData,
   onOpenGithub,
+  onOpenDonate,
 }: SettingsScreenProps) {
   const styles = createStyles(tokens, topInset, bottomInset);
   const themeSubtitle = 'App color schema';
@@ -157,9 +159,7 @@ export function SettingsScreen({
             <View style={styles.row}>
               <View style={styles.rowText}>
                 <Text style={styles.rowTitle}>System language</Text>
-                <Text style={styles.rowSubtitle}>
-                  App follows system language. Current fallback: English.
-                </Text>
+                <Text style={styles.rowSubtitle}>App language</Text>
               </View>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>System</Text>
@@ -219,7 +219,7 @@ export function SettingsScreen({
               </AnimatedPressable>
               <AnimatedPressable
                 style={styles.developerSecondaryButton}
-                onPress={() => {}}
+                onPress={onOpenDonate}
               >
                 <Heart size={18} color={tokens.colors.primary} />
                 <Text style={styles.donateButtonText}>Donate</Text>
