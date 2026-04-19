@@ -436,29 +436,22 @@ export function WorkoutScreen() {
           onPress: () => {
             void (async () => {
               try {
-                const hasHardware =
-                  await LocalAuthentication.hasHardwareAsync();
-                const enrolled = await LocalAuthentication.isEnrolledAsync();
-                if (!hasHardware || !enrolled) {
-                  showPrompt(
-                    'Authentication unavailable',
-                    'Enable device authentication (biometric or PIN/passcode) to reset all data.',
-                  );
-                  return;
-                }
+                const enrolledLevel =
+                  await LocalAuthentication.getEnrolledLevelAsync();
+                if (enrolledLevel !== LocalAuthentication.SecurityLevel.NONE) {
+                  const result = await LocalAuthentication.authenticateAsync({
+                    promptMessage: 'Confirm reset',
+                    cancelLabel: 'Cancel',
+                    disableDeviceFallback: false,
+                  });
 
-                const result = await LocalAuthentication.authenticateAsync({
-                  promptMessage: 'Confirm reset',
-                  cancelLabel: 'Cancel',
-                  disableDeviceFallback: false,
-                });
-
-                if (!result.success) {
-                  showPrompt(
-                    'Reset canceled',
-                    'System authentication did not confirm the reset.',
-                  );
-                  return;
+                  if (!result.success) {
+                    showPrompt(
+                      'Reset canceled',
+                      'System authentication did not confirm the reset.',
+                    );
+                    return;
+                  }
                 }
 
                 await runMutation({ type: 'resetAllData' });

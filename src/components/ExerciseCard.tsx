@@ -135,7 +135,13 @@ function ExerciseCardComponent({
   }, [exercise, onDeleteExercise]);
 
   return (
-    <View style={styles.card}>
+    <AnimatedPressable
+      style={styles.card}
+      onLongPress={onDragStart}
+      delayLongPress={160}
+      disabled={!onDragStart}
+      pressScale={1}
+    >
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
         <View style={styles.topActions}>
@@ -151,18 +157,6 @@ function ExerciseCardComponent({
               name="trash-can-outline"
               size={17}
               color={tokens.colors.error}
-            />
-          </AnimatedPressable>
-          <AnimatedPressable
-            style={styles.iconButton}
-            onLongPress={onDragStart}
-            delayLongPress={160}
-            disabled={!onDragStart}
-          >
-            <Feather
-              name="menu"
-              size={18}
-              color={tokens.colors.textSecondary}
             />
           </AnimatedPressable>
         </View>
@@ -236,7 +230,7 @@ function ExerciseCardComponent({
           <Feather name="plus" size={18} color={tokens.colors.success} />
         </AnimatedPressable>
       </View>
-    </View>
+    </AnimatedPressable>
   );
 }
 

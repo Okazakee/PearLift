@@ -4,6 +4,7 @@ import { Pressable } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
+  type AnimatedProps as ReanimatedAnimatedProps,
   ReduceMotion,
   SlideInDown,
   SlideInRight,
@@ -27,6 +28,13 @@ interface AnimatedPressableProps
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   pressScale?: number;
+  entering?: ReanimatedAnimatedProps<
+    ComponentProps<typeof Pressable>
+  >['entering'];
+  exiting?: ReanimatedAnimatedProps<
+    ComponentProps<typeof Pressable>
+  >['exiting'];
+  layout?: ReanimatedAnimatedProps<ComponentProps<typeof Pressable>>['layout'];
 }
 
 const AnimatedPressableBase = Animated.createAnimatedComponent(Pressable);
