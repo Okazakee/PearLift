@@ -1,6 +1,6 @@
-import { Feather } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
-import { useEffect, useMemo, useState } from 'react';
+import { Activity, Bell, Monitor, Sliders } from 'lucide-react-native';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -24,27 +24,27 @@ interface OnboardingScreenProps {
 
 const PAGE_CONTENT = [
   {
-    icon: 'activity' as const,
+    icon: Activity,
     title: 'Welcome to PearLift',
     description:
       'Track your workouts with a simple interface. Log sets, reps, and weights - no complexity, just progress.',
     kind: 'normal' as const,
   },
   {
-    icon: 'sliders' as const,
+    icon: Sliders,
     title: 'Choose units',
     description: 'Pick your preferred weight unit. You can change this later.',
     kind: 'units' as const,
   },
   {
-    icon: 'monitor' as const,
+    icon: Monitor,
     title: 'Device-to-Device Sync',
     description:
       'Sync your workouts directly between devices. Set it up anytime in Settings. Works locally without cloud services.',
     kind: 'normal' as const,
   },
   {
-    icon: 'bell' as const,
+    icon: Bell,
     title: 'Stay on Track',
     description:
       'Enable notifications so you never forget a rest timer. We will remind you when its time to start your next set.',
@@ -119,11 +119,10 @@ export function OnboardingScreen({
         )}
       >
         <View style={styles.iconContainer}>
-          <Feather
-            name={PAGE_CONTENT[page].icon}
-            size={56}
-            color={tokens.colors.primary}
-          />
+          {React.createElement(PAGE_CONTENT[page].icon, {
+            size: 56,
+            color: tokens.colors.primary,
+          })}
         </View>
 
         <Text style={styles.title}>{content.title}</Text>

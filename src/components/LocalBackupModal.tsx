@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Download, Sliders, Upload, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
@@ -33,7 +33,7 @@ export function LocalBackupModal({
       <View style={styles.header}>
         <Text style={styles.title}>Backup & Sync</Text>
         <Pressable style={styles.closeButton} onPress={onClose}>
-          <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+          <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
 
@@ -46,7 +46,7 @@ export function LocalBackupModal({
           style={[styles.secondaryButton, styles.disabledButton]}
           disabled
         >
-          <Feather name="sliders" size={18} color={tokens.colors.primary} />
+          <Sliders size={18} color={tokens.colors.primary} />
           <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
         </Pressable>
       </View>
@@ -59,15 +59,11 @@ export function LocalBackupModal({
         </Text>
         <View style={styles.actions}>
           <Pressable style={styles.actionButton} onPress={onExport}>
-            <Feather
-              name="download"
-              size={18}
-              color={tokens.colors.onPrimary}
-            />
+            <Download size={18} color={tokens.colors.onPrimary} />
             <Text style={styles.actionText}>Export Backup</Text>
           </Pressable>
           <Pressable style={styles.actionButton} onPress={onImport}>
-            <Feather name="upload" size={18} color={tokens.colors.onPrimary} />
+            <Upload size={18} color={tokens.colors.onPrimary} />
             <Text style={styles.actionText}>Import Backup</Text>
           </Pressable>
         </View>

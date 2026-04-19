@@ -1,4 +1,14 @@
-import { Feather } from '@expo/vector-icons';
+import {
+  AlertTriangle,
+  ChevronLeft,
+  Code,
+  Globe,
+  Heart,
+  Info,
+  RefreshCw,
+  Sliders,
+  Sun,
+} from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeMode, ThemePreference, ThemeTokens } from '../theme/tokens';
@@ -78,11 +88,7 @@ export function SettingsScreen({
       <View style={styles.container}>
         <View style={styles.header}>
           <AnimatedPressable style={styles.backButton} onPress={onClose}>
-            <Feather
-              name="chevron-left"
-              size={22}
-              color={tokens.colors.textPrimary}
-            />
+            <ChevronLeft size={22} color={tokens.colors.textPrimary} />
           </AnimatedPressable>
           <Text style={styles.title}>Settings</Text>
           <View style={styles.backButtonPlaceholder} />
@@ -94,7 +100,7 @@ export function SettingsScreen({
         >
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Feather name="sun" size={16} color={tokens.colors.primary} />
+              <Sun size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>Appearance</Text>
             </View>
             <View style={styles.row}>
@@ -150,7 +156,7 @@ export function SettingsScreen({
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Feather name="globe" size={16} color={tokens.colors.primary} />
+              <Globe size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>Language</Text>
             </View>
             <View style={styles.row}>
@@ -168,11 +174,7 @@ export function SettingsScreen({
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Feather
-                name="refresh-cw"
-                size={16}
-                color={tokens.colors.primary}
-              />
+              <RefreshCw size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>Sync & Backup</Text>
             </View>
             <Text style={styles.rowSubtitle}>
@@ -183,22 +185,14 @@ export function SettingsScreen({
               onPress={() => {}}
               disabled
             >
-              <Feather
-                name="sliders"
-                size={18}
-                color={tokens.colors.onPrimary}
-              />
+              <Sliders size={18} color={tokens.colors.onPrimary} />
               <Text style={styles.githubButtonText}>Open Sync Setup</Text>
             </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Feather
-                name="alert-triangle"
-                size={16}
-                color={tokens.colors.accentDanger}
-              />
+              <AlertTriangle size={16} color={tokens.colors.accentDanger} />
               <Text style={styles.sectionTitle}>Data</Text>
             </View>
             <Text style={styles.rowSubtitle}>
@@ -206,18 +200,14 @@ export function SettingsScreen({
               history.
             </Text>
             <AnimatedPressable style={styles.resetButton} onPress={onResetData}>
-              <Feather
-                name="refresh-cw"
-                size={18}
-                color={tokens.colors.accentDanger}
-              />
+              <RefreshCw size={18} color={tokens.colors.accentDanger} />
               <Text style={styles.resetButtonText}>Reset All Data</Text>
             </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Feather name="code" size={16} color={tokens.colors.primary} />
+              <Code size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>Developer</Text>
             </View>
             <View style={styles.infoRow}>
@@ -229,18 +219,14 @@ export function SettingsScreen({
                 style={styles.developerPrimaryButton}
                 onPress={onOpenGithub}
               >
-                <Feather
-                  name="github"
-                  size={18}
-                  color={tokens.colors.onPrimary}
-                />
+                <Code size={18} color={tokens.colors.onPrimary} />
                 <Text style={styles.githubButtonText}>Open Repo</Text>
               </AnimatedPressable>
               <AnimatedPressable
                 style={styles.developerSecondaryButton}
                 onPress={() => {}}
               >
-                <Feather name="heart" size={18} color={tokens.colors.primary} />
+                <Heart size={18} color={tokens.colors.primary} />
                 <Text style={styles.donateButtonText}>Donate</Text>
               </AnimatedPressable>
             </View>
@@ -248,7 +234,7 @@ export function SettingsScreen({
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <Feather name="info" size={16} color={tokens.colors.primary} />
+              <Info size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>App Info</Text>
             </View>
             <View style={styles.infoRow}>

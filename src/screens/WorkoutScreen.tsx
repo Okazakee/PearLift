@@ -830,6 +830,7 @@ export function WorkoutScreen() {
               dayConfigs: nextDayConfigs,
             });
           }}
+          onPrompt={showPrompt}
         />
 
         <LocalBackupModal

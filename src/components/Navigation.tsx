@@ -1,4 +1,13 @@
-import { Feather } from '@expo/vector-icons';
+import {
+  Activity,
+  Clock,
+  Heart,
+  Navigation as NavigationIcon,
+  RefreshCw,
+  Repeat,
+  Star,
+} from 'lucide-react-native';
+import type React from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -10,7 +19,6 @@ import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
-
 import { dayIconMap } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -42,6 +50,19 @@ export function Navigation({
     (window.width - tokens.spacing.xs * 2) / Math.max(1, dayConfigs.length),
   );
 
+  const iconComponents: Record<
+    string,
+    React.ComponentType<{ size: number; color: string }>
+  > = {
+    Activity,
+    Clock,
+    Heart,
+    Navigation: NavigationIcon,
+    RefreshCw,
+    Repeat,
+    Star,
+  };
+
   return (
     <View style={styles.container}>
       <DraggableFlatList
@@ -55,7 +76,7 @@ export function Navigation({
         onDragEnd={({ data }) => onReorderDayConfigs(data)}
         renderItem={({ item, drag, isActive }: RenderItemParams<DayConfig>) => {
           const active = currentDay === item.id;
-          const iconName = dayIconMap[item.icon] ?? 'fitness-center';
+          const IconComponent = iconComponents[dayIconMap[item.icon]];
 
           return (
             <ScaleDecorator>
@@ -77,15 +98,16 @@ export function Navigation({
                 <View
                   style={[styles.iconWrap, active && styles.iconWrapActive]}
                 >
-                  <Feather
-                    name={iconName as never}
-                    size={20}
-                    color={
-                      active
-                        ? tokens.colors.accentPrimary
-                        : tokens.colors.textSecondary
-                    }
-                  />
+                  {IconComponent && (
+                    <IconComponent
+                      size={20}
+                      color={
+                        active
+                          ? tokens.colors.accentPrimary
+                          : tokens.colors.textSecondary
+                      }
+                    />
+                  )}
                 </View>
                 <Text style={[styles.label, active && styles.labelActive]}>
                   {item.name}

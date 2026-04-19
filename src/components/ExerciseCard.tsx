@@ -1,4 +1,4 @@
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Dumbbell, Edit2, Minus, Plus, Trash2 } from 'lucide-react-native';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, {
@@ -146,18 +146,10 @@ function ExerciseCardComponent({
         <Text style={styles.name}>{exercise.name}</Text>
         <View style={styles.topActions}>
           <AnimatedPressable style={styles.iconButton} onPress={handleEdit}>
-            <Feather
-              name="edit-2"
-              size={16}
-              color={tokens.colors.textSecondary}
-            />
+            <Edit2 size={16} color={tokens.colors.textSecondary} />
           </AnimatedPressable>
           <AnimatedPressable style={styles.iconButton} onPress={handleDelete}>
-            <MaterialCommunityIcons
-              name="trash-can-outline"
-              size={17}
-              color={tokens.colors.error}
-            />
+            <Trash2 size={17} color={tokens.colors.error} />
           </AnimatedPressable>
         </View>
       </View>
@@ -180,7 +172,7 @@ function ExerciseCardComponent({
           style={[styles.stepButton, styles.stepButtonMinus]}
           onPress={() => handleWeightAdjust(-1)}
         >
-          <Feather name="minus" size={18} color={tokens.colors.error} />
+          <Minus size={18} color={tokens.colors.error} />
         </AnimatedPressable>
 
         {editingWeight ? (
@@ -207,11 +199,7 @@ function ExerciseCardComponent({
               setEditingWeight(true);
             }}
           >
-            <MaterialCommunityIcons
-              name="dumbbell"
-              size={24}
-              color={tokens.colors.primary}
-            />
+            <Dumbbell size={24} color={tokens.colors.primary} />
             <Animated.View style={weightBumpStyle}>
               <Text style={styles.weightValue}>
                 {formatWeight(adjustedDisplayWeight, weightUnit)}
@@ -227,7 +215,7 @@ function ExerciseCardComponent({
           style={[styles.stepButton, styles.stepButtonPlus]}
           onPress={() => handleWeightAdjust(1)}
         >
-          <Feather name="plus" size={18} color={tokens.colors.success} />
+          <Plus size={18} color={tokens.colors.success} />
         </AnimatedPressable>
       </View>
     </AnimatedPressable>

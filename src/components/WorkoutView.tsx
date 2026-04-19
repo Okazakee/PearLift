@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Plus, Sliders } from 'lucide-react-native';
 import { useCallback, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import DraggableFlatList, {
@@ -123,11 +123,7 @@ export function WorkoutView({
             style={styles.settingsButton}
             onPress={onOpenProgramSettings}
           >
-            <Feather
-              name="sliders"
-              size={16}
-              color={tokens.colors.textSecondary}
-            />
+            <Sliders size={16} color={tokens.colors.textSecondary} />
           </AnimatedPressable>
         </View>
       </>
@@ -147,7 +143,7 @@ export function WorkoutView({
   const renderFooter = useCallback(
     () => (
       <AnimatedPressable style={styles.addButton} onPress={onOpenAddExercise}>
-        <Feather name="plus" size={16} color={tokens.colors.primary} />
+        <Plus size={16} color={tokens.colors.primary} />
         <Text style={styles.addButtonText}>Add Exercise</Text>
       </AnimatedPressable>
     ),

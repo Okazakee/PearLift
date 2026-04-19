@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Download, Settings } from 'lucide-react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
 
@@ -34,18 +34,10 @@ export function Header({
 
       <View style={styles.actionsRow}>
         <Pressable onPress={onOpenLocalBackup} style={styles.iconButton}>
-          <Feather
-            name="download"
-            size={18}
-            color={tokens.colors.textSecondary}
-          />
+          <Download size={18} color={tokens.colors.textSecondary} />
         </Pressable>
         <Pressable onPress={onOpenSettings} style={styles.iconButton}>
-          <Feather
-            name="settings"
-            size={18}
-            color={tokens.colors.textSecondary}
-          />
+          <Settings size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
     </View>

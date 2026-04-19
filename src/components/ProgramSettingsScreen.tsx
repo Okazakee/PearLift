@@ -1,4 +1,16 @@
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import {
+  Activity,
+  ChevronLeft,
+  Clock,
+  Heart,
+  Navigation,
+  Plus,
+  RefreshCw,
+  Repeat,
+  Star,
+  Trash2,
+} from 'lucide-react-native';
+import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DraggableFlatList, {
@@ -30,12 +42,34 @@ interface ProgramSettingsScreenProps {
   onClose: () => void;
   onWeekConfigsChange: (value: WeekConfig[]) => void;
   onDayConfigsChange: (value: DayConfig[]) => void;
+  onPrompt: (
+    title: string,
+    message: string,
+    actions: Array<{
+      label: string;
+      tone?: 'cancel' | 'destructive';
+      onPress: () => void;
+    }>,
+  ) => void;
 }
 
 type WeekDraft = WeekConfig & { uiKey: string };
 
 const MAX_WEEKS = 4;
 const MAX_DAYS = 7;
+
+const dayIconComponents: Record<
+  string,
+  React.ComponentType<{ size: number; color: string }>
+> = {
+  Activity,
+  Clock,
+  Heart,
+  Navigation,
+  RefreshCw,
+  Repeat,
+  Star,
+};
 
 export function ProgramSettingsScreen({
   open,
@@ -47,6 +81,7 @@ export function ProgramSettingsScreen({
   onClose,
   onWeekConfigsChange,
   onDayConfigsChange,
+  onPrompt,
 }: ProgramSettingsScreenProps) {
   const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
   const [draftWeeks, setDraftWeeks] = useState<WeekDraft[]>([]);
@@ -169,14 +204,29 @@ export function ProgramSettingsScreen({
 
   const removeDay = useCallback(
     (index: number) => {
-      setDraftDays((prev) => {
-        if (prev.length <= 1) return prev;
-        const next = prev.filter((_, i) => i !== index);
-        onDayConfigsChange(next);
-        return next;
-      });
+      const day = draftDays[index];
+      if (!day) return;
+      onPrompt(
+        'Delete day',
+        `Delete "${day.name}"? This removes it from all weeks.`,
+        [
+          { label: 'Cancel', tone: 'cancel', onPress: () => {} },
+          {
+            label: 'Delete',
+            tone: 'destructive',
+            onPress: () => {
+              setDraftDays((prev) => {
+                if (prev.length <= 1) return prev;
+                const next = prev.filter((_, i) => i !== index);
+                onDayConfigsChange(next);
+                return next;
+              });
+            },
+          },
+        ],
+      );
     },
-    [onDayConfigsChange],
+    [draftDays, onDayConfigsChange, onPrompt],
   );
 
   return (
@@ -184,11 +234,7 @@ export function ProgramSettingsScreen({
       <View style={styles.container}>
         <View style={styles.header}>
           <AnimatedPressable style={styles.backButton} onPress={onClose}>
-            <Feather
-              name="chevron-left"
-              size={22}
-              color={tokens.colors.textPrimary}
-            />
+            <ChevronLeft size={22} color={tokens.colors.textPrimary} />
           </AnimatedPressable>
           <Text style={styles.title}>Program Settings</Text>
           <View style={styles.backButtonPlaceholder} />
@@ -253,8 +299,7 @@ export function ProgramSettingsScreen({
                         style={styles.ghostCard}
                         onPress={addWeek}
                       >
-                        <Feather
-                          name="plus"
+                        <Plus
                           size={16}
                           color={withAlpha(tokens.colors.primary, 0.7)}
                         />
@@ -304,8 +349,7 @@ export function ProgramSettingsScreen({
                                 disabled={draftWeeks.length <= 1}
                                 onPress={() => removeWeek(week.uiKey)}
                               >
-                                <MaterialCommunityIcons
-                                  name="trash-can-outline"
+                                <Trash2
                                   size={16}
                                   color={tokens.colors.accentDanger}
                                 />
@@ -382,8 +426,7 @@ export function ProgramSettingsScreen({
                         style={styles.ghostCard}
                         onPress={addDay}
                       >
-                        <Feather
-                          name="plus"
+                        <Plus
                           size={16}
                           color={withAlpha(tokens.colors.primary, 0.7)}
                         />
@@ -433,8 +476,7 @@ export function ProgramSettingsScreen({
                                 disabled={draftDays.length <= 1}
                                 onPress={() => removeDay(index)}
                               >
-                                <MaterialCommunityIcons
-                                  name="trash-can-outline"
+                                <Trash2
                                   size={16}
                                   color={tokens.colors.accentDanger}
                                 />
@@ -459,7 +501,8 @@ export function ProgramSettingsScreen({
                             >
                               {dayIconOptions.map((option) => {
                                 const active = day.icon === option;
-                                const iconName = dayIconMap[option];
+                                const IconComponent =
+                                  dayIconComponents[dayIconMap[option]];
                                 return (
                                   <AnimatedPressable
                                     key={option}
@@ -472,15 +515,16 @@ export function ProgramSettingsScreen({
                                       updateDay(day.id, { icon: option })
                                     }
                                   >
-                                    <Feather
-                                      name={iconName as never}
-                                      size={18}
-                                      color={
-                                        active
-                                          ? tokens.colors.accentPrimary
-                                          : tokens.colors.textSecondary
-                                      }
-                                    />
+                                    {IconComponent && (
+                                      <IconComponent
+                                        size={18}
+                                        color={
+                                          active
+                                            ? tokens.colors.accentPrimary
+                                            : tokens.colors.textSecondary
+                                        }
+                                      />
+                                    )}
                                   </AnimatedPressable>
                                 );
                               })}

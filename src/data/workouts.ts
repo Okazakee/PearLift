@@ -20,25 +20,23 @@ export const defaultDayConfigs: DayConfig[] = [
 ];
 
 export const dayIconMap: Record<string, string> = {
-  FitnessCenter: 'activity',
-  SwapHoriz: 'repeat',
-  DirectionsWalk: 'navigation',
-  Replay: 'refresh-cw',
-  Timer: 'clock',
-  Favorite: 'heart',
-  Star: 'star',
-  Settings: 'settings',
+  Activity: 'Activity',
+  Repeat: 'Repeat',
+  Navigation: 'Navigation',
+  RefreshCw: 'RefreshCw',
+  Clock: 'Clock',
+  Heart: 'Heart',
+  Star: 'Star',
+  Settings: 'Settings',
 };
 
-// Keep this list gym-oriented for day customization UI.
-// dayIconMap may contain legacy values for backward compatibility.
 export const dayIconOptions = [
-  'FitnessCenter',
-  'SwapHoriz',
-  'DirectionsWalk',
-  'Replay',
-  'Timer',
-  'Favorite',
+  'Activity',
+  'Repeat',
+  'Navigation',
+  'RefreshCw',
+  'Clock',
+  'Heart',
   'Star',
 ];
 

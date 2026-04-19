@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { Eye, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChangeSummary } from '../backup/types';
@@ -33,11 +33,11 @@ export function ImportPreviewModal({
     >
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Feather name="eye" size={18} color={tokens.colors.primary} />
+          <Eye size={18} color={tokens.colors.primary} />
           <Text style={styles.title}>Import Preview</Text>
         </View>
         <Pressable style={styles.closeButton} onPress={onClose}>
-          <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+          <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
 

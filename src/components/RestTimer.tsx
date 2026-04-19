@@ -1,9 +1,18 @@
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Notifications from 'expo-notifications';
+import {
+  Minus,
+  Pause,
+  Play,
+  Plus,
+  RefreshCw,
+  Sliders,
+  Timer,
+  X,
+} from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -772,11 +781,7 @@ export function RestTimer({
         style={[styles.fabContainer, fabAnimatedStyle]}
       >
         <AnimatedPressable style={styles.fab} onPress={() => setExpanded(true)}>
-          <MaterialCommunityIcons
-            name="timer-outline"
-            size={24}
-            color={tokens.colors.onPrimary}
-          />
+          <Timer size={24} color={tokens.colors.onPrimary} />
         </AnimatedPressable>
       </Animated.View>
 
@@ -787,18 +792,14 @@ export function RestTimer({
         <View style={styles.panel}>
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <MaterialCommunityIcons
-                name="timer-outline"
-                size={18}
-                color={tokens.colors.primary}
-              />
+              <Timer size={18} color={tokens.colors.primary} />
               <Text style={styles.headerText}>Rest Timer</Text>
             </View>
             <AnimatedPressable
               style={styles.closeButton}
               onPress={() => setExpanded(false)}
             >
-              <Feather name="x" size={16} color={tokens.colors.textSecondary} />
+              <X size={16} color={tokens.colors.textSecondary} />
             </AnimatedPressable>
           </View>
 
@@ -864,11 +865,7 @@ export function RestTimer({
                   style={styles.controlButton}
                   onPress={handleReset}
                 >
-                  <Feather
-                    name="refresh-cw"
-                    size={20}
-                    color={tokens.colors.textPrimary}
-                  />
+                  <RefreshCw size={20} color={tokens.colors.textPrimary} />
                 </AnimatedPressable>
                 <AnimatedPressable
                   style={[
@@ -878,14 +875,9 @@ export function RestTimer({
                   onPress={handleToggleRunning}
                 >
                   {isRunning ? (
-                    <Feather
-                      name="pause"
-                      size={24}
-                      color={tokens.colors.accentWarning}
-                    />
+                    <Pause size={24} color={tokens.colors.accentWarning} />
                   ) : (
-                    <MaterialCommunityIcons
-                      name="play"
+                    <Play
                       size={28}
                       color={tokens.colors.onPrimary}
                       style={styles.playIcon}
@@ -899,8 +891,7 @@ export function RestTimer({
                   ]}
                   onPress={() => setShowSettings(!showSettings)}
                 >
-                  <Feather
-                    name="sliders"
+                  <Sliders
                     size={20}
                     color={
                       showSettings
@@ -934,11 +925,7 @@ export function RestTimer({
                         onPress={() => handleAdjustDuration(-STEP)}
                         disabled={duration <= MIN_DURATION}
                       >
-                        <Feather
-                          name="minus"
-                          size={16}
-                          color={tokens.colors.textPrimary}
-                        />
+                        <Minus size={16} color={tokens.colors.textPrimary} />
                       </AnimatedPressable>
                       <Text style={styles.durationValue}>
                         {formatSeconds(duration)}
@@ -952,11 +939,7 @@ export function RestTimer({
                         onPress={() => handleAdjustDuration(STEP)}
                         disabled={duration >= MAX_DURATION}
                       >
-                        <Feather
-                          name="plus"
-                          size={16}
-                          color={tokens.colors.textPrimary}
-                        />
+                        <Plus size={16} color={tokens.colors.textPrimary} />
                       </AnimatedPressable>
                     </View>
                   </View>

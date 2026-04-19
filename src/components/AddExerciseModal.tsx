@@ -1,4 +1,4 @@
-import { Feather } from '@expo/vector-icons';
+import { X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
@@ -103,7 +103,7 @@ export function AddExerciseModal({
           {mode === 'add' ? 'Add Exercise' : 'Edit Exercise'}
         </Text>
         <Pressable style={styles.closeButton} onPress={onClose}>
-          <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+          <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
 
