@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeMode, ThemePreference, ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import type { WeightUnit } from '../types';
 import { AnimatedScreenModal } from './AnimatedScreenModal';
 
 interface SettingsScreenProps {
@@ -17,6 +18,8 @@ interface SettingsScreenProps {
   themePreference: ThemePreference;
   systemThemeMode: ThemeMode | null;
   onThemePreferenceChange: (next: ThemePreference) => void;
+  weightUnit: WeightUnit;
+  onWeightUnitChange: (next: WeightUnit) => void;
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
@@ -34,6 +37,8 @@ export function SettingsScreen({
   themePreference,
   systemThemeMode,
   onThemePreferenceChange,
+  weightUnit,
+  onWeightUnitChange,
   onClose,
   onResetData,
   onOpenGithub,
@@ -52,6 +57,18 @@ export function SettingsScreen({
 
   const optionTextStyle = (value: ThemePreference) => {
     const selected = themePreference === value;
+    if (!selected) return styles.segmentText;
+    return [styles.segmentText, styles.segmentTextSelected];
+  };
+
+  const unitOptionStyle = (value: WeightUnit) => {
+    const selected = weightUnit === value;
+    if (!selected) return styles.segment;
+    return [styles.segment, styles.segmentSelected];
+  };
+
+  const unitOptionTextStyle = (value: WeightUnit) => {
+    const selected = weightUnit === value;
     if (!selected) return styles.segmentText;
     return [styles.segmentText, styles.segmentTextSelected];
   };
@@ -103,6 +120,29 @@ export function SettingsScreen({
                   onPress={() => onThemePreferenceChange('dark')}
                 >
                   <Text style={optionTextStyle('dark')}>Dark</Text>
+                </AnimatedPressable>
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={styles.rowTitle}>Weight unit</Text>
+                <Text style={styles.rowSubtitle}>
+                  Weights are stored internally as kg.
+                </Text>
+              </View>
+              <View style={styles.segmented}>
+                <AnimatedPressable
+                  style={unitOptionStyle('kg')}
+                  onPress={() => onWeightUnitChange('kg')}
+                >
+                  <Text style={unitOptionTextStyle('kg')}>kg</Text>
+                </AnimatedPressable>
+                <AnimatedPressable
+                  style={unitOptionStyle('lb')}
+                  onPress={() => onWeightUnitChange('lb')}
+                >
+                  <Text style={unitOptionTextStyle('lb')}>lb</Text>
                 </AnimatedPressable>
               </View>
             </View>

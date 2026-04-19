@@ -1,5 +1,15 @@
 import { Feather } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import DraggableFlatList, {
+  type RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 
 import { dayIconMap } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
@@ -11,6 +21,7 @@ interface NavigationProps {
   currentDay: WorkoutDay;
   dayConfigs: DayConfig[];
   onDayChange: (day: WorkoutDay) => void;
+  onReorderDayConfigs: (value: DayConfig[]) => void;
   bottomPadding: number;
   minHeight: number;
 }
@@ -20,45 +31,70 @@ export function Navigation({
   currentDay,
   dayConfigs,
   onDayChange,
+  onReorderDayConfigs,
   bottomPadding,
   minHeight,
 }: NavigationProps) {
+  const window = useWindowDimensions();
   const styles = createStyles(tokens, bottomPadding, minHeight);
+  const itemWidth = Math.max(
+    56,
+    (window.width - tokens.spacing.xs * 2) / Math.max(1, dayConfigs.length),
+  );
 
   return (
     <View style={styles.container}>
-      {dayConfigs.map((day) => {
-        const active = currentDay === day.id;
-        const iconName = dayIconMap[day.icon] ?? 'fitness-center';
+      <DraggableFlatList
+        data={dayConfigs}
+        keyExtractor={(item) => item.id}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+        activationDistance={12}
+        onDragEnd={({ data }) => onReorderDayConfigs(data)}
+        renderItem={({ item, drag, isActive }: RenderItemParams<DayConfig>) => {
+          const active = currentDay === item.id;
+          const iconName = dayIconMap[item.icon] ?? 'fitness-center';
 
-        return (
-          <Pressable
-            key={day.id}
-            onPressIn={() => onDayChange(day.id)}
-            style={styles.item}
-            android_ripple={{
-              color: withAlpha(tokens.colors.primary, 0.12),
-              radius: 22,
-              borderless: false,
-            }}
-          >
-            <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
-              <Feather
-                name={iconName as never}
-                size={20}
-                color={
-                  active
-                    ? tokens.colors.accentPrimary
-                    : tokens.colors.textSecondary
-                }
-              />
-            </View>
-            <Text style={[styles.label, active && styles.labelActive]}>
-              {day.name}
-            </Text>
-          </Pressable>
-        );
-      })}
+          return (
+            <ScaleDecorator>
+              <Pressable
+                onPress={() => onDayChange(item.id)}
+                onLongPress={drag}
+                delayLongPress={160}
+                style={[
+                  styles.item,
+                  { width: itemWidth },
+                  isActive && styles.itemActive,
+                ]}
+                android_ripple={{
+                  color: withAlpha(tokens.colors.primary, 0.12),
+                  radius: 22,
+                  borderless: false,
+                }}
+              >
+                <View
+                  style={[styles.iconWrap, active && styles.iconWrapActive]}
+                >
+                  <Feather
+                    name={iconName as never}
+                    size={20}
+                    color={
+                      active
+                        ? tokens.colors.accentPrimary
+                        : tokens.colors.textSecondary
+                    }
+                  />
+                </View>
+                <Text style={[styles.label, active && styles.labelActive]}>
+                  {item.name}
+                </Text>
+              </Pressable>
+            </ScaleDecorator>
+          );
+        }}
+      />
     </View>
   );
 }
@@ -83,13 +119,22 @@ function createStyles(
       minHeight,
       flexDirection: 'row',
     },
-    item: {
+    list: {
       flex: 1,
+    },
+    listContent: {
+      flexGrow: 1,
+    },
+    item: {
       alignItems: 'center',
       paddingVertical: tokens.spacing.xs,
       gap: 2,
       borderRadius: tokens.radius.pill,
       overflow: 'hidden',
+    },
+    itemActive: {
+      opacity: 0.92,
+      transform: [{ scale: 1.04 }],
     },
     iconWrap: {
       width: 40,

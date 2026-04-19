@@ -308,7 +308,7 @@ export function RestTimer({
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
             date: new Date(targetEndAtMs),
-            channelId: Platform.OS === 'android' ? 'rest-timer' : undefined,
+            channelId: Platform.OS === 'android' ? 'rest-timer-v2' : undefined,
           },
         });
         if (scheduleTokenRef.current !== token) {
@@ -655,8 +655,8 @@ export function RestTimer({
       RING_CIRCUMFERENCE * (1 - clampedRemaining / effectiveStarted);
     cancelAnimation(ringOffsetAnimated);
     ringOffsetAnimated.value = withTiming(targetOffset, {
-      duration: MOTION.duration.base,
-      easing: MOTION.easing.standard,
+      duration: 320,
+      easing: Easing.inOut(Easing.cubic),
       reduceMotion: ReduceMotion.System,
     });
   }, [effectiveStarted, endAtMs, mode, remainingSec, ringOffsetAnimated]);

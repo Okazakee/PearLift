@@ -13,39 +13,48 @@ import Animated, {
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
-import type { Exercise } from '../types';
+import type { Exercise, WeightUnit } from '../types';
+import {
+  formatWeight,
+  formatWeightUnit,
+  fromDisplayWeight,
+  getWeightStep,
+  toDisplayWeight,
+} from '../utils/units';
 
 interface ExerciseCardProps {
   tokens: ThemeTokens;
   exercise: Exercise;
+  weightUnit: WeightUnit;
   baseWeight: number;
   adjustedWeight: number;
-  isFirst: boolean;
-  isLast: boolean;
   onAdjustWeight: (exerciseId: string, delta: number) => void;
   onSetWeight: (exerciseId: string, value: number) => void;
-  onMoveExercise: (exerciseId: string, direction: 'up' | 'down') => void;
   onEditExercise: (exercise: Exercise) => void;
   onDeleteExercise: (exercise: Exercise) => void;
+  onDragStart?: () => void;
 }
 
 function ExerciseCardComponent({
   tokens,
   exercise,
+  weightUnit,
   baseWeight,
   adjustedWeight,
-  isFirst,
-  isLast,
   onAdjustWeight,
   onSetWeight,
-  onMoveExercise,
   onEditExercise,
   onDeleteExercise,
+  onDragStart,
 }: ExerciseCardProps) {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const setsRepsLabel = `${exercise.sets}x${exercise.reps}`;
   const [editingWeight, setEditingWeight] = useState(false);
-  const [tempWeight, setTempWeight] = useState(baseWeight.toString());
+  const baseDisplayWeight = toDisplayWeight(baseWeight, weightUnit);
+  const adjustedDisplayWeight = toDisplayWeight(adjustedWeight, weightUnit);
+  const [tempWeight, setTempWeight] = useState(
+    formatWeight(baseDisplayWeight, weightUnit),
+  );
   const prevAdjustedWeightRef = useRef(adjustedWeight);
   const submitGuardRef = useRef(false);
   const weightScale = useSharedValue(1);
@@ -93,12 +102,13 @@ function ExerciseCardComponent({
     );
   }, [adjustedWeight, weightScale, weightTranslateY]);
 
-  const step = baseWeight >= 20 ? 2.5 : 1;
+  const step = getWeightStep(baseDisplayWeight, weightUnit);
   const handleWeightAdjust = useCallback(
     (direction: -1 | 1) => {
-      onAdjustWeight(exercise.id, direction * step);
+      const deltaKg = fromDisplayWeight(direction * step, weightUnit);
+      onAdjustWeight(exercise.id, deltaKg);
     },
-    [exercise.id, onAdjustWeight, step],
+    [exercise.id, onAdjustWeight, step, weightUnit],
   );
 
   const handleWeightSubmit = useCallback(() => {
@@ -107,22 +117,14 @@ function ExerciseCardComponent({
     const parsed = Number(tempWeight);
     if (!Number.isFinite(parsed) || parsed < 0) {
       setEditingWeight(false);
-      setTempWeight(baseWeight.toString());
+      setTempWeight(formatWeight(baseDisplayWeight, weightUnit));
       submitGuardRef.current = false;
       return;
     }
-    onSetWeight(exercise.id, parsed);
+    onSetWeight(exercise.id, fromDisplayWeight(parsed, weightUnit));
     setEditingWeight(false);
     submitGuardRef.current = false;
-  }, [baseWeight, exercise.id, onSetWeight, tempWeight]);
-
-  const handleMoveUp = useCallback(() => {
-    onMoveExercise(exercise.id, 'up');
-  }, [exercise.id, onMoveExercise]);
-
-  const handleMoveDown = useCallback(() => {
-    onMoveExercise(exercise.id, 'down');
-  }, [exercise.id, onMoveExercise]);
+  }, [baseDisplayWeight, exercise.id, onSetWeight, tempWeight, weightUnit]);
 
   const handleEdit = useCallback(() => {
     onEditExercise(exercise);
@@ -136,13 +138,34 @@ function ExerciseCardComponent({
     <View style={styles.card}>
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
-        <AnimatedPressable style={styles.iconButton} onPress={handleEdit}>
-          <Feather
-            name="edit-2"
-            size={16}
-            color={tokens.colors.textSecondary}
-          />
-        </AnimatedPressable>
+        <View style={styles.topActions}>
+          <AnimatedPressable style={styles.iconButton} onPress={handleEdit}>
+            <Feather
+              name="edit-2"
+              size={16}
+              color={tokens.colors.textSecondary}
+            />
+          </AnimatedPressable>
+          <AnimatedPressable style={styles.iconButton} onPress={handleDelete}>
+            <MaterialCommunityIcons
+              name="trash-can-outline"
+              size={17}
+              color={tokens.colors.error}
+            />
+          </AnimatedPressable>
+          <AnimatedPressable
+            style={styles.iconButton}
+            onLongPress={onDragStart}
+            delayLongPress={160}
+            disabled={!onDragStart}
+          >
+            <Feather
+              name="menu"
+              size={18}
+              color={tokens.colors.textSecondary}
+            />
+          </AnimatedPressable>
+        </View>
       </View>
 
       <View style={styles.chipsRow}>
@@ -178,13 +201,15 @@ function ExerciseCardComponent({
               onSubmitEditing={handleWeightSubmit}
               returnKeyType="done"
             />
-            <Text style={styles.weightUnit}>kg</Text>
+            <Text style={styles.weightUnit}>
+              {formatWeightUnit(weightUnit)}
+            </Text>
           </View>
         ) : (
           <AnimatedPressable
             style={styles.weightValueRow}
             onPress={() => {
-              setTempWeight(baseWeight.toString());
+              setTempWeight(formatWeight(baseDisplayWeight, weightUnit));
               setEditingWeight(true);
             }}
           >
@@ -195,10 +220,12 @@ function ExerciseCardComponent({
             />
             <Animated.View style={weightBumpStyle}>
               <Text style={styles.weightValue}>
-                {adjustedWeight.toFixed(1)}
+                {formatWeight(adjustedDisplayWeight, weightUnit)}
               </Text>
             </Animated.View>
-            <Text style={styles.weightUnit}>kg</Text>
+            <Text style={styles.weightUnit}>
+              {formatWeightUnit(weightUnit)}
+            </Text>
           </AnimatedPressable>
         )}
 
@@ -209,41 +236,6 @@ function ExerciseCardComponent({
           <Feather name="plus" size={18} color={tokens.colors.success} />
         </AnimatedPressable>
       </View>
-
-      <View style={styles.bottomActions}>
-        <AnimatedPressable
-          style={[styles.actionButton, isFirst && styles.disabledButton]}
-          disabled={isFirst}
-          onPress={handleMoveUp}
-        >
-          <Feather
-            name="chevron-up"
-            size={16}
-            color={isFirst ? tokens.colors.textMuted : tokens.colors.primary}
-          />
-        </AnimatedPressable>
-        <AnimatedPressable
-          style={[styles.actionButton, isLast && styles.disabledButton]}
-          disabled={isLast}
-          onPress={handleMoveDown}
-        >
-          <Feather
-            name="chevron-down"
-            size={16}
-            color={isLast ? tokens.colors.textMuted : tokens.colors.primary}
-          />
-        </AnimatedPressable>
-        <AnimatedPressable
-          style={[styles.actionButton, styles.deleteAction]}
-          onPress={handleDelete}
-        >
-          <MaterialCommunityIcons
-            name="trash-can-outline"
-            size={17}
-            color={tokens.colors.error}
-          />
-        </AnimatedPressable>
-      </View>
     </View>
   );
 }
@@ -252,10 +244,9 @@ export const ExerciseCard = memo(
   ExerciseCardComponent,
   (prev, next) =>
     prev.tokens === next.tokens &&
+    prev.weightUnit === next.weightUnit &&
     prev.baseWeight === next.baseWeight &&
     prev.adjustedWeight === next.adjustedWeight &&
-    prev.isFirst === next.isFirst &&
-    prev.isLast === next.isLast &&
     prev.exercise.id === next.exercise.id &&
     prev.exercise.name === next.exercise.name &&
     prev.exercise.muscleGroup === next.exercise.muscleGroup &&
@@ -277,6 +268,11 @@ function createStyles(tokens: ThemeTokens) {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
+    },
+    topActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.xs,
     },
     badge: {
       paddingHorizontal: tokens.spacing.sm + 6,
@@ -312,9 +308,6 @@ function createStyles(tokens: ThemeTokens) {
       color: tokens.colors.secondary,
       fontSize: tokens.type.label,
       fontWeight: '600',
-    },
-    disabledButton: {
-      opacity: 0.5,
     },
     name: {
       color: tokens.colors.textPrimary,
@@ -380,22 +373,6 @@ function createStyles(tokens: ThemeTokens) {
     },
     stepButtonPlus: {
       backgroundColor: withAlpha(tokens.colors.success, 0.12),
-    },
-    bottomActions: {
-      marginTop: tokens.spacing.sm,
-      flexDirection: 'row',
-      gap: tokens.spacing.xs,
-    },
-    actionButton: {
-      flex: 1,
-      height: 34,
-      borderRadius: tokens.radius.sm,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.12),
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    deleteAction: {
-      backgroundColor: '#291a1c',
     },
   });
 }

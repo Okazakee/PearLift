@@ -11,15 +11,16 @@ import { MOTION } from '../animation/motion';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import type { WeightUnit } from '../types';
 
 interface OnboardingScreenProps {
   tokens: ThemeTokens;
   topInset: number;
   bottomInset: number;
+  weightUnit: WeightUnit;
+  onWeightUnitChange: (next: WeightUnit) => void;
   onComplete: () => void;
 }
-
-const PAGE_COUNT = 3;
 
 const PAGE_CONTENT = [
   {
@@ -27,18 +28,27 @@ const PAGE_CONTENT = [
     title: 'Welcome to PearLift',
     description:
       'Track your workouts with a simple interface. Log sets, reps, and weights - no complexity, just progress.',
+    kind: 'normal' as const,
+  },
+  {
+    icon: 'sliders' as const,
+    title: 'Choose units',
+    description: 'Pick your preferred weight unit. You can change this later.',
+    kind: 'units' as const,
   },
   {
     icon: 'monitor' as const,
     title: 'Device-to-Device Sync',
     description:
       'Sync your workouts directly between devices. Set it up anytime in Settings. Works locally without cloud services.',
+    kind: 'normal' as const,
   },
   {
     icon: 'bell' as const,
     title: 'Stay on Track',
     description:
       'Enable notifications so you never forget a rest timer. We will remind you when its time to start your next set.',
+    kind: 'normal' as const,
   },
 ] as const;
 
@@ -46,6 +56,8 @@ export function OnboardingScreen({
   tokens,
   topInset,
   bottomInset,
+  weightUnit,
+  onWeightUnitChange,
   onComplete,
 }: OnboardingScreenProps) {
   const [page, setPage] = useState(0);
@@ -57,7 +69,7 @@ export function OnboardingScreen({
   );
 
   const content = PAGE_CONTENT[page];
-  const isLastPage = page === PAGE_COUNT - 1;
+  const isLastPage = page === PAGE_CONTENT.length - 1;
   const isFirstPage = page === 0;
 
   const handleNext = async () => {
@@ -116,6 +128,43 @@ export function OnboardingScreen({
 
         <Text style={styles.title}>{content.title}</Text>
         <Text style={styles.description}>{content.description}</Text>
+
+        {content.kind === 'units' && (
+          <View style={styles.unitRow}>
+            <AnimatedPressable
+              style={[
+                styles.unitOption,
+                weightUnit === 'kg' && styles.unitOptionActive,
+              ]}
+              onPress={() => onWeightUnitChange('kg')}
+            >
+              <Text
+                style={[
+                  styles.unitOptionText,
+                  weightUnit === 'kg' && styles.unitOptionTextActive,
+                ]}
+              >
+                kg
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={[
+                styles.unitOption,
+                weightUnit === 'lb' && styles.unitOptionActive,
+              ]}
+              onPress={() => onWeightUnitChange('lb')}
+            >
+              <Text
+                style={[
+                  styles.unitOptionText,
+                  weightUnit === 'lb' && styles.unitOptionTextActive,
+                ]}
+              >
+                lb
+              </Text>
+            </AnimatedPressable>
+          </View>
+        )}
       </Animated.View>
 
       <View style={styles.footer}>
@@ -206,6 +255,33 @@ function createStyles(
       fontSize: tokens.type.body,
       lineHeight: 22,
       textAlign: 'center',
+    },
+    unitRow: {
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.xl,
+    },
+    unitOption: {
+      minWidth: 96,
+      paddingVertical: tokens.spacing.sm,
+      borderRadius: tokens.radius.pill,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    unitOptionActive: {
+      borderColor: 'transparent',
+      backgroundColor: withAlpha(tokens.colors.primary, 0.16),
+    },
+    unitOptionText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
+    unitOptionTextActive: {
+      color: tokens.colors.primary,
     },
     footer: {
       flexDirection: 'row',

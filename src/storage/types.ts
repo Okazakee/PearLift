@@ -1,12 +1,19 @@
 import type { PearLiftRuntimeState } from '../backup/types';
 import type { ThemePreference } from '../theme/tokens';
-import type { DayConfig, Exercise, WeekConfig, WorkoutDay } from '../types';
+import type {
+  DayConfig,
+  Exercise,
+  WeekConfig,
+  WeightUnit,
+  WorkoutDay,
+} from '../types';
 
 export interface AppSettings {
   currentWeek: number;
   currentDay: WorkoutDay;
   restDuration: number;
   themeMode: ThemePreference;
+  weightUnit: WeightUnit;
 }
 
 export type WorkoutMutation =
@@ -14,6 +21,7 @@ export type WorkoutMutation =
   | { type: 'setCurrentWeek'; currentWeek: number }
   | { type: 'setCurrentDay'; currentDay: WorkoutDay }
   | { type: 'setRestDuration'; restDuration: number }
+  | { type: 'setWeightUnit'; weightUnit: WeightUnit }
   | { type: 'setExerciseWeight'; exerciseId: string; value: number }
   | { type: 'adjustExerciseWeight'; exerciseId: string; delta: number }
   | {
@@ -29,10 +37,9 @@ export type WorkoutMutation =
     }
   | { type: 'deleteExercise'; workoutId: WorkoutDay; exerciseId: string }
   | {
-      type: 'reorderExercise';
+      type: 'reorderExercises';
       workoutId: WorkoutDay;
-      exerciseId: string;
-      direction: 'up' | 'down';
+      orderedExerciseIds: string[];
     }
   | { type: 'replaceWeekConfigs'; weekConfigs: WeekConfig[] }
   | { type: 'replaceDayConfigs'; dayConfigs: DayConfig[] }

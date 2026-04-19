@@ -8,6 +8,7 @@ import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { Platform, Text, TextInput } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { BootstrapScreen } from './src/components/BootstrapScreen';
@@ -81,23 +82,37 @@ export default function App() {
     }).catch(() => {
       // ignore channel creation failures
     });
+
+    // Channel ids are immutable once created. Use a versioned id for future behavior changes.
+    Notifications.setNotificationChannelAsync('rest-timer-v2', {
+      name: 'Rest timer',
+      importance: Notifications.AndroidImportance.MAX,
+      enableVibrate: true,
+      vibrationPattern: [0, 250, 150, 250],
+      showBadge: false,
+      audioAttributes: { usage: Notifications.AndroidAudioUsage.ALARM },
+    }).catch(() => {
+      // ignore channel creation failures
+    });
   }, []);
 
   return (
-    <SafeAreaProvider>
-      {!fontsLoaded ? (
-        <BootstrapScreen
-          backgroundColor="#111113"
-          accentColor="#3dd68c"
-          imageSource={require('./assets/pearlift_transparent.png')}
-          title={APP_CONFIG.name}
-          subtitle="Preparing your training data"
-          textPrimary="#ffffff"
-          textSecondary="rgba(255,255,255,0.72)"
-        />
-      ) : (
-        <WorkoutScreen />
-      )}
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        {!fontsLoaded ? (
+          <BootstrapScreen
+            backgroundColor="#111113"
+            accentColor="#3dd68c"
+            imageSource={require('./assets/pearlift_transparent.png')}
+            title={APP_CONFIG.name}
+            subtitle="Preparing your training data"
+            textPrimary="#ffffff"
+            textSecondary="rgba(255,255,255,0.72)"
+          />
+        ) : (
+          <WorkoutScreen />
+        )}
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

@@ -4,9 +4,9 @@ import {
   Pressable,
   type StyleProp,
   StyleSheet,
-  View,
   type ViewStyle,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { MOTION } from '../animation/motion';
 import {
   AnimatedFadeInView,
@@ -59,7 +59,7 @@ export function AnimatedModalShell({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View style={[styles.modalRoot, containerStyle]}>
+      <GestureHandlerRootView style={[styles.modalRoot, containerStyle]}>
         {contentVisible ? (
           <>
             <AnimatedFadeInView style={backdropStyle}>
@@ -70,7 +70,7 @@ export function AnimatedModalShell({
             </AnimatedSlideInView>
           </>
         ) : null}
-      </View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }

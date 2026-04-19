@@ -46,9 +46,14 @@ import { useWorkoutStore } from '../storage/useWorkoutStore';
 import { WorkoutRepository } from '../storage/workoutRepository';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
-import type { Exercise, WorkoutDay } from '../types';
+import type { Exercise, WeightUnit, WorkoutDay } from '../types';
 import { scheduleIdleTask } from '../utils/idle';
 import { roundToHalf } from '../utils/math';
+import {
+  fromDisplayWeight,
+  roundToIncrement,
+  toDisplayWeight,
+} from '../utils/units';
 
 const ACTION_DEBOUNCE_MS = 96;
 const DAY_PERSIST_DEBOUNCE_MS = 220;
@@ -99,6 +104,10 @@ export function WorkoutScreen() {
   );
   const [pendingThemePreference, setPendingThemePreference] =
     useState<ThemePreference | null>(null);
+  const [pendingWeightUnit, setPendingWeightUnit] = useState<WeightUnit | null>(
+    null,
+  );
+  const [timerExpanded, setTimerExpanded] = useState(false);
   const [promptConfig, setPromptConfig] = useState<{
     title: string;
     message: string;
@@ -154,6 +163,8 @@ export function WorkoutScreen() {
   const weekConfigs = snapshot?.weekConfigs ?? [];
   const dayConfigs = snapshot?.dayConfigs ?? defaultDayConfigs;
   const restDuration = pendingRestDuration ?? snapshot?.restDuration ?? 150;
+  const weightUnit: WeightUnit =
+    pendingWeightUnit ?? snapshot?.weightUnit ?? 'kg';
 
   const exerciseBaseWeights = useMemo(() => {
     const map = new Map<string, number>();
@@ -219,6 +230,12 @@ export function WorkoutScreen() {
         setPendingThemePreference((prev) =>
           prev === mutation.themeMode ? null : prev,
         );
+        return;
+      }
+      if (mutation.type === 'setWeightUnit') {
+        setPendingWeightUnit((prev) =>
+          prev === mutation.weightUnit ? null : prev,
+        );
       }
     },
     [],
@@ -229,6 +246,7 @@ export function WorkoutScreen() {
     setPendingCurrentDay(null);
     setPendingRestDuration(null);
     setPendingThemePreference(null);
+    setPendingWeightUnit(null);
   }, []);
 
   const enqueueMutationTask = useCallback(
@@ -342,9 +360,15 @@ export function WorkoutScreen() {
       const week = getWeek(weekId);
       const fallback = exerciseBaseWeights.get(exerciseId) ?? 0;
       const baseWeight = userWeights[exerciseId] ?? fallback;
-      return roundToHalf(baseWeight * (week?.loadModifier ?? 1));
+      const rawKg = baseWeight * (week?.loadModifier ?? 1);
+      if (weightUnit === 'lb') {
+        const rawLb = toDisplayWeight(rawKg, 'lb');
+        const roundedLb = roundToIncrement(rawLb, 2.5);
+        return fromDisplayWeight(roundedLb, 'lb');
+      }
+      return roundToHalf(rawKg);
     },
-    [exerciseBaseWeights, getWeek, userWeights],
+    [exerciseBaseWeights, getWeek, userWeights, weightUnit],
   );
 
   const handleOpenAdd = () => {
@@ -461,13 +485,23 @@ export function WorkoutScreen() {
       file.write(payload, { encoding: 'utf8' });
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(file.uri, {
-          mimeType: 'application/json',
-          dialogTitle: 'Export backup',
-          UTI: 'public.json',
-        });
+        try {
+          await Sharing.shareAsync(file.uri, {
+            mimeType: 'application/json',
+            dialogTitle: 'Export backup',
+            UTI: 'public.json',
+          });
+        } catch (error) {
+          const message = getErrorMessage(error).toLowerCase();
+          if (!message.includes('cancel')) {
+            throw error;
+          }
+        }
       } else {
-        showPrompt('Backup exported', `Saved to app storage:\n${file.uri}`);
+        showPrompt(
+          'Sharing unavailable',
+          'Sharing is not available on this device/platform.',
+        );
       }
       setLocalBackupOpen(false);
     } catch (error) {
@@ -484,7 +518,7 @@ export function WorkoutScreen() {
       const picked = await File.pickFileAsync(undefined, 'application/json');
       const pickedFile = Array.isArray(picked) ? picked[0] : picked;
       if (!pickedFile) {
-        throw new Error('No file selected.');
+        return;
       }
 
       const fileText = await pickedFile.text();
@@ -499,6 +533,10 @@ export function WorkoutScreen() {
       setImportPreviewOpen(true);
       setLocalBackupOpen(false);
     } catch (error) {
+      const message = getErrorMessage(error).toLowerCase();
+      if (message.includes('cancel')) {
+        return;
+      }
       logError('backup/import failed', error);
       showPrompt('Import failed', getErrorMessage(error));
     }
@@ -525,13 +563,12 @@ export function WorkoutScreen() {
     setPendingImport(null);
   };
 
-  const handleMoveExercise = useCallback(
-    (exerciseId: string, direction: 'up' | 'down') => {
+  const handleReorderExercises = useCallback(
+    (orderedExerciseIds: string[]) => {
       void runMutation({
-        type: 'reorderExercise',
+        type: 'reorderExercises',
         workoutId: currentWorkout.id,
-        exerciseId,
-        direction,
+        orderedExerciseIds,
       });
     },
     [runMutation, currentWorkout.id],
@@ -618,6 +655,17 @@ export function WorkoutScreen() {
     [queueDebouncedMutation],
   );
 
+  const handleQueueWeightUnit = useCallback(
+    (nextUnit: WeightUnit) => {
+      setPendingWeightUnit(nextUnit);
+      queueDebouncedMutation('settings:weightUnit', {
+        type: 'setWeightUnit',
+        weightUnit: nextUnit,
+      });
+    },
+    [queueDebouncedMutation],
+  );
+
   const handleAdjustWeight = useCallback(
     (exerciseId: string, delta: number) => {
       void runImmediateMutation({
@@ -640,6 +688,16 @@ export function WorkoutScreen() {
     [runImmediateMutation],
   );
 
+  const handleReorderDayConfigs = useCallback(
+    (nextDayConfigs: typeof dayConfigs) => {
+      void runImmediateMutation({
+        type: 'replaceDayConfigs',
+        dayConfigs: nextDayConfigs,
+      });
+    },
+    [runImmediateMutation],
+  );
+
   const onboardingBlocking = snapshot?.isSetupDone === false;
 
   if (onboardingBlocking) {
@@ -657,6 +715,8 @@ export function WorkoutScreen() {
           tokens={tokens}
           topInset={insets.top}
           bottomInset={insets.bottom}
+          weightUnit={weightUnit}
+          onWeightUnitChange={handleQueueWeightUnit}
           onComplete={finishOnboarding}
         />
       </SafeAreaView>
@@ -679,7 +739,7 @@ export function WorkoutScreen() {
           accentColor={tokens.colors.primary}
           imageSource={require('../../assets/pearlift_transparent.png')}
           title={APP_CONFIG.name}
-          subtitle="Preparing local database"
+          subtitle="Welcome!"
           textPrimary={tokens.colors.textPrimary}
           textSecondary={tokens.colors.textSecondary}
         />
@@ -707,6 +767,7 @@ export function WorkoutScreen() {
 
         <WorkoutView
           tokens={tokens}
+          weightUnit={weightUnit}
           workout={currentWorkout}
           currentWeek={currentWeek}
           weekConfigs={weekConfigs}
@@ -719,8 +780,10 @@ export function WorkoutScreen() {
           onDeleteExercise={handleDeleteExercise}
           onAdjustWeight={handleAdjustWeight}
           onSetWeight={handleSetWeight}
-          onMoveExercise={handleMoveExercise}
-          contentBottomPadding={layout.contentBottomPadding}
+          onReorderExercises={handleReorderExercises}
+          contentBottomPadding={
+            layout.contentBottomPadding + (timerExpanded ? 260 : 0)
+          }
           fabBottom={layout.workoutFabBottom}
         />
 
@@ -730,6 +793,7 @@ export function WorkoutScreen() {
           onDurationChange={handleQueueRestDuration}
           fabBottom={layout.timerFabBottom}
           panelBottom={layout.timerPanelBottom}
+          onExpandedChange={setTimerExpanded}
         />
 
         <Navigation
@@ -737,6 +801,7 @@ export function WorkoutScreen() {
           currentDay={selectedDay}
           dayConfigs={dayConfigs}
           onDayChange={handleDayChange}
+          onReorderDayConfigs={handleReorderDayConfigs}
           bottomPadding={layout.navBottomPadding}
           minHeight={layout.navHeight}
         />
@@ -802,6 +867,8 @@ export function WorkoutScreen() {
           themePreference={themePreference}
           systemThemeMode={systemThemeMode}
           onThemePreferenceChange={handleQueueThemeMode}
+          weightUnit={weightUnit}
+          onWeightUnitChange={handleQueueWeightUnit}
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}

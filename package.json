@@ -11,7 +11,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "prebuild:android": "expo prebuild --platform android",
-    "postinstall": "node ./scripts/ensure-bun-expo-doctor-dedupe.mjs",
+    "postinstall": "node ./scripts/ensure-bun-expo-doctor-dedupe.mjs && node ./scripts/apply-node-modules-patches.mjs",
     "prepare": "husky",
     "lint": "biome check .",
     "typecheck": "tsc --noEmit",
@@ -45,6 +45,8 @@
     "react": "19.2.0",
     "react-native": "0.83.4",
     "react-native-reanimated": "^4.3.0",
+    "react-native-draggable-flatlist": "^4.0.2",
+    "react-native-gesture-handler": "^2.28.0",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-svg": "15.15.3",
     "react-native-worklets": "^0.8.1"

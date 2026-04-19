@@ -1,6 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { useCallback, useMemo } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import DraggableFlatList, {
+  type RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -8,12 +12,14 @@ import type {
   Exercise,
   UserWeights,
   WeekConfig,
+  WeightUnit,
   WorkoutSession,
 } from '../types';
 import { ExerciseCard } from './ExerciseCard';
 
 interface WorkoutViewProps {
   tokens: ThemeTokens;
+  weightUnit: WeightUnit;
   contentBottomPadding: number;
   fabBottom: number;
   workout: WorkoutSession;
@@ -28,11 +34,12 @@ interface WorkoutViewProps {
   onDeleteExercise: (exercise: Exercise) => void;
   onAdjustWeight: (exerciseId: string, delta: number) => void;
   onSetWeight: (exerciseId: string, value: number) => void;
-  onMoveExercise: (exerciseId: string, direction: 'up' | 'down') => void;
+  onReorderExercises: (orderedExerciseIds: string[]) => void;
 }
 
 export function WorkoutView({
   tokens,
+  weightUnit,
   contentBottomPadding,
   fabBottom,
   workout,
@@ -47,7 +54,7 @@ export function WorkoutView({
   onDeleteExercise,
   onAdjustWeight,
   onSetWeight,
-  onMoveExercise,
+  onReorderExercises,
 }: WorkoutViewProps) {
   const styles = useMemo(
     () => createStyles(tokens, contentBottomPadding, fabBottom),
@@ -60,8 +67,6 @@ export function WorkoutView({
     () => [...workout.exercises].sort((a, b) => a.position - b.position),
     [workout.exercises],
   );
-  const lastIndex = sortedExercises.length - 1;
-
   const keyExtractor = useCallback((item: Exercise) => item.id, []);
 
   const renderHeader = useCallback(
@@ -150,41 +155,53 @@ export function WorkoutView({
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: Exercise; index: number }) => (
-      <View style={index < lastIndex ? styles.exerciseItem : undefined}>
-        <ExerciseCard
-          tokens={tokens}
-          exercise={item}
-          baseWeight={userWeights[item.id] ?? item.baseWeight}
-          adjustedWeight={getAdjustedWeight(item.id, currentWeek)}
-          isFirst={index === 0}
-          isLast={index === lastIndex}
-          onAdjustWeight={onAdjustWeight}
-          onSetWeight={onSetWeight}
-          onMoveExercise={onMoveExercise}
-          onEditExercise={onEditExercise}
-          onDeleteExercise={onDeleteExercise}
-        />
-      </View>
-    ),
+    ({ item, getIndex, drag, isActive }: RenderItemParams<Exercise>) => {
+      const index = getIndex() ?? 0;
+      return (
+        <ScaleDecorator activeScale={1.015}>
+          <View
+            style={[
+              index < sortedExercises.length - 1
+                ? styles.exerciseItem
+                : undefined,
+              isActive && styles.exerciseItemActive,
+            ]}
+          >
+            <ExerciseCard
+              tokens={tokens}
+              exercise={item}
+              weightUnit={weightUnit}
+              baseWeight={userWeights[item.id] ?? item.baseWeight}
+              adjustedWeight={getAdjustedWeight(item.id, currentWeek)}
+              onAdjustWeight={onAdjustWeight}
+              onSetWeight={onSetWeight}
+              onEditExercise={onEditExercise}
+              onDeleteExercise={onDeleteExercise}
+              onDragStart={drag}
+            />
+          </View>
+        </ScaleDecorator>
+      );
+    },
     [
       currentWeek,
       getAdjustedWeight,
-      lastIndex,
       onAdjustWeight,
       onDeleteExercise,
       onEditExercise,
-      onMoveExercise,
       onSetWeight,
+      sortedExercises.length,
       styles.exerciseItem,
+      styles.exerciseItemActive,
       tokens,
       userWeights,
+      weightUnit,
     ],
   );
 
   return (
     <View style={styles.container}>
-      <FlatList
+      <DraggableFlatList
         data={sortedExercises}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -197,6 +214,10 @@ export function WorkoutView({
         updateCellsBatchingPeriod={16}
         windowSize={7}
         removeClippedSubviews
+        activationDistance={16}
+        onDragEnd={({ data }) =>
+          onReorderExercises(data.map((item) => item.id))
+        }
       />
     </View>
   );
@@ -331,6 +352,9 @@ function createStyles(
     },
     exerciseItem: {
       marginBottom: tokens.spacing.md,
+    },
+    exerciseItemActive: {
+      transform: [{ scale: 1.005 }],
     },
     fab: {
       display: 'none',

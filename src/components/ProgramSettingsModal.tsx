@@ -1,6 +1,10 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import DraggableFlatList, {
+  type RenderItemParams,
+  ScaleDecorator,
+} from 'react-native-draggable-flatlist';
 import Animated, {
   FadeInDown,
   FadeOutUp,
@@ -29,6 +33,8 @@ interface ProgramSettingsModalProps {
 
 const AUTOSAVE_DELAY_MS = 240;
 
+type WeekDraft = WeekConfig & { uiKey: string };
+
 export function ProgramSettingsModal({
   open,
   tokens,
@@ -39,12 +45,17 @@ export function ProgramSettingsModal({
   onDayConfigsChange,
 }: ProgramSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
-  const [draftWeekConfigs, setDraftWeekConfigs] = useState(weekConfigs);
+  const [draftWeeks, setDraftWeeks] = useState<WeekDraft[]>(() =>
+    weekConfigs.map((week, index) => ({
+      ...week,
+      id: index + 1,
+      uiKey: `week-ui-${index}`,
+    })),
+  );
   const [draftDayConfigs, setDraftDayConfigs] = useState(dayConfigs);
   const [weeksDirty, setWeeksDirty] = useState(false);
   const [daysDirty, setDaysDirty] = useState(false);
   const styles = useMemo(() => createStyles(tokens), [tokens]);
-  const weekUiKeysRef = useRef<string[]>([]);
   const weekUiKeyCounterRef = useRef(0);
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autosaveIdleCancelRef = useRef<(() => void) | null>(null);
@@ -56,29 +67,22 @@ export function ProgramSettingsModal({
     return `week-ui-${next}`;
   }, []);
 
-  useEffect(() => {
-    if (weekUiKeysRef.current.length === draftWeekConfigs.length) {
-      return;
-    }
-    if (weekUiKeysRef.current.length < draftWeekConfigs.length) {
-      const missing = draftWeekConfigs.length - weekUiKeysRef.current.length;
-      weekUiKeysRef.current = [
-        ...weekUiKeysRef.current,
-        ...Array.from({ length: missing }, () => createWeekUiKey()),
-      ];
-      return;
-    }
-    weekUiKeysRef.current = weekUiKeysRef.current.slice(
-      0,
-      draftWeekConfigs.length,
-    );
-  }, [draftWeekConfigs.length, createWeekUiKey]);
+  const toWeekConfigs = useCallback(
+    (weeks: WeekDraft[]): WeekConfig[] =>
+      weeks.map((week, index) => ({
+        id: index + 1,
+        name: week.name,
+        loadModifier: week.loadModifier,
+        rir: week.rir,
+      })),
+    [],
+  );
 
   useEffect(() => {
     if (!open) {
       if (wasOpenRef.current) {
         if (weeksDirty) {
-          onWeekConfigsChange(draftWeekConfigs);
+          onWeekConfigsChange(toWeekConfigs(draftWeeks));
         }
         if (daysDirty) {
           onDayConfigsChange(draftDayConfigs);
@@ -99,7 +103,14 @@ export function ProgramSettingsModal({
       return;
     }
     wasOpenRef.current = true;
-    setDraftWeekConfigs(weekConfigs);
+    weekUiKeyCounterRef.current = 0;
+    setDraftWeeks(
+      weekConfigs.map((week, index) => ({
+        ...week,
+        id: index + 1,
+        uiKey: createWeekUiKey(),
+      })),
+    );
     setDraftDayConfigs(dayConfigs);
     setWeeksDirty(false);
     setDaysDirty(false);
@@ -107,12 +118,14 @@ export function ProgramSettingsModal({
     dayConfigs,
     daysDirty,
     draftDayConfigs,
-    draftWeekConfigs,
+    draftWeeks,
     onDayConfigsChange,
     onWeekConfigsChange,
     open,
+    createWeekUiKey,
     weekConfigs,
     weeksDirty,
+    toWeekConfigs,
   ]);
 
   useEffect(() => {
@@ -124,7 +137,7 @@ export function ProgramSettingsModal({
     }
     autosaveTimerRef.current = setTimeout(() => {
       autosaveIdleCancelRef.current?.();
-      const weeksSnapshot = draftWeekConfigs;
+      const weeksSnapshot = toWeekConfigs(draftWeeks);
       const daysSnapshot = draftDayConfigs;
       const commitWeeks = weeksDirty;
       const commitDays = daysDirty;
@@ -152,71 +165,52 @@ export function ProgramSettingsModal({
   }, [
     daysDirty,
     draftDayConfigs,
-    draftWeekConfigs,
+    draftWeeks,
     onDayConfigsChange,
     onWeekConfigsChange,
     open,
     weeksDirty,
+    toWeekConfigs,
   ]);
 
-  const updateWeek = (index: number, update: Partial<WeekConfig>) => {
-    setDraftWeekConfigs((prev) =>
-      prev.map((week, i) => (i === index ? { ...week, ...update } : week)),
+  const updateWeek = (uiKey: string, update: Partial<WeekConfig>) => {
+    setDraftWeeks((prev) =>
+      prev.map((week) =>
+        week.uiKey === uiKey ? { ...week, ...update } : week,
+      ),
     );
-    setWeeksDirty(true);
-  };
-
-  const moveWeek = (index: number, to: number) => {
-    if (to < 0 || to >= draftWeekConfigs.length) return;
-    const keyCopy = [...weekUiKeysRef.current];
-    const [movedKey] = keyCopy.splice(index, 1);
-    if (movedKey) {
-      keyCopy.splice(to, 0, movedKey);
-      weekUiKeysRef.current = keyCopy;
-    }
-    const copy = [...draftWeekConfigs];
-    const [item] = copy.splice(index, 1);
-    copy.splice(to, 0, item);
-    setDraftWeekConfigs(copy.map((week, i) => ({ ...week, id: i + 1 })));
     setWeeksDirty(true);
   };
 
   const addWeek = () => {
-    if (draftWeekConfigs.length >= 4) return;
-    weekUiKeysRef.current = [...weekUiKeysRef.current, createWeekUiKey()];
-    const nextId = draftWeekConfigs.length + 1;
-    setDraftWeekConfigs([
-      ...draftWeekConfigs,
-      { id: nextId, name: `Week ${nextId}`, loadModifier: 1, rir: 2 },
+    if (draftWeeks.length >= 4) return;
+    const nextId = draftWeeks.length + 1;
+    setDraftWeeks([
+      ...draftWeeks,
+      {
+        id: nextId,
+        name: `Week ${nextId}`,
+        loadModifier: 1,
+        rir: 2,
+        uiKey: createWeekUiKey(),
+      },
     ]);
     setWeeksDirty(true);
   };
 
-  const removeWeek = (index: number) => {
-    if (draftWeekConfigs.length <= 1) return;
-    const keyCopy = [...weekUiKeysRef.current];
-    keyCopy.splice(index, 1);
-    weekUiKeysRef.current = keyCopy;
-    const next = draftWeekConfigs
-      .filter((_, i) => i !== index)
-      .map((week, i) => ({ ...week, id: i + 1 }));
-    setDraftWeekConfigs(next);
+  const removeWeek = (uiKey: string) => {
+    if (draftWeeks.length <= 1) return;
+    const next = draftWeeks
+      .filter((week) => week.uiKey !== uiKey)
+      .map((week, index) => ({ ...week, id: index + 1 }));
+    setDraftWeeks(next);
     setWeeksDirty(true);
   };
 
-  const updateDay = (index: number, update: Partial<DayConfig>) => {
+  const updateDay = (id: string, update: Partial<DayConfig>) => {
     setDraftDayConfigs((prev) =>
-      prev.map((day, i) => (i === index ? { ...day, ...update } : day)),
+      prev.map((day) => (day.id === id ? { ...day, ...update } : day)),
     );
-    setDaysDirty(true);
-  };
-
-  const moveDay = (index: number, to: number) => {
-    if (to < 0 || to >= draftDayConfigs.length) return;
-    const copy = [...draftDayConfigs];
-    const [item] = copy.splice(index, 1);
-    copy.splice(to, 0, item);
-    setDraftDayConfigs(copy);
     setDaysDirty(true);
   };
 
@@ -238,7 +232,7 @@ export function ProgramSettingsModal({
 
   const atLimit =
     activeTab === 'weeks'
-      ? draftWeekConfigs.length >= 4
+      ? draftWeeks.length >= 4
       : draftDayConfigs.length >= 7;
   const handleClose = () => {
     if (autosaveTimerRef.current) {
@@ -248,7 +242,7 @@ export function ProgramSettingsModal({
     autosaveIdleCancelRef.current?.();
     autosaveIdleCancelRef.current = null;
     if (weeksDirty) {
-      onWeekConfigsChange(draftWeekConfigs);
+      onWeekConfigsChange(toWeekConfigs(draftWeeks));
       setWeeksDirty(false);
     }
     if (daysDirty) {
@@ -302,245 +296,241 @@ export function ProgramSettingsModal({
         </AnimatedPressable>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {activeTab === 'weeks' &&
-          draftWeekConfigs.map((week, index) => (
-            <Animated.View
-              key={weekUiKeysRef.current[index] ?? `week-ui-fallback-${index}`}
-              style={styles.card}
-              layout={LinearTransition.reduceMotion(ReduceMotion.System)}
-              entering={FadeInDown.duration(MOTION.duration.fast)
-                .delay(index * 40)
-                .reduceMotion(ReduceMotion.System)}
-              exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
-                ReduceMotion.System,
-              )}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Week {index + 1}</Text>
-                <View style={styles.rowActions}>
-                  <AnimatedPressable
-                    style={[
-                      styles.rowButton,
-                      styles.rowButtonArrow,
-                      index === 0 && styles.rowButtonDisabled,
-                    ]}
-                    hitSlop={8}
-                    disabled={index === 0}
-                    onPress={() => moveWeek(index, index - 1)}
+      <View style={styles.listWrap}>
+        {activeTab === 'weeks' ? (
+          <DraggableFlatList
+            data={draftWeeks}
+            keyExtractor={(item) => item.uiKey}
+            containerStyle={styles.listContainer}
+            style={styles.list}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.content}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No weeks to edit.</Text>
+            }
+            activationDistance={12}
+            onDragEnd={({ data }) => {
+              setDraftWeeks(
+                data.map((week, index) => ({ ...week, id: index + 1 })),
+              );
+              setWeeksDirty(true);
+            }}
+            renderItem={({
+              item: week,
+              getIndex,
+              drag,
+              isActive,
+            }: RenderItemParams<WeekDraft>) => {
+              const index = getIndex() ?? 0;
+              return (
+                <ScaleDecorator activeScale={1.015}>
+                  <Animated.View
+                    style={[styles.card, isActive && styles.cardActive]}
+                    layout={LinearTransition.reduceMotion(ReduceMotion.System)}
+                    entering={FadeInDown.duration(MOTION.duration.fast)
+                      .delay(index * 40)
+                      .reduceMotion(ReduceMotion.System)}
+                    exiting={FadeOutUp.duration(
+                      MOTION.duration.fast,
+                    ).reduceMotion(ReduceMotion.System)}
                   >
-                    <Feather
-                      name="chevron-up"
-                      size={14}
-                      color={
-                        index === 0
-                          ? tokens.colors.textMuted
-                          : tokens.colors.textSecondary
-                      }
-                    />
-                  </AnimatedPressable>
-                  <AnimatedPressable
-                    style={[
-                      styles.rowButton,
-                      styles.rowButtonArrow,
-                      index === draftWeekConfigs.length - 1 &&
-                        styles.rowButtonDisabled,
-                    ]}
-                    hitSlop={8}
-                    disabled={index === draftWeekConfigs.length - 1}
-                    onPress={() => moveWeek(index, index + 1)}
-                  >
-                    <Feather
-                      name="chevron-down"
-                      size={14}
-                      color={
-                        index === draftWeekConfigs.length - 1
-                          ? tokens.colors.textMuted
-                          : tokens.colors.textSecondary
-                      }
-                    />
-                  </AnimatedPressable>
-                  <AnimatedPressable
-                    style={[
-                      styles.rowButton,
-                      styles.rowButtonDelete,
-                      draftWeekConfigs.length <= 1 && styles.rowButtonDisabled,
-                    ]}
-                    hitSlop={8}
-                    disabled={draftWeekConfigs.length <= 1}
-                    onPress={() => removeWeek(index)}
-                  >
-                    <MaterialCommunityIcons
-                      name="trash-can-outline"
-                      size={16}
-                      color={tokens.colors.accentDanger}
-                    />
-                  </AnimatedPressable>
-                </View>
-              </View>
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardTitle}>Week {index + 1}</Text>
+                      <View style={styles.rowActions}>
+                        <AnimatedPressable
+                          style={[styles.rowButton, styles.rowButtonArrow]}
+                          hitSlop={8}
+                          onLongPress={drag}
+                          delayLongPress={160}
+                        >
+                          <Feather
+                            name="menu"
+                            size={16}
+                            color={tokens.colors.textSecondary}
+                          />
+                        </AnimatedPressable>
+                        <AnimatedPressable
+                          style={[
+                            styles.rowButton,
+                            styles.rowButtonDelete,
+                            draftWeeks.length <= 1 && styles.rowButtonDisabled,
+                          ]}
+                          hitSlop={8}
+                          disabled={draftWeeks.length <= 1}
+                          onPress={() => removeWeek(week.uiKey)}
+                        >
+                          <MaterialCommunityIcons
+                            name="trash-can-outline"
+                            size={16}
+                            color={tokens.colors.accentDanger}
+                          />
+                        </AnimatedPressable>
+                      </View>
+                    </View>
 
-              <View style={styles.weekInputRow}>
-                <View style={styles.weekInputCol}>
-                  <TextInput
-                    value={week.name}
-                    onChangeText={(text) => updateWeek(index, { name: text })}
-                    style={styles.input}
-                    placeholder="Week name"
-                    placeholderTextColor={tokens.colors.textMuted}
-                  />
-                  <Text style={styles.inputLabel}>Week Name</Text>
-                </View>
-                <View style={styles.weekInputCol}>
-                  <TextInput
-                    value={String(week.loadModifier)}
-                    onChangeText={(text) =>
-                      updateWeek(index, { loadModifier: Number(text) || 1 })
-                    }
-                    style={styles.input}
-                    keyboardType="decimal-pad"
-                    placeholder="Load"
-                    placeholderTextColor={tokens.colors.textMuted}
-                  />
-                  <Text style={styles.inputLabel}>Load</Text>
-                </View>
-                <View style={styles.weekInputCol}>
-                  <TextInput
-                    value={String(week.rir)}
-                    onChangeText={(text) =>
-                      updateWeek(index, { rir: Number(text) || 0 })
-                    }
-                    style={styles.input}
-                    keyboardType="number-pad"
-                    placeholder="RIR"
-                    placeholderTextColor={tokens.colors.textMuted}
-                  />
-                  <Text style={styles.inputLabel}>RIR</Text>
-                </View>
-              </View>
-            </Animated.View>
-          ))}
+                    <View style={styles.weekInputRow}>
+                      <View style={styles.weekInputCol}>
+                        <TextInput
+                          value={week.name}
+                          onChangeText={(text) =>
+                            updateWeek(week.uiKey, { name: text })
+                          }
+                          style={styles.input}
+                          placeholder="Week name"
+                          placeholderTextColor={tokens.colors.textMuted}
+                        />
+                        <Text style={styles.inputLabel}>Week Name</Text>
+                      </View>
+                      <View style={styles.weekInputCol}>
+                        <TextInput
+                          value={String(week.loadModifier)}
+                          onChangeText={(text) =>
+                            updateWeek(week.uiKey, {
+                              loadModifier: Number(text) || 1,
+                            })
+                          }
+                          style={styles.input}
+                          keyboardType="decimal-pad"
+                          placeholder="Load"
+                          placeholderTextColor={tokens.colors.textMuted}
+                        />
+                        <Text style={styles.inputLabel}>Load</Text>
+                      </View>
+                      <View style={styles.weekInputCol}>
+                        <TextInput
+                          value={String(week.rir)}
+                          onChangeText={(text) =>
+                            updateWeek(week.uiKey, { rir: Number(text) || 0 })
+                          }
+                          style={styles.input}
+                          keyboardType="number-pad"
+                          placeholder="RIR"
+                          placeholderTextColor={tokens.colors.textMuted}
+                        />
+                        <Text style={styles.inputLabel}>RIR</Text>
+                      </View>
+                    </View>
+                  </Animated.View>
+                </ScaleDecorator>
+              );
+            }}
+          />
+        ) : (
+          <DraggableFlatList
+            data={draftDayConfigs}
+            keyExtractor={(item) => item.id}
+            containerStyle={styles.listContainer}
+            style={styles.list}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.content}
+            ListEmptyComponent={
+              <Text style={styles.emptyText}>No days to edit.</Text>
+            }
+            activationDistance={12}
+            onDragEnd={({ data }) => {
+              setDraftDayConfigs(data);
+              setDaysDirty(true);
+            }}
+            renderItem={({
+              item: day,
+              getIndex,
+              drag,
+              isActive,
+            }: RenderItemParams<DayConfig>) => {
+              const index = getIndex() ?? 0;
+              return (
+                <ScaleDecorator activeScale={1.015}>
+                  <Animated.View
+                    style={[styles.card, isActive && styles.cardActive]}
+                    layout={LinearTransition.reduceMotion(ReduceMotion.System)}
+                    entering={FadeInDown.duration(MOTION.duration.fast)
+                      .delay(index * 40)
+                      .reduceMotion(ReduceMotion.System)}
+                    exiting={FadeOutUp.duration(
+                      MOTION.duration.fast,
+                    ).reduceMotion(ReduceMotion.System)}
+                  >
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardTitle}>Day {index + 1}</Text>
+                      <View style={styles.rowActions}>
+                        <AnimatedPressable
+                          style={[styles.rowButton, styles.rowButtonArrow]}
+                          hitSlop={8}
+                          onLongPress={drag}
+                          delayLongPress={160}
+                        >
+                          <Feather
+                            name="menu"
+                            size={16}
+                            color={tokens.colors.textSecondary}
+                          />
+                        </AnimatedPressable>
+                        <AnimatedPressable
+                          style={[
+                            styles.rowButton,
+                            styles.rowButtonDelete,
+                            draftDayConfigs.length <= 1 &&
+                              styles.rowButtonDisabled,
+                          ]}
+                          hitSlop={8}
+                          disabled={draftDayConfigs.length <= 1}
+                          onPress={() => removeDay(index)}
+                        >
+                          <MaterialCommunityIcons
+                            name="trash-can-outline"
+                            size={16}
+                            color={tokens.colors.accentDanger}
+                          />
+                        </AnimatedPressable>
+                      </View>
+                    </View>
 
-        {activeTab === 'days' &&
-          draftDayConfigs.map((day, index) => (
-            <Animated.View
-              key={day.id}
-              style={styles.card}
-              layout={LinearTransition.reduceMotion(ReduceMotion.System)}
-              entering={FadeInDown.duration(MOTION.duration.fast)
-                .delay(index * 40)
-                .reduceMotion(ReduceMotion.System)}
-              exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
-                ReduceMotion.System,
-              )}
-            >
-              <View style={styles.cardHeader}>
-                <Text style={styles.cardTitle}>Day {index + 1}</Text>
-                <View style={styles.rowActions}>
-                  <AnimatedPressable
-                    style={[
-                      styles.rowButton,
-                      styles.rowButtonArrow,
-                      index === 0 && styles.rowButtonDisabled,
-                    ]}
-                    hitSlop={8}
-                    disabled={index === 0}
-                    onPress={() => moveDay(index, index - 1)}
-                  >
-                    <Feather
-                      name="chevron-up"
-                      size={14}
-                      color={
-                        index === 0
-                          ? tokens.colors.textMuted
-                          : tokens.colors.textSecondary
-                      }
+                    <TextInput
+                      value={day.name}
+                      onChangeText={(text) => updateDay(day.id, { name: text })}
+                      style={styles.input}
+                      placeholder="Day name"
+                      placeholderTextColor={tokens.colors.textMuted}
                     />
-                  </AnimatedPressable>
-                  <AnimatedPressable
-                    style={[
-                      styles.rowButton,
-                      styles.rowButtonArrow,
-                      index === draftDayConfigs.length - 1 &&
-                        styles.rowButtonDisabled,
-                    ]}
-                    hitSlop={8}
-                    disabled={index === draftDayConfigs.length - 1}
-                    onPress={() => moveDay(index, index + 1)}
-                  >
-                    <Feather
-                      name="chevron-down"
-                      size={14}
-                      color={
-                        index === draftDayConfigs.length - 1
-                          ? tokens.colors.textMuted
-                          : tokens.colors.textSecondary
-                      }
-                    />
-                  </AnimatedPressable>
-                  <AnimatedPressable
-                    style={[
-                      styles.rowButton,
-                      styles.rowButtonDelete,
-                      draftDayConfigs.length <= 1 && styles.rowButtonDisabled,
-                    ]}
-                    hitSlop={8}
-                    disabled={draftDayConfigs.length <= 1}
-                    onPress={() => removeDay(index)}
-                  >
-                    <MaterialCommunityIcons
-                      name="trash-can-outline"
-                      size={16}
-                      color={tokens.colors.accentDanger}
-                    />
-                  </AnimatedPressable>
-                </View>
-              </View>
-
-              <TextInput
-                value={day.name}
-                onChangeText={(text) => updateDay(index, { name: text })}
-                style={styles.input}
-                placeholder="Day name"
-                placeholderTextColor={tokens.colors.textMuted}
-              />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.iconRow}
-                nestedScrollEnabled
-              >
-                {dayIconOptions.map((option) => {
-                  const active = day.icon === option;
-                  const iconName = dayIconMap[option];
-                  return (
-                    <AnimatedPressable
-                      key={option}
-                      style={[
-                        styles.iconOption,
-                        active && styles.iconOptionActive,
-                      ]}
-                      hitSlop={8}
-                      onPress={() => updateDay(index, { icon: option })}
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.iconRow}
+                      nestedScrollEnabled
                     >
-                      <Feather
-                        name={iconName as never}
-                        size={18}
-                        color={
-                          active
-                            ? tokens.colors.accentPrimary
-                            : tokens.colors.textSecondary
-                        }
-                      />
-                    </AnimatedPressable>
-                  );
-                })}
-              </ScrollView>
-            </Animated.View>
-          ))}
-      </ScrollView>
+                      {dayIconOptions.map((option) => {
+                        const active = day.icon === option;
+                        const iconName = dayIconMap[option];
+                        return (
+                          <AnimatedPressable
+                            key={option}
+                            style={[
+                              styles.iconOption,
+                              active && styles.iconOptionActive,
+                            ]}
+                            hitSlop={8}
+                            onPress={() => updateDay(day.id, { icon: option })}
+                          >
+                            <Feather
+                              name={iconName as never}
+                              size={18}
+                              color={
+                                active
+                                  ? tokens.colors.accentPrimary
+                                  : tokens.colors.textSecondary
+                              }
+                            />
+                          </AnimatedPressable>
+                        );
+                      })}
+                    </ScrollView>
+                  </Animated.View>
+                </ScaleDecorator>
+              );
+            }}
+          />
+        )}
+      </View>
 
       {!atLimit && (
         <AnimatedPressable
@@ -571,6 +561,7 @@ function createStyles(tokens: ThemeTokens) {
     sheet: {
       width: '100%',
       maxWidth: 640,
+      height: '88%',
       maxHeight: '88%',
       backgroundColor: tokens.colors.surfaceContainer,
       borderRadius: tokens.radius.xl,
@@ -625,6 +616,24 @@ function createStyles(tokens: ThemeTokens) {
     tabTextActive: {
       color: tokens.colors.primary,
     },
+    list: {
+      flex: 1,
+    },
+    listContainer: {
+      flex: 1,
+      alignSelf: 'stretch',
+    },
+    listWrap: {
+      flex: 1,
+      minHeight: 0,
+      marginTop: tokens.spacing.md,
+    },
+    emptyText: {
+      color: tokens.colors.textSecondary,
+      textAlign: 'center',
+      paddingVertical: tokens.spacing.lg,
+      fontWeight: '600',
+    },
     content: {
       gap: tokens.spacing.md,
       paddingTop: tokens.spacing.md,
@@ -637,6 +646,9 @@ function createStyles(tokens: ThemeTokens) {
       backgroundColor: tokens.colors.surfaceContainerHigh,
       padding: tokens.spacing.md,
       gap: tokens.spacing.sm,
+    },
+    cardActive: {
+      borderColor: withAlpha(tokens.colors.primary, 0.45),
     },
     cardHeader: {
       flexDirection: 'row',

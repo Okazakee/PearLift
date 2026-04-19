@@ -9,6 +9,7 @@ import type {
   Exercise,
   UserWeights,
   WeekConfig,
+  WeightUnit,
   WorkoutSession,
 } from '../types';
 import type {
@@ -287,6 +288,7 @@ export function migrateToCurrentState(
       : settings.darkMode === false
         ? 'light'
         : 'dark';
+  const weightUnit: WeightUnit = settings.weightUnit === 'lb' ? 'lb' : 'kg';
 
   const backup: PwaBackupV2 = {
     version,
@@ -302,6 +304,7 @@ export function migrateToCurrentState(
         restDuration,
         darkMode: themeMode === 'dark',
         themeMode,
+        weightUnit,
       },
     },
   };
@@ -315,6 +318,7 @@ export function migrateToCurrentState(
     currentDay,
     restDuration,
     themeMode,
+    weightUnit,
   };
 
   return { backup, runtime };
@@ -349,6 +353,7 @@ export function toPwaBackupV2(state: PearLiftRuntimeState): PwaBackupV2 {
         restDuration: state.restDuration,
         darkMode: state.themeMode === 'dark',
         themeMode: state.themeMode,
+        weightUnit: state.weightUnit,
       },
     },
   };
@@ -418,6 +423,16 @@ function buildSettingDiff(
       key: 'Theme',
       from: label(aTheme),
       to: label(bTheme),
+    });
+  }
+
+  const aUnit = a.weightUnit ?? 'kg';
+  const bUnit = b.weightUnit ?? 'kg';
+  if (aUnit !== bUnit) {
+    changes.push({
+      key: 'Weight Unit',
+      from: aUnit.toUpperCase(),
+      to: bUnit.toUpperCase(),
     });
   }
 

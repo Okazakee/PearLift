@@ -1,5 +1,6 @@
 export type WorkoutDay = string;
 export type WeekPhase = number;
+export type WeightUnit = 'kg' | 'lb';
 
 export interface WeekConfig {
   id: number;

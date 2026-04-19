@@ -31,7 +31,7 @@ class RestTimerService : Service() {
     const val MODE_PAUSED = "paused"
 
     const val CHANNEL_RUNNING_ID = "rest-timer-running"
-    const val CHANNEL_COMPLETE_ID = "rest-timer"
+    const val CHANNEL_COMPLETE_ID = "rest-timer-v2"
 
     private const val NOTIF_RUNNING_ID = 42420
     private const val NOTIF_COMPLETE_ID = 42421
@@ -206,6 +206,7 @@ class RestTimerService : Service() {
       .setContentText("Time for your next set.")
       .setSmallIcon(applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_lock_idle_alarm)
       .setAutoCancel(true)
+      .setContentIntent(buildLaunchPendingIntent())
       .build()
     nm.notify(NOTIF_COMPLETE_ID, completion)
 
@@ -236,12 +237,23 @@ class RestTimerService : Service() {
       val ch = NotificationChannel(
         CHANNEL_COMPLETE_ID,
         "Rest timer",
-        NotificationManager.IMPORTANCE_HIGH,
+        NotificationManager.IMPORTANCE_MAX,
       )
       ch.enableVibration(true)
       ch.setShowBadge(false)
       nm.createNotificationChannel(ch)
     }
+  }
+
+  private fun buildLaunchPendingIntent(): PendingIntent? {
+    val launchIntent = packageManager.getLaunchIntentForPackage(packageName) ?: return null
+    launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    return PendingIntent.getActivity(
+      this,
+      100,
+      launchIntent,
+      PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+    )
   }
 
   private fun buildRunningNotification(): Notification {
@@ -254,6 +266,7 @@ class RestTimerService : Service() {
       .setSmallIcon(icon)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
+      .setContentIntent(buildLaunchPendingIntent())
       .addAction(
         0,
         "Pause",
@@ -285,6 +298,7 @@ class RestTimerService : Service() {
       .setSmallIcon(icon)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
+      .setContentIntent(buildLaunchPendingIntent())
       .addAction(
         0,
         "Resume",
@@ -317,6 +331,7 @@ class RestTimerService : Service() {
       .setSmallIcon(icon)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
+      .setContentIntent(buildLaunchPendingIntent())
       .addAction(
         0,
         "Pause",

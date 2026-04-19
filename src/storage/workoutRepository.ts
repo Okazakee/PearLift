@@ -15,9 +15,10 @@ import type {
   DayConfig,
   Exercise,
   UserWeights,
+  WeightUnit,
   WorkoutSession,
 } from '../types';
-import { roundToHalf } from '../utils/math';
+import { roundToPrecision } from '../utils/math';
 import { getDatabase } from './database';
 import type { WorkoutMutation, WorkoutStoreSnapshot } from './types';
 
@@ -36,6 +37,7 @@ function buildDefaultRuntimeState(): PearLiftRuntimeState {
     currentDay: defaultDayConfigs[0]?.id ?? 'push',
     restDuration: 150,
     themeMode: 'system',
+    weightUnit: 'kg',
   };
 }
 
@@ -63,6 +65,10 @@ function coerceThemeMode(
     return value;
   }
   return 'system';
+}
+
+function coerceWeightUnit(value: string | null | undefined): WeightUnit {
+  return value === 'lb' ? 'lb' : 'kg';
 }
 
 function normalizeDayConfigs(
@@ -266,6 +272,10 @@ export class WorkoutRepository {
             );
             break;
           }
+          case 'setWeightUnit': {
+            await this.writeSetting(db, 'weightUnit', mutation.weightUnit);
+            break;
+          }
           case 'setExerciseWeight': {
             const timestamp = nowIso();
             await db.runAsync(
@@ -273,7 +283,7 @@ export class WorkoutRepository {
              VALUES (?, ?, ?)
              ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
               mutation.exerciseId,
-              Math.max(0, roundToHalf(mutation.value)),
+              Math.max(0, roundToPrecision(mutation.value, 3)),
               timestamp,
             );
             break;
@@ -293,7 +303,7 @@ export class WorkoutRepository {
               existingWeight?.value ?? exerciseBase?.base_weight ?? 0;
             const nextWeight = Math.max(
               0,
-              roundToHalf(currentWeight + mutation.delta),
+              roundToPrecision(currentWeight + mutation.delta, 3),
             );
             const timestamp = nowIso();
             await db.runAsync(
@@ -395,32 +405,30 @@ export class WorkoutRepository {
             await this.reindexExercises(db, mutation.workoutId);
             break;
           }
-          case 'reorderExercise': {
+          case 'reorderExercises': {
             const ordered = await this.getExercisesForWorkout(
               db,
               mutation.workoutId,
             );
-            const index = ordered.findIndex(
-              (exercise) => exercise.id === mutation.exerciseId,
+            const existingIds = new Set(ordered.map((exercise) => exercise.id));
+            const nextOrder = mutation.orderedExerciseIds.filter((id) =>
+              existingIds.has(id),
             );
-            if (index === -1) {
-              break;
+            if (nextOrder.length !== ordered.length) {
+              for (const exercise of ordered) {
+                if (!nextOrder.includes(exercise.id)) {
+                  nextOrder.push(exercise.id);
+                }
+              }
             }
-            const target = mutation.direction === 'up' ? index - 1 : index + 1;
-            if (target < 0 || target >= ordered.length) {
-              break;
-            }
-            [ordered[index], ordered[target]] = [
-              ordered[target],
-              ordered[index],
-            ];
+
             const timestamp = nowIso();
-            for (const [position, exercise] of ordered.entries()) {
+            for (const [position, id] of nextOrder.entries()) {
               await db.runAsync(
                 'UPDATE exercises SET position = ?, updated_at = ? WHERE id = ?',
                 position,
                 timestamp,
-                exercise.id,
+                id,
               );
             }
             break;
@@ -497,6 +505,7 @@ export class WorkoutRepository {
           }
           case 'restoreRuntimeState': {
             await this.replaceAllState(db, mutation.runtime);
+            await this.writeSetting(db, 'setupDone', 'true');
             break;
           }
           default: {
@@ -515,6 +524,7 @@ export class WorkoutRepository {
         const parsed = parseAndMigrateBackup(migrated);
         await db.withTransactionAsync(async () => {
           await this.replaceAllState(db, parsed.runtime);
+          await this.writeSetting(db, 'setupDone', 'true');
         });
         return;
       } catch {
@@ -635,7 +645,12 @@ export class WorkoutRepository {
       timestamp,
     );
     await this.writeSetting(db, 'themeMode', runtime.themeMode, timestamp);
-    await this.writeSetting(db, 'setupDone', 'true', timestamp);
+    await this.writeSetting(
+      db,
+      'weightUnit',
+      runtime.weightUnit ?? 'kg',
+      timestamp,
+    );
   }
 
   private async readRuntimeState(
@@ -725,6 +740,7 @@ export class WorkoutRepository {
         settingsMap.get('currentDay') ?? defaultDayConfigs[0]?.id ?? 'push',
       restDuration: parseNumber(settingsMap.get('restDuration'), 150),
       themeMode: coerceThemeMode(settingsMap.get('themeMode')),
+      weightUnit: coerceWeightUnit(settingsMap.get('weightUnit')),
     };
   }
 

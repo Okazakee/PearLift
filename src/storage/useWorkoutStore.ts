@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { roundToHalf } from '../utils/math';
+import { roundToPrecision } from '../utils/math';
 import type { WorkoutMutation, WorkoutStoreSnapshot } from './types';
 import type { WorkoutRepository } from './workoutRepository';
 
@@ -16,11 +16,12 @@ function shouldSkipSnapshotReload(mutation: WorkoutMutation) {
     mutation.type === 'setCurrentWeek' ||
     mutation.type === 'setCurrentDay' ||
     mutation.type === 'setRestDuration' ||
+    mutation.type === 'setWeightUnit' ||
     mutation.type === 'setExerciseWeight' ||
     mutation.type === 'adjustExerciseWeight' ||
     mutation.type === 'editExercise' ||
     mutation.type === 'deleteExercise' ||
-    mutation.type === 'reorderExercise' ||
+    mutation.type === 'reorderExercises' ||
     mutation.type === 'replaceWeekConfigs' ||
     mutation.type === 'replaceDayConfigs'
   );
@@ -53,19 +54,24 @@ function applyOptimisticMutation(
       return { ...snapshot, currentDay: mutation.currentDay };
     case 'setRestDuration':
       return { ...snapshot, restDuration: Math.max(0, mutation.restDuration) };
+    case 'setWeightUnit':
+      return { ...snapshot, weightUnit: mutation.weightUnit };
     case 'setExerciseWeight':
       return {
         ...snapshot,
         userWeights: {
           ...snapshot.userWeights,
-          [mutation.exerciseId]: Math.max(0, roundToHalf(mutation.value)),
+          [mutation.exerciseId]: Math.max(
+            0,
+            roundToPrecision(mutation.value, 3),
+          ),
         },
       };
     case 'adjustExerciseWeight': {
       const current =
         snapshot.userWeights[mutation.exerciseId] ??
         getFallbackBaseWeight(snapshot, mutation.exerciseId);
-      const next = Math.max(0, roundToHalf(current + mutation.delta));
+      const next = Math.max(0, roundToPrecision(current + mutation.delta, 3));
       return {
         ...snapshot,
         userWeights: {
@@ -118,34 +124,36 @@ function applyOptimisticMutation(
         userWeights: remainingWeights,
       };
     }
-    case 'reorderExercise': {
+    case 'reorderExercises': {
       return {
         ...snapshot,
         workouts: snapshot.workouts.map((workout) => {
           if (workout.id !== mutation.workoutId) {
             return workout;
           }
-          const ordered = [...workout.exercises].sort(
+          const existing = [...workout.exercises].sort(
             (a, b) => a.position - b.position,
           );
-          const currentIndex = ordered.findIndex(
-            (exercise) => exercise.id === mutation.exerciseId,
+          const byId = new Map(
+            existing.map((exercise) => [exercise.id, exercise]),
           );
-          if (currentIndex < 0) {
-            return workout;
+          const next: typeof existing = [];
+          for (const id of mutation.orderedExerciseIds) {
+            const exercise = byId.get(id);
+            if (exercise) {
+              next.push(exercise);
+              byId.delete(id);
+            }
           }
-          const targetIndex =
-            mutation.direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-          if (targetIndex < 0 || targetIndex >= ordered.length) {
-            return workout;
+          for (const exercise of existing) {
+            if (byId.has(exercise.id)) {
+              next.push(exercise);
+              byId.delete(exercise.id);
+            }
           }
-          [ordered[currentIndex], ordered[targetIndex]] = [
-            ordered[targetIndex],
-            ordered[currentIndex],
-          ];
           return {
             ...workout,
-            exercises: ordered.map((exercise, index) => ({
+            exercises: next.map((exercise, index) => ({
               ...exercise,
               position: index,
             })),

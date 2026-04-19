@@ -4,6 +4,7 @@ import type {
   Exercise,
   UserWeights,
   WeekConfig,
+  WeightUnit,
   WorkoutDay,
   WorkoutSession,
 } from '../types';
@@ -32,6 +33,7 @@ export interface PwaBackupV2 {
       restDuration: number;
       darkMode: boolean;
       themeMode?: ThemePreference;
+      weightUnit?: WeightUnit;
     };
   };
 }
@@ -47,6 +49,7 @@ export interface PearLiftRuntimeState {
   currentDay: WorkoutDay;
   restDuration: number;
   themeMode: ThemePreference;
+  weightUnit: WeightUnit;
 }
 
 export interface MigratedBackupResult {
