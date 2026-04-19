@@ -57,7 +57,6 @@ import {
 
 const ACTION_DEBOUNCE_MS = 96;
 const DAY_PERSIST_DEBOUNCE_MS = 220;
-const DRAG_DEBUG = __DEV__;
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -140,15 +139,10 @@ export function WorkoutScreen() {
     setPromptConfig(null);
   }, []);
 
-  const debugLog = useCallback((message: string, payload?: unknown) => {
-    if (!DRAG_DEBUG) return;
-    const timestamp = new Date().toISOString();
-    if (payload === undefined) {
-      console.log(`[WorkoutScreenDrag][${timestamp}] ${message}`);
-      return;
-    }
-    console.log(`[WorkoutScreenDrag][${timestamp}] ${message}`, payload);
-  }, []);
+  const debugLog = useCallback(
+    (_message: string, _payload?: unknown) => {},
+    [],
+  );
 
   useEffect(() => {
     setRepository(new WorkoutRepository());

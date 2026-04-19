@@ -1,4 +1,4 @@
-import { Download, Settings } from 'lucide-react-native';
+import { Save, Settings } from 'lucide-react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
 
@@ -34,7 +34,7 @@ export function Header({
 
       <View style={styles.actionsRow}>
         <Pressable onPress={onOpenLocalBackup} style={styles.iconButton}>
-          <Download size={18} color={tokens.colors.textSecondary} />
+          <Save size={18} color={tokens.colors.textSecondary} />
         </Pressable>
         <Pressable onPress={onOpenSettings} style={styles.iconButton}>
           <Settings size={18} color={tokens.colors.textSecondary} />

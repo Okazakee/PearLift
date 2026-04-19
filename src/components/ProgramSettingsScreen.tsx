@@ -58,7 +58,6 @@ type WeekDraft = WeekConfig & { uiKey: string };
 
 const MAX_WEEKS = 4;
 const MAX_DAYS = 7;
-const DRAG_DEBUG = __DEV__;
 const LAYOUT_DEBUG_WINDOW_MS = 1200;
 
 type DragDebugSession = {
@@ -128,15 +127,10 @@ export function ProgramSettingsScreen({
     [],
   );
 
-  const debugLog = useCallback((message: string, payload?: unknown) => {
-    if (!DRAG_DEBUG) return;
-    const timestamp = new Date().toISOString();
-    if (payload === undefined) {
-      console.log(`[ProgramSettingsDrag][${timestamp}] ${message}`);
-      return;
-    }
-    console.log(`[ProgramSettingsDrag][${timestamp}] ${message}`, payload);
-  }, []);
+  const debugLog = useCallback(
+    (_message: string, _payload?: unknown) => {},
+    [],
+  );
 
   const openDragSession = useCallback(
     (
@@ -201,7 +195,6 @@ export function ProgramSettingsScreen({
       index: number,
       event: LayoutChangeEvent,
     ) => {
-      if (!DRAG_DEBUG) return;
       const now = Date.now();
       const sessionActive =
         lane === 'weeks'

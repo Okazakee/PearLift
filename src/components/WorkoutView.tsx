@@ -1,6 +1,5 @@
 import { Plus, Sliders } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { LayoutChangeEvent } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import DragList, { type DragListRenderItemInfo } from 'react-native-draglist';
 import { AnimatedPressable } from '../animation/primitives';
@@ -15,16 +14,6 @@ import type {
 } from '../types';
 import { scheduleIdleTask } from '../utils/idle';
 import { ExerciseCard } from './ExerciseCard';
-
-const DRAG_DEBUG = __DEV__;
-const LAYOUT_DEBUG_WINDOW_MS = 1200;
-
-type DragDebugSession = {
-  id: number;
-  startedAt: number;
-  fromIndex: number;
-  startOrder: string[];
-};
 
 function reorderIds(
   ids: string[],
@@ -85,96 +74,12 @@ export function WorkoutView({
   onSetWeight,
   onReorderExercises,
 }: WorkoutViewProps) {
-  const dragSessionRef = useRef<DragDebugSession | null>(null);
-  const dragSessionCounterRef = useRef(0);
   const dragCandidateIndexRef = useRef<number | null>(null);
-  const layoutDebugUntilRef = useRef(0);
-  const layoutMapRef = useRef<Record<string, string>>({});
+  const hoverIndexRef = useRef<number | null>(null);
   const pendingPersistCancelRef = useRef<(() => void) | null>(null);
   const pendingPersistOrderRef = useRef<string[] | null>(null);
-
-  const formatExerciseOrder = useCallback(
-    (exercises: Exercise[]) =>
-      exercises
-        .map(
-          (exercise, index) =>
-            `${index}:${exercise.id}->pos${exercise.position}`,
-        )
-        .join(' | '),
-    [],
-  );
-
-  const debugLog = useCallback((message: string, payload?: unknown) => {
-    if (!DRAG_DEBUG) return;
-    const timestamp = new Date().toISOString();
-    if (payload === undefined) {
-      console.log(`[WorkoutViewDrag][${timestamp}] ${message}`);
-      return;
-    }
-    console.log(`[WorkoutViewDrag][${timestamp}] ${message}`, payload);
-  }, []);
-
-  const openDragSession = useCallback(
-    (fromIndex: number, startOrder: string[]): DragDebugSession => {
-      const id = dragSessionCounterRef.current;
-      dragSessionCounterRef.current += 1;
-      const session = {
-        id,
-        startedAt: Date.now(),
-        fromIndex,
-        startOrder,
-      };
-      dragSessionRef.current = session;
-      layoutMapRef.current = {};
-      debugLog('exercises: drag begin', session);
-      return session;
-    },
-    [debugLog],
-  );
-
-  const closeDragSession = useCallback(
-    (meta: { from: number; to: number; finalOrder: string[] }) => {
-      const session = dragSessionRef.current;
-      const endedAt = Date.now();
-      debugLog('exercises: drag end', {
-        sessionId: session?.id ?? null,
-        elapsedMs: session ? endedAt - session.startedAt : null,
-        from: meta.from,
-        to: meta.to,
-        startOrder: session?.startOrder ?? null,
-        finalOrder: meta.finalOrder,
-      });
-      dragSessionRef.current = null;
-      layoutDebugUntilRef.current = endedAt + LAYOUT_DEBUG_WINDOW_MS;
-    },
-    [debugLog],
-  );
-
-  const handleDebugLayout = useCallback(
-    (exerciseId: string, index: number, event: LayoutChangeEvent) => {
-      if (!DRAG_DEBUG) return;
-      const now = Date.now();
-      const sessionActive = Boolean(dragSessionRef.current);
-      const debugWindowOpen = now <= layoutDebugUntilRef.current;
-      if (!sessionActive && !debugWindowOpen) return;
-
-      const { x, y, width, height } = event.nativeEvent.layout;
-      const signature = `${Math.round(x)},${Math.round(y)},${Math.round(width)},${Math.round(height)}`;
-      if (layoutMapRef.current[exerciseId] === signature) return;
-      layoutMapRef.current[exerciseId] = signature;
-      debugLog('exercises: layout', {
-        exerciseId,
-        index,
-        x: Math.round(x),
-        y: Math.round(y),
-        width: Math.round(width),
-        height: Math.round(height),
-        sessionId: dragSessionRef.current?.id ?? null,
-        inPostDropWindow: debugWindowOpen,
-      });
-    },
-    [debugLog],
-  );
+  const listExerciseIdsRef = useRef<string[]>([]);
+  const dragStartOrderIdsRef = useRef<string[] | null>(null);
 
   const styles = useMemo(
     () => createStyles(tokens, contentBottomPadding, fabBottom),
@@ -195,6 +100,7 @@ export function WorkoutView({
     () => sortedExercises.map((exercise) => exercise.id),
     [sortedExercises],
   );
+  const activeWorkoutIdRef = useRef(workout.id);
   const [listExerciseIds, setListExerciseIds] =
     useState<string[]>(sortedExerciseIds);
 
@@ -211,45 +117,25 @@ export function WorkoutView({
   useEffect(() => {
     setListExerciseIds(sortedExerciseIds);
     pendingPersistOrderRef.current = null;
-  }, [sortedExerciseIds]);
+    activeWorkoutIdRef.current = workout.id;
+  }, [sortedExerciseIds, workout.id]);
+
+  useEffect(() => {
+    listExerciseIdsRef.current = listExerciseIds;
+  }, [listExerciseIds]);
 
   useEffect(() => {
     const pendingOrder = pendingPersistOrderRef.current;
     if (pendingOrder && arraysEqual(sortedExerciseIds, pendingOrder)) {
-      debugLog('exercises: upstream reorder acknowledged', {
-        order: sortedExerciseIds,
-      });
       pendingPersistOrderRef.current = null;
       return;
     }
 
-    if (pendingOrder) {
-      return;
-    }
-
+    if (pendingOrder) return;
     if (!arraysEqual(sortedExerciseIds, listExerciseIds)) {
-      debugLog('exercises: syncing local list from upstream', {
-        upstreamOrder: sortedExerciseIds,
-        localOrder: listExerciseIds,
-      });
       setListExerciseIds(sortedExerciseIds);
     }
-  }, [debugLog, listExerciseIds, sortedExerciseIds]);
-
-  useEffect(() => {
-    debugLog('sortedExercises changed', {
-      workoutId: workout.id,
-      order: formatExerciseOrder(sortedExercises),
-      displayOrder: listExerciseIds,
-      pendingPersistOrder: pendingPersistOrderRef.current,
-    });
-  }, [
-    debugLog,
-    formatExerciseOrder,
-    listExerciseIds,
-    sortedExercises,
-    workout.id,
-  ]);
+  }, [listExerciseIds, sortedExerciseIds]);
 
   const renderHeader = useCallback(
     () => (
@@ -332,6 +218,11 @@ export function WorkoutView({
     [onOpenAddExercise, styles, tokens.colors.primary],
   );
 
+  const displayExerciseIds =
+    activeWorkoutIdRef.current === workout.id
+      ? listExerciseIds
+      : sortedExerciseIds;
+
   const renderItem = useCallback(
     ({
       item,
@@ -345,12 +236,11 @@ export function WorkoutView({
       return (
         <View
           style={[
-            index < listExerciseIds.length - 1
+            index < displayExerciseIds.length - 1
               ? styles.exerciseItem
               : undefined,
             isActive && styles.exerciseItemActive,
           ]}
-          onLayout={(event) => handleDebugLayout(exercise.id, index, event)}
         >
           <ExerciseCard
             tokens={tokens}
@@ -364,38 +254,24 @@ export function WorkoutView({
             onDeleteExercise={onDeleteExercise}
             onDragStart={() => {
               dragCandidateIndexRef.current = index;
-              openDragSession(
-                index,
-                listExerciseIds.map(
-                  (exerciseId, orderIndex) => `${orderIndex}:${exerciseId}`,
-                ),
-              );
+              hoverIndexRef.current = index;
+              dragStartOrderIdsRef.current = listExerciseIdsRef.current;
               onDragStart();
             }}
-            onDragEnd={() => {
-              const session = dragSessionRef.current;
-              debugLog('exercises: onRelease', {
-                sessionId: session?.id ?? null,
-                index,
-              });
-              onDragEnd();
-            }}
+            onDragEnd={onDragEnd}
           />
         </View>
       );
     },
     [
       currentWeek,
-      debugLog,
       exerciseById,
       getAdjustedWeight,
-      handleDebugLayout,
-      listExerciseIds,
+      displayExerciseIds.length,
       onAdjustWeight,
       onDeleteExercise,
       onEditExercise,
       onSetWeight,
-      openDragSession,
       styles.exerciseItem,
       styles.exerciseItemActive,
       tokens,
@@ -407,9 +283,10 @@ export function WorkoutView({
   return (
     <View style={styles.container}>
       <DragList
-        data={listExerciseIds}
+        data={displayExerciseIds}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
+        extraData={displayExerciseIds.join('|')}
         ListHeaderComponent={renderHeader()}
         ListFooterComponent={renderFooter()}
         contentContainerStyle={styles.content}
@@ -419,35 +296,13 @@ export function WorkoutView({
         updateCellsBatchingPeriod={16}
         windowSize={7}
         removeClippedSubviews={false}
-        onDragBegin={() => {
-          const session = dragSessionRef.current;
-          debugLog('exercises: drag begin (list callback)', {
-            sessionId: session?.id ?? null,
-            fromIndex: dragCandidateIndexRef.current,
-          });
-        }}
         onHoverChanged={(index) => {
-          const session = dragSessionRef.current;
-          debugLog('exercises: placeholder index change', {
-            sessionId: session?.id ?? null,
-            index,
-          });
-        }}
-        onDragEnd={() => {
-          const session = dragSessionRef.current;
-          debugLog('exercises: drag end (list callback)', {
-            sessionId: session?.id ?? null,
-          });
+          hoverIndexRef.current = index;
         }}
         onReordered={(from, to) => {
-          const reordered = reorderIds(listExerciseIds, from, to);
-          closeDragSession({
-            from,
-            to,
-            finalOrder: reordered.map(
-              (exerciseId, index) => `${index}:${exerciseId}`,
-            ),
-          });
+          const dragStartOrder =
+            dragStartOrderIdsRef.current ?? listExerciseIdsRef.current;
+          const reordered = reorderIds(dragStartOrder, from, to);
           if (from === to) {
             dragCandidateIndexRef.current = null;
             return;
@@ -456,20 +311,14 @@ export function WorkoutView({
           setListExerciseIds(reordered);
           pendingPersistOrderRef.current = reordered;
 
-          debugLog('exercises: dispatching parent mutation', {
-            from,
-            to,
-            reordered: reordered.map(
-              (exerciseId, index) => `${index}:${exerciseId}`,
-            ),
-          });
-
           pendingPersistCancelRef.current?.();
           pendingPersistCancelRef.current = scheduleIdleTask(() => {
             pendingPersistCancelRef.current = null;
             onReorderExercises(reordered);
           });
           dragCandidateIndexRef.current = null;
+          hoverIndexRef.current = null;
+          dragStartOrderIdsRef.current = null;
         }}
       />
     </View>

@@ -8,7 +8,7 @@ import {
   Star,
 } from 'lucide-react-native';
 import type React from 'react';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -46,6 +46,16 @@ export function Navigation({
   minHeight,
 }: NavigationProps) {
   const pendingPersistCancelRef = useRef<(() => void) | null>(null);
+  const pendingPersistOrderRef = useRef<DayConfig[] | null>(null);
+  const [draftDayConfigs, setDraftDayConfigs] = useState(dayConfigs);
+
+  const sameOrder = useCallback((a: DayConfig[], b: DayConfig[]) => {
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i += 1) {
+      if (a[i]?.id !== b[i]?.id) return false;
+    }
+    return true;
+  }, []);
 
   useEffect(
     () => () => {
@@ -55,11 +65,28 @@ export function Navigation({
     [],
   );
 
+  useEffect(() => {
+    const pendingOrder = pendingPersistOrderRef.current;
+    if (pendingOrder && sameOrder(dayConfigs, pendingOrder)) {
+      pendingPersistOrderRef.current = null;
+      return;
+    }
+
+    if (pendingOrder) {
+      return;
+    }
+
+    if (!sameOrder(dayConfigs, draftDayConfigs)) {
+      setDraftDayConfigs(dayConfigs);
+    }
+  }, [dayConfigs, draftDayConfigs, sameOrder]);
+
   const window = useWindowDimensions();
   const styles = createStyles(tokens, bottomPadding, minHeight);
   const itemWidth = Math.max(
     56,
-    (window.width - tokens.spacing.xs * 2) / Math.max(1, dayConfigs.length),
+    (window.width - tokens.spacing.xs * 2) /
+      Math.max(1, draftDayConfigs.length),
   );
 
   const iconComponents: Record<
@@ -78,7 +105,7 @@ export function Navigation({
   return (
     <View style={styles.container}>
       <DraggableFlatList
-        data={dayConfigs}
+        data={draftDayConfigs}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -87,6 +114,8 @@ export function Navigation({
         activationDistance={12}
         onDragEnd={({ data, from, to }) => {
           if (from === to) return;
+          setDraftDayConfigs(data);
+          pendingPersistOrderRef.current = data;
           pendingPersistCancelRef.current?.();
           pendingPersistCancelRef.current = scheduleIdleTask(() => {
             pendingPersistCancelRef.current = null;
