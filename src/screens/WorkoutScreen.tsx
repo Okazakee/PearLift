@@ -2,14 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import {
-  useCallback,
-  useDeferredValue,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Linking, StyleSheet, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
@@ -47,7 +40,6 @@ import { WorkoutRepository } from '../storage/workoutRepository';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
-import { scheduleIdleTask } from '../utils/idle';
 import { roundToHalf } from '../utils/math';
 import {
   fromDisplayWeight,
@@ -56,7 +48,6 @@ import {
 } from '../utils/units';
 
 const ACTION_DEBOUNCE_MS = 96;
-const DAY_PERSIST_DEBOUNCE_MS = 220;
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -118,11 +109,6 @@ export function WorkoutScreen() {
   const debounceTimersRef = useRef(
     new Map<string, ReturnType<typeof setTimeout>>(),
   );
-  const pendingDayPersistCancelRef = useRef<(() => void) | null>(null);
-  const pendingDayPersistValueRef = useRef<WorkoutDay | null>(null);
-  const pendingDayPersistTimerRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
 
   const showPrompt = useCallback(
     (title: string, message: string, actions?: AppPromptAction[]) => {
@@ -162,7 +148,7 @@ export function WorkoutScreen() {
     snapshot?.currentDay ??
     defaultDayConfigs[0]?.id ??
     'push';
-  const currentDay = useDeferredValue(selectedDay);
+  const currentDay = selectedDay;
   const workouts = snapshot?.workouts ?? [];
   const userWeights = snapshot?.userWeights ?? {};
   const weekConfigs = snapshot?.weekConfigs ?? [];
@@ -329,12 +315,6 @@ export function WorkoutScreen() {
       }
       debounceTimersRef.current.clear();
       debouncedMutationsRef.current.clear();
-      pendingDayPersistCancelRef.current?.();
-      pendingDayPersistCancelRef.current = null;
-      if (pendingDayPersistTimerRef.current) {
-        clearTimeout(pendingDayPersistTimerRef.current);
-        pendingDayPersistTimerRef.current = null;
-      }
     };
   }, []);
 
@@ -609,25 +589,10 @@ export function WorkoutScreen() {
         return;
       }
       setPendingCurrentDay(nextDay);
-      pendingDayPersistValueRef.current = nextDay;
-      pendingDayPersistCancelRef.current?.();
-      if (pendingDayPersistTimerRef.current) {
-        clearTimeout(pendingDayPersistTimerRef.current);
-      }
-      pendingDayPersistTimerRef.current = setTimeout(() => {
-        pendingDayPersistTimerRef.current = null;
-        pendingDayPersistCancelRef.current = scheduleIdleTask(() => {
-          pendingDayPersistCancelRef.current = null;
-          const latestDay = pendingDayPersistValueRef.current;
-          if (!latestDay) {
-            return;
-          }
-          void runImmediateMutation({
-            type: 'setCurrentDay',
-            currentDay: latestDay,
-          });
-        });
-      }, DAY_PERSIST_DEBOUNCE_MS);
+      void runImmediateMutation({
+        type: 'setCurrentDay',
+        currentDay: nextDay,
+      });
     },
     [runImmediateMutation, selectedDay],
   );
