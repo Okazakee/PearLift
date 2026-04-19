@@ -1,6 +1,7 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { Exercise } from '../types';
@@ -62,13 +63,13 @@ export function ExerciseCard({
     <View style={styles.card}>
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
-        <Pressable style={styles.iconButton} onPress={onEdit}>
+        <AnimatedPressable style={styles.iconButton} onPress={onEdit}>
           <Feather
             name="edit-2"
             size={16}
             color={tokens.colors.textSecondary}
           />
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <View style={styles.chipsRow}>
@@ -85,12 +86,12 @@ export function ExerciseCard({
       )}
 
       <View style={styles.weightControl}>
-        <Pressable
+        <AnimatedPressable
           style={[styles.stepButton, styles.stepButtonMinus]}
           onPress={() => handleWeightAdjust(-1)}
         >
           <Feather name="minus" size={18} color={tokens.colors.error} />
-        </Pressable>
+        </AnimatedPressable>
 
         {editingWeight ? (
           <View style={styles.inlineEdit}>
@@ -107,7 +108,7 @@ export function ExerciseCard({
             <Text style={styles.weightUnit}>kg</Text>
           </View>
         ) : (
-          <Pressable
+          <AnimatedPressable
             style={styles.weightValueRow}
             onPress={() => {
               setTempWeight(baseWeight.toString());
@@ -121,19 +122,19 @@ export function ExerciseCard({
             />
             <Text style={styles.weightValue}>{adjustedWeight.toFixed(1)}</Text>
             <Text style={styles.weightUnit}>kg</Text>
-          </Pressable>
+          </AnimatedPressable>
         )}
 
-        <Pressable
+        <AnimatedPressable
           style={[styles.stepButton, styles.stepButtonPlus]}
           onPress={() => handleWeightAdjust(1)}
         >
           <Feather name="plus" size={18} color={tokens.colors.success} />
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       <View style={styles.bottomActions}>
-        <Pressable
+        <AnimatedPressable
           style={[styles.actionButton, isFirst && styles.disabledButton]}
           disabled={isFirst}
           onPress={onMoveUp}
@@ -143,8 +144,8 @@ export function ExerciseCard({
             size={16}
             color={isFirst ? tokens.colors.textMuted : tokens.colors.primary}
           />
-        </Pressable>
-        <Pressable
+        </AnimatedPressable>
+        <AnimatedPressable
           style={[styles.actionButton, isLast && styles.disabledButton]}
           disabled={isLast}
           onPress={onMoveDown}
@@ -154,8 +155,8 @@ export function ExerciseCard({
             size={16}
             color={isLast ? tokens.colors.textMuted : tokens.colors.primary}
           />
-        </Pressable>
-        <Pressable
+        </AnimatedPressable>
+        <AnimatedPressable
           style={[styles.actionButton, styles.deleteAction]}
           onPress={onDelete}
         >
@@ -164,7 +165,7 @@ export function ExerciseCard({
             size={17}
             color={tokens.colors.error}
           />
-        </Pressable>
+        </AnimatedPressable>
       </View>
     </View>
   );

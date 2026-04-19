@@ -2,10 +2,8 @@
 
 ## Planned Features
 
-### Material You (Dynamic Color)
-- Extract primary color from user wallpaper on Android 12+
-- Apply dynamic color scheme to app theme
-- Fallback to default theme on older Android/iOS
+### Tablet layout
+- Adjust the app to have a good tablet layout
 
 ### Device Authorization (Fingerprint/PIN)
 - Require biometric or PIN when new device attempts to sync

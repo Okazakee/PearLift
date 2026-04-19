@@ -1,16 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChangeSummary } from '../backup/types';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import { AnimatedModalShell } from './AnimatedModalShell';
 
 interface ImportPreviewModalProps {
   open: boolean;
@@ -30,84 +24,74 @@ export function ImportPreviewModal({
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
+    <AnimatedModalShell
+      open={open}
+      onClose={onClose}
+      containerStyle={styles.modalRoot}
+      backdropStyle={styles.backdrop}
+      sheetStyle={styles.card}
     >
-      <View style={styles.modalRoot}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <View style={styles.titleRow}>
-              <Feather name="eye" size={18} color={tokens.colors.primary} />
-              <Text style={styles.title}>Import Preview</Text>
-            </View>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
-            </Pressable>
-          </View>
-
-          <Text style={styles.summaryText}>
-            {summary.totalChanges > 0
-              ? `${summary.totalChanges} change(s) detected.`
-              : 'No changes detected. Backup is identical to current data.'}
-          </Text>
-
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.content}
-          >
-            {summary.workouts.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Workouts</Text>
-                {summary.workouts.map((item) => (
-                  <View key={item.workoutId} style={styles.row}>
-                    <Text style={styles.rowName}>{item.name}</Text>
-                    <Text style={styles.rowMeta}>
-                      +{item.added} / -{item.removed} / ~{item.modified}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {summary.settings.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Settings</Text>
-                {summary.settings.map((item) => (
-                  <View key={item.key} style={styles.row}>
-                    <Text style={styles.rowName}>{item.key}</Text>
-                    <Text style={styles.rowMeta}>
-                      {item.from} {'->'} {item.to}
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </ScrollView>
-
-          <View style={styles.actions}>
-            <Pressable style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </Pressable>
-            <Pressable style={styles.confirmButton} onPress={onConfirm}>
-              <Text style={styles.confirmText}>Import Backup</Text>
-            </Pressable>
-          </View>
+      <View style={styles.header}>
+        <View style={styles.titleRow}>
+          <Feather name="eye" size={18} color={tokens.colors.primary} />
+          <Text style={styles.title}>Import Preview</Text>
         </View>
+        <Pressable style={styles.closeButton} onPress={onClose}>
+          <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+        </Pressable>
       </View>
-    </Modal>
+
+      <Text style={styles.summaryText}>
+        {summary.totalChanges > 0
+          ? `${summary.totalChanges} change(s) detected.`
+          : 'No changes detected. Backup is identical to current data.'}
+      </Text>
+
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        {summary.workouts.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Workouts</Text>
+            {summary.workouts.map((item) => (
+              <View key={item.workoutId} style={styles.row}>
+                <Text style={styles.rowName}>{item.name}</Text>
+                <Text style={styles.rowMeta}>
+                  +{item.added} / -{item.removed} / ~{item.modified}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {summary.settings.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Settings</Text>
+            {summary.settings.map((item) => (
+              <View key={item.key} style={styles.row}>
+                <Text style={styles.rowName}>{item.key}</Text>
+                <Text style={styles.rowMeta}>
+                  {item.from} {'->'} {item.to}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={styles.actions}>
+        <Pressable style={styles.cancelButton} onPress={onClose}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </Pressable>
+        <Pressable style={styles.confirmButton} onPress={onConfirm}>
+          <Text style={styles.confirmText}>Import Backup</Text>
+        </Pressable>
+      </View>
+    </AnimatedModalShell>
   );
 }
 
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({
     modalRoot: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
       paddingHorizontal: tokens.spacing.lg,
     },
     backdrop: {

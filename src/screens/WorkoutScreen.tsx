@@ -2,14 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Linking,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { Linking, StyleSheet, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -28,6 +21,7 @@ import {
   type AppPromptAction,
   AppPromptModal,
 } from '../components/AppPromptModal';
+import { BootstrapScreen } from '../components/BootstrapScreen';
 import { Header } from '../components/Header';
 import { ImportPreviewModal } from '../components/ImportPreviewModal';
 import { LocalBackupModal } from '../components/LocalBackupModal';
@@ -236,12 +230,18 @@ export function WorkoutScreen() {
   }, [syncCoordinator]);
 
   useEffect(() => {
+    if (!syncCoordinator) {
+      return;
+    }
+    void refreshSetupStatus();
+  }, [syncCoordinator, refreshSetupStatus]);
+
+  useEffect(() => {
     if (!syncCoordinator || !snapshot) {
       return;
     }
     void refreshSyncStatus();
-    void refreshSetupStatus();
-  }, [syncCoordinator, snapshot, refreshSyncStatus, refreshSetupStatus]);
+  }, [syncCoordinator, snapshot, refreshSyncStatus]);
 
   useEffect(() => {
     if (!localBackupOpen) {
@@ -469,9 +469,14 @@ export function WorkoutScreen() {
   }, [refreshSyncStatus, reload, showPrompt, syncCoordinator]);
 
   const finishOnboarding = useCallback(async () => {
-    if (syncCoordinator) {
-      await syncCoordinator.completeSetup('local-only', 'start-fresh');
+    if (!syncCoordinator) {
+      logError(
+        'onboarding/complete',
+        new Error('Sync coordinator unavailable during onboarding completion'),
+      );
+      return;
     }
+    await syncCoordinator.completeSetup('local-only', 'start-fresh');
     await reload();
     await refreshSetupStatus();
     await refreshSyncStatus();
@@ -561,32 +566,8 @@ export function WorkoutScreen() {
   };
 
   const syncMode = setupStatus?.setup.syncMode ?? 'local-only';
-  const onboardingBlocking = !(
-    setupStatus?.setup.hasCompletedOnboarding ?? false
-  );
-
-  if (!isReady || !snapshot || !setupStatus) {
-    return (
-      <SafeAreaView
-        edges={['left', 'right']}
-        style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
-      >
-        <StatusBar
-          style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
-          backgroundColor={tokens.colors.bgBase}
-          translucent={false}
-        />
-        <View style={styles.loadingShell}>
-          <ActivityIndicator size="large" color={tokens.colors.primary} />
-          <Text
-            style={[styles.loadingText, { color: tokens.colors.textSecondary }]}
-          >
-            Preparing local database and setup state...
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  const onboardingCompleted = setupStatus?.setup.hasCompletedOnboarding;
+  const onboardingBlocking = onboardingCompleted === false;
 
   if (onboardingBlocking) {
     return (
@@ -604,6 +585,30 @@ export function WorkoutScreen() {
           topInset={insets.top}
           bottomInset={insets.bottom}
           onComplete={finishOnboarding}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (!isReady || !snapshot || !setupStatus) {
+    return (
+      <SafeAreaView
+        edges={['left', 'right']}
+        style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
+      >
+        <StatusBar
+          style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
+          backgroundColor={tokens.colors.bgBase}
+          translucent={false}
+        />
+        <BootstrapScreen
+          backgroundColor={tokens.colors.bgBase}
+          accentColor={tokens.colors.primary}
+          imageSource={require('../../assets/pearlift_transparent.png')}
+          title={APP_CONFIG.name}
+          subtitle="Preparing local database and setup state"
+          textPrimary={tokens.colors.textPrimary}
+          textSecondary={tokens.colors.textSecondary}
         />
       </SafeAreaView>
     );
@@ -797,16 +802,5 @@ const styles = StyleSheet.create({
   },
   appShell: {
     flex: 1,
-  },
-  loadingShell: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    paddingHorizontal: 24,
-  },
-  loadingText: {
-    fontSize: 14,
-    textAlign: 'center',
   },
 });

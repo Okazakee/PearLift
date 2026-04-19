@@ -1,5 +1,13 @@
 import { Feather } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  FadeInDown,
+  FadeOutUp,
+  LinearTransition,
+  ReduceMotion,
+} from 'react-native-reanimated';
+import { MOTION } from '../animation/motion';
+import { AnimatedFadeInView, AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type {
@@ -59,7 +67,7 @@ export function WorkoutView({
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.summaryCard}>
+        <AnimatedFadeInView style={styles.summaryCard}>
           <View style={styles.decorCircleA} />
           <View style={styles.decorCircleB} />
           <Text style={styles.metaText}>
@@ -82,14 +90,14 @@ export function WorkoutView({
               </Text>
             </View>
           </View>
-        </View>
+        </AnimatedFadeInView>
 
-        <View style={styles.weekTabs}>
+        <AnimatedFadeInView style={styles.weekTabs} delay={40}>
           <View style={styles.weekTabsInner}>
             {weekConfigs.map((item) => {
               const active = item.id === currentWeek;
               return (
-                <Pressable
+                <AnimatedPressable
                   key={item.id}
                   style={[styles.weekTab, active && styles.weekTabActive]}
                   onPress={() => onWeekChange(item.id)}
@@ -102,11 +110,11 @@ export function WorkoutView({
                   >
                     W{item.id}
                   </Text>
-                </Pressable>
+                </AnimatedPressable>
               );
             })}
           </View>
-          <Pressable
+          <AnimatedPressable
             style={styles.settingsButton}
             onPress={onOpenProgramSettings}
           >
@@ -115,32 +123,42 @@ export function WorkoutView({
               size={16}
               color={tokens.colors.textSecondary}
             />
-          </Pressable>
-        </View>
+          </AnimatedPressable>
+        </AnimatedFadeInView>
 
         <View style={styles.list}>
           {sortedExercises.map((exercise, index) => (
-            <ExerciseCard
+            <Animated.View
               key={exercise.id}
-              tokens={tokens}
-              exercise={exercise}
-              baseWeight={userWeights[exercise.id] ?? exercise.baseWeight}
-              adjustedWeight={getAdjustedWeight(exercise.id, currentWeek)}
-              isFirst={index === 0}
-              isLast={index === sortedExercises.length - 1}
-              onAdjustWeight={(delta) => onAdjustWeight(exercise.id, delta)}
-              onMoveUp={() => onMoveExercise(exercise.id, 'up')}
-              onMoveDown={() => onMoveExercise(exercise.id, 'down')}
-              onEdit={() => onEditExercise(exercise)}
-              onDelete={() => onDeleteExercise(exercise)}
-            />
+              layout={LinearTransition.reduceMotion(ReduceMotion.System)}
+              entering={FadeInDown.delay(Math.min(index * 24, 200))
+                .duration(MOTION.duration.base)
+                .reduceMotion(ReduceMotion.System)}
+              exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
+                ReduceMotion.System,
+              )}
+            >
+              <ExerciseCard
+                tokens={tokens}
+                exercise={exercise}
+                baseWeight={userWeights[exercise.id] ?? exercise.baseWeight}
+                adjustedWeight={getAdjustedWeight(exercise.id, currentWeek)}
+                isFirst={index === 0}
+                isLast={index === sortedExercises.length - 1}
+                onAdjustWeight={(delta) => onAdjustWeight(exercise.id, delta)}
+                onMoveUp={() => onMoveExercise(exercise.id, 'up')}
+                onMoveDown={() => onMoveExercise(exercise.id, 'down')}
+                onEdit={() => onEditExercise(exercise)}
+                onDelete={() => onDeleteExercise(exercise)}
+              />
+            </Animated.View>
           ))}
         </View>
 
-        <Pressable style={styles.addButton} onPress={onOpenAddExercise}>
+        <AnimatedPressable style={styles.addButton} onPress={onOpenAddExercise}>
           <Feather name="plus" size={16} color={tokens.colors.primary} />
           <Text style={styles.addButtonText}>Add Exercise</Text>
-        </Pressable>
+        </AnimatedPressable>
       </ScrollView>
     </View>
   );

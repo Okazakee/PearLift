@@ -1,19 +1,20 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Animated, {
+  FadeInDown,
+  FadeOutUp,
+  LinearTransition,
+  ReduceMotion,
+} from 'react-native-reanimated';
+import { MOTION } from '../animation/motion';
+import { AnimatedPressable } from '../animation/primitives';
 
 import { dayIconMap, dayIconOptions } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WeekConfig } from '../types';
+import { AnimatedModalShell } from './AnimatedModalShell';
 
 interface ProgramSettingsModalProps {
   open: boolean;
@@ -102,285 +103,293 @@ export function ProgramSettingsModal({
     activeTab === 'weeks' ? weekConfigs.length >= 4 : dayConfigs.length >= 7;
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
+    <AnimatedModalShell
+      open={open}
+      onClose={onClose}
+      containerStyle={styles.modalRoot}
+      backdropStyle={styles.backdrop}
+      sheetStyle={styles.sheet}
     >
-      <View style={styles.modalRoot}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Program Settings</Text>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
-            </Pressable>
-          </View>
+      <View style={styles.header}>
+        <Text style={styles.title}>Program Settings</Text>
+        <AnimatedPressable style={styles.closeButton} onPress={onClose}>
+          <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+        </AnimatedPressable>
+      </View>
 
-          <View style={styles.tabRow}>
-            <Pressable
-              style={[
-                styles.tabButton,
-                activeTab === 'weeks' && styles.tabActive,
-              ]}
-              onPress={() => setActiveTab('weeks')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'weeks' && styles.tabTextActive,
-                ]}
-              >
-                Weeks
-              </Text>
-            </Pressable>
-            <Pressable
-              style={[
-                styles.tabButton,
-                activeTab === 'days' && styles.tabActive,
-              ]}
-              onPress={() => setActiveTab('days')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'days' && styles.tabTextActive,
-                ]}
-              >
-                Days
-              </Text>
-            </Pressable>
-          </View>
-
-          <ScrollView
-            contentContainerStyle={styles.content}
-            showsVerticalScrollIndicator={false}
+      <View style={styles.tabRow}>
+        <AnimatedPressable
+          style={[styles.tabButton, activeTab === 'weeks' && styles.tabActive]}
+          onPress={() => setActiveTab('weeks')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'weeks' && styles.tabTextActive,
+            ]}
           >
-            {activeTab === 'weeks' &&
-              weekConfigs.map((week, index) => (
-                <View key={week.id} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>Week {index + 1}</Text>
-                    <View style={styles.rowActions}>
-                      <Pressable
-                        style={[
-                          styles.rowButton,
-                          styles.rowButtonArrow,
-                          index === 0 && styles.rowButtonDisabled,
-                        ]}
-                        disabled={index === 0}
-                        onPress={() => moveWeek(index, index - 1)}
-                      >
-                        <Feather
-                          name="chevron-up"
-                          size={14}
-                          color={
-                            index === 0
-                              ? tokens.colors.textMuted
-                              : tokens.colors.textSecondary
-                          }
-                        />
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          styles.rowButton,
-                          styles.rowButtonArrow,
-                          index === weekConfigs.length - 1 &&
-                            styles.rowButtonDisabled,
-                        ]}
-                        disabled={index === weekConfigs.length - 1}
-                        onPress={() => moveWeek(index, index + 1)}
-                      >
-                        <Feather
-                          name="chevron-down"
-                          size={14}
-                          color={
-                            index === weekConfigs.length - 1
-                              ? tokens.colors.textMuted
-                              : tokens.colors.textSecondary
-                          }
-                        />
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          styles.rowButton,
-                          styles.rowButtonDelete,
-                          weekConfigs.length <= 1 && styles.rowButtonDisabled,
-                        ]}
-                        disabled={weekConfigs.length <= 1}
-                        onPress={() => removeWeek(index)}
-                      >
-                        <MaterialCommunityIcons
-                          name="trash-can-outline"
-                          size={16}
-                          color={tokens.colors.accentDanger}
-                        />
-                      </Pressable>
-                    </View>
-                  </View>
+            Weeks
+          </Text>
+        </AnimatedPressable>
+        <AnimatedPressable
+          style={[styles.tabButton, activeTab === 'days' && styles.tabActive]}
+          onPress={() => setActiveTab('days')}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === 'days' && styles.tabTextActive,
+            ]}
+          >
+            Days
+          </Text>
+        </AnimatedPressable>
+      </View>
 
-                  <View style={styles.weekInputRow}>
-                    <View style={styles.weekInputCol}>
-                      <TextInput
-                        value={week.name}
-                        onChangeText={(text) =>
-                          updateWeek(index, { name: text })
-                        }
-                        style={styles.input}
-                        placeholder="Week name"
-                        placeholderTextColor={tokens.colors.textMuted}
-                      />
-                      <Text style={styles.inputLabel}>Week Name</Text>
-                    </View>
-                    <View style={styles.weekInputCol}>
-                      <TextInput
-                        value={String(week.loadModifier)}
-                        onChangeText={(text) =>
-                          updateWeek(index, { loadModifier: Number(text) || 1 })
-                        }
-                        style={styles.input}
-                        keyboardType="decimal-pad"
-                        placeholder="Load"
-                        placeholderTextColor={tokens.colors.textMuted}
-                      />
-                      <Text style={styles.inputLabel}>Load</Text>
-                    </View>
-                    <View style={styles.weekInputCol}>
-                      <TextInput
-                        value={String(week.rir)}
-                        onChangeText={(text) =>
-                          updateWeek(index, { rir: Number(text) || 0 })
-                        }
-                        style={styles.input}
-                        keyboardType="number-pad"
-                        placeholder="RIR"
-                        placeholderTextColor={tokens.colors.textMuted}
-                      />
-                      <Text style={styles.inputLabel}>RIR</Text>
-                    </View>
-                  </View>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {activeTab === 'weeks' &&
+          weekConfigs.map((week, index) => (
+            <Animated.View
+              key={week.id}
+              style={styles.card}
+              layout={LinearTransition.reduceMotion(ReduceMotion.System)}
+              entering={FadeInDown.delay(Math.min(index * 24, 160))
+                .duration(MOTION.duration.base)
+                .reduceMotion(ReduceMotion.System)}
+              exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
+                ReduceMotion.System,
+              )}
+            >
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Week {index + 1}</Text>
+                <View style={styles.rowActions}>
+                  <AnimatedPressable
+                    style={[
+                      styles.rowButton,
+                      styles.rowButtonArrow,
+                      index === 0 && styles.rowButtonDisabled,
+                    ]}
+                    disabled={index === 0}
+                    onPress={() => moveWeek(index, index - 1)}
+                  >
+                    <Feather
+                      name="chevron-up"
+                      size={14}
+                      color={
+                        index === 0
+                          ? tokens.colors.textMuted
+                          : tokens.colors.textSecondary
+                      }
+                    />
+                  </AnimatedPressable>
+                  <AnimatedPressable
+                    style={[
+                      styles.rowButton,
+                      styles.rowButtonArrow,
+                      index === weekConfigs.length - 1 &&
+                        styles.rowButtonDisabled,
+                    ]}
+                    disabled={index === weekConfigs.length - 1}
+                    onPress={() => moveWeek(index, index + 1)}
+                  >
+                    <Feather
+                      name="chevron-down"
+                      size={14}
+                      color={
+                        index === weekConfigs.length - 1
+                          ? tokens.colors.textMuted
+                          : tokens.colors.textSecondary
+                      }
+                    />
+                  </AnimatedPressable>
+                  <AnimatedPressable
+                    style={[
+                      styles.rowButton,
+                      styles.rowButtonDelete,
+                      weekConfigs.length <= 1 && styles.rowButtonDisabled,
+                    ]}
+                    disabled={weekConfigs.length <= 1}
+                    onPress={() => removeWeek(index)}
+                  >
+                    <MaterialCommunityIcons
+                      name="trash-can-outline"
+                      size={16}
+                      color={tokens.colors.accentDanger}
+                    />
+                  </AnimatedPressable>
                 </View>
-              ))}
+              </View>
 
-            {activeTab === 'days' &&
-              dayConfigs.map((day, index) => (
-                <View key={day.id} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>Day {index + 1}</Text>
-                    <View style={styles.rowActions}>
-                      <Pressable
-                        style={[
-                          styles.rowButton,
-                          styles.rowButtonArrow,
-                          index === 0 && styles.rowButtonDisabled,
-                        ]}
-                        disabled={index === 0}
-                        onPress={() => moveDay(index, index - 1)}
-                      >
-                        <Feather
-                          name="chevron-up"
-                          size={14}
-                          color={
-                            index === 0
-                              ? tokens.colors.textMuted
-                              : tokens.colors.textSecondary
-                          }
-                        />
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          styles.rowButton,
-                          styles.rowButtonArrow,
-                          index === dayConfigs.length - 1 &&
-                            styles.rowButtonDisabled,
-                        ]}
-                        disabled={index === dayConfigs.length - 1}
-                        onPress={() => moveDay(index, index + 1)}
-                      >
-                        <Feather
-                          name="chevron-down"
-                          size={14}
-                          color={
-                            index === dayConfigs.length - 1
-                              ? tokens.colors.textMuted
-                              : tokens.colors.textSecondary
-                          }
-                        />
-                      </Pressable>
-                      <Pressable
-                        style={[
-                          styles.rowButton,
-                          styles.rowButtonDelete,
-                          dayConfigs.length <= 1 && styles.rowButtonDisabled,
-                        ]}
-                        disabled={dayConfigs.length <= 1}
-                        onPress={() => removeDay(index)}
-                      >
-                        <MaterialCommunityIcons
-                          name="trash-can-outline"
-                          size={16}
-                          color={tokens.colors.accentDanger}
-                        />
-                      </Pressable>
-                    </View>
-                  </View>
-
+              <View style={styles.weekInputRow}>
+                <View style={styles.weekInputCol}>
                   <TextInput
-                    value={day.name}
-                    onChangeText={(text) => updateDay(index, { name: text })}
+                    value={week.name}
+                    onChangeText={(text) => updateWeek(index, { name: text })}
                     style={styles.input}
-                    placeholder="Day name"
+                    placeholder="Week name"
                     placeholderTextColor={tokens.colors.textMuted}
                   />
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.iconRow}
-                    nestedScrollEnabled
-                  >
-                    {dayIconOptions.map((option) => {
-                      const active = day.icon === option;
-                      const iconName = dayIconMap[option];
-                      return (
-                        <Pressable
-                          key={option}
-                          style={[
-                            styles.iconOption,
-                            active && styles.iconOptionActive,
-                          ]}
-                          onPress={() => updateDay(index, { icon: option })}
-                        >
-                          <Feather
-                            name={iconName as never}
-                            size={18}
-                            color={
-                              active
-                                ? tokens.colors.accentPrimary
-                                : tokens.colors.textSecondary
-                            }
-                          />
-                        </Pressable>
-                      );
-                    })}
-                  </ScrollView>
+                  <Text style={styles.inputLabel}>Week Name</Text>
                 </View>
-              ))}
-          </ScrollView>
+                <View style={styles.weekInputCol}>
+                  <TextInput
+                    value={String(week.loadModifier)}
+                    onChangeText={(text) =>
+                      updateWeek(index, { loadModifier: Number(text) || 1 })
+                    }
+                    style={styles.input}
+                    keyboardType="decimal-pad"
+                    placeholder="Load"
+                    placeholderTextColor={tokens.colors.textMuted}
+                  />
+                  <Text style={styles.inputLabel}>Load</Text>
+                </View>
+                <View style={styles.weekInputCol}>
+                  <TextInput
+                    value={String(week.rir)}
+                    onChangeText={(text) =>
+                      updateWeek(index, { rir: Number(text) || 0 })
+                    }
+                    style={styles.input}
+                    keyboardType="number-pad"
+                    placeholder="RIR"
+                    placeholderTextColor={tokens.colors.textMuted}
+                  />
+                  <Text style={styles.inputLabel}>RIR</Text>
+                </View>
+              </View>
+            </Animated.View>
+          ))}
 
-          {!atLimit && (
-            <Pressable
-              style={styles.addButton}
-              onPress={activeTab === 'weeks' ? addWeek : addDay}
+        {activeTab === 'days' &&
+          dayConfigs.map((day, index) => (
+            <Animated.View
+              key={day.id}
+              style={styles.card}
+              layout={LinearTransition.reduceMotion(ReduceMotion.System)}
+              entering={FadeInDown.delay(Math.min(index * 24, 160))
+                .duration(MOTION.duration.base)
+                .reduceMotion(ReduceMotion.System)}
+              exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
+                ReduceMotion.System,
+              )}
             >
-              <Text style={styles.addButtonText}>
-                {activeTab === 'weeks' ? 'Add Week' : 'Add Day'}
-              </Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-    </Modal>
+              <View style={styles.cardHeader}>
+                <Text style={styles.cardTitle}>Day {index + 1}</Text>
+                <View style={styles.rowActions}>
+                  <AnimatedPressable
+                    style={[
+                      styles.rowButton,
+                      styles.rowButtonArrow,
+                      index === 0 && styles.rowButtonDisabled,
+                    ]}
+                    disabled={index === 0}
+                    onPress={() => moveDay(index, index - 1)}
+                  >
+                    <Feather
+                      name="chevron-up"
+                      size={14}
+                      color={
+                        index === 0
+                          ? tokens.colors.textMuted
+                          : tokens.colors.textSecondary
+                      }
+                    />
+                  </AnimatedPressable>
+                  <AnimatedPressable
+                    style={[
+                      styles.rowButton,
+                      styles.rowButtonArrow,
+                      index === dayConfigs.length - 1 &&
+                        styles.rowButtonDisabled,
+                    ]}
+                    disabled={index === dayConfigs.length - 1}
+                    onPress={() => moveDay(index, index + 1)}
+                  >
+                    <Feather
+                      name="chevron-down"
+                      size={14}
+                      color={
+                        index === dayConfigs.length - 1
+                          ? tokens.colors.textMuted
+                          : tokens.colors.textSecondary
+                      }
+                    />
+                  </AnimatedPressable>
+                  <AnimatedPressable
+                    style={[
+                      styles.rowButton,
+                      styles.rowButtonDelete,
+                      dayConfigs.length <= 1 && styles.rowButtonDisabled,
+                    ]}
+                    disabled={dayConfigs.length <= 1}
+                    onPress={() => removeDay(index)}
+                  >
+                    <MaterialCommunityIcons
+                      name="trash-can-outline"
+                      size={16}
+                      color={tokens.colors.accentDanger}
+                    />
+                  </AnimatedPressable>
+                </View>
+              </View>
+
+              <TextInput
+                value={day.name}
+                onChangeText={(text) => updateDay(index, { name: text })}
+                style={styles.input}
+                placeholder="Day name"
+                placeholderTextColor={tokens.colors.textMuted}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.iconRow}
+                nestedScrollEnabled
+              >
+                {dayIconOptions.map((option) => {
+                  const active = day.icon === option;
+                  const iconName = dayIconMap[option];
+                  return (
+                    <AnimatedPressable
+                      key={option}
+                      style={[
+                        styles.iconOption,
+                        active && styles.iconOptionActive,
+                      ]}
+                      onPress={() => updateDay(index, { icon: option })}
+                    >
+                      <Feather
+                        name={iconName as never}
+                        size={18}
+                        color={
+                          active
+                            ? tokens.colors.accentPrimary
+                            : tokens.colors.textSecondary
+                        }
+                      />
+                    </AnimatedPressable>
+                  );
+                })}
+              </ScrollView>
+            </Animated.View>
+          ))}
+      </ScrollView>
+
+      {!atLimit && (
+        <AnimatedPressable
+          style={styles.addButton}
+          onPress={activeTab === 'weeks' ? addWeek : addDay}
+        >
+          <Text style={styles.addButtonText}>
+            {activeTab === 'weeks' ? 'Add Week' : 'Add Day'}
+          </Text>
+        </AnimatedPressable>
+      )}
+    </AnimatedModalShell>
   );
 }
 

@@ -7,9 +7,11 @@ import {
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
-import { Platform, Text, TextInput, View } from 'react-native';
+import { Platform, Text, TextInput } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { BootstrapScreen } from './src/components/BootstrapScreen';
+import { APP_CONFIG } from './src/config/app';
 import { WorkoutScreen } from './src/screens/WorkoutScreen';
 
 // While the app is foregrounded, the rest timer uses in-app sound/haptics.
@@ -56,14 +58,16 @@ function applyMonospaceDefaults() {
 }
 
 export default function App() {
-  applyMonospaceDefaults();
-
   const [fontsLoaded] = useFonts({
     SpaceGrotesk_400Regular,
     SpaceGrotesk_500Medium,
     SpaceGrotesk_600SemiBold,
     SpaceGrotesk_700Bold,
   });
+
+  if (fontsLoaded) {
+    applyMonospaceDefaults();
+  }
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
@@ -79,13 +83,21 @@ export default function App() {
     });
   }, []);
 
-  if (!fontsLoaded) {
-    return <View />;
-  }
-
   return (
     <SafeAreaProvider>
-      <WorkoutScreen />
+      {!fontsLoaded ? (
+        <BootstrapScreen
+          backgroundColor="#111113"
+          accentColor="#3dd68c"
+          imageSource={require('./assets/pearlift_transparent.png')}
+          title={APP_CONFIG.name}
+          subtitle="Preparing your training data"
+          textPrimary="#ffffff"
+          textSecondary="rgba(255,255,255,0.72)"
+        />
+      ) : (
+        <WorkoutScreen />
+      )}
     </SafeAreaProvider>
   );
 }

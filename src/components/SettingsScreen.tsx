@@ -1,14 +1,9 @@
 import { Feather } from '@expo/vector-icons';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeMode, ThemePreference, ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import { AnimatedScreenModal } from './AnimatedScreenModal';
 
 interface SettingsScreenProps {
   open: boolean;
@@ -64,16 +59,16 @@ export function SettingsScreen({
   };
 
   return (
-    <Modal visible={open} animationType="fade" onRequestClose={onClose}>
+    <AnimatedScreenModal open={open} onClose={onClose}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={onClose}>
+          <AnimatedPressable style={styles.backButton} onPress={onClose}>
             <Feather
               name="chevron-left"
               size={22}
               color={tokens.colors.textPrimary}
             />
-          </Pressable>
+          </AnimatedPressable>
           <Text style={styles.title}>Settings</Text>
           <View style={styles.backButtonPlaceholder} />
         </View>
@@ -93,24 +88,24 @@ export function SettingsScreen({
                 <Text style={styles.rowSubtitle}>{themeSubtitle}</Text>
               </View>
               <View style={styles.segmented}>
-                <Pressable
+                <AnimatedPressable
                   style={optionStyle('system')}
                   onPress={() => onThemePreferenceChange('system')}
                 >
                   <Text style={optionTextStyle('system')}>System</Text>
-                </Pressable>
-                <Pressable
+                </AnimatedPressable>
+                <AnimatedPressable
                   style={optionStyle('light')}
                   onPress={() => onThemePreferenceChange('light')}
                 >
                   <Text style={optionTextStyle('light')}>Light</Text>
-                </Pressable>
-                <Pressable
+                </AnimatedPressable>
+                <AnimatedPressable
                   style={optionStyle('dark')}
                   onPress={() => onThemePreferenceChange('dark')}
                 >
                   <Text style={optionTextStyle('dark')}>Dark</Text>
-                </Pressable>
+                </AnimatedPressable>
               </View>
             </View>
           </View>
@@ -145,14 +140,17 @@ export function SettingsScreen({
             <Text style={styles.rowSubtitle}>
               Review setup mode, relay backup preference, and recovery flow.
             </Text>
-            <Pressable style={styles.githubButton} onPress={onOpenSyncSetup}>
+            <AnimatedPressable
+              style={styles.githubButton}
+              onPress={onOpenSyncSetup}
+            >
               <Feather
                 name="sliders"
                 size={18}
                 color={tokens.colors.onPrimary}
               />
               <Text style={styles.githubButtonText}>Open Sync Setup</Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
@@ -168,14 +166,14 @@ export function SettingsScreen({
               Permanently reset all workouts, settings, timer data, and sync
               history.
             </Text>
-            <Pressable style={styles.resetButton} onPress={onResetData}>
+            <AnimatedPressable style={styles.resetButton} onPress={onResetData}>
               <Feather
                 name="refresh-cw"
                 size={18}
                 color={tokens.colors.accentDanger}
               />
               <Text style={styles.resetButtonText}>Reset All Data</Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
@@ -188,7 +186,7 @@ export function SettingsScreen({
               <Text style={styles.infoValue}>Okazakee</Text>
             </View>
             <View style={styles.developerButtons}>
-              <Pressable
+              <AnimatedPressable
                 style={styles.developerPrimaryButton}
                 onPress={onOpenGithub}
               >
@@ -198,14 +196,14 @@ export function SettingsScreen({
                   color={tokens.colors.onPrimary}
                 />
                 <Text style={styles.githubButtonText}>Open Repo</Text>
-              </Pressable>
-              <Pressable
+              </AnimatedPressable>
+              <AnimatedPressable
                 style={styles.developerSecondaryButton}
                 onPress={() => {}}
               >
                 <Feather name="heart" size={18} color={tokens.colors.primary} />
                 <Text style={styles.donateButtonText}>Donate</Text>
-              </Pressable>
+              </AnimatedPressable>
             </View>
           </View>
 
@@ -233,7 +231,7 @@ export function SettingsScreen({
           </View>
         </ScrollView>
       </View>
-    </Modal>
+    </AnimatedScreenModal>
   );
 }
 

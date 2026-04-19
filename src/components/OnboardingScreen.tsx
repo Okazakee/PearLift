@@ -1,7 +1,14 @@
 import { Feather } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  FadeInDown,
+  FadeOutUp,
+  ReduceMotion,
+} from 'react-native-reanimated';
+import { MOTION } from '../animation/motion';
+import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 
@@ -89,7 +96,16 @@ export function OnboardingScreen({
         ))}
       </View>
 
-      <View style={styles.content}>
+      <Animated.View
+        key={content.title}
+        style={styles.content}
+        entering={FadeInDown.duration(MOTION.duration.base).reduceMotion(
+          ReduceMotion.System,
+        )}
+        exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
+          ReduceMotion.System,
+        )}
+      >
         <View style={styles.iconContainer}>
           <Feather
             name={PAGE_CONTENT[page].icon}
@@ -100,10 +116,10 @@ export function OnboardingScreen({
 
         <Text style={styles.title}>{content.title}</Text>
         <Text style={styles.description}>{content.description}</Text>
-      </View>
+      </Animated.View>
 
       <View style={styles.footer}>
-        <Pressable
+        <AnimatedPressable
           style={[styles.backButton, isFirstPage && styles.buttonDisabled]}
           onPress={handleBack}
           disabled={isFirstPage}
@@ -113,9 +129,9 @@ export function OnboardingScreen({
           >
             Back
           </Text>
-        </Pressable>
+        </AnimatedPressable>
 
-        <Pressable
+        <AnimatedPressable
           style={[styles.nextButton, requesting && styles.buttonDisabled]}
           onPress={handleNext}
           disabled={requesting}
@@ -127,7 +143,7 @@ export function OnboardingScreen({
                 : 'Get Started'
               : 'Next'}
           </Text>
-        </Pressable>
+        </AnimatedPressable>
       </View>
     </View>
   );

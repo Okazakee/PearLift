@@ -1,16 +1,11 @@
 import { Feather } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AnimatedPressable } from '../animation/primitives';
 import type { SyncMode } from '../storage/types';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import { AnimatedScreenModal } from './AnimatedScreenModal';
 
 interface SyncSetupScreenProps {
   open: boolean;
@@ -55,16 +50,16 @@ export function SyncSetupScreen({
   const d2dEnabled = selectedMode === 'd2d-sync';
 
   return (
-    <Modal visible={open} animationType="slide" onRequestClose={onClose}>
+    <AnimatedScreenModal open={open} onClose={onClose}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <Pressable style={styles.backButton} onPress={onClose}>
+          <AnimatedPressable style={styles.backButton} onPress={onClose}>
             <Feather
               name="chevron-left"
               size={22}
               color={tokens.colors.textPrimary}
             />
-          </Pressable>
+          </AnimatedPressable>
           <Text style={styles.title}>Sync Setup</Text>
           <View style={styles.backButton} />
         </View>
@@ -80,7 +75,7 @@ export function SyncSetupScreen({
               modes without reinstalling.
             </Text>
 
-            <Pressable
+            <AnimatedPressable
               style={[
                 styles.modeCard,
                 selectedMode === 'local-only' && styles.modeCardActive,
@@ -98,9 +93,9 @@ export function SyncSetupScreen({
                   Keep data local and use JSON import/export manually.
                 </Text>
               </View>
-            </Pressable>
+            </AnimatedPressable>
 
-            <Pressable
+            <AnimatedPressable
               style={[
                 styles.modeCard,
                 selectedMode === 'd2d-sync' && styles.modeCardActive,
@@ -118,9 +113,9 @@ export function SyncSetupScreen({
                   Sync directly between your devices using QR code pairing.
                 </Text>
               </View>
-            </Pressable>
+            </AnimatedPressable>
 
-            <Pressable
+            <AnimatedPressable
               style={[styles.primaryButton, busy && styles.disabled]}
               onPress={() => {
                 void onSaveMode(selectedMode);
@@ -130,7 +125,7 @@ export function SyncSetupScreen({
               <Text style={styles.primaryButtonText}>
                 {busy ? 'Saving mode...' : `Save ${modeTitle(selectedMode)}`}
               </Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
@@ -139,7 +134,7 @@ export function SyncSetupScreen({
               Use recovery actions without re-running onboarding.
             </Text>
 
-            <Pressable
+            <AnimatedPressable
               style={[styles.secondaryButton, busy && styles.disabled]}
               onPress={() => {
                 void onImportLocalBackup();
@@ -150,9 +145,9 @@ export function SyncSetupScreen({
               <Text style={styles.secondaryButtonText}>
                 Import local backup
               </Text>
-            </Pressable>
+            </AnimatedPressable>
 
-            <Pressable
+            <AnimatedPressable
               style={[
                 styles.secondaryButton,
                 (!d2dEnabled || busy) && styles.disabled,
@@ -164,7 +159,7 @@ export function SyncSetupScreen({
             >
               <Feather name="link" size={18} color={tokens.colors.primary} />
               <Text style={styles.secondaryButtonText}>Pair Device</Text>
-            </Pressable>
+            </AnimatedPressable>
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Current mode</Text>
@@ -187,7 +182,7 @@ export function SyncSetupScreen({
           ) : null}
         </ScrollView>
       </View>
-    </Modal>
+    </AnimatedScreenModal>
   );
 }
 

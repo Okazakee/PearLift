@@ -1,6 +1,7 @@
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import { AnimatedModalShell } from './AnimatedModalShell';
 
 export interface AppPromptAction {
   label: string;
@@ -33,55 +34,48 @@ export function AppPromptModal({
   };
 
   return (
-    <Modal
-      transparent
-      visible={open}
-      animationType="fade"
-      onRequestClose={onClose}
+    <AnimatedModalShell
+      open={open}
+      onClose={onClose}
+      containerStyle={styles.modalRoot}
+      backdropStyle={styles.backdrop}
+      sheetStyle={styles.sheet}
     >
-      <View style={styles.modalRoot}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
-          <Text style={styles.title}>{title}</Text>
-          <Text style={styles.message}>{message}</Text>
-          <View style={styles.actionsRow}>
-            {actions.map((action) => {
-              const tone = action.tone ?? 'default';
-              return (
-                <Pressable
-                  key={action.label}
-                  style={[
-                    styles.actionButton,
-                    tone === 'cancel' && styles.actionCancel,
-                    tone === 'destructive' && styles.actionDestructive,
-                  ]}
-                  onPress={() => handleAction(action)}
-                >
-                  <Text
-                    style={[
-                      styles.actionText,
-                      tone === 'cancel' && styles.actionCancelText,
-                      tone === 'destructive' && styles.actionDestructiveText,
-                    ]}
-                  >
-                    {action.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.message}>{message}</Text>
+      <View style={styles.actionsRow}>
+        {actions.map((action) => {
+          const tone = action.tone ?? 'default';
+          return (
+            <Pressable
+              key={action.label}
+              style={[
+                styles.actionButton,
+                tone === 'cancel' && styles.actionCancel,
+                tone === 'destructive' && styles.actionDestructive,
+              ]}
+              onPress={() => handleAction(action)}
+            >
+              <Text
+                style={[
+                  styles.actionText,
+                  tone === 'cancel' && styles.actionCancelText,
+                  tone === 'destructive' && styles.actionDestructiveText,
+                ]}
+              >
+                {action.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
-    </Modal>
+    </AnimatedModalShell>
   );
 }
 
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({
     modalRoot: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
       paddingHorizontal: tokens.spacing.lg,
     },
     backdrop: {

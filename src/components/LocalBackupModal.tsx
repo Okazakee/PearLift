@@ -1,9 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SyncMode } from '../storage/types';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import { AnimatedModalShell } from './AnimatedModalShell';
 
 interface LocalBackupModalProps {
   open: boolean;
@@ -32,117 +33,94 @@ export function LocalBackupModal({
   const d2dEnabled = syncMode === 'd2d-sync';
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
+    <AnimatedModalShell
+      open={open}
+      onClose={onClose}
+      containerStyle={styles.modalRoot}
+      backdropStyle={styles.backdrop}
+      sheetStyle={styles.card}
     >
-      <View style={styles.modalRoot}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <Text style={styles.title}>Backup & Sync</Text>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+      <View style={styles.header}>
+        <Text style={styles.title}>Backup & Sync</Text>
+        <Pressable style={styles.closeButton} onPress={onClose}>
+          <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+        </Pressable>
+      </View>
+
+      {d2dEnabled ? (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Device Sync</Text>
+          <Text style={styles.message}>
+            Sync directly with another device using QR code pairing.
+          </Text>
+          <View style={styles.statusBanner}>
+            <Feather name="monitor" size={18} color={tokens.colors.primary} />
+            <Text style={styles.statusText}>{syncSummary}</Text>
+          </View>
+          <View style={styles.actions}>
+            <Pressable
+              style={[styles.actionButton, busy && styles.disabledButton]}
+              onPress={onOpenSyncSetup}
+              disabled={busy}
+            >
+              <Feather name="link" size={18} color={tokens.colors.onPrimary} />
+              <Text style={styles.actionText}>Pair Device</Text>
             </Pressable>
           </View>
+        </View>
+      ) : (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Device Sync</Text>
+          <Text style={styles.message}>
+            Device-to-device sync can be enabled in Sync Setup.
+          </Text>
+          <Pressable
+            style={[styles.secondaryButton, busy && styles.disabledButton]}
+            onPress={onOpenSyncSetup}
+            disabled={busy}
+          >
+            <Feather name="sliders" size={18} color={tokens.colors.primary} />
+            <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
+          </Pressable>
+        </View>
+      )}
 
-          {d2dEnabled ? (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Device Sync</Text>
-              <Text style={styles.message}>
-                Sync directly with another device using QR code pairing.
-              </Text>
-              <View style={styles.statusBanner}>
-                <Feather
-                  name="monitor"
-                  size={18}
-                  color={tokens.colors.primary}
-                />
-                <Text style={styles.statusText}>{syncSummary}</Text>
-              </View>
-              <View style={styles.actions}>
-                <Pressable
-                  style={[styles.actionButton, busy && styles.disabledButton]}
-                  onPress={onOpenSyncSetup}
-                  disabled={busy}
-                >
-                  <Feather
-                    name="link"
-                    size={18}
-                    color={tokens.colors.onPrimary}
-                  />
-                  <Text style={styles.actionText}>Pair Device</Text>
-                </Pressable>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Device Sync</Text>
-              <Text style={styles.message}>
-                Device-to-device sync can be enabled in Sync Setup.
-              </Text>
-              <Pressable
-                style={[styles.secondaryButton, busy && styles.disabledButton]}
-                onPress={onOpenSyncSetup}
-                disabled={busy}
-              >
-                <Feather
-                  name="sliders"
-                  size={18}
-                  color={tokens.colors.primary}
-                />
-                <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
-              </Pressable>
-            </View>
-          )}
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Local JSON</Text>
-            <Text style={styles.message}>
-              Export your workout data to a JSON file or import a previous local
-              backup.
-            </Text>
-            <View style={styles.actions}>
-              <Pressable
-                style={[styles.actionButton, busy && styles.disabledButton]}
-                onPress={onExport}
-                disabled={busy}
-              >
-                <Feather
-                  name="download"
-                  size={18}
-                  color={tokens.colors.onPrimary}
-                />
-                <Text style={styles.actionText}>Export Backup</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.actionButton, busy && styles.disabledButton]}
-                onPress={onImport}
-                disabled={busy}
-              >
-                <Feather
-                  name="upload"
-                  size={18}
-                  color={tokens.colors.onPrimary}
-                />
-                <Text style={styles.actionText}>Import Backup</Text>
-              </Pressable>
-            </View>
-          </View>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Local JSON</Text>
+        <Text style={styles.message}>
+          Export your workout data to a JSON file or import a previous local
+          backup.
+        </Text>
+        <View style={styles.actions}>
+          <Pressable
+            style={[styles.actionButton, busy && styles.disabledButton]}
+            onPress={onExport}
+            disabled={busy}
+          >
+            <Feather
+              name="download"
+              size={18}
+              color={tokens.colors.onPrimary}
+            />
+            <Text style={styles.actionText}>Export Backup</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.actionButton, busy && styles.disabledButton]}
+            onPress={onImport}
+            disabled={busy}
+          >
+            <Feather name="upload" size={18} color={tokens.colors.onPrimary} />
+            <Text style={styles.actionText}>Import Backup</Text>
+          </Pressable>
         </View>
       </View>
-    </Modal>
+    </AnimatedModalShell>
   );
 }
 
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({
     modalRoot: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
       paddingHorizontal: tokens.spacing.lg,
     },
     backdrop: {

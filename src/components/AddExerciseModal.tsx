@@ -1,7 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,10 +8,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-
 import { muscleGroups } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import type { Exercise } from '../types';
+import { AnimatedModalShell } from './AnimatedModalShell';
 
 interface FormExercise {
   name: string;
@@ -92,117 +91,106 @@ export function AddExerciseModal({
   };
 
   return (
-    <Modal
-      visible={open}
-      transparent
-      animationType="fade"
-      onRequestClose={onClose}
+    <AnimatedModalShell
+      open={open}
+      onClose={onClose}
+      containerStyle={styles.modalRoot}
+      backdropStyle={styles.backdrop}
+      sheetStyle={styles.sheet}
     >
-      <View style={styles.modalRoot}>
-        <Pressable style={styles.backdrop} onPress={onClose} />
-        <View style={styles.sheet}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>
-              {mode === 'add' ? 'Add Exercise' : 'Edit Exercise'}
-            </Text>
-            <Pressable style={styles.closeButton} onPress={onClose}>
-              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
-            </Pressable>
-          </View>
+      <View style={styles.titleRow}>
+        <Text style={styles.title}>
+          {mode === 'add' ? 'Add Exercise' : 'Edit Exercise'}
+        </Text>
+        <Pressable style={styles.closeButton} onPress={onClose}>
+          <Feather name="x" size={18} color={tokens.colors.textSecondary} />
+        </Pressable>
+      </View>
 
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.content}
-          >
-            <Text style={styles.label}>Name</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          value={form.name}
+          onChangeText={(text) => setForm((prev) => ({ ...prev, name: text }))}
+          placeholder="Exercise name"
+          placeholderTextColor={tokens.colors.textMuted}
+          style={styles.input}
+        />
+
+        <Text style={styles.label}>Muscle Group</Text>
+        <View style={styles.chipsWrap}>
+          {muscleGroups.map((muscle) => {
+            const active = form.muscleGroup === muscle;
+            return (
+              <Pressable
+                key={muscle}
+                onPress={() =>
+                  setForm((prev) => ({ ...prev, muscleGroup: muscle }))
+                }
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <Text
+                  style={[styles.chipText, active && styles.chipTextActive]}
+                >
+                  {muscle}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View style={styles.row}>
+          <View style={styles.col}>
+            <Text style={styles.label}>Sets</Text>
             <TextInput
-              value={form.name}
+              value={form.sets}
               onChangeText={(text) =>
-                setForm((prev) => ({ ...prev, name: text }))
+                setForm((prev) => ({ ...prev, sets: text }))
               }
-              placeholder="Exercise name"
-              placeholderTextColor={tokens.colors.textMuted}
+              keyboardType="numeric"
               style={styles.input}
             />
-
-            <Text style={styles.label}>Muscle Group</Text>
-            <View style={styles.chipsWrap}>
-              {muscleGroups.map((muscle) => {
-                const active = form.muscleGroup === muscle;
-                return (
-                  <Pressable
-                    key={muscle}
-                    onPress={() =>
-                      setForm((prev) => ({ ...prev, muscleGroup: muscle }))
-                    }
-                    style={[styles.chip, active && styles.chipActive]}
-                  >
-                    <Text
-                      style={[styles.chipText, active && styles.chipTextActive]}
-                    >
-                      {muscle}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            <View style={styles.row}>
-              <View style={styles.col}>
-                <Text style={styles.label}>Sets</Text>
-                <TextInput
-                  value={form.sets}
-                  onChangeText={(text) =>
-                    setForm((prev) => ({ ...prev, sets: text }))
-                  }
-                  keyboardType="numeric"
-                  style={styles.input}
-                />
-              </View>
-              <View style={styles.col}>
-                <Text style={styles.label}>Reps</Text>
-                <TextInput
-                  value={form.reps}
-                  onChangeText={(text) =>
-                    setForm((prev) => ({ ...prev, reps: text }))
-                  }
-                  style={styles.input}
-                />
-              </View>
-            </View>
-
-            <Text style={styles.label}>Notes</Text>
+          </View>
+          <View style={styles.col}>
+            <Text style={styles.label}>Reps</Text>
             <TextInput
-              value={form.notes}
+              value={form.reps}
               onChangeText={(text) =>
-                setForm((prev) => ({ ...prev, notes: text }))
+                setForm((prev) => ({ ...prev, reps: text }))
               }
-              style={[styles.input, styles.textarea]}
-              placeholder="Optional notes..."
-              placeholderTextColor={tokens.colors.textMuted}
-              multiline
+              style={styles.input}
             />
-
-            {error && <Text style={styles.error}>{error}</Text>}
-
-            <Pressable style={styles.submitButton} onPress={handleSubmit}>
-              <Text style={styles.submitText}>
-                {mode === 'add' ? 'Add Exercise' : 'Save Changes'}
-              </Text>
-            </Pressable>
-          </ScrollView>
+          </View>
         </View>
-      </View>
-    </Modal>
+
+        <Text style={styles.label}>Notes</Text>
+        <TextInput
+          value={form.notes}
+          onChangeText={(text) => setForm((prev) => ({ ...prev, notes: text }))}
+          style={[styles.input, styles.textarea]}
+          placeholder="Optional notes..."
+          placeholderTextColor={tokens.colors.textMuted}
+          multiline
+        />
+
+        {error && <Text style={styles.error}>{error}</Text>}
+
+        <Pressable style={styles.submitButton} onPress={handleSubmit}>
+          <Text style={styles.submitText}>
+            {mode === 'add' ? 'Add Exercise' : 'Save Changes'}
+          </Text>
+        </Pressable>
+      </ScrollView>
+    </AnimatedModalShell>
   );
 }
 
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({
     modalRoot: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
       paddingHorizontal: tokens.spacing.lg,
     },
     backdrop: {

@@ -35,13 +35,13 @@ export function useWorkoutStore(
         return;
       }
       setIsReady(false);
+      setSyncCoordinator(new SyncCoordinator(repository));
       await repository.initialize();
       const next = await repository.getSnapshot();
       if (cancelled) {
         return;
       }
       setSnapshot(next);
-      setSyncCoordinator(new SyncCoordinator(repository));
       setIsReady(true);
     }
 
