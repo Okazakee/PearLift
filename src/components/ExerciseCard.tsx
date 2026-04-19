@@ -33,6 +33,7 @@ interface ExerciseCardProps {
   onEditExercise: (exercise: Exercise) => void;
   onDeleteExercise: (exercise: Exercise) => void;
   onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
 function ExerciseCardComponent({
@@ -46,6 +47,7 @@ function ExerciseCardComponent({
   onEditExercise,
   onDeleteExercise,
   onDragStart,
+  onDragEnd,
 }: ExerciseCardProps) {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const setsRepsLabel = `${exercise.sets}x${exercise.reps}`;
@@ -138,6 +140,7 @@ function ExerciseCardComponent({
     <AnimatedPressable
       style={styles.card}
       onLongPress={onDragStart}
+      onPressOut={onDragEnd}
       delayLongPress={160}
       disabled={!onDragStart}
       pressScale={1}
@@ -234,8 +237,7 @@ export const ExerciseCard = memo(
     prev.exercise.muscleGroup === next.exercise.muscleGroup &&
     prev.exercise.notes === next.exercise.notes &&
     prev.exercise.sets === next.exercise.sets &&
-    prev.exercise.reps === next.exercise.reps &&
-    prev.exercise.position === next.exercise.position,
+    prev.exercise.reps === next.exercise.reps,
 );
 
 function createStyles(tokens: ThemeTokens) {

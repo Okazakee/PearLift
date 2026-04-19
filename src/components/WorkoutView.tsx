@@ -1,10 +1,8 @@
 import { Plus, Sliders } from 'lucide-react-native';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { LayoutChangeEvent } from 'react-native';
 import { StyleSheet, Text, View } from 'react-native';
-import DraggableFlatList, {
-  type RenderItemParams,
-  ScaleDecorator,
-} from 'react-native-draggable-flatlist';
+import DragList, { type DragListRenderItemInfo } from 'react-native-draglist';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -15,7 +13,38 @@ import type {
   WeightUnit,
   WorkoutSession,
 } from '../types';
+import { scheduleIdleTask } from '../utils/idle';
 import { ExerciseCard } from './ExerciseCard';
+
+const DRAG_DEBUG = __DEV__;
+const LAYOUT_DEBUG_WINDOW_MS = 1200;
+
+type DragDebugSession = {
+  id: number;
+  startedAt: number;
+  fromIndex: number;
+  startOrder: string[];
+};
+
+function reorderIds(
+  ids: string[],
+  fromIndex: number,
+  toIndex: number,
+): string[] {
+  const next = [...ids];
+  const [moved] = next.splice(fromIndex, 1);
+  if (!moved) return ids;
+  next.splice(toIndex, 0, moved);
+  return next;
+}
+
+function arraysEqual(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+}
 
 interface WorkoutViewProps {
   tokens: ThemeTokens;
@@ -56,6 +85,97 @@ export function WorkoutView({
   onSetWeight,
   onReorderExercises,
 }: WorkoutViewProps) {
+  const dragSessionRef = useRef<DragDebugSession | null>(null);
+  const dragSessionCounterRef = useRef(0);
+  const dragCandidateIndexRef = useRef<number | null>(null);
+  const layoutDebugUntilRef = useRef(0);
+  const layoutMapRef = useRef<Record<string, string>>({});
+  const pendingPersistCancelRef = useRef<(() => void) | null>(null);
+  const pendingPersistOrderRef = useRef<string[] | null>(null);
+
+  const formatExerciseOrder = useCallback(
+    (exercises: Exercise[]) =>
+      exercises
+        .map(
+          (exercise, index) =>
+            `${index}:${exercise.id}->pos${exercise.position}`,
+        )
+        .join(' | '),
+    [],
+  );
+
+  const debugLog = useCallback((message: string, payload?: unknown) => {
+    if (!DRAG_DEBUG) return;
+    const timestamp = new Date().toISOString();
+    if (payload === undefined) {
+      console.log(`[WorkoutViewDrag][${timestamp}] ${message}`);
+      return;
+    }
+    console.log(`[WorkoutViewDrag][${timestamp}] ${message}`, payload);
+  }, []);
+
+  const openDragSession = useCallback(
+    (fromIndex: number, startOrder: string[]): DragDebugSession => {
+      const id = dragSessionCounterRef.current;
+      dragSessionCounterRef.current += 1;
+      const session = {
+        id,
+        startedAt: Date.now(),
+        fromIndex,
+        startOrder,
+      };
+      dragSessionRef.current = session;
+      layoutMapRef.current = {};
+      debugLog('exercises: drag begin', session);
+      return session;
+    },
+    [debugLog],
+  );
+
+  const closeDragSession = useCallback(
+    (meta: { from: number; to: number; finalOrder: string[] }) => {
+      const session = dragSessionRef.current;
+      const endedAt = Date.now();
+      debugLog('exercises: drag end', {
+        sessionId: session?.id ?? null,
+        elapsedMs: session ? endedAt - session.startedAt : null,
+        from: meta.from,
+        to: meta.to,
+        startOrder: session?.startOrder ?? null,
+        finalOrder: meta.finalOrder,
+      });
+      dragSessionRef.current = null;
+      layoutDebugUntilRef.current = endedAt + LAYOUT_DEBUG_WINDOW_MS;
+    },
+    [debugLog],
+  );
+
+  const handleDebugLayout = useCallback(
+    (exerciseId: string, index: number, event: LayoutChangeEvent) => {
+      if (!DRAG_DEBUG) return;
+      const now = Date.now();
+      const sessionActive = Boolean(dragSessionRef.current);
+      const debugWindowOpen = now <= layoutDebugUntilRef.current;
+      if (!sessionActive && !debugWindowOpen) return;
+
+      const { x, y, width, height } = event.nativeEvent.layout;
+      const signature = `${Math.round(x)},${Math.round(y)},${Math.round(width)},${Math.round(height)}`;
+      if (layoutMapRef.current[exerciseId] === signature) return;
+      layoutMapRef.current[exerciseId] = signature;
+      debugLog('exercises: layout', {
+        exerciseId,
+        index,
+        x: Math.round(x),
+        y: Math.round(y),
+        width: Math.round(width),
+        height: Math.round(height),
+        sessionId: dragSessionRef.current?.id ?? null,
+        inPostDropWindow: debugWindowOpen,
+      });
+    },
+    [debugLog],
+  );
+
   const styles = useMemo(
     () => createStyles(tokens, contentBottomPadding, fabBottom),
     [tokens, contentBottomPadding, fabBottom],
@@ -67,7 +187,69 @@ export function WorkoutView({
     () => [...workout.exercises].sort((a, b) => a.position - b.position),
     [workout.exercises],
   );
-  const keyExtractor = useCallback((item: Exercise) => item.id, []);
+  const exerciseById = useMemo(
+    () => new Map(sortedExercises.map((exercise) => [exercise.id, exercise])),
+    [sortedExercises],
+  );
+  const sortedExerciseIds = useMemo(
+    () => sortedExercises.map((exercise) => exercise.id),
+    [sortedExercises],
+  );
+  const [listExerciseIds, setListExerciseIds] =
+    useState<string[]>(sortedExerciseIds);
+
+  const keyExtractor = useCallback((item: string) => item, []);
+
+  useEffect(
+    () => () => {
+      pendingPersistCancelRef.current?.();
+      pendingPersistCancelRef.current = null;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    setListExerciseIds(sortedExerciseIds);
+    pendingPersistOrderRef.current = null;
+  }, [sortedExerciseIds]);
+
+  useEffect(() => {
+    const pendingOrder = pendingPersistOrderRef.current;
+    if (pendingOrder && arraysEqual(sortedExerciseIds, pendingOrder)) {
+      debugLog('exercises: upstream reorder acknowledged', {
+        order: sortedExerciseIds,
+      });
+      pendingPersistOrderRef.current = null;
+      return;
+    }
+
+    if (pendingOrder) {
+      return;
+    }
+
+    if (!arraysEqual(sortedExerciseIds, listExerciseIds)) {
+      debugLog('exercises: syncing local list from upstream', {
+        upstreamOrder: sortedExerciseIds,
+        localOrder: listExerciseIds,
+      });
+      setListExerciseIds(sortedExerciseIds);
+    }
+  }, [debugLog, listExerciseIds, sortedExerciseIds]);
+
+  useEffect(() => {
+    debugLog('sortedExercises changed', {
+      workoutId: workout.id,
+      order: formatExerciseOrder(sortedExercises),
+      displayOrder: listExerciseIds,
+      pendingPersistOrder: pendingPersistOrderRef.current,
+    });
+  }, [
+    debugLog,
+    formatExerciseOrder,
+    listExerciseIds,
+    sortedExercises,
+    workout.id,
+  ]);
 
   const renderHeader = useCallback(
     () => (
@@ -151,42 +333,69 @@ export function WorkoutView({
   );
 
   const renderItem = useCallback(
-    ({ item, getIndex, drag, isActive }: RenderItemParams<Exercise>) => {
-      const index = getIndex() ?? 0;
+    ({
+      item,
+      index,
+      onDragStart,
+      onDragEnd,
+      isActive,
+    }: DragListRenderItemInfo<string>) => {
+      const exercise = exerciseById.get(item);
+      if (!exercise) return null;
       return (
-        <ScaleDecorator activeScale={1.015}>
-          <View
-            style={[
-              index < sortedExercises.length - 1
-                ? styles.exerciseItem
-                : undefined,
-              isActive && styles.exerciseItemActive,
-            ]}
-          >
-            <ExerciseCard
-              tokens={tokens}
-              exercise={item}
-              weightUnit={weightUnit}
-              baseWeight={userWeights[item.id] ?? item.baseWeight}
-              adjustedWeight={getAdjustedWeight(item.id, currentWeek)}
-              onAdjustWeight={onAdjustWeight}
-              onSetWeight={onSetWeight}
-              onEditExercise={onEditExercise}
-              onDeleteExercise={onDeleteExercise}
-              onDragStart={drag}
-            />
-          </View>
-        </ScaleDecorator>
+        <View
+          style={[
+            index < listExerciseIds.length - 1
+              ? styles.exerciseItem
+              : undefined,
+            isActive && styles.exerciseItemActive,
+          ]}
+          onLayout={(event) => handleDebugLayout(exercise.id, index, event)}
+        >
+          <ExerciseCard
+            tokens={tokens}
+            exercise={exercise}
+            weightUnit={weightUnit}
+            baseWeight={userWeights[exercise.id] ?? exercise.baseWeight}
+            adjustedWeight={getAdjustedWeight(exercise.id, currentWeek)}
+            onAdjustWeight={onAdjustWeight}
+            onSetWeight={onSetWeight}
+            onEditExercise={onEditExercise}
+            onDeleteExercise={onDeleteExercise}
+            onDragStart={() => {
+              dragCandidateIndexRef.current = index;
+              openDragSession(
+                index,
+                listExerciseIds.map(
+                  (exerciseId, orderIndex) => `${orderIndex}:${exerciseId}`,
+                ),
+              );
+              onDragStart();
+            }}
+            onDragEnd={() => {
+              const session = dragSessionRef.current;
+              debugLog('exercises: onRelease', {
+                sessionId: session?.id ?? null,
+                index,
+              });
+              onDragEnd();
+            }}
+          />
+        </View>
       );
     },
     [
       currentWeek,
+      debugLog,
+      exerciseById,
       getAdjustedWeight,
+      handleDebugLayout,
+      listExerciseIds,
       onAdjustWeight,
       onDeleteExercise,
       onEditExercise,
       onSetWeight,
-      sortedExercises.length,
+      openDragSession,
       styles.exerciseItem,
       styles.exerciseItemActive,
       tokens,
@@ -197,23 +406,71 @@ export function WorkoutView({
 
   return (
     <View style={styles.container}>
-      <DraggableFlatList
-        data={sortedExercises}
+      <DragList
+        data={listExerciseIds}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
+        ListHeaderComponent={renderHeader()}
+        ListFooterComponent={renderFooter()}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         initialNumToRender={6}
         maxToRenderPerBatch={4}
         updateCellsBatchingPeriod={16}
         windowSize={7}
-        removeClippedSubviews
-        activationDistance={16}
-        onDragEnd={({ data }) =>
-          onReorderExercises(data.map((item) => item.id))
-        }
+        removeClippedSubviews={false}
+        onDragBegin={() => {
+          const session = dragSessionRef.current;
+          debugLog('exercises: drag begin (list callback)', {
+            sessionId: session?.id ?? null,
+            fromIndex: dragCandidateIndexRef.current,
+          });
+        }}
+        onHoverChanged={(index) => {
+          const session = dragSessionRef.current;
+          debugLog('exercises: placeholder index change', {
+            sessionId: session?.id ?? null,
+            index,
+          });
+        }}
+        onDragEnd={() => {
+          const session = dragSessionRef.current;
+          debugLog('exercises: drag end (list callback)', {
+            sessionId: session?.id ?? null,
+          });
+        }}
+        onReordered={(from, to) => {
+          const reordered = reorderIds(listExerciseIds, from, to);
+          closeDragSession({
+            from,
+            to,
+            finalOrder: reordered.map(
+              (exerciseId, index) => `${index}:${exerciseId}`,
+            ),
+          });
+          if (from === to) {
+            dragCandidateIndexRef.current = null;
+            return;
+          }
+
+          setListExerciseIds(reordered);
+          pendingPersistOrderRef.current = reordered;
+
+          debugLog('exercises: dispatching parent mutation', {
+            from,
+            to,
+            reordered: reordered.map(
+              (exerciseId, index) => `${index}:${exerciseId}`,
+            ),
+          });
+
+          pendingPersistCancelRef.current?.();
+          pendingPersistCancelRef.current = scheduleIdleTask(() => {
+            pendingPersistCancelRef.current = null;
+            onReorderExercises(reordered);
+          });
+          dragCandidateIndexRef.current = null;
+        }}
       />
     </View>
   );
@@ -350,7 +607,7 @@ function createStyles(
       marginBottom: tokens.spacing.md,
     },
     exerciseItemActive: {
-      transform: [{ scale: 1.005 }],
+      opacity: 0.98,
     },
     fab: {
       display: 'none',

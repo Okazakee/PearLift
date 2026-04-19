@@ -57,6 +57,7 @@ import {
 
 const ACTION_DEBOUNCE_MS = 96;
 const DAY_PERSIST_DEBOUNCE_MS = 220;
+const DRAG_DEBUG = __DEV__;
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -137,6 +138,16 @@ export function WorkoutScreen() {
 
   const closePrompt = useCallback(() => {
     setPromptConfig(null);
+  }, []);
+
+  const debugLog = useCallback((message: string, payload?: unknown) => {
+    if (!DRAG_DEBUG) return;
+    const timestamp = new Date().toISOString();
+    if (payload === undefined) {
+      console.log(`[WorkoutScreenDrag][${timestamp}] ${message}`);
+      return;
+    }
+    console.log(`[WorkoutScreenDrag][${timestamp}] ${message}`, payload);
   }, []);
 
   useEffect(() => {
@@ -559,13 +570,13 @@ export function WorkoutScreen() {
 
   const handleReorderExercises = useCallback(
     (orderedExerciseIds: string[]) => {
-      void runMutation({
+      void runImmediateMutation({
         type: 'reorderExercises',
         workoutId: currentWorkout.id,
         orderedExerciseIds,
       });
     },
-    [runMutation, currentWorkout.id],
+    [runImmediateMutation, currentWorkout.id],
   );
 
   const finishOnboarding = useCallback(async () => {
@@ -820,12 +831,28 @@ export function WorkoutScreen() {
           dayConfigs={dayConfigs}
           onClose={() => setProgramSettingsOpen(false)}
           onWeekConfigsChange={(nextWeekConfigs) => {
+            debugLog(
+              'received week config reorder/update from ProgramSettings',
+              {
+                order: nextWeekConfigs
+                  .map((week, index) => `${index}:id${week.id}`)
+                  .join(' | '),
+              },
+            );
             void runImmediateMutation({
               type: 'replaceWeekConfigs',
               weekConfigs: nextWeekConfigs,
             });
           }}
           onDayConfigsChange={(nextDayConfigs) => {
+            debugLog(
+              'received day config reorder/update from ProgramSettings',
+              {
+                order: nextDayConfigs
+                  .map((day, index) => `${index}:${day.id}`)
+                  .join(' | '),
+              },
+            );
             void runImmediateMutation({
               type: 'replaceDayConfigs',
               dayConfigs: nextDayConfigs,

@@ -8,6 +8,7 @@ import {
   Star,
 } from 'lucide-react-native';
 import type React from 'react';
+import { useEffect, useRef } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -23,6 +24,7 @@ import { dayIconMap } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WorkoutDay } from '../types';
+import { scheduleIdleTask } from '../utils/idle';
 
 interface NavigationProps {
   tokens: ThemeTokens;
@@ -43,6 +45,16 @@ export function Navigation({
   bottomPadding,
   minHeight,
 }: NavigationProps) {
+  const pendingPersistCancelRef = useRef<(() => void) | null>(null);
+
+  useEffect(
+    () => () => {
+      pendingPersistCancelRef.current?.();
+      pendingPersistCancelRef.current = null;
+    },
+    [],
+  );
+
   const window = useWindowDimensions();
   const styles = createStyles(tokens, bottomPadding, minHeight);
   const itemWidth = Math.max(
@@ -73,7 +85,14 @@ export function Navigation({
         style={styles.list}
         contentContainerStyle={styles.listContent}
         activationDistance={12}
-        onDragEnd={({ data }) => onReorderDayConfigs(data)}
+        onDragEnd={({ data, from, to }) => {
+          if (from === to) return;
+          pendingPersistCancelRef.current?.();
+          pendingPersistCancelRef.current = scheduleIdleTask(() => {
+            pendingPersistCancelRef.current = null;
+            onReorderDayConfigs(data);
+          });
+        }}
         renderItem={({ item, drag, isActive }: RenderItemParams<DayConfig>) => {
           const active = currentDay === item.id;
           const IconComponent = iconComponents[dayIconMap[item.icon]];

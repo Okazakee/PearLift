@@ -12,24 +12,25 @@ import {
 } from 'lucide-react-native';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  type LayoutChangeEvent,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, {
-  FadeInDown,
-  FadeOutUp,
-  LinearTransition,
-  ReduceMotion,
-} from 'react-native-reanimated';
-import { MOTION } from '../animation/motion';
 import { AnimatedPressable } from '../animation/primitives';
 import { dayIconMap, dayIconOptions } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WeekConfig } from '../types';
+import { scheduleIdleTask } from '../utils/idle';
 import { AnimatedScreenModal } from './AnimatedScreenModal';
 
 interface ProgramSettingsScreenProps {
@@ -57,6 +58,15 @@ type WeekDraft = WeekConfig & { uiKey: string };
 
 const MAX_WEEKS = 4;
 const MAX_DAYS = 7;
+const DRAG_DEBUG = __DEV__;
+const LAYOUT_DEBUG_WINDOW_MS = 1200;
+
+type DragDebugSession = {
+  id: number;
+  startedAt: number;
+  fromIndex: number;
+  startOrder: string[];
+};
 
 const dayIconComponents: Record<
   string,
@@ -89,10 +99,140 @@ export function ProgramSettingsScreen({
   const weekUiKeyCounterRef = useRef(0);
   const dayIdCounterRef = useRef(0);
   const wasOpenRef = useRef(false);
+  const weekDragSessionRef = useRef<DragDebugSession | null>(null);
+  const dayDragSessionRef = useRef<DragDebugSession | null>(null);
+  const dragSessionCounterRef = useRef(0);
+  const weekLayoutDebugUntilRef = useRef(0);
+  const dayLayoutDebugUntilRef = useRef(0);
+  const weekLayoutMapRef = useRef<Record<string, string>>({});
+  const dayLayoutMapRef = useRef<Record<string, string>>({});
+  const pendingWeekPersistCancelRef = useRef<(() => void) | null>(null);
+  const pendingDayPersistCancelRef = useRef<(() => void) | null>(null);
 
   const styles = useMemo(
     () => createStyles(tokens, topInset, bottomInset),
     [tokens, topInset, bottomInset],
+  );
+
+  const formatWeekOrder = useCallback(
+    (weeks: WeekDraft[]) =>
+      weeks
+        .map((week, index) => `${index}:${week.uiKey}->id${week.id}`)
+        .join(' | '),
+    [],
+  );
+
+  const formatDayOrder = useCallback(
+    (days: DayConfig[]) =>
+      days.map((day, index) => `${index}:${day.id}`).join(' | '),
+    [],
+  );
+
+  const debugLog = useCallback((message: string, payload?: unknown) => {
+    if (!DRAG_DEBUG) return;
+    const timestamp = new Date().toISOString();
+    if (payload === undefined) {
+      console.log(`[ProgramSettingsDrag][${timestamp}] ${message}`);
+      return;
+    }
+    console.log(`[ProgramSettingsDrag][${timestamp}] ${message}`, payload);
+  }, []);
+
+  const openDragSession = useCallback(
+    (
+      lane: 'weeks' | 'days',
+      fromIndex: number,
+      startOrder: string[],
+    ): DragDebugSession => {
+      const id = dragSessionCounterRef.current;
+      dragSessionCounterRef.current += 1;
+      const session = {
+        id,
+        startedAt: Date.now(),
+        fromIndex,
+        startOrder,
+      };
+      if (lane === 'weeks') {
+        weekDragSessionRef.current = session;
+        weekLayoutMapRef.current = {};
+      } else {
+        dayDragSessionRef.current = session;
+        dayLayoutMapRef.current = {};
+      }
+      debugLog(`${lane}: drag begin`, session);
+      return session;
+    },
+    [debugLog],
+  );
+
+  const closeDragSession = useCallback(
+    (
+      lane: 'weeks' | 'days',
+      meta: { from: number; to: number; finalOrder: string[] },
+    ) => {
+      const session =
+        lane === 'weeks'
+          ? weekDragSessionRef.current
+          : dayDragSessionRef.current;
+      const endedAt = Date.now();
+      debugLog(`${lane}: drag end`, {
+        sessionId: session?.id ?? null,
+        elapsedMs: session ? endedAt - session.startedAt : null,
+        from: meta.from,
+        to: meta.to,
+        startOrder: session?.startOrder ?? null,
+        finalOrder: meta.finalOrder,
+      });
+      if (lane === 'weeks') {
+        weekDragSessionRef.current = null;
+        weekLayoutDebugUntilRef.current = endedAt + LAYOUT_DEBUG_WINDOW_MS;
+      } else {
+        dayDragSessionRef.current = null;
+        dayLayoutDebugUntilRef.current = endedAt + LAYOUT_DEBUG_WINDOW_MS;
+      }
+    },
+    [debugLog],
+  );
+
+  const handleDebugLayout = useCallback(
+    (
+      lane: 'weeks' | 'days',
+      key: string,
+      index: number,
+      event: LayoutChangeEvent,
+    ) => {
+      if (!DRAG_DEBUG) return;
+      const now = Date.now();
+      const sessionActive =
+        lane === 'weeks'
+          ? Boolean(weekDragSessionRef.current)
+          : Boolean(dayDragSessionRef.current);
+      const debugWindowOpen =
+        lane === 'weeks'
+          ? now <= weekLayoutDebugUntilRef.current
+          : now <= dayLayoutDebugUntilRef.current;
+      if (!sessionActive && !debugWindowOpen) return;
+
+      const { x, y, width, height } = event.nativeEvent.layout;
+      const signature = `${Math.round(x)},${Math.round(y)},${Math.round(width)},${Math.round(height)}`;
+      const mapRef = lane === 'weeks' ? weekLayoutMapRef : dayLayoutMapRef;
+      if (mapRef.current[key] === signature) return;
+      mapRef.current[key] = signature;
+      debugLog(`${lane}: layout`, {
+        key,
+        index,
+        x: Math.round(x),
+        y: Math.round(y),
+        width: Math.round(width),
+        height: Math.round(height),
+        sessionId:
+          lane === 'weeks'
+            ? (weekDragSessionRef.current?.id ?? null)
+            : (dayDragSessionRef.current?.id ?? null),
+        inPostDropWindow: debugWindowOpen,
+      });
+    },
+    [debugLog],
   );
 
   const createWeekUiKey = useCallback(() => {
@@ -115,6 +255,10 @@ export function ProgramSettingsScreen({
   useEffect(() => {
     if (!open) {
       wasOpenRef.current = false;
+      pendingWeekPersistCancelRef.current?.();
+      pendingWeekPersistCancelRef.current = null;
+      pendingDayPersistCancelRef.current?.();
+      pendingDayPersistCancelRef.current = null;
       return;
     }
     if (wasOpenRef.current) return;
@@ -130,6 +274,46 @@ export function ProgramSettingsScreen({
     );
     setDraftDays(dayConfigs);
   }, [createWeekUiKey, dayConfigs, open, weekConfigs]);
+
+  useEffect(() => {
+    debugLog('props weekConfigs changed', {
+      open,
+      order: weekConfigs
+        .map((week, index) => `${index}:id${week.id}`)
+        .join(' | '),
+    });
+  }, [debugLog, open, weekConfigs]);
+
+  useEffect(() => {
+    debugLog('props dayConfigs changed', {
+      open,
+      order: formatDayOrder(dayConfigs),
+    });
+  }, [dayConfigs, debugLog, formatDayOrder, open]);
+
+  useEffect(() => {
+    debugLog('draftWeeks changed', {
+      open,
+      order: formatWeekOrder(draftWeeks),
+    });
+  }, [debugLog, draftWeeks, formatWeekOrder, open]);
+
+  useEffect(() => {
+    debugLog('draftDays changed', {
+      open,
+      order: formatDayOrder(draftDays),
+    });
+  }, [debugLog, draftDays, formatDayOrder, open]);
+
+  useEffect(
+    () => () => {
+      pendingWeekPersistCancelRef.current?.();
+      pendingWeekPersistCancelRef.current = null;
+      pendingDayPersistCancelRef.current?.();
+      pendingDayPersistCancelRef.current = null;
+    },
+    [],
+  );
 
   const updateWeek = useCallback(
     (uiKey: string, update: Partial<WeekConfig>) => {
@@ -288,10 +472,55 @@ export function ProgramSettingsScreen({
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.listContent}
                   activationDistance={12}
-                  onDragEnd={({ data }) => {
+                  onDragBegin={(fromIndex) => {
+                    openDragSession(
+                      'weeks',
+                      fromIndex,
+                      draftWeeks.map((week, index) => `${index}:${week.uiKey}`),
+                    );
+                  }}
+                  onPlaceholderIndexChange={(index) => {
+                    const session = weekDragSessionRef.current;
+                    debugLog('weeks: placeholder index change', {
+                      sessionId: session?.id ?? null,
+                      index,
+                    });
+                  }}
+                  onRelease={(index) => {
+                    const session = weekDragSessionRef.current;
+                    debugLog('weeks: onRelease', {
+                      sessionId: session?.id ?? null,
+                      index,
+                    });
+                  }}
+                  onDragEnd={({ data, from, to }) => {
+                    closeDragSession('weeks', {
+                      from,
+                      to,
+                      finalOrder: data.map(
+                        (week, index) => `${index}:${week.uiKey}`,
+                      ),
+                    });
+                    if (from === to) return;
                     const reordered = data.map((w, i) => ({ ...w, id: i + 1 }));
+                    debugLog('weeks: local reorder commit', {
+                      from,
+                      to,
+                      reordered: formatWeekOrder(reordered),
+                    });
                     setDraftWeeks(reordered);
-                    onWeekConfigsChange(toWeekConfigs(reordered));
+                    pendingWeekPersistCancelRef.current?.();
+                    pendingWeekPersistCancelRef.current = scheduleIdleTask(
+                      () => {
+                        pendingWeekPersistCancelRef.current = null;
+                        debugLog('weeks: dispatching parent mutation', {
+                          reordered: reordered.map(
+                            (week, index) => `${index}:id${week.id}`,
+                          ),
+                        });
+                        onWeekConfigsChange(toWeekConfigs(reordered));
+                      },
+                    );
                   }}
                   ListFooterComponent={
                     draftWeeks.length < MAX_WEEKS ? (
@@ -316,17 +545,15 @@ export function ProgramSettingsScreen({
                     const index = getIndex() ?? 0;
                     return (
                       <ScaleDecorator activeScale={1.015}>
-                        <Animated.View
-                          style={[styles.card, isActive && styles.cardActive]}
-                          layout={LinearTransition.reduceMotion(
-                            ReduceMotion.System,
-                          )}
-                          entering={FadeInDown.duration(MOTION.duration.fast)
-                            .delay(index * 40)
-                            .reduceMotion(ReduceMotion.System)}
-                          exiting={FadeOutUp.duration(
-                            MOTION.duration.fast,
-                          ).reduceMotion(ReduceMotion.System)}
+                        <View
+                          style={[
+                            styles.card,
+                            styles.cardSpacing,
+                            isActive && styles.cardActive,
+                          ]}
+                          onLayout={(event) =>
+                            handleDebugLayout('weeks', week.uiKey, index, event)
+                          }
                         >
                           <AnimatedPressable
                             style={styles.cardPressable}
@@ -401,7 +628,7 @@ export function ProgramSettingsScreen({
                               </View>
                             </View>
                           </AnimatedPressable>
-                        </Animated.View>
+                        </View>
                       </ScaleDecorator>
                     );
                   }}
@@ -416,9 +643,52 @@ export function ProgramSettingsScreen({
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.listContent}
                   activationDistance={12}
-                  onDragEnd={({ data }) => {
+                  onDragBegin={(fromIndex) => {
+                    openDragSession(
+                      'days',
+                      fromIndex,
+                      draftDays.map((day, index) => `${index}:${day.id}`),
+                    );
+                  }}
+                  onPlaceholderIndexChange={(index) => {
+                    const session = dayDragSessionRef.current;
+                    debugLog('days: placeholder index change', {
+                      sessionId: session?.id ?? null,
+                      index,
+                    });
+                  }}
+                  onRelease={(index) => {
+                    const session = dayDragSessionRef.current;
+                    debugLog('days: onRelease', {
+                      sessionId: session?.id ?? null,
+                      index,
+                    });
+                  }}
+                  onDragEnd={({ data, from, to }) => {
+                    closeDragSession('days', {
+                      from,
+                      to,
+                      finalOrder: data.map(
+                        (day, index) => `${index}:${day.id}`,
+                      ),
+                    });
+                    if (from === to) return;
+                    debugLog('days: local reorder commit', {
+                      from,
+                      to,
+                      reordered: formatDayOrder(data),
+                    });
                     setDraftDays(data);
-                    onDayConfigsChange(data);
+                    pendingDayPersistCancelRef.current?.();
+                    pendingDayPersistCancelRef.current = scheduleIdleTask(
+                      () => {
+                        pendingDayPersistCancelRef.current = null;
+                        debugLog('days: dispatching parent mutation', {
+                          reordered: formatDayOrder(data),
+                        });
+                        onDayConfigsChange(data);
+                      },
+                    );
                   }}
                   ListFooterComponent={
                     draftDays.length < MAX_DAYS ? (
@@ -443,17 +713,15 @@ export function ProgramSettingsScreen({
                     const index = getIndex() ?? 0;
                     return (
                       <ScaleDecorator activeScale={1.015}>
-                        <Animated.View
-                          style={[styles.card, isActive && styles.cardActive]}
-                          layout={LinearTransition.reduceMotion(
-                            ReduceMotion.System,
-                          )}
-                          entering={FadeInDown.duration(MOTION.duration.fast)
-                            .delay(index * 40)
-                            .reduceMotion(ReduceMotion.System)}
-                          exiting={FadeOutUp.duration(
-                            MOTION.duration.fast,
-                          ).reduceMotion(ReduceMotion.System)}
+                        <View
+                          style={[
+                            styles.card,
+                            styles.cardSpacing,
+                            isActive && styles.cardActive,
+                          ]}
+                          onLayout={(event) =>
+                            handleDebugLayout('days', day.id, index, event)
+                          }
                         >
                           <AnimatedPressable
                             style={styles.cardPressable}
@@ -530,7 +798,7 @@ export function ProgramSettingsScreen({
                               })}
                             </ScrollView>
                           </AnimatedPressable>
-                        </Animated.View>
+                        </View>
                       </ScaleDecorator>
                     );
                   }}
@@ -630,7 +898,6 @@ function createStyles(
       flex: 1,
     },
     listContent: {
-      gap: tokens.spacing.md,
       paddingTop: tokens.spacing.sm,
       paddingBottom: tokens.spacing.sm,
     },
@@ -641,6 +908,9 @@ function createStyles(
       backgroundColor: tokens.colors.surfaceContainerHigh,
       padding: tokens.spacing.md,
       gap: tokens.spacing.sm,
+    },
+    cardSpacing: {
+      marginBottom: tokens.spacing.md,
     },
     cardPressable: {
       gap: tokens.spacing.sm,
