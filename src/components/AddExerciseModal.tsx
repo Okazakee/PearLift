@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
@@ -12,7 +12,6 @@ import {
 
 import { muscleGroups } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
 import type { Exercise } from '../types';
 
 interface FormExercise {
@@ -107,11 +106,7 @@ export function AddExerciseModal({
               {mode === 'add' ? 'Add Exercise' : 'Edit Exercise'}
             </Text>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons
-                name="close"
-                size={18}
-                color={tokens.colors.textSecondary}
-              />
+              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
             </Pressable>
           </View>
 
@@ -183,6 +178,8 @@ export function AddExerciseModal({
                 setForm((prev) => ({ ...prev, notes: text }))
               }
               style={[styles.input, styles.textarea]}
+              placeholder="Optional notes..."
+              placeholderTextColor={tokens.colors.textMuted}
               multiline
             />
 
@@ -275,16 +272,13 @@ function createStyles(tokens: ThemeTokens) {
       gap: tokens.spacing.xs,
     },
     chip: {
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
       borderRadius: tokens.radius.pill,
-      backgroundColor: withAlpha(tokens.colors.secondary, 0.1),
-      paddingHorizontal: tokens.spacing.sm,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+      paddingHorizontal: tokens.spacing.sm + 4,
       paddingVertical: tokens.spacing.xs + 2,
     },
     chipActive: {
-      borderColor: withAlpha(tokens.colors.primary, 0.45),
-      backgroundColor: withAlpha(tokens.colors.primary, 0.16),
+      backgroundColor: tokens.colors.primary,
     },
     chipText: {
       color: tokens.colors.textSecondary,
@@ -292,7 +286,7 @@ function createStyles(tokens: ThemeTokens) {
       fontWeight: '700',
     },
     chipTextActive: {
-      color: tokens.colors.primary,
+      color: tokens.colors.onPrimary,
     },
     row: {
       flexDirection: 'row',

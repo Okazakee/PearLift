@@ -1,14 +1,12 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
 
 interface HeaderProps {
   tokens: ThemeTokens;
   topInset: number;
   onOpenLocalBackup: () => void;
   onOpenSettings: () => void;
-  onResetData: () => void;
 }
 
 export function Header({
@@ -16,7 +14,6 @@ export function Header({
   topInset,
   onOpenLocalBackup,
   onOpenSettings,
-  onResetData,
 }: HeaderProps) {
   const styles = createStyles(tokens, topInset);
 
@@ -24,7 +21,11 @@ export function Header({
     <View style={styles.container}>
       <View style={styles.brandRow}>
         <View style={styles.logoBadge}>
-          <MaterialIcons name="fitness-center" size={23} color="#FFFFFF" />
+          <Image
+            source={require('../../assets/pearlift_transparent.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
         </View>
         <View>
           <Text style={styles.title}>PearLift</Text>
@@ -33,24 +34,17 @@ export function Header({
 
       <View style={styles.actionsRow}>
         <Pressable onPress={onOpenLocalBackup} style={styles.iconButton}>
-          <MaterialIcons
-            name="save-alt"
-            size={20}
-            color={tokens.colors.textPrimary}
+          <Feather
+            name="download"
+            size={18}
+            color={tokens.colors.textSecondary}
           />
         </Pressable>
         <Pressable onPress={onOpenSettings} style={styles.iconButton}>
-          <MaterialIcons
+          <Feather
             name="settings"
-            size={20}
-            color={tokens.colors.textPrimary}
-          />
-        </Pressable>
-        <Pressable onPress={onResetData} style={styles.iconButtonDanger}>
-          <MaterialIcons
-            name="restart-alt"
-            size={20}
-            color={tokens.colors.error}
+            size={18}
+            color={tokens.colors.textSecondary}
           />
         </Pressable>
       </View>
@@ -66,7 +60,7 @@ function createStyles(tokens: ThemeTokens, topInset: number) {
       paddingBottom: tokens.spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: tokens.colors.borderSubtle,
-      backgroundColor: withAlpha(tokens.colors.background, 0.9),
+      backgroundColor: tokens.colors.background,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -74,15 +68,19 @@ function createStyles(tokens: ThemeTokens, topInset: number) {
     brandRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: tokens.spacing.md,
+      gap: tokens.spacing.sm,
     },
     logoBadge: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      backgroundColor: tokens.colors.primary,
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      backgroundColor: tokens.colors.primaryContainer,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    logoImage: {
+      width: 24,
+      height: 24,
     },
     title: {
       color: tokens.colors.textPrimary,
@@ -99,15 +97,7 @@ function createStyles(tokens: ThemeTokens, topInset: number) {
       width: 36,
       height: 36,
       borderRadius: 18,
-      backgroundColor: 'transparent',
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    iconButtonDanger: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: 'transparent',
+      backgroundColor: tokens.colors.bgSurface,
       alignItems: 'center',
       justifyContent: 'center',
     },

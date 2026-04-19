@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { dayIconMap } from '../data/workouts';
@@ -43,7 +43,7 @@ export function Navigation({
             }}
           >
             <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
-              <MaterialIcons
+              <Feather
                 name={iconName as never}
                 size={20}
                 color={
@@ -75,8 +75,8 @@ function createStyles(
       left: 0,
       right: 0,
       borderTopWidth: 1,
-      borderTopColor: tokens.colors.outlineVariant,
-      backgroundColor: tokens.colors.surfaceContainerHigh,
+      borderTopColor: tokens.colors.borderSubtle,
+      backgroundColor: tokens.colors.surface,
       paddingHorizontal: tokens.spacing.xs,
       paddingTop: tokens.spacing.xs,
       paddingBottom: bottomPadding,
@@ -100,16 +100,16 @@ function createStyles(
       overflow: 'hidden',
     },
     iconWrapActive: {
-      backgroundColor: withAlpha(tokens.colors.primary, 0.15),
+      backgroundColor: tokens.colors.primaryContainer,
     },
     label: {
       color: tokens.colors.textSecondary,
       fontSize: 10.5,
-      fontWeight: '500',
+      fontFamily: 'SpaceGrotesk_500Medium',
     },
     labelActive: {
       color: tokens.colors.primary,
-      fontWeight: '600',
+      fontFamily: 'SpaceGrotesk_600SemiBold',
     },
   });
 }

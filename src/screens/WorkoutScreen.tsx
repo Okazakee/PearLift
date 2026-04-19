@@ -4,7 +4,6 @@ import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Linking,
   StyleSheet,
   Text,
@@ -25,6 +24,10 @@ import {
 } from '../backup/localBackup';
 import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
 import { AddExerciseModal } from '../components/AddExerciseModal';
+import {
+  type AppPromptAction,
+  AppPromptModal,
+} from '../components/AppPromptModal';
 import { Header } from '../components/Header';
 import { ImportPreviewModal } from '../components/ImportPreviewModal';
 import { LocalBackupModal } from '../components/LocalBackupModal';
@@ -119,6 +122,26 @@ export function WorkoutScreen() {
   const [syncSetupBusy, setSyncSetupBusy] = useState(false);
   const [syncSetupError, setSyncSetupError] = useState<string | null>(null);
   const [timerExpanded, setTimerExpanded] = useState(false);
+  const [promptConfig, setPromptConfig] = useState<{
+    title: string;
+    message: string;
+    actions: AppPromptAction[];
+  } | null>(null);
+
+  const showPrompt = useCallback(
+    (title: string, message: string, actions?: AppPromptAction[]) => {
+      setPromptConfig({
+        title,
+        message,
+        actions: actions ?? [{ label: 'OK' }],
+      });
+    },
+    [],
+  );
+
+  const closePrompt = useCallback(() => {
+    setPromptConfig(null);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -133,13 +156,13 @@ export function WorkoutScreen() {
       })
       .catch((error) => {
         logError('identity/device-id failed', error);
-        Alert.alert('Setup unavailable', getErrorMessage(error));
+        showPrompt('Setup unavailable', getErrorMessage(error));
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [showPrompt]);
 
   const { snapshot, syncCoordinator, isReady, reload, applyMutation } =
     useWorkoutStore(repository);
@@ -288,14 +311,14 @@ export function WorkoutScreen() {
   };
 
   const handleDeleteExercise = (exercise: Exercise) => {
-    Alert.alert(
+    showPrompt(
       'Delete exercise',
       `Delete "${exercise.name}" from ${currentWorkout.name}?`,
       [
-        { text: 'Cancel', style: 'cancel' },
+        { label: 'Cancel', tone: 'cancel' },
         {
-          text: 'Delete',
-          style: 'destructive',
+          label: 'Delete',
+          tone: 'destructive',
           onPress: () => {
             void runMutation({
               type: 'deleteExercise',
@@ -309,14 +332,14 @@ export function WorkoutScreen() {
   };
 
   const handleResetData = () => {
-    Alert.alert(
+    showPrompt(
       'Reset all data?',
       'This will reset exercises, weights, weeks, days, timer settings, and sync state history.',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { label: 'Cancel', tone: 'cancel' },
         {
-          text: 'Reset',
-          style: 'destructive',
+          label: 'Reset',
+          tone: 'destructive',
           onPress: () => {
             void runMutation({ type: 'resetAllData' });
           },
@@ -343,14 +366,14 @@ export function WorkoutScreen() {
           UTI: 'public.json',
         });
       } else {
-        Alert.alert('Backup exported', `Saved to app storage:\n${file.uri}`);
+        showPrompt('Backup exported', `Saved to app storage:\n${file.uri}`);
       }
       setLocalBackupOpen(false);
     } catch (error) {
       logError('backup/export failed', error);
-      Alert.alert('Export failed', getErrorMessage(error));
+      showPrompt('Export failed', getErrorMessage(error));
     }
-  }, [snapshot]);
+  }, [showPrompt, snapshot]);
 
   const handleImportBackup = useCallback(async () => {
     if (!snapshot) {
@@ -376,9 +399,9 @@ export function WorkoutScreen() {
       setLocalBackupOpen(false);
     } catch (error) {
       logError('backup/import failed', error);
-      Alert.alert('Import failed', getErrorMessage(error));
+      showPrompt('Import failed', getErrorMessage(error));
     }
-  }, [snapshot]);
+  }, [showPrompt, snapshot]);
 
   const handleConfirmImport = useCallback(async () => {
     if (!pendingImport) return;
@@ -392,9 +415,9 @@ export function WorkoutScreen() {
       setPendingImport(null);
     } catch (error) {
       logError('backup/import confirm failed', error);
-      Alert.alert('Import failed', getErrorMessage(error));
+      showPrompt('Import failed', getErrorMessage(error));
     }
-  }, [pendingImport, runMutation]);
+  }, [pendingImport, runMutation, showPrompt]);
 
   const handleCancelImport = () => {
     setImportPreviewOpen(false);
@@ -410,18 +433,18 @@ export function WorkoutScreen() {
       const result = await syncCoordinator.backupNow();
       await reload();
       await refreshSyncStatus();
-      Alert.alert(
+      showPrompt(
         'Backup complete',
         `Snapshot ${result.snapshotVersion} saved.`,
       );
       setLocalBackupOpen(false);
     } catch (error) {
       logError('sync/backup failed', error);
-      Alert.alert('Backup failed', getErrorMessage(error));
+      showPrompt('Backup failed', getErrorMessage(error));
     } finally {
       setSyncBusy(false);
     }
-  }, [refreshSyncStatus, reload, syncCoordinator]);
+  }, [refreshSyncStatus, reload, showPrompt, syncCoordinator]);
 
   const _handleRestoreFromRelay = useCallback(async () => {
     if (!syncCoordinator) {
@@ -432,18 +455,18 @@ export function WorkoutScreen() {
       const restored = await syncCoordinator.restoreLatestIfEnabled();
       await reload();
       await refreshSyncStatus();
-      Alert.alert(
+      showPrompt(
         'Restore complete',
         `Restored snapshot ${restored.snapshotVersion}.`,
       );
       setLocalBackupOpen(false);
     } catch (error) {
       logError('sync/restore failed', error);
-      Alert.alert('Restore failed', getErrorMessage(error));
+      showPrompt('Restore failed', getErrorMessage(error));
     } finally {
       setSyncBusy(false);
     }
-  }, [refreshSyncStatus, reload, syncCoordinator]);
+  }, [refreshSyncStatus, reload, showPrompt, syncCoordinator]);
 
   const finishOnboarding = useCallback(async () => {
     if (syncCoordinator) {
@@ -522,12 +545,12 @@ export function WorkoutScreen() {
     try {
       const canOpen = await Linking.canOpenURL(repoUrl);
       if (!canOpen) {
-        Alert.alert('Cannot open link', repoUrl);
+        showPrompt('Cannot open link', repoUrl);
         return;
       }
       await Linking.openURL(repoUrl);
     } catch (error) {
-      Alert.alert('Cannot open link', getErrorMessage(error));
+      showPrompt('Cannot open link', getErrorMessage(error));
     }
   };
 
@@ -548,7 +571,11 @@ export function WorkoutScreen() {
         edges={['left', 'right']}
         style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
       >
-        <StatusBar style={effectiveThemeMode === 'dark' ? 'light' : 'dark'} />
+        <StatusBar
+          style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
+          backgroundColor={tokens.colors.bgBase}
+          translucent={false}
+        />
         <View style={styles.loadingShell}>
           <ActivityIndicator size="large" color={tokens.colors.primary} />
           <Text
@@ -567,7 +594,11 @@ export function WorkoutScreen() {
         edges={['left', 'right']}
         style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
       >
-        <StatusBar style={effectiveThemeMode === 'dark' ? 'light' : 'dark'} />
+        <StatusBar
+          style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
+          backgroundColor={tokens.colors.bgBase}
+          translucent={false}
+        />
         <OnboardingScreen
           tokens={tokens}
           topInset={insets.top}
@@ -583,14 +614,17 @@ export function WorkoutScreen() {
       edges={['left', 'right']}
       style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
     >
-      <StatusBar style={effectiveThemeMode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar
+        style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
+        backgroundColor={tokens.colors.bgBase}
+        translucent={false}
+      />
       <View style={styles.appShell}>
         <Header
           tokens={tokens}
           topInset={insets.top}
           onOpenLocalBackup={() => setLocalBackupOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
-          onResetData={handleResetData}
         />
 
         <WorkoutView
@@ -723,6 +757,7 @@ export function WorkoutScreen() {
           onThemePreferenceChange={(next) => {
             void runMutation({ type: 'setThemeMode', themeMode: next });
           }}
+          onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
           onOpenSyncSetup={handleOpenSyncSetup}
@@ -741,6 +776,15 @@ export function WorkoutScreen() {
           onSaveMode={handleSyncSetupSaveMode}
           onImportLocalBackup={handleSyncSetupImportLocal}
           onRestoreRelayBackup={handleSyncSetupRestoreRelay}
+        />
+
+        <AppPromptModal
+          open={Boolean(promptConfig)}
+          tokens={tokens}
+          title={promptConfig?.title ?? ''}
+          message={promptConfig?.message ?? ''}
+          actions={promptConfig?.actions ?? [{ label: 'OK' }]}
+          onClose={closePrompt}
         />
       </View>
     </SafeAreaView>

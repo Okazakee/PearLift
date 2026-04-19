@@ -1,4 +1,4 @@
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import {
   Modal,
   Pressable,
@@ -23,6 +23,7 @@ interface SettingsScreenProps {
   systemThemeMode: ThemeMode | null;
   onThemePreferenceChange: (next: ThemePreference) => void;
   onClose: () => void;
+  onResetData: () => void;
   onOpenGithub: () => void;
   onOpenSyncSetup: () => void;
 }
@@ -40,6 +41,7 @@ export function SettingsScreen({
   systemThemeMode,
   onThemePreferenceChange,
   onClose,
+  onResetData,
   onOpenGithub,
   onOpenSyncSetup,
 }: SettingsScreenProps) {
@@ -62,12 +64,12 @@ export function SettingsScreen({
   };
 
   return (
-    <Modal visible={open} animationType="slide" onRequestClose={onClose}>
+    <Modal visible={open} animationType="fade" onRequestClose={onClose}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={onClose}>
-            <MaterialIcons
-              name="arrow-back"
+            <Feather
+              name="chevron-left"
               size={22}
               color={tokens.colors.textPrimary}
             />
@@ -82,11 +84,7 @@ export function SettingsScreen({
         >
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <MaterialIcons
-                name="palette"
-                size={18}
-                color={tokens.colors.primary}
-              />
+              <Feather name="sun" size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>Appearance</Text>
             </View>
             <View style={styles.row}>
@@ -119,11 +117,7 @@ export function SettingsScreen({
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <MaterialIcons
-                name="translate"
-                size={18}
-                color={tokens.colors.primary}
-              />
+              <Feather name="globe" size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>Language</Text>
             </View>
             <View style={styles.row}>
@@ -141,11 +135,83 @@ export function SettingsScreen({
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
-              <MaterialIcons
-                name="info-outline"
-                size={18}
+              <Feather
+                name="refresh-cw"
+                size={16}
                 color={tokens.colors.primary}
               />
+              <Text style={styles.sectionTitle}>Sync & Backup</Text>
+            </View>
+            <Text style={styles.rowSubtitle}>
+              Review setup mode, relay backup preference, and recovery flow.
+            </Text>
+            <Pressable style={styles.githubButton} onPress={onOpenSyncSetup}>
+              <Feather
+                name="sliders"
+                size={18}
+                color={tokens.colors.onPrimary}
+              />
+              <Text style={styles.githubButtonText}>Open Sync Setup</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Feather
+                name="alert-triangle"
+                size={16}
+                color={tokens.colors.accentDanger}
+              />
+              <Text style={styles.sectionTitle}>Data</Text>
+            </View>
+            <Text style={styles.rowSubtitle}>
+              Permanently reset all workouts, settings, timer data, and sync
+              history.
+            </Text>
+            <Pressable style={styles.resetButton} onPress={onResetData}>
+              <Feather
+                name="refresh-cw"
+                size={18}
+                color={tokens.colors.accentDanger}
+              />
+              <Text style={styles.resetButtonText}>Reset All Data</Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Feather name="code" size={16} color={tokens.colors.primary} />
+              <Text style={styles.sectionTitle}>Developer</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Maintainer</Text>
+              <Text style={styles.infoValue}>Okazakee</Text>
+            </View>
+            <View style={styles.developerButtons}>
+              <Pressable
+                style={styles.developerPrimaryButton}
+                onPress={onOpenGithub}
+              >
+                <Feather
+                  name="github"
+                  size={18}
+                  color={tokens.colors.onPrimary}
+                />
+                <Text style={styles.githubButtonText}>Open Repo</Text>
+              </Pressable>
+              <Pressable
+                style={styles.developerSecondaryButton}
+                onPress={() => {}}
+              >
+                <Feather name="heart" size={18} color={tokens.colors.primary} />
+                <Text style={styles.donateButtonText}>Donate</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Feather name="info" size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>App Info</Text>
             </View>
             <View style={styles.infoRow}>
@@ -160,57 +226,10 @@ export function SettingsScreen({
               <Text style={styles.infoLabel}>Build</Text>
               <Text style={styles.infoValue}>{appBuild}</Text>
             </View>
-            <View style={styles.infoRow}>
+            <View style={styles.infoRowLast}>
               <Text style={styles.infoLabel}>Build type</Text>
               <Text style={styles.infoValue}>{buildType}</Text>
             </View>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <MaterialIcons
-                name="sync"
-                size={18}
-                color={tokens.colors.primary}
-              />
-              <Text style={styles.sectionTitle}>Sync & Backup</Text>
-            </View>
-            <Text style={styles.rowSubtitle}>
-              Review setup mode, relay backup preference, and recovery flow.
-            </Text>
-            <Pressable style={styles.githubButton} onPress={onOpenSyncSetup}>
-              <MaterialIcons
-                name="tune"
-                size={20}
-                color={tokens.colors.onPrimary}
-              />
-              <Text style={styles.githubButtonText}>Open Sync Setup</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <MaterialIcons
-                name="code"
-                size={18}
-                color={tokens.colors.primary}
-              />
-              <Text style={styles.sectionTitle}>Developer</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Maintainer</Text>
-              <Text style={styles.infoValue}>Okazakee</Text>
-            </View>
-            <Pressable style={styles.githubButton} onPress={onOpenGithub}>
-              <MaterialCommunityIcons
-                name="github"
-                size={20}
-                color={tokens.colors.onPrimary}
-              />
-              <Text style={styles.githubButtonText}>
-                Open GitHub Repository
-              </Text>
-            </Pressable>
           </View>
         </ScrollView>
       </View>
@@ -244,7 +263,7 @@ function createStyles(
       borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: withAlpha(tokens.colors.primary, 0.12),
+      backgroundColor: tokens.colors.bgSurface,
     },
     backButtonPlaceholder: {
       width: 36,
@@ -262,8 +281,6 @@ function createStyles(
     },
     section: {
       borderRadius: tokens.radius.lg,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
       backgroundColor: tokens.colors.surfaceContainer,
       padding: tokens.spacing.md,
       gap: tokens.spacing.sm,
@@ -271,7 +288,7 @@ function createStyles(
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: tokens.spacing.xs,
+      gap: tokens.spacing.sm + 2,
     },
     sectionTitle: {
       color: tokens.colors.textPrimary,
@@ -342,8 +359,17 @@ function createStyles(
       justifyContent: 'space-between',
       alignItems: 'center',
       paddingVertical: tokens.spacing.xs,
-      borderBottomWidth: 1,
-      borderBottomColor: withAlpha(tokens.colors.outlineVariant, 0.7),
+      borderBottomWidth: 0.5,
+      borderBottomColor:
+        tokens.mode === 'dark'
+          ? withAlpha('#d1d1d6', 0.28)
+          : withAlpha(tokens.colors.outline, 0.18),
+    },
+    infoRowLast: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: tokens.spacing.xs,
     },
     infoLabel: {
       color: tokens.colors.textSecondary,
@@ -353,7 +379,7 @@ function createStyles(
     infoValue: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.body,
-      fontWeight: '600',
+      fontFamily: 'SpaceGrotesk_600SemiBold',
     },
     githubButton: {
       marginTop: tokens.spacing.xs,
@@ -368,6 +394,59 @@ function createStyles(
     },
     githubButtonText: {
       color: tokens.colors.onPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
+    developerButtons: {
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.xs,
+      width: '100%',
+    },
+    developerPrimaryButton: {
+      flex: 1,
+      borderRadius: tokens.radius.md,
+      backgroundColor: tokens.colors.primary,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: tokens.spacing.xs,
+      paddingHorizontal: tokens.spacing.md,
+    },
+    developerSecondaryButton: {
+      flex: 1,
+      borderRadius: tokens.radius.md,
+      backgroundColor: tokens.colors.bgSurface,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: tokens.spacing.xs,
+      paddingHorizontal: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+    },
+    donateButtonText: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
+    resetButton: {
+      marginTop: tokens.spacing.xs,
+      borderRadius: tokens.radius.md,
+      backgroundColor: '#291a1c',
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: tokens.spacing.xs,
+      paddingHorizontal: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.accentDanger, 0.35),
+    },
+    resetButtonText: {
+      color: tokens.colors.accentDanger,
       fontSize: tokens.type.body,
       fontWeight: '700',
     },

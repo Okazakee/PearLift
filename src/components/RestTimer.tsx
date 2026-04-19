@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import * as Haptics from 'expo-haptics';
@@ -577,7 +577,7 @@ export function RestTimer({
       : 0;
   const progressClamped = Math.max(0, Math.min(100, progressPct));
   const ringSize = 140;
-  const ringStroke = 10;
+  const ringStroke = 7;
   const ringRadius = (ringSize - ringStroke) / 2;
   const ringCircumference = 2 * Math.PI * ringRadius;
   const ringDashOffset = ringCircumference * (1 - progressClamped / 100);
@@ -644,19 +644,14 @@ export function RestTimer({
     }
   };
 
-  const handleSliderChange = (value: number) => {
-    onDurationChange(value);
-    if (mode !== 'running') {
-      setRemainingSec(value);
-      setStartedDurationSec(value);
-      if (mode === 'complete') setMode('idle');
-    }
-  };
-
   if (!expanded) {
     return (
       <Pressable style={styles.fab} onPress={() => setExpanded(true)}>
-        <MaterialIcons name="timer" size={24} color={tokens.colors.onPrimary} />
+        <MaterialCommunityIcons
+          name="timer-outline"
+          size={24}
+          color={tokens.colors.onPrimary}
+        />
       </Pressable>
     );
   }
@@ -666,10 +661,10 @@ export function RestTimer({
       <View style={styles.panel}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <MaterialIcons
-              name="timer"
+            <MaterialCommunityIcons
+              name="timer-outline"
               size={18}
-              color={tokens.colors.textPrimary}
+              color={tokens.colors.primary}
             />
             <Text style={styles.headerText}>Rest Timer</Text>
           </View>
@@ -677,11 +672,7 @@ export function RestTimer({
             style={styles.closeButton}
             onPress={() => setExpanded(false)}
           >
-            <MaterialIcons
-              name="close"
-              size={18}
-              color={tokens.colors.textSecondary}
-            />
+            <Feather name="x" size={16} color={tokens.colors.textSecondary} />
           </Pressable>
         </View>
 
@@ -733,9 +724,9 @@ export function RestTimer({
 
         <View style={styles.controlRow}>
           <Pressable style={styles.controlButton} onPress={handleReset}>
-            <MaterialIcons
-              name="replay"
-              size={22}
+            <Feather
+              name="refresh-cw"
+              size={20}
               color={tokens.colors.textPrimary}
             />
           </Pressable>
@@ -743,15 +734,20 @@ export function RestTimer({
             style={[styles.playButton, isRunning && styles.playButtonRunning]}
             onPress={handleToggleRunning}
           >
-            <MaterialIcons
-              name={isRunning ? 'pause' : 'play-arrow'}
-              size={28}
-              color={
-                isRunning
-                  ? tokens.colors.accentWarning
-                  : tokens.colors.onPrimary
-              }
-            />
+            {isRunning ? (
+              <Feather
+                name="pause"
+                size={24}
+                color={tokens.colors.accentWarning}
+              />
+            ) : (
+              <MaterialCommunityIcons
+                name="play"
+                size={28}
+                color={tokens.colors.onPrimary}
+                style={styles.playIcon}
+              />
+            )}
           </Pressable>
           <Pressable
             style={[
@@ -760,9 +756,9 @@ export function RestTimer({
             ]}
             onPress={() => setShowSettings(!showSettings)}
           >
-            <MaterialIcons
-              name="tune"
-              size={22}
+            <Feather
+              name="sliders"
+              size={20}
               color={
                 showSettings ? tokens.colors.primary : tokens.colors.textPrimary
               }
@@ -772,63 +768,42 @@ export function RestTimer({
 
         {showSettings && (
           <View style={styles.settingsSection}>
-            <Text style={styles.settingsLabel}>Adjust rest duration</Text>
-            <View style={styles.sliderRow}>
-              <Pressable
-                style={styles.adjustButton}
-                onPress={() => handleAdjustDuration(-STEP)}
-                disabled={duration <= MIN_DURATION}
-              >
-                <MaterialIcons
-                  name="remove"
-                  size={18}
-                  color={tokens.colors.textPrimary}
-                />
-              </Pressable>
-              <View style={styles.sliderContainer}>
-                <View style={styles.sliderTrack}>
-                  <View
-                    style={[
-                      styles.sliderFill,
-                      {
-                        width: `${
-                          ((duration - MIN_DURATION) /
-                            (MAX_DURATION - MIN_DURATION)) *
-                          100
-                        }%`,
-                      },
-                    ]}
-                  />
-                </View>
+            <View style={styles.durationRow}>
+              <Text style={styles.settingsLabel}>Duration</Text>
+              <View style={styles.durationControls}>
                 <Pressable
-                  style={styles.sliderTouch}
-                  onPress={(e) => {
-                    const { locationX } = e.nativeEvent;
-                    const totalWidth = 200;
-                    const ratio = locationX / totalWidth;
-                    const newDuration = Math.round(
-                      MIN_DURATION + ratio * (MAX_DURATION - MIN_DURATION),
-                    );
-                    const snapped = Math.round(newDuration / STEP) * STEP;
-                    handleSliderChange(
-                      Math.max(MIN_DURATION, Math.min(MAX_DURATION, snapped)),
-                    );
-                  }}
-                />
+                  style={[
+                    styles.adjustButton,
+                    duration <= MIN_DURATION && styles.adjustButtonDisabled,
+                  ]}
+                  onPress={() => handleAdjustDuration(-STEP)}
+                  disabled={duration <= MIN_DURATION}
+                >
+                  <Feather
+                    name="minus"
+                    size={16}
+                    color={tokens.colors.textPrimary}
+                  />
+                </Pressable>
+                <Text style={styles.durationValue}>
+                  {formatSeconds(duration)}
+                </Text>
+                <Pressable
+                  style={[
+                    styles.adjustButton,
+                    duration >= MAX_DURATION && styles.adjustButtonDisabled,
+                  ]}
+                  onPress={() => handleAdjustDuration(STEP)}
+                  disabled={duration >= MAX_DURATION}
+                >
+                  <Feather
+                    name="plus"
+                    size={16}
+                    color={tokens.colors.textPrimary}
+                  />
+                </Pressable>
               </View>
-              <Pressable
-                style={styles.adjustButton}
-                onPress={() => handleAdjustDuration(STEP)}
-                disabled={duration >= MAX_DURATION}
-              >
-                <MaterialIcons
-                  name="add"
-                  size={18}
-                  color={tokens.colors.textPrimary}
-                />
-              </Pressable>
             </View>
-            <Text style={styles.durationText}>{formatSeconds(duration)}</Text>
           </View>
         )}
       </View>
@@ -869,8 +844,8 @@ function createStyles(
       maxWidth: 340,
       borderRadius: tokens.radius.xl,
       borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-      backgroundColor: withAlpha(tokens.colors.surfaceContainer, 0.98),
+      borderColor: tokens.colors.borderSubtle,
+      backgroundColor: tokens.colors.surfaceContainer,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.md,
     },
@@ -882,7 +857,7 @@ function createStyles(
     headerLeft: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: tokens.spacing.xs,
+      gap: tokens.spacing.sm + 2,
     },
     headerText: {
       color: tokens.colors.textPrimary,
@@ -927,7 +902,7 @@ function createStyles(
     timerText: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.metric,
-      fontWeight: '800',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     timerTextComplete: {
       color: tokens.colors.success,
@@ -965,6 +940,9 @@ function createStyles(
     playButtonRunning: {
       backgroundColor: withAlpha(tokens.colors.accentWarning, 0.2),
     },
+    playIcon: {
+      marginLeft: 1,
+    },
     settingsSection: {
       paddingTop: tokens.spacing.sm,
       borderTopWidth: 1,
@@ -976,10 +954,16 @@ function createStyles(
       fontSize: tokens.type.label,
       fontWeight: '600',
     },
-    sliderRow: {
+    durationRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: tokens.spacing.md,
+      justifyContent: 'space-between',
+      gap: tokens.spacing.sm,
+    },
+    durationControls: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.sm,
     },
     adjustButton: {
       width: 36,
@@ -989,30 +973,14 @@ function createStyles(
       alignItems: 'center',
       justifyContent: 'center',
     },
-    sliderContainer: {
-      flex: 1,
-      height: 36,
-      justifyContent: 'center',
-      position: 'relative',
+    adjustButtonDisabled: {
+      opacity: 0.45,
     },
-    sliderTrack: {
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.15),
-      overflow: 'hidden',
-    },
-    sliderFill: {
-      height: '100%',
-      backgroundColor: tokens.colors.primary,
-      borderRadius: 3,
-    },
-    sliderTouch: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    durationText: {
-      color: tokens.colors.textSecondary,
+    durationValue: {
+      color: tokens.colors.textPrimary,
       fontSize: tokens.type.body,
-      fontWeight: '600',
+      fontFamily: 'SpaceGrotesk_700Bold',
+      minWidth: 48,
       textAlign: 'center',
     },
   });

@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { SyncMode } from '../storage/types';
@@ -44,11 +44,7 @@ export function LocalBackupModal({
           <View style={styles.header}>
             <Text style={styles.title}>Backup & Sync</Text>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons
-                name="close"
-                size={18}
-                color={tokens.colors.textSecondary}
-              />
+              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
             </Pressable>
           </View>
 
@@ -59,8 +55,8 @@ export function LocalBackupModal({
                 Sync directly with another device using QR code pairing.
               </Text>
               <View style={styles.statusBanner}>
-                <MaterialIcons
-                  name="devices"
+                <Feather
+                  name="monitor"
                   size={18}
                   color={tokens.colors.primary}
                 />
@@ -72,8 +68,8 @@ export function LocalBackupModal({
                   onPress={onOpenSyncSetup}
                   disabled={busy}
                 >
-                  <MaterialIcons
-                    name="qr-code"
+                  <Feather
+                    name="link"
                     size={18}
                     color={tokens.colors.onPrimary}
                   />
@@ -92,8 +88,8 @@ export function LocalBackupModal({
                 onPress={onOpenSyncSetup}
                 disabled={busy}
               >
-                <MaterialIcons
-                  name="tune"
+                <Feather
+                  name="sliders"
                   size={18}
                   color={tokens.colors.primary}
                 />
@@ -114,7 +110,7 @@ export function LocalBackupModal({
                 onPress={onExport}
                 disabled={busy}
               >
-                <MaterialIcons
+                <Feather
                   name="download"
                   size={18}
                   color={tokens.colors.onPrimary}
@@ -126,7 +122,7 @@ export function LocalBackupModal({
                 onPress={onImport}
                 disabled={busy}
               >
-                <MaterialIcons
+                <Feather
                   name="upload"
                   size={18}
                   color={tokens.colors.onPrimary}

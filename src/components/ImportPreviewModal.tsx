@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import {
   Modal,
@@ -41,19 +41,11 @@ export function ImportPreviewModal({
         <View style={styles.card}>
           <View style={styles.header}>
             <View style={styles.titleRow}>
-              <MaterialIcons
-                name="preview"
-                size={20}
-                color={tokens.colors.primary}
-              />
+              <Feather name="eye" size={18} color={tokens.colors.primary} />
               <Text style={styles.title}>Import Preview</Text>
             </View>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons
-                name="close"
-                size={18}
-                color={tokens.colors.textSecondary}
-              />
+              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
             </Pressable>
           </View>
 

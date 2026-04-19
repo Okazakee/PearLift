@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
@@ -63,9 +63,9 @@ export function ExerciseCard({
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
         <Pressable style={styles.iconButton} onPress={onEdit}>
-          <MaterialIcons
-            name="edit"
-            size={18}
+          <Feather
+            name="edit-2"
+            size={16}
             color={tokens.colors.textSecondary}
           />
         </Pressable>
@@ -89,7 +89,7 @@ export function ExerciseCard({
           style={[styles.stepButton, styles.stepButtonMinus]}
           onPress={() => handleWeightAdjust(-1)}
         >
-          <MaterialIcons name="remove" size={22} color={tokens.colors.error} />
+          <Feather name="minus" size={18} color={tokens.colors.error} />
         </Pressable>
 
         {editingWeight ? (
@@ -114,9 +114,9 @@ export function ExerciseCard({
               setEditingWeight(true);
             }}
           >
-            <MaterialIcons
-              name="fitness-center"
-              size={30}
+            <MaterialCommunityIcons
+              name="dumbbell"
+              size={24}
               color={tokens.colors.primary}
             />
             <Text style={styles.weightValue}>{adjustedWeight.toFixed(1)}</Text>
@@ -128,7 +128,7 @@ export function ExerciseCard({
           style={[styles.stepButton, styles.stepButtonPlus]}
           onPress={() => handleWeightAdjust(1)}
         >
-          <MaterialIcons name="add" size={22} color={tokens.colors.success} />
+          <Feather name="plus" size={18} color={tokens.colors.success} />
         </Pressable>
       </View>
 
@@ -138,9 +138,9 @@ export function ExerciseCard({
           disabled={isFirst}
           onPress={onMoveUp}
         >
-          <MaterialIcons
-            name="keyboard-arrow-up"
-            size={18}
+          <Feather
+            name="chevron-up"
+            size={16}
             color={isFirst ? tokens.colors.textMuted : tokens.colors.primary}
           />
         </Pressable>
@@ -149,9 +149,9 @@ export function ExerciseCard({
           disabled={isLast}
           onPress={onMoveDown}
         >
-          <MaterialIcons
-            name="keyboard-arrow-down"
-            size={18}
+          <Feather
+            name="chevron-down"
+            size={16}
             color={isLast ? tokens.colors.textMuted : tokens.colors.primary}
           />
         </Pressable>
@@ -159,9 +159,9 @@ export function ExerciseCard({
           style={[styles.actionButton, styles.deleteAction]}
           onPress={onDelete}
         >
-          <MaterialIcons
-            name="delete-outline"
-            size={18}
+          <MaterialCommunityIcons
+            name="trash-can-outline"
+            size={17}
             color={tokens.colors.error}
           />
         </Pressable>
@@ -173,9 +173,7 @@ export function ExerciseCard({
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({
     card: {
-      borderRadius: tokens.radius.xl,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
+      borderRadius: tokens.radius.lg,
       backgroundColor: tokens.colors.surfaceContainer,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.sm,
@@ -186,7 +184,7 @@ function createStyles(tokens: ThemeTokens) {
       alignItems: 'center',
     },
     badge: {
-      paddingHorizontal: tokens.spacing.sm + 2,
+      paddingHorizontal: tokens.spacing.sm + 6,
       paddingVertical: tokens.spacing.xs + 1,
       borderRadius: 14,
       backgroundColor: withAlpha(tokens.colors.primary, 0.12),
@@ -210,10 +208,10 @@ function createStyles(tokens: ThemeTokens) {
       alignItems: 'center',
     },
     repChip: {
-      paddingHorizontal: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.sm + 6,
       paddingVertical: tokens.spacing.xs + 1,
       borderRadius: 14,
-      backgroundColor: withAlpha(tokens.colors.secondary, 0.14),
+      backgroundColor: tokens.colors.bgElevated,
     },
     repChipText: {
       color: tokens.colors.secondary,
@@ -238,15 +236,15 @@ function createStyles(tokens: ThemeTokens) {
       paddingHorizontal: tokens.spacing.md,
       paddingVertical: tokens.spacing.md,
       borderRadius: 16,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.06),
+      backgroundColor: tokens.colors.bgElevated,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
     weightValue: {
-      color: tokens.colors.primary,
+      color: '#ffffff',
       fontSize: tokens.type.metric,
-      fontWeight: '800',
+      fontFamily: 'SpaceGrotesk_700Bold',
       minWidth: 74,
       textAlign: 'center',
     },
@@ -258,7 +256,9 @@ function createStyles(tokens: ThemeTokens) {
     weightUnit: {
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.body,
-      fontWeight: '500',
+      fontFamily: 'SpaceGrotesk_500Medium',
+      alignSelf: 'flex-end',
+      marginBottom: 6,
     },
     inlineEdit: {
       flexDirection: 'row',
@@ -266,9 +266,9 @@ function createStyles(tokens: ThemeTokens) {
       gap: tokens.spacing.xs,
     },
     weightInput: {
-      color: tokens.colors.primary,
+      color: '#ffffff',
       fontSize: tokens.type.metric,
-      fontWeight: '800',
+      fontFamily: 'SpaceGrotesk_700Bold',
       minWidth: 82,
       textAlign: 'center',
       paddingVertical: 0,
@@ -300,7 +300,7 @@ function createStyles(tokens: ThemeTokens) {
       justifyContent: 'center',
     },
     deleteAction: {
-      backgroundColor: withAlpha(tokens.colors.error, 0.12),
+      backgroundColor: '#291a1c',
     },
   });
 }

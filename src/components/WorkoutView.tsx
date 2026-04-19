@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -47,6 +47,8 @@ export function WorkoutView({
 }: WorkoutViewProps) {
   const styles = createStyles(tokens, contentBottomPadding, fabBottom);
   const week = weekConfigs.find((w) => w.id === currentWeek) ?? weekConfigs[0];
+  const dayNumberMatch = workout.name.match(/\d+/);
+  const dayLabel = dayNumberMatch ? `Day ${dayNumberMatch[0]}` : workout.name;
   const sortedExercises = [...workout.exercises].sort(
     (a, b) => a.position - b.position,
   );
@@ -60,8 +62,11 @@ export function WorkoutView({
         <View style={styles.summaryCard}>
           <View style={styles.decorCircleA} />
           <View style={styles.decorCircleB} />
+          <Text style={styles.metaText}>
+            Week {currentWeek} - {dayLabel}
+          </Text>
           <Text style={styles.workoutName}>
-            {week?.name ?? `Week ${currentWeek}`} - {workout.name}
+            {week?.name ?? `Week ${currentWeek}`}
           </Text>
           <View style={styles.badges}>
             <View style={styles.rirBadge}>
@@ -105,9 +110,9 @@ export function WorkoutView({
             style={styles.settingsButton}
             onPress={onOpenProgramSettings}
           >
-            <MaterialIcons
-              name="settings"
-              size={18}
+            <Feather
+              name="sliders"
+              size={16}
               color={tokens.colors.textSecondary}
             />
           </Pressable>
@@ -133,7 +138,7 @@ export function WorkoutView({
         </View>
 
         <Pressable style={styles.addButton} onPress={onOpenAddExercise}>
-          <MaterialIcons name="add" size={20} color={tokens.colors.primary} />
+          <Feather name="plus" size={16} color={tokens.colors.primary} />
           <Text style={styles.addButtonText}>Add Exercise</Text>
         </Pressable>
       </ScrollView>
@@ -186,15 +191,23 @@ function createStyles(
     },
     workoutName: {
       color: tokens.colors.primary,
-      fontWeight: '800',
+      fontFamily: 'SpaceGrotesk_700Bold',
       fontSize: tokens.type.subtitle,
       letterSpacing: 0.4,
       textAlign: 'center',
     },
+    metaText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label - 1,
+      fontFamily: 'SpaceGrotesk_600SemiBold',
+      letterSpacing: 0.3,
+      textAlign: 'center',
+    },
     settingsButton: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: tokens.colors.bgSurface,
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -206,41 +219,44 @@ function createStyles(
     rirBadge: {
       borderRadius: tokens.radius.pill,
       backgroundColor: withAlpha(tokens.colors.accentWarning, 0.16),
-      paddingHorizontal: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.sm + 4,
       paddingVertical: tokens.spacing.xs + 1,
     },
     rirBadgeLabel: {
       color: tokens.colors.accentWarning,
-      fontWeight: '500',
+      fontFamily: 'SpaceGrotesk_500Medium',
       fontSize: 12,
       letterSpacing: 0.3,
     },
     loadBadge: {
       borderRadius: tokens.radius.pill,
       backgroundColor: withAlpha(tokens.colors.success, 0.16),
-      paddingHorizontal: tokens.spacing.sm,
+      paddingHorizontal: tokens.spacing.sm + 4,
       paddingVertical: tokens.spacing.xs + 1,
     },
     loadBadgeLabel: {
       color: tokens.colors.success,
-      fontWeight: '600',
+      fontFamily: 'SpaceGrotesk_600SemiBold',
       fontSize: 12,
       letterSpacing: 0.3,
     },
     weekTabs: {
       flexDirection: 'row',
-      justifyContent: 'center',
+      justifyContent: 'space-between',
       alignItems: 'center',
-      gap: tokens.spacing.xs,
+      gap: tokens.spacing.md,
     },
     weekTabsInner: {
       flexDirection: 'row',
       gap: tokens.spacing.xs,
+      flex: 1,
+      justifyContent: 'flex-start',
     },
     weekTab: {
       borderRadius: tokens.radius.pill,
-      width: 36,
       height: 28,
+      minWidth: 38,
+      paddingHorizontal: tokens.spacing.sm,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: withAlpha(tokens.colors.primary, 0.1),
@@ -251,7 +267,7 @@ function createStyles(
     weekTabText: {
       color: tokens.colors.primary,
       fontSize: 12,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     weekTabTextActive: {
       color: tokens.colors.onPrimary,
@@ -270,8 +286,9 @@ function createStyles(
       paddingVertical: tokens.spacing.md,
       borderRadius: tokens.radius.md,
       borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-      backgroundColor: tokens.colors.surfaceContainerHigh,
+      borderStyle: 'dashed',
+      borderColor: tokens.colors.borderStrong,
+      backgroundColor: 'transparent',
     },
     addButtonText: {
       color: tokens.colors.primary,

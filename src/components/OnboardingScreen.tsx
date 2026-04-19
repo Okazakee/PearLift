@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -16,19 +16,19 @@ const PAGE_COUNT = 3;
 
 const PAGE_CONTENT = [
   {
-    icon: 'fitness-center' as const,
+    icon: 'activity' as const,
     title: 'Welcome to PearLift',
     description:
       'Track your workouts with a simple interface. Log sets, reps, and weights - no complexity, just progress.',
   },
   {
-    icon: 'devices' as const,
+    icon: 'monitor' as const,
     title: 'Device-to-Device Sync',
     description:
       'Sync your workouts directly between devices. Set it up anytime in Settings. Works locally without cloud services.',
   },
   {
-    icon: 'notifications-active' as const,
+    icon: 'bell' as const,
     title: 'Stay on Track',
     description:
       'Enable notifications so you never forget a rest timer. We will remind you when its time to start your next set.',
@@ -91,9 +91,9 @@ export function OnboardingScreen({
 
       <View style={styles.content}>
         <View style={styles.iconContainer}>
-          <MaterialIcons
+          <Feather
             name={PAGE_CONTENT[page].icon}
-            size={64}
+            size={56}
             color={tokens.colors.primary}
           />
         </View>

@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import {
   Modal,
@@ -59,8 +59,8 @@ export function SyncSetupScreen({
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable style={styles.backButton} onPress={onClose}>
-            <MaterialIcons
-              name="arrow-back"
+            <Feather
+              name="chevron-left"
               size={22}
               color={tokens.colors.textPrimary}
             />
@@ -87,8 +87,8 @@ export function SyncSetupScreen({
               ]}
               onPress={() => setSelectedMode('local-only')}
             >
-              <MaterialIcons
-                name="phone-android"
+              <Feather
+                name="smartphone"
                 size={18}
                 color={tokens.colors.textPrimary}
               />
@@ -107,8 +107,8 @@ export function SyncSetupScreen({
               ]}
               onPress={() => setSelectedMode('d2d-sync')}
             >
-              <MaterialIcons
-                name="devices"
+              <Feather
+                name="monitor"
                 size={18}
                 color={tokens.colors.textPrimary}
               />
@@ -146,11 +146,7 @@ export function SyncSetupScreen({
               }}
               disabled={busy}
             >
-              <MaterialIcons
-                name="upload-file"
-                size={18}
-                color={tokens.colors.primary}
-              />
+              <Feather name="upload" size={18} color={tokens.colors.primary} />
               <Text style={styles.secondaryButtonText}>
                 Import local backup
               </Text>
@@ -166,11 +162,7 @@ export function SyncSetupScreen({
               }}
               disabled={!d2dEnabled || busy}
             >
-              <MaterialIcons
-                name="cloud-download"
-                size={18}
-                color={tokens.colors.primary}
-              />
+              <Feather name="link" size={18} color={tokens.colors.primary} />
               <Text style={styles.secondaryButtonText}>Pair Device</Text>
             </Pressable>
 

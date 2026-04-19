@@ -1,4 +1,4 @@
-import { MaterialIcons } from '@expo/vector-icons';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import {
   Modal,
@@ -114,11 +114,7 @@ export function ProgramSettingsModal({
           <View style={styles.header}>
             <Text style={styles.title}>Program Settings</Text>
             <Pressable style={styles.closeButton} onPress={onClose}>
-              <MaterialIcons
-                name="close"
-                size={18}
-                color={tokens.colors.textSecondary}
-              />
+              <Feather name="x" size={18} color={tokens.colors.textSecondary} />
             </Pressable>
           </View>
 
@@ -168,13 +164,17 @@ export function ProgramSettingsModal({
                     <Text style={styles.cardTitle}>Week {index + 1}</Text>
                     <View style={styles.rowActions}>
                       <Pressable
-                        style={styles.rowButton}
+                        style={[
+                          styles.rowButton,
+                          styles.rowButtonArrow,
+                          index === 0 && styles.rowButtonDisabled,
+                        ]}
                         disabled={index === 0}
                         onPress={() => moveWeek(index, index - 1)}
                       >
-                        <MaterialIcons
-                          name="arrow-upward"
-                          size={16}
+                        <Feather
+                          name="chevron-up"
+                          size={14}
                           color={
                             index === 0
                               ? tokens.colors.textMuted
@@ -183,13 +183,18 @@ export function ProgramSettingsModal({
                         />
                       </Pressable>
                       <Pressable
-                        style={styles.rowButton}
+                        style={[
+                          styles.rowButton,
+                          styles.rowButtonArrow,
+                          index === weekConfigs.length - 1 &&
+                            styles.rowButtonDisabled,
+                        ]}
                         disabled={index === weekConfigs.length - 1}
                         onPress={() => moveWeek(index, index + 1)}
                       >
-                        <MaterialIcons
-                          name="arrow-downward"
-                          size={16}
+                        <Feather
+                          name="chevron-down"
+                          size={14}
                           color={
                             index === weekConfigs.length - 1
                               ? tokens.colors.textMuted
@@ -198,12 +203,16 @@ export function ProgramSettingsModal({
                         />
                       </Pressable>
                       <Pressable
-                        style={styles.rowButton}
+                        style={[
+                          styles.rowButton,
+                          styles.rowButtonDelete,
+                          weekConfigs.length <= 1 && styles.rowButtonDisabled,
+                        ]}
                         disabled={weekConfigs.length <= 1}
                         onPress={() => removeWeek(index)}
                       >
-                        <MaterialIcons
-                          name="delete-outline"
+                        <MaterialCommunityIcons
+                          name="trash-can-outline"
                           size={16}
                           color={tokens.colors.accentDanger}
                         />
@@ -211,34 +220,45 @@ export function ProgramSettingsModal({
                     </View>
                   </View>
 
-                  <TextInput
-                    value={week.name}
-                    onChangeText={(text) => updateWeek(index, { name: text })}
-                    style={styles.input}
-                    placeholder="Week name"
-                    placeholderTextColor={tokens.colors.textMuted}
-                  />
-                  <View style={styles.inputRow}>
-                    <TextInput
-                      value={String(week.loadModifier)}
-                      onChangeText={(text) =>
-                        updateWeek(index, { loadModifier: Number(text) || 1 })
-                      }
-                      style={styles.input}
-                      keyboardType="decimal-pad"
-                      placeholder="Load modifier"
-                      placeholderTextColor={tokens.colors.textMuted}
-                    />
-                    <TextInput
-                      value={String(week.rir)}
-                      onChangeText={(text) =>
-                        updateWeek(index, { rir: Number(text) || 0 })
-                      }
-                      style={styles.input}
-                      keyboardType="number-pad"
-                      placeholder="RIR"
-                      placeholderTextColor={tokens.colors.textMuted}
-                    />
+                  <View style={styles.weekInputRow}>
+                    <View style={styles.weekInputCol}>
+                      <TextInput
+                        value={week.name}
+                        onChangeText={(text) =>
+                          updateWeek(index, { name: text })
+                        }
+                        style={styles.input}
+                        placeholder="Week name"
+                        placeholderTextColor={tokens.colors.textMuted}
+                      />
+                      <Text style={styles.inputLabel}>Week Name</Text>
+                    </View>
+                    <View style={styles.weekInputCol}>
+                      <TextInput
+                        value={String(week.loadModifier)}
+                        onChangeText={(text) =>
+                          updateWeek(index, { loadModifier: Number(text) || 1 })
+                        }
+                        style={styles.input}
+                        keyboardType="decimal-pad"
+                        placeholder="Load"
+                        placeholderTextColor={tokens.colors.textMuted}
+                      />
+                      <Text style={styles.inputLabel}>Load</Text>
+                    </View>
+                    <View style={styles.weekInputCol}>
+                      <TextInput
+                        value={String(week.rir)}
+                        onChangeText={(text) =>
+                          updateWeek(index, { rir: Number(text) || 0 })
+                        }
+                        style={styles.input}
+                        keyboardType="number-pad"
+                        placeholder="RIR"
+                        placeholderTextColor={tokens.colors.textMuted}
+                      />
+                      <Text style={styles.inputLabel}>RIR</Text>
+                    </View>
                   </View>
                 </View>
               ))}
@@ -250,13 +270,17 @@ export function ProgramSettingsModal({
                     <Text style={styles.cardTitle}>Day {index + 1}</Text>
                     <View style={styles.rowActions}>
                       <Pressable
-                        style={styles.rowButton}
+                        style={[
+                          styles.rowButton,
+                          styles.rowButtonArrow,
+                          index === 0 && styles.rowButtonDisabled,
+                        ]}
                         disabled={index === 0}
                         onPress={() => moveDay(index, index - 1)}
                       >
-                        <MaterialIcons
-                          name="arrow-upward"
-                          size={16}
+                        <Feather
+                          name="chevron-up"
+                          size={14}
                           color={
                             index === 0
                               ? tokens.colors.textMuted
@@ -265,13 +289,18 @@ export function ProgramSettingsModal({
                         />
                       </Pressable>
                       <Pressable
-                        style={styles.rowButton}
+                        style={[
+                          styles.rowButton,
+                          styles.rowButtonArrow,
+                          index === dayConfigs.length - 1 &&
+                            styles.rowButtonDisabled,
+                        ]}
                         disabled={index === dayConfigs.length - 1}
                         onPress={() => moveDay(index, index + 1)}
                       >
-                        <MaterialIcons
-                          name="arrow-downward"
-                          size={16}
+                        <Feather
+                          name="chevron-down"
+                          size={14}
                           color={
                             index === dayConfigs.length - 1
                               ? tokens.colors.textMuted
@@ -280,12 +309,16 @@ export function ProgramSettingsModal({
                         />
                       </Pressable>
                       <Pressable
-                        style={styles.rowButton}
+                        style={[
+                          styles.rowButton,
+                          styles.rowButtonDelete,
+                          dayConfigs.length <= 1 && styles.rowButtonDisabled,
+                        ]}
                         disabled={dayConfigs.length <= 1}
                         onPress={() => removeDay(index)}
                       >
-                        <MaterialIcons
-                          name="delete-outline"
+                        <MaterialCommunityIcons
+                          name="trash-can-outline"
                           size={16}
                           color={tokens.colors.accentDanger}
                         />
@@ -300,7 +333,12 @@ export function ProgramSettingsModal({
                     placeholder="Day name"
                     placeholderTextColor={tokens.colors.textMuted}
                   />
-                  <View style={styles.iconGrid}>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.iconRow}
+                    nestedScrollEnabled
+                  >
                     {dayIconOptions.map((option) => {
                       const active = day.icon === option;
                       const iconName = dayIconMap[option];
@@ -313,7 +351,7 @@ export function ProgramSettingsModal({
                           ]}
                           onPress={() => updateDay(index, { icon: option })}
                         >
-                          <MaterialIcons
+                          <Feather
                             name={iconName as never}
                             size={18}
                             color={
@@ -325,22 +363,21 @@ export function ProgramSettingsModal({
                         </Pressable>
                       );
                     })}
-                  </View>
+                  </ScrollView>
                 </View>
               ))}
           </ScrollView>
 
-          <Pressable
-            style={[styles.addButton, atLimit && styles.addButtonDisabled]}
-            onPress={
-              atLimit ? undefined : activeTab === 'weeks' ? addWeek : addDay
-            }
-            disabled={atLimit}
-          >
-            <Text style={styles.addButtonText}>
-              {activeTab === 'weeks' ? 'Add Week' : 'Add Day'}
-            </Text>
-          </Pressable>
+          {!atLimit && (
+            <Pressable
+              style={styles.addButton}
+              onPress={activeTab === 'weeks' ? addWeek : addDay}
+            >
+              <Text style={styles.addButtonText}>
+                {activeTab === 'weeks' ? 'Add Week' : 'Add Day'}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </Modal>
@@ -405,7 +442,7 @@ function createStyles(tokens: ThemeTokens) {
       paddingVertical: tokens.spacing.sm,
     },
     tabActive: {
-      borderColor: tokens.colors.primary,
+      borderColor: 'transparent',
       backgroundColor: withAlpha(tokens.colors.primary, 0.12),
     },
     tabText: {
@@ -436,7 +473,7 @@ function createStyles(tokens: ThemeTokens) {
     },
     cardTitle: {
       color: tokens.colors.textPrimary,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       fontSize: tokens.type.body,
     },
     rowActions: {
@@ -444,13 +481,20 @@ function createStyles(tokens: ThemeTokens) {
       gap: tokens.spacing.xs,
     },
     rowButton: {
-      width: 30,
-      height: 30,
-      borderRadius: tokens.radius.sm,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    rowButtonArrow: {
+      backgroundColor: '#1a1a1e',
+    },
+    rowButtonDelete: {
+      backgroundColor: '#291a1c',
+    },
+    rowButtonDisabled: {
+      opacity: 0.5,
     },
     input: {
       flex: 1,
@@ -459,6 +503,7 @@ function createStyles(tokens: ThemeTokens) {
       borderRadius: tokens.radius.sm,
       backgroundColor: tokens.colors.surfaceContainerHighest,
       color: tokens.colors.textPrimary,
+      fontFamily: 'SpaceGrotesk_400Regular',
       fontSize: tokens.type.body,
       paddingHorizontal: tokens.spacing.sm,
       paddingVertical: 9,
@@ -467,10 +512,25 @@ function createStyles(tokens: ThemeTokens) {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
     },
-    iconGrid: {
+    weekInputRow: {
       flexDirection: 'row',
-      flexWrap: 'wrap',
+      gap: tokens.spacing.sm,
+      alignItems: 'flex-start',
+    },
+    weekInputCol: {
+      flex: 1,
       gap: tokens.spacing.xs,
+    },
+    inputLabel: {
+      color: tokens.colors.textMuted,
+      fontSize: tokens.type.label - 1,
+      textAlign: 'center',
+      fontFamily: 'SpaceGrotesk_600SemiBold',
+    },
+    iconRow: {
+      flexDirection: 'row',
+      gap: tokens.spacing.xs,
+      paddingRight: tokens.spacing.xs,
     },
     iconOption: {
       width: 36,
@@ -492,11 +552,6 @@ function createStyles(tokens: ThemeTokens) {
       backgroundColor: tokens.colors.primary,
       paddingVertical: tokens.spacing.md,
       alignItems: 'center',
-    },
-    addButtonDisabled: {
-      backgroundColor: withAlpha(tokens.colors.textPrimary, 0.1),
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
     },
     addButtonText: {
       color: tokens.colors.onPrimary,
