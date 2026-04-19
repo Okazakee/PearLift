@@ -494,6 +494,7 @@ export class WorkoutRepository {
           }
           case 'resetAllData': {
             await this.replaceAllState(db, buildDefaultRuntimeState());
+            await this.writeSetting(db, 'setupDone', 'false');
             break;
           }
           case 'restoreRuntimeState': {

@@ -434,6 +434,7 @@ export function WorkoutScreen() {
           label: 'Reset',
           tone: 'destructive',
           onPress: () => {
+            setSettingsOpen(false);
             void (async () => {
               try {
                 const enrolledLevel =

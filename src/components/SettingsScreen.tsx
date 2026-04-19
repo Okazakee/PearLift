@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   ChevronLeft,
   Code,
+  CodeXml,
   Globe,
   Heart,
   Info,
@@ -45,7 +46,6 @@ export function SettingsScreen({
   appBuild,
   buildType,
   themePreference,
-  systemThemeMode,
   onThemePreferenceChange,
   weightUnit,
   onWeightUnitChange,
@@ -54,10 +54,7 @@ export function SettingsScreen({
   onOpenGithub,
 }: SettingsScreenProps) {
   const styles = createStyles(tokens, topInset, bottomInset);
-  const themeSubtitle =
-    themePreference === 'system'
-      ? `Follows system (${systemThemeMode ?? 'unknown'}).`
-      : `Forced to ${themePreference === 'dark' ? 'Dark' : 'Light'}.`;
+  const themeSubtitle = 'App color schema';
 
   const optionStyle = (value: ThemePreference) => {
     const selected = themePreference === value;
@@ -133,9 +130,7 @@ export function SettingsScreen({
             <View style={styles.row}>
               <View style={styles.rowText}>
                 <Text style={styles.rowTitle}>Weight unit</Text>
-                <Text style={styles.rowSubtitle}>
-                  Weights are stored internally as kg.
-                </Text>
+                <Text style={styles.rowSubtitle}>Choose your weight unit</Text>
               </View>
               <View style={styles.segmented}>
                 <AnimatedPressable
@@ -219,7 +214,7 @@ export function SettingsScreen({
                 style={styles.developerPrimaryButton}
                 onPress={onOpenGithub}
               >
-                <Code size={18} color={tokens.colors.onPrimary} />
+                <CodeXml size={18} color={tokens.colors.onPrimary} />
                 <Text style={styles.githubButtonText}>Open Repo</Text>
               </AnimatedPressable>
               <AnimatedPressable
