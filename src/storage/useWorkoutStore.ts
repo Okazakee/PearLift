@@ -170,7 +170,7 @@ function applyOptimisticMutation(
         })),
       };
     case 'replaceDayConfigs': {
-      const nextDayConfigs = mutation.dayConfigs;
+      const nextDayConfigs = mutation.dayConfigs.slice(0, 7);
       const workoutById = new Map(
         snapshot.workouts.map((workout) => [workout.id, workout]),
       );
@@ -186,11 +186,6 @@ function applyOptimisticMutation(
           exercises: [],
         };
       });
-      for (const workout of snapshot.workouts) {
-        if (!nextDayConfigs.some((day) => day.id === workout.id)) {
-          alignedWorkouts.push(workout);
-        }
-      }
       const currentDayStillExists = nextDayConfigs.some(
         (day) => day.id === snapshot.currentDay,
       );

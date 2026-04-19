@@ -100,6 +100,29 @@ function triggerCompletionFeedback() {
   }
 }
 
+function safeDeactivateKeepAwake(tag: string) {
+  try {
+    Promise.resolve(deactivateKeepAwake(tag)).catch(() => {
+      // ignore if current activity is unavailable during shutdown/background transitions
+    });
+  } catch {
+    // ignore sync throws from unavailable native activity
+  }
+}
+
+function safeActivateKeepAwake(tag: string) {
+  if (AppState.currentState !== 'active') {
+    return;
+  }
+  try {
+    Promise.resolve(activateKeepAwakeAsync(tag)).catch(() => {
+      // ignore if current activity is unavailable during startup/background transitions
+    });
+  } catch {
+    // ignore sync throws from unavailable native activity
+  }
+}
+
 function computeRemainingSeconds(endAtMs: number) {
   const diffMs = endAtMs - Date.now();
   return Math.max(0, Math.ceil(diffMs / 1000));
@@ -599,25 +622,13 @@ export function RestTimer({
 
   useEffect(() => {
     if (isRunning) {
-      try {
-        void activateKeepAwakeAsync(KEEP_AWAKE_TAG);
-      } catch {
-        // ignore if activity unavailable
-      }
+      safeActivateKeepAwake(KEEP_AWAKE_TAG);
     } else {
-      try {
-        void deactivateKeepAwake(KEEP_AWAKE_TAG);
-      } catch {
-        // ignore if activity unavailable
-      }
+      safeDeactivateKeepAwake(KEEP_AWAKE_TAG);
     }
 
     return () => {
-      try {
-        void deactivateKeepAwake(KEEP_AWAKE_TAG);
-      } catch {
-        // ignore
-      }
+      safeDeactivateKeepAwake(KEEP_AWAKE_TAG);
     };
   }, [isRunning]);
 

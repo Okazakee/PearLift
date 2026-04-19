@@ -35,7 +35,7 @@ import { ImportPreviewModal } from '../components/ImportPreviewModal';
 import { LocalBackupModal } from '../components/LocalBackupModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
-import { ProgramSettingsModal } from '../components/ProgramSettingsModal';
+import { ProgramSettingsScreen } from '../components/ProgramSettingsScreen';
 import { RestTimer } from '../components/RestTimer';
 import { SettingsScreen } from '../components/SettingsScreen';
 import { WorkoutView } from '../components/WorkoutView';
@@ -810,9 +810,11 @@ export function WorkoutScreen() {
           }}
         />
 
-        <ProgramSettingsModal
+        <ProgramSettingsScreen
           open={programSettingsOpen}
           tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
           weekConfigs={weekConfigs}
           dayConfigs={dayConfigs}
           onClose={() => setProgramSettingsOpen(false)}

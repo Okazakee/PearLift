@@ -26,6 +26,7 @@ import type {
 const FALLBACK_DAY_ICON = 'FitnessCenter';
 const LOCAL_STATE_SCHEMA_VERSION = 2;
 export const LOCAL_STATE_STORAGE_KEY = `pearlift-local-backup-v${LOCAL_STATE_SCHEMA_VERSION}`;
+const MAX_DAY_CONFIGS = 7;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -100,20 +101,23 @@ function normalizeDayConfigs(value: unknown): DayConfig[] {
     return [];
   }
 
-  const valid = value.filter(isRecord).map((day, index) => ({
-    id:
-      typeof day.id === 'string' && day.id.length > 0
-        ? day.id
-        : `day-${index + 1}`,
-    name:
-      typeof day.name === 'string' && day.name.length > 0
-        ? day.name
-        : `Day ${index + 1}`,
-    icon:
-      typeof day.icon === 'string' && day.icon.length > 0
-        ? day.icon
-        : FALLBACK_DAY_ICON,
-  }));
+  const valid = value
+    .filter(isRecord)
+    .map((day, index) => ({
+      id:
+        typeof day.id === 'string' && day.id.length > 0
+          ? day.id
+          : `day-${index + 1}`,
+      name:
+        typeof day.name === 'string' && day.name.length > 0
+          ? day.name
+          : `Day ${index + 1}`,
+      icon:
+        typeof day.icon === 'string' && day.icon.length > 0
+          ? day.icon
+          : FALLBACK_DAY_ICON,
+    }))
+    .slice(0, MAX_DAY_CONFIGS);
 
   return valid;
 }
@@ -143,10 +147,12 @@ function reconcileDayConfigs(
   for (const day of dayConfigs) {
     if (seen.has(day.id)) continue;
     seen.add(day.id);
+    if (merged.length >= MAX_DAY_CONFIGS) break;
     merged.push(day);
   }
 
   for (const [workoutId, workout] of workoutById) {
+    if (merged.length >= MAX_DAY_CONFIGS) break;
     if (seen.has(workoutId)) continue;
     seen.add(workoutId);
     merged.push(deriveDayConfigFromWorkout(workout, merged.length));
@@ -160,7 +166,7 @@ function alignWorkoutsToDays(
   dayConfigs: DayConfig[],
 ): WorkoutSession[] {
   const byId = new Map(workouts.map((workout) => [workout.id, workout]));
-  const aligned = dayConfigs.map((day, index) => {
+  return dayConfigs.slice(0, MAX_DAY_CONFIGS).map((day, index) => {
     const existing = byId.get(day.id);
     if (existing) return existing;
 
@@ -171,14 +177,6 @@ function alignWorkoutsToDays(
       exercises: [],
     };
   });
-
-  for (const workout of workouts) {
-    if (!dayConfigs.some((day) => day.id === workout.id)) {
-      aligned.push(workout);
-    }
-  }
-
-  return aligned;
 }
 
 function normalizeWeights(

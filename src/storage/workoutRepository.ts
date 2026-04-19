@@ -22,6 +22,8 @@ import { roundToPrecision } from '../utils/math';
 import { getDatabase } from './database';
 import type { WorkoutMutation, WorkoutStoreSnapshot } from './types';
 
+const MAX_DAY_CONFIGS = 7;
+
 function cloneDefaultWorkouts() {
   return JSON.parse(JSON.stringify(defaultWorkouts)) as WorkoutSession[];
 }
@@ -81,10 +83,12 @@ function normalizeDayConfigs(
   for (const day of dayConfigs) {
     if (seen.has(day.id)) continue;
     seen.add(day.id);
+    if (merged.length >= MAX_DAY_CONFIGS) break;
     merged.push(day);
   }
 
   for (const workout of workouts) {
+    if (merged.length >= MAX_DAY_CONFIGS) break;
     if (seen.has(workout.id)) continue;
     seen.add(workout.id);
     merged.push({
@@ -102,7 +106,7 @@ function alignWorkoutsToDays(
   dayConfigs: DayConfig[],
 ): WorkoutSession[] {
   const byId = new Map(workouts.map((workout) => [workout.id, workout]));
-  const aligned = dayConfigs.map((day, index) => {
+  return dayConfigs.slice(0, MAX_DAY_CONFIGS).map((day, index) => {
     const existing = byId.get(day.id);
     if (existing) return existing;
     return {
@@ -112,14 +116,6 @@ function alignWorkoutsToDays(
       exercises: [],
     };
   });
-
-  for (const workout of workouts) {
-    if (!dayConfigs.some((day) => day.id === workout.id)) {
-      aligned.push(workout);
-    }
-  }
-
-  return aligned;
 }
 
 type WorkoutRow = {
@@ -452,10 +448,7 @@ export class WorkoutRepository {
           }
           case 'replaceDayConfigs': {
             const runtime = await this.readRuntimeState(db);
-            const nextDayConfigs = normalizeDayConfigs(
-              runtime.workouts,
-              mutation.dayConfigs,
-            );
+            const nextDayConfigs = normalizeDayConfigs([], mutation.dayConfigs);
             const alignedWorkouts = alignWorkoutsToDays(
               runtime.workouts,
               nextDayConfigs,
