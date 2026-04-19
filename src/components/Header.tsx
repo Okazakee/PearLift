@@ -8,7 +8,6 @@ interface HeaderProps {
   topInset: number;
   onOpenLocalBackup: () => void;
   onOpenSettings: () => void;
-  onToggleTheme: () => void;
   onResetData: () => void;
 }
 
@@ -17,7 +16,6 @@ export function Header({
   topInset,
   onOpenLocalBackup,
   onOpenSettings,
-  onToggleTheme,
   onResetData,
 }: HeaderProps) {
   const styles = createStyles(tokens, topInset);
@@ -39,13 +37,6 @@ export function Header({
             name="save-alt"
             size={20}
             color={tokens.colors.textPrimary}
-          />
-        </Pressable>
-        <Pressable onPress={onToggleTheme} style={styles.iconButton}>
-          <MaterialIcons
-            name={tokens.mode === 'dark' ? 'light-mode' : 'dark-mode'}
-            size={20}
-            color={tokens.colors.textSecondary}
           />
         </Pressable>
         <Pressable onPress={onOpenSettings} style={styles.iconButton}>

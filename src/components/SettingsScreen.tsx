@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import type { ThemeTokens } from '../theme/tokens';
+import type { ThemeMode, ThemePreference, ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 
 interface SettingsScreenProps {
@@ -19,6 +19,9 @@ interface SettingsScreenProps {
   appVersion: string;
   appBuild: string;
   buildType: string;
+  themePreference: ThemePreference;
+  systemThemeMode: ThemeMode | null;
+  onThemePreferenceChange: (next: ThemePreference) => void;
   onClose: () => void;
   onOpenGithub: () => void;
   onOpenSyncSetup: () => void;
@@ -33,11 +36,30 @@ export function SettingsScreen({
   appVersion,
   appBuild,
   buildType,
+  themePreference,
+  systemThemeMode,
+  onThemePreferenceChange,
   onClose,
   onOpenGithub,
   onOpenSyncSetup,
 }: SettingsScreenProps) {
   const styles = createStyles(tokens, topInset, bottomInset);
+  const themeSubtitle =
+    themePreference === 'system'
+      ? `Follows system (${systemThemeMode ?? 'unknown'}).`
+      : `Forced to ${themePreference === 'dark' ? 'Dark' : 'Light'}.`;
+
+  const optionStyle = (value: ThemePreference) => {
+    const selected = themePreference === value;
+    if (!selected) return styles.segment;
+    return [styles.segment, styles.segmentSelected];
+  };
+
+  const optionTextStyle = (value: ThemePreference) => {
+    const selected = themePreference === value;
+    if (!selected) return styles.segmentText;
+    return [styles.segmentText, styles.segmentTextSelected];
+  };
 
   return (
     <Modal visible={open} animationType="slide" onRequestClose={onClose}>
@@ -58,6 +80,43 @@ export function SettingsScreen({
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <MaterialIcons
+                name="palette"
+                size={18}
+                color={tokens.colors.primary}
+              />
+              <Text style={styles.sectionTitle}>Appearance</Text>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={styles.rowTitle}>Theme</Text>
+                <Text style={styles.rowSubtitle}>{themeSubtitle}</Text>
+              </View>
+              <View style={styles.segmented}>
+                <Pressable
+                  style={optionStyle('system')}
+                  onPress={() => onThemePreferenceChange('system')}
+                >
+                  <Text style={optionTextStyle('system')}>System</Text>
+                </Pressable>
+                <Pressable
+                  style={optionStyle('light')}
+                  onPress={() => onThemePreferenceChange('light')}
+                >
+                  <Text style={optionTextStyle('light')}>Light</Text>
+                </Pressable>
+                <Pressable
+                  style={optionStyle('dark')}
+                  onPress={() => onThemePreferenceChange('dark')}
+                >
+                  <Text style={optionTextStyle('dark')}>Dark</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <MaterialIcons
@@ -238,6 +297,32 @@ function createStyles(
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.label,
       lineHeight: 16,
+    },
+    segmented: {
+      flexDirection: 'row',
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      borderRadius: 999,
+      overflow: 'hidden',
+      backgroundColor: withAlpha(tokens.colors.primary, 0.06),
+    },
+    segment: {
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 68,
+    },
+    segmentSelected: {
+      backgroundColor: withAlpha(tokens.colors.primary, 0.22),
+    },
+    segmentText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
+    },
+    segmentTextSelected: {
+      color: tokens.colors.textPrimary,
     },
     badge: {
       borderRadius: tokens.radius.pill,

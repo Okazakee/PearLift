@@ -58,7 +58,7 @@ function buildDefaultRuntimeState(): PearLiftRuntimeState {
     currentWeek: 1,
     currentDay: defaultDayConfigs[0]?.id ?? 'push',
     restDuration: 150,
-    themeMode: 'dark',
+    themeMode: 'system',
   };
 }
 
@@ -87,8 +87,13 @@ function parseNumber(value: string | null | undefined, fallback: number) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function coerceThemeMode(value: string | null | undefined): 'light' | 'dark' {
-  return value === 'light' ? 'light' : 'dark';
+function coerceThemeMode(
+  value: string | null | undefined,
+): PearLiftRuntimeState['themeMode'] {
+  if (value === 'light' || value === 'dark' || value === 'system') {
+    return value;
+  }
+  return 'system';
 }
 
 function coerceSyncMode(value: string | null | undefined): SyncMode {

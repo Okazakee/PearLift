@@ -1,4 +1,4 @@
-import type { ThemeMode } from '../theme/tokens';
+import type { ThemePreference } from '../theme/tokens';
 import type {
   DayConfig,
   Exercise,
@@ -31,6 +31,7 @@ export interface PwaBackupV2 {
       currentDay?: WorkoutDay;
       restDuration: number;
       darkMode: boolean;
+      themeMode?: ThemePreference;
     };
   };
 }
@@ -45,7 +46,7 @@ export interface PearLiftRuntimeState {
   currentWeek: number;
   currentDay: WorkoutDay;
   restDuration: number;
-  themeMode: ThemeMode;
+  themeMode: ThemePreference;
 }
 
 export interface MigratedBackupResult {

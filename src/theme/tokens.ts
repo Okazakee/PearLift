@@ -1,4 +1,15 @@
 export type ThemeMode = 'light' | 'dark';
+export type ThemePreference = ThemeMode | 'system';
+
+export function resolveThemeMode(
+  preference: ThemePreference,
+  system: ThemeMode | null | undefined,
+): ThemeMode {
+  if (preference === 'system') {
+    return system ?? 'dark';
+  }
+  return preference;
+}
 
 export interface DynamicColorOverride {
   primary?: string;

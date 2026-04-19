@@ -7,10 +7,6 @@
 - Apply dynamic color scheme to app theme
 - Fallback to default theme on older Android/iOS
 
-### Auto Dark Mode
-- Follow system theme preference automatically
-- Option to override with manual light/dark toggle in settings
-
 ### Device Authorization (Fingerprint/PIN)
 - Require biometric or PIN when new device attempts to sync
 - Store trusted devices list locally

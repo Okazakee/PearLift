@@ -3,7 +3,7 @@ import {
   defaultWeekConfigs,
   defaultWorkouts,
 } from '../data/workouts';
-import type { ThemeMode } from '../theme/tokens';
+import type { ThemePreference } from '../theme/tokens';
 import type {
   DayConfig,
   Exercise,
@@ -278,7 +278,15 @@ export function migrateToCurrentState(
   const restDuration = Number.isFinite(Number(settings.restDuration))
     ? Number(settings.restDuration)
     : 150;
-  const themeMode: ThemeMode = settings.darkMode === false ? 'light' : 'dark';
+  const requestedTheme = settings.themeMode;
+  const themeMode: ThemePreference =
+    requestedTheme === 'system' ||
+    requestedTheme === 'light' ||
+    requestedTheme === 'dark'
+      ? requestedTheme
+      : settings.darkMode === false
+        ? 'light'
+        : 'dark';
 
   const backup: PwaBackupV2 = {
     version,
@@ -293,6 +301,7 @@ export function migrateToCurrentState(
         currentDay,
         restDuration,
         darkMode: themeMode === 'dark',
+        themeMode,
       },
     },
   };
@@ -339,6 +348,7 @@ export function toPwaBackupV2(state: PearLiftRuntimeState): PwaBackupV2 {
         currentDay: state.currentDay,
         restDuration: state.restDuration,
         darkMode: state.themeMode === 'dark',
+        themeMode: state.themeMode,
       },
     },
   };
@@ -397,11 +407,17 @@ function buildSettingDiff(
     });
   }
 
-  if (a.darkMode !== b.darkMode) {
+  const aTheme = a.themeMode ?? (a.darkMode ? 'dark' : 'light');
+  const bTheme = b.themeMode ?? (b.darkMode ? 'dark' : 'light');
+  if (aTheme !== bTheme) {
+    const label = (value: typeof aTheme) => {
+      if (value === 'system') return 'System';
+      return value === 'dark' ? 'Dark' : 'Light';
+    };
     changes.push({
       key: 'Theme',
-      from: a.darkMode ? 'Dark' : 'Light',
-      to: b.darkMode ? 'Dark' : 'Light',
+      from: label(aTheme),
+      to: label(bTheme),
     });
   }
 

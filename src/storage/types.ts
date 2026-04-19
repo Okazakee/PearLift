@@ -1,4 +1,5 @@
 import type { PearLiftRuntimeState } from '../backup/types';
+import type { ThemePreference } from '../theme/tokens';
 import type { DayConfig, Exercise, WeekConfig, WorkoutDay } from '../types';
 
 export type SyncMode = 'local-only' | 'd2d-sync';
@@ -53,11 +54,11 @@ export interface AppSettings {
   currentWeek: number;
   currentDay: WorkoutDay;
   restDuration: number;
-  themeMode: 'light' | 'dark';
+  themeMode: ThemePreference;
 }
 
 export type WorkoutMutation =
-  | { type: 'setThemeMode'; themeMode: 'light' | 'dark' }
+  | { type: 'setThemeMode'; themeMode: ThemePreference }
   | { type: 'setCurrentWeek'; currentWeek: number }
   | { type: 'setCurrentDay'; currentDay: WorkoutDay }
   | { type: 'setRestDuration'; restDuration: number }

@@ -12,6 +12,7 @@ import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
 import android.os.SystemClock
 import androidx.core.app.NotificationCompat
@@ -37,6 +38,7 @@ class RestTimerService : Service() {
 
     const val ACTION_START = "pearlift.timer.START"
     const val ACTION_PAUSE = "pearlift.timer.PAUSE"
+    const val ACTION_RESUME = "pearlift.timer.RESUME"
     const val ACTION_CANCEL = "pearlift.timer.CANCEL"
     const val ACTION_HANDOFF = "pearlift.timer.HANDOFF"
 
@@ -44,7 +46,7 @@ class RestTimerService : Service() {
     const val EXTRA_STARTED_DURATION_SEC = "startedDurationSec"
   }
 
-  private val handler = Handler(mainLooper)
+  private val handler = Handler(Looper.getMainLooper())
   private var isTicking = false
   private var wakeLock: PowerManager.WakeLock? = null
 
@@ -91,6 +93,25 @@ class RestTimerService : Service() {
             .apply()
           stopTicking()
           startForegroundCompat(buildPausedNotification(remainingSec))
+        }
+      }
+
+      ACTION_RESUME -> {
+        val state = readState()
+        if (state.mode == MODE_PAUSED && state.remainingSec > 0) {
+          val endAtElapsedMs = SystemClock.elapsedRealtime() + state.remainingSec * 1000L
+          val startedDurationSec =
+            if (state.startedDurationSec > 0) state.startedDurationSec else state.remainingSec
+
+          prefs().edit()
+            .putString(PREF_MODE, MODE_RUNNING)
+            .putLong(PREF_END_AT_ELAPSED_MS, endAtElapsedMs)
+            .putInt(PREF_STARTED_DURATION_SEC, startedDurationSec)
+            .putLong(PREF_COMPLETED_AT_MS, 0L)
+            .apply()
+
+          startForegroundCompat(buildRunningNotification())
+          startTicking()
         }
       }
 
@@ -266,6 +287,16 @@ class RestTimerService : Service() {
       .setOnlyAlertOnce(true)
       .addAction(
         0,
+        "Resume",
+        PendingIntent.getService(
+          this,
+          3,
+          Intent(this, RestTimerService::class.java).setAction(ACTION_RESUME),
+          PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        ),
+      )
+      .addAction(
+        0,
         "Stop",
         PendingIntent.getService(
           this,
@@ -366,4 +397,3 @@ class RestTimerService : Service() {
     }
   }
 }
-

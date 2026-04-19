@@ -8,6 +8,7 @@ import {
   Linking,
   StyleSheet,
   Text,
+  useColorScheme,
   View,
 } from 'react-native';
 import {
@@ -41,8 +42,8 @@ import { useWorkoutStore } from '../storage/useWorkoutStore';
 import { WorkoutRepository } from '../storage/workoutRepository';
 import { IdentityService } from '../sync/identityService';
 import type { SetupStatus, SyncStatus } from '../sync/types';
-import type { ThemeMode } from '../theme/tokens';
-import { getThemeTokens } from '../theme/tokens';
+import type { ThemeMode, ThemePreference } from '../theme/tokens';
+import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise } from '../types';
 
 function roundToHalf(value: number) {
@@ -93,6 +94,7 @@ function formatSyncSummary(status: SyncStatus | null) {
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
+  const systemScheme = useColorScheme();
   const [repository, setRepository] = useState<WorkoutRepository | null>(null);
   const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
   const [exerciseModalMode, setExerciseModalMode] = useState<'add' | 'edit'>(
@@ -142,7 +144,10 @@ export function WorkoutScreen() {
   const { snapshot, syncCoordinator, isReady, reload, applyMutation } =
     useWorkoutStore(repository);
 
-  const themeMode: ThemeMode = snapshot?.themeMode ?? 'dark';
+  const themePreference: ThemePreference = snapshot?.themeMode ?? 'system';
+  const systemThemeMode: ThemeMode | null =
+    systemScheme === 'dark' || systemScheme === 'light' ? systemScheme : null;
+  const effectiveThemeMode = resolveThemeMode(themePreference, systemThemeMode);
   const currentWeek = snapshot?.currentWeek ?? 1;
   const currentDay = snapshot?.currentDay ?? defaultDayConfigs[0]?.id ?? 'push';
   const workouts = snapshot?.workouts ?? [];
@@ -152,8 +157,8 @@ export function WorkoutScreen() {
   const restDuration = snapshot?.restDuration ?? 150;
 
   const tokens = useMemo(
-    () => getThemeTokens(themeMode, { enableDynamicColor: false }),
-    [themeMode],
+    () => getThemeTokens(effectiveThemeMode, { enableDynamicColor: false }),
+    [effectiveThemeMode],
   );
   const layout = useMemo(() => {
     const navBottomPadding = Math.max(insets.bottom, 8) + tokens.spacing.sm;
@@ -543,7 +548,7 @@ export function WorkoutScreen() {
         edges={['left', 'right']}
         style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
       >
-        <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+        <StatusBar style={effectiveThemeMode === 'dark' ? 'light' : 'dark'} />
         <View style={styles.loadingShell}>
           <ActivityIndicator size="large" color={tokens.colors.primary} />
           <Text
@@ -562,7 +567,7 @@ export function WorkoutScreen() {
         edges={['left', 'right']}
         style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
       >
-        <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+        <StatusBar style={effectiveThemeMode === 'dark' ? 'light' : 'dark'} />
         <OnboardingScreen
           tokens={tokens}
           topInset={insets.top}
@@ -578,19 +583,13 @@ export function WorkoutScreen() {
       edges={['left', 'right']}
       style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
     >
-      <StatusBar style={themeMode === 'dark' ? 'light' : 'dark'} />
+      <StatusBar style={effectiveThemeMode === 'dark' ? 'light' : 'dark'} />
       <View style={styles.appShell}>
         <Header
           tokens={tokens}
           topInset={insets.top}
           onOpenLocalBackup={() => setLocalBackupOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
-          onToggleTheme={() => {
-            void runMutation({
-              type: 'setThemeMode',
-              themeMode: themeMode === 'dark' ? 'light' : 'dark',
-            });
-          }}
           onResetData={handleResetData}
         />
 
@@ -719,6 +718,11 @@ export function WorkoutScreen() {
           appVersion={APP_CONFIG.version}
           appBuild={APP_CONFIG.buildNumber ?? 'N/A'}
           buildType={APP_CONFIG.buildType}
+          themePreference={themePreference}
+          systemThemeMode={systemThemeMode}
+          onThemePreferenceChange={(next) => {
+            void runMutation({ type: 'setThemeMode', themeMode: next });
+          }}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
           onOpenSyncSetup={handleOpenSyncSetup}

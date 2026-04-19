@@ -13,6 +13,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { RestTimerForegroundService } from '../native/restTimerForegroundService';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -570,12 +571,16 @@ export function RestTimer({
 
   const effectiveStarted =
     startedDurationSec > 0 ? startedDurationSec : duration;
-  const progress =
+  const progressPct =
     effectiveStarted > 0
-      ? ((effectiveStarted - Math.min(remainingSec, effectiveStarted)) /
-          effectiveStarted) *
-        100
+      ? (Math.min(remainingSec, effectiveStarted) / effectiveStarted) * 100
       : 0;
+  const progressClamped = Math.max(0, Math.min(100, progressPct));
+  const ringSize = 140;
+  const ringStroke = 10;
+  const ringRadius = (ringSize - ringStroke) / 2;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringDashOffset = ringCircumference * (1 - progressClamped / 100);
 
   const handleToggleRunning = () => {
     if (mode === 'running') {
@@ -598,7 +603,13 @@ export function RestTimer({
     }
     const runRemaining = mode === 'complete' ? duration : remainingSec;
     const nextEnd = Date.now() + Math.max(0, runRemaining) * 1000;
-    setStartedDurationSec(runRemaining);
+    // Keep progress relative to the initial duration for this timer run.
+    // Resuming from pause should not reset the baseline to 100%.
+    if (mode !== 'paused') {
+      setStartedDurationSec(runRemaining);
+    } else if (startedDurationSec <= 0) {
+      setStartedDurationSec(duration);
+    }
     setEndAtMs(nextEnd);
     setMode('running');
     scheduleTokenRef.current += 1;
@@ -676,6 +687,32 @@ export function RestTimer({
 
         <View style={styles.timerSection}>
           <View style={styles.circleOuter}>
+            <Svg width={ringSize} height={ringSize} style={styles.circleSvg}>
+              <Circle
+                cx={ringSize / 2}
+                cy={ringSize / 2}
+                r={ringRadius}
+                stroke={withAlpha(tokens.colors.primary, 0.18)}
+                strokeWidth={ringStroke}
+                fill="none"
+              />
+              <Circle
+                cx={ringSize / 2}
+                cy={ringSize / 2}
+                r={ringRadius}
+                stroke={
+                  isComplete ? tokens.colors.success : tokens.colors.primary
+                }
+                strokeWidth={ringStroke}
+                strokeLinecap="round"
+                strokeDasharray={`${ringCircumference} ${ringCircumference}`}
+                strokeDashoffset={ringDashOffset}
+                fill="none"
+                rotation={-90}
+                originX={ringSize / 2}
+                originY={ringSize / 2}
+              />
+            </Svg>
             <View
               style={[styles.circleInner, isComplete && styles.circleComplete]}
             >
@@ -692,10 +729,6 @@ export function RestTimer({
               )}
             </View>
           </View>
-        </View>
-
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
         </View>
 
         <View style={styles.controlRow}>
@@ -872,9 +905,13 @@ function createStyles(
       width: 140,
       height: 140,
       borderRadius: 70,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.1),
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    circleSvg: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
     },
     circleInner: {
       width: 120,
@@ -899,19 +936,6 @@ function createStyles(
       color: tokens.colors.success,
       fontSize: 10,
       fontWeight: '700',
-    },
-    progressTrack: {
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.15),
-      overflow: 'hidden',
-    },
-    progressFill: {
-      height: '100%',
-      backgroundColor: isComplete
-        ? tokens.colors.success
-        : tokens.colors.primary,
-      borderRadius: 2,
     },
     controlRow: {
       flexDirection: 'row',

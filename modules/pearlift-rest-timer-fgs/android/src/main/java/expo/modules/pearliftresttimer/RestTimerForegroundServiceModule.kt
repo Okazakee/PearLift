@@ -25,29 +25,36 @@ class RestTimerForegroundServiceModule : Module() {
         putExtra(RestTimerService.EXTRA_STARTED_DURATION_SEC, startedDurationSec)
       }
       ContextCompat.startForegroundService(ctx, intent)
+      null
     }
 
     AsyncFunction("pause") {
-      val intent = Intent(appContext.reactContext, RestTimerService::class.java).apply {
+      val ctx = appContext.reactContext ?: return@AsyncFunction null
+      val intent = Intent(ctx, RestTimerService::class.java).apply {
         action = RestTimerService.ACTION_PAUSE
       }
-      appContext.reactContext?.startService(intent)
+      ctx.startService(intent)
+      null
     }
 
     // Stop FGS + ongoing notification, but keep stored state for JS reconciliation.
     AsyncFunction("stop") {
-      val intent = Intent(appContext.reactContext, RestTimerService::class.java).apply {
+      val ctx = appContext.reactContext ?: return@AsyncFunction null
+      val intent = Intent(ctx, RestTimerService::class.java).apply {
         action = RestTimerService.ACTION_HANDOFF
       }
-      appContext.reactContext?.startService(intent)
+      ctx.startService(intent)
+      null
     }
 
     // Cancel/reset timer state in the service.
     AsyncFunction("cancel") {
-      val intent = Intent(appContext.reactContext, RestTimerService::class.java).apply {
+      val ctx = appContext.reactContext ?: return@AsyncFunction null
+      val intent = Intent(ctx, RestTimerService::class.java).apply {
         action = RestTimerService.ACTION_CANCEL
       }
-      appContext.reactContext?.startService(intent)
+      ctx.startService(intent)
+      null
     }
 
     AsyncFunction("getState") {
