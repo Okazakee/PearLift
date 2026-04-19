@@ -13,6 +13,9 @@
     },
     "ios": {
       "supportsTablet": true,
+      "infoPlist": {
+        "CADisableMinimumFrameDurationOnPhone": true
+      },
       "bundleIdentifier": "dev.okazakee.pearlift"
     },
     "android": {
@@ -32,6 +35,12 @@
     },
     "plugins": [
       "expo-sharing",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow PearLift to use Face ID to confirm sensitive actions."
+        }
+      ],
       [
         "expo-build-properties",
         {

@@ -1,6 +1,15 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
+import Animated, {
+  cancelAnimation,
+  Easing,
+  ReduceMotion,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -13,14 +22,14 @@ interface ExerciseCardProps {
   adjustedWeight: number;
   isFirst: boolean;
   isLast: boolean;
-  onAdjustWeight: (delta: number) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onAdjustWeight: (exerciseId: string, delta: number) => void;
+  onSetWeight: (exerciseId: string, value: number) => void;
+  onMoveExercise: (exerciseId: string, direction: 'up' | 'down') => void;
+  onEditExercise: (exercise: Exercise) => void;
+  onDeleteExercise: (exercise: Exercise) => void;
 }
 
-export function ExerciseCard({
+function ExerciseCardComponent({
   tokens,
   exercise,
   baseWeight,
@@ -28,23 +37,71 @@ export function ExerciseCard({
   isFirst,
   isLast,
   onAdjustWeight,
-  onMoveUp,
-  onMoveDown,
-  onEdit,
-  onDelete,
+  onSetWeight,
+  onMoveExercise,
+  onEditExercise,
+  onDeleteExercise,
 }: ExerciseCardProps) {
-  const styles = createStyles(tokens);
+  const styles = useMemo(() => createStyles(tokens), [tokens]);
   const setsRepsLabel = `${exercise.sets}x${exercise.reps}`;
   const [editingWeight, setEditingWeight] = useState(false);
   const [tempWeight, setTempWeight] = useState(baseWeight.toString());
+  const prevAdjustedWeightRef = useRef(adjustedWeight);
   const submitGuardRef = useRef(false);
+  const weightScale = useSharedValue(1);
+  const weightTranslateY = useSharedValue(0);
+
+  const weightBumpStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: weightTranslateY.value },
+      { scale: weightScale.value },
+    ],
+  }));
+
+  useEffect(() => {
+    if (prevAdjustedWeightRef.current === adjustedWeight) {
+      return;
+    }
+    prevAdjustedWeightRef.current = adjustedWeight;
+    cancelAnimation(weightScale);
+    cancelAnimation(weightTranslateY);
+    weightScale.value = 1;
+    weightTranslateY.value = 0;
+    weightScale.value = withSequence(
+      withTiming(1.14, {
+        duration: 90,
+        easing: Easing.out(Easing.quad),
+        reduceMotion: ReduceMotion.Never,
+      }),
+      withTiming(1, {
+        duration: 160,
+        easing: Easing.out(Easing.cubic),
+        reduceMotion: ReduceMotion.Never,
+      }),
+    );
+    weightTranslateY.value = withSequence(
+      withTiming(-2, {
+        duration: 90,
+        easing: Easing.out(Easing.quad),
+        reduceMotion: ReduceMotion.Never,
+      }),
+      withTiming(0, {
+        duration: 160,
+        easing: Easing.out(Easing.cubic),
+        reduceMotion: ReduceMotion.Never,
+      }),
+    );
+  }, [adjustedWeight, weightScale, weightTranslateY]);
 
   const step = baseWeight >= 20 ? 2.5 : 1;
-  const handleWeightAdjust = (direction: -1 | 1) => {
-    onAdjustWeight(direction * step);
-  };
+  const handleWeightAdjust = useCallback(
+    (direction: -1 | 1) => {
+      onAdjustWeight(exercise.id, direction * step);
+    },
+    [exercise.id, onAdjustWeight, step],
+  );
 
-  const handleWeightSubmit = () => {
+  const handleWeightSubmit = useCallback(() => {
     if (submitGuardRef.current) return;
     submitGuardRef.current = true;
     const parsed = Number(tempWeight);
@@ -54,16 +111,32 @@ export function ExerciseCard({
       submitGuardRef.current = false;
       return;
     }
-    onAdjustWeight(parsed - baseWeight);
+    onSetWeight(exercise.id, parsed);
     setEditingWeight(false);
     submitGuardRef.current = false;
-  };
+  }, [baseWeight, exercise.id, onSetWeight, tempWeight]);
+
+  const handleMoveUp = useCallback(() => {
+    onMoveExercise(exercise.id, 'up');
+  }, [exercise.id, onMoveExercise]);
+
+  const handleMoveDown = useCallback(() => {
+    onMoveExercise(exercise.id, 'down');
+  }, [exercise.id, onMoveExercise]);
+
+  const handleEdit = useCallback(() => {
+    onEditExercise(exercise);
+  }, [exercise, onEditExercise]);
+
+  const handleDelete = useCallback(() => {
+    onDeleteExercise(exercise);
+  }, [exercise, onDeleteExercise]);
 
   return (
     <View style={styles.card}>
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
-        <AnimatedPressable style={styles.iconButton} onPress={onEdit}>
+        <AnimatedPressable style={styles.iconButton} onPress={handleEdit}>
           <Feather
             name="edit-2"
             size={16}
@@ -120,7 +193,11 @@ export function ExerciseCard({
               size={24}
               color={tokens.colors.primary}
             />
-            <Text style={styles.weightValue}>{adjustedWeight.toFixed(1)}</Text>
+            <Animated.View style={weightBumpStyle}>
+              <Text style={styles.weightValue}>
+                {adjustedWeight.toFixed(1)}
+              </Text>
+            </Animated.View>
             <Text style={styles.weightUnit}>kg</Text>
           </AnimatedPressable>
         )}
@@ -137,7 +214,7 @@ export function ExerciseCard({
         <AnimatedPressable
           style={[styles.actionButton, isFirst && styles.disabledButton]}
           disabled={isFirst}
-          onPress={onMoveUp}
+          onPress={handleMoveUp}
         >
           <Feather
             name="chevron-up"
@@ -148,7 +225,7 @@ export function ExerciseCard({
         <AnimatedPressable
           style={[styles.actionButton, isLast && styles.disabledButton]}
           disabled={isLast}
-          onPress={onMoveDown}
+          onPress={handleMoveDown}
         >
           <Feather
             name="chevron-down"
@@ -158,7 +235,7 @@ export function ExerciseCard({
         </AnimatedPressable>
         <AnimatedPressable
           style={[styles.actionButton, styles.deleteAction]}
-          onPress={onDelete}
+          onPress={handleDelete}
         >
           <MaterialCommunityIcons
             name="trash-can-outline"
@@ -170,6 +247,23 @@ export function ExerciseCard({
     </View>
   );
 }
+
+export const ExerciseCard = memo(
+  ExerciseCardComponent,
+  (prev, next) =>
+    prev.tokens === next.tokens &&
+    prev.baseWeight === next.baseWeight &&
+    prev.adjustedWeight === next.adjustedWeight &&
+    prev.isFirst === next.isFirst &&
+    prev.isLast === next.isLast &&
+    prev.exercise.id === next.exercise.id &&
+    prev.exercise.name === next.exercise.name &&
+    prev.exercise.muscleGroup === next.exercise.muscleGroup &&
+    prev.exercise.notes === next.exercise.notes &&
+    prev.exercise.sets === next.exercise.sets &&
+    prev.exercise.reps === next.exercise.reps &&
+    prev.exercise.position === next.exercise.position,
+);
 
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({

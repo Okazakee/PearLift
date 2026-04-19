@@ -7,13 +7,14 @@ import * as Notifications from 'expo-notifications';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, {
+  cancelAnimation,
+  Easing,
   FadeIn,
-  FadeInDown,
   FadeOut,
-  FadeOutDown,
   LinearTransition,
   ReduceMotion,
   useAnimatedProps,
+  useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
@@ -47,6 +48,10 @@ const COMPLETION_SOUND =
 
 let completionSoundRef: Audio.Sound | null = null;
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const RING_SIZE = 140;
+const RING_STROKE = 7;
+const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
 function formatSeconds(seconds: number) {
   const mins = Math.floor(seconds / 60);
@@ -169,6 +174,7 @@ export function RestTimer({
   onExpandedChange,
 }: RestTimerProps) {
   const [expanded, setExpanded] = useState(false);
+  const [panelContentMounted, setPanelContentMounted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [mode, setMode] = useState<RestTimerMode>('idle');
   const [endAtMs, setEndAtMs] = useState<number | null>(null);
@@ -183,6 +189,10 @@ export function RestTimer({
   const endAtMsRef = useRef<number | null>(null);
   const scheduledIdRef = useRef<string | null>(null);
   const scheduleTokenRef = useRef(0);
+  const panelMountRafRef = useRef<number | null>(null);
+  const panelUnmountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
   const isRunning = mode === 'running';
   const isComplete = mode === 'complete' && remainingSec === 0;
@@ -195,6 +205,41 @@ export function RestTimer({
   useEffect(() => {
     onExpandedChange?.(expanded);
   }, [expanded, onExpandedChange]);
+
+  useEffect(() => {
+    if (panelMountRafRef.current) {
+      cancelAnimationFrame(panelMountRafRef.current);
+      panelMountRafRef.current = null;
+    }
+    if (panelUnmountTimerRef.current) {
+      clearTimeout(panelUnmountTimerRef.current);
+      panelUnmountTimerRef.current = null;
+    }
+
+    if (expanded) {
+      panelMountRafRef.current = requestAnimationFrame(() => {
+        panelMountRafRef.current = null;
+        setPanelContentMounted(true);
+      });
+      return;
+    }
+
+    panelUnmountTimerRef.current = setTimeout(() => {
+      panelUnmountTimerRef.current = null;
+      setPanelContentMounted(false);
+    }, MOTION.duration.base);
+  }, [expanded]);
+
+  useEffect(() => {
+    return () => {
+      if (panelMountRafRef.current) {
+        cancelAnimationFrame(panelMountRafRef.current);
+      }
+      if (panelUnmountTimerRef.current) {
+        clearTimeout(panelUnmountTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     // Keep the "configured duration" and the "displayed remaining time" aligned when not running.
@@ -325,7 +370,7 @@ export function RestTimer({
           clearIntervalIfAny();
         }
       }
-    }, 250);
+    }, 1000);
   }, [clearIntervalIfAny, completeInForeground]);
 
   useEffect(() => {
@@ -578,28 +623,71 @@ export function RestTimer({
 
   const effectiveStarted =
     startedDurationSec > 0 ? startedDurationSec : duration;
-  const progressPct =
-    effectiveStarted > 0
-      ? (Math.min(remainingSec, effectiveStarted) / effectiveStarted) * 100
-      : 0;
-  const progressClamped = Math.max(0, Math.min(100, progressPct));
-  const ringSize = 140;
-  const ringStroke = 7;
-  const ringRadius = (ringSize - ringStroke) / 2;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const ringDashOffset = ringCircumference * (1 - progressClamped / 100);
-  const ringOffsetAnimated = useSharedValue(ringDashOffset);
+  const ringOffsetAnimated = useSharedValue(
+    RING_CIRCUMFERENCE *
+      (1 -
+        Math.max(0, Math.min(remainingSec, effectiveStarted)) /
+          effectiveStarted),
+  );
 
   useEffect(() => {
-    ringOffsetAnimated.value = withTiming(ringDashOffset, {
-      duration: isRunning ? 240 : MOTION.duration.base,
+    if (mode === 'running' && endAtMs && effectiveStarted > 0) {
+      const remainingMs = Math.max(0, endAtMs - Date.now());
+      const currentProgress = Math.max(
+        0,
+        Math.min(remainingMs / (effectiveStarted * 1000), 1),
+      );
+      cancelAnimation(ringOffsetAnimated);
+      ringOffsetAnimated.value = RING_CIRCUMFERENCE * (1 - currentProgress);
+      ringOffsetAnimated.value = withTiming(RING_CIRCUMFERENCE, {
+        duration: remainingMs,
+        easing: Easing.linear,
+        reduceMotion: ReduceMotion.System,
+      });
+      return;
+    }
+
+    const clampedRemaining = Math.max(
+      0,
+      Math.min(remainingSec, effectiveStarted),
+    );
+    const targetOffset =
+      RING_CIRCUMFERENCE * (1 - clampedRemaining / effectiveStarted);
+    cancelAnimation(ringOffsetAnimated);
+    ringOffsetAnimated.value = withTiming(targetOffset, {
+      duration: MOTION.duration.base,
       easing: MOTION.easing.standard,
       reduceMotion: ReduceMotion.System,
     });
-  }, [isRunning, ringDashOffset, ringOffsetAnimated]);
+  }, [effectiveStarted, endAtMs, mode, remainingSec, ringOffsetAnimated]);
 
   const ringAnimatedProps = useAnimatedProps(() => ({
     strokeDashoffset: ringOffsetAnimated.value,
+  }));
+  const openProgress = useSharedValue(expanded ? 1 : 0);
+
+  useEffect(() => {
+    openProgress.value = withTiming(expanded ? 1 : 0, {
+      duration: MOTION.duration.base,
+      easing: MOTION.easing.standard,
+      reduceMotion: ReduceMotion.System,
+    });
+  }, [expanded, openProgress]);
+
+  const fabAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: 1 - openProgress.value,
+    transform: [
+      { scale: 1 - openProgress.value * 0.08 },
+      { translateY: openProgress.value * 6 },
+    ],
+  }));
+
+  const panelAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: openProgress.value,
+    transform: [
+      { translateY: (1 - openProgress.value) * 12 },
+      { scale: 0.98 + openProgress.value * 0.02 },
+    ],
   }));
 
   const handleToggleRunning = () => {
@@ -641,6 +729,8 @@ export function RestTimer({
   const handleReset = () => {
     clearIntervalIfAny();
     scheduleTokenRef.current += 1;
+    cancelAnimation(ringOffsetAnimated);
+    ringOffsetAnimated.value = 0;
     setMode('idle');
     setEndAtMs(null);
     setRemainingSec(duration);
@@ -666,217 +756,207 @@ export function RestTimer({
 
   return (
     <>
-      {!expanded ? (
-        <Animated.View
-          entering={FadeIn.duration(MOTION.duration.fast).reduceMotion(
-            ReduceMotion.System,
-          )}
-          exiting={FadeOut.duration(MOTION.duration.fast).reduceMotion(
-            ReduceMotion.System,
-          )}
-        >
-          <AnimatedPressable
-            style={styles.fab}
-            onPress={() => setExpanded(true)}
-          >
-            <MaterialCommunityIcons
-              name="timer-outline"
-              size={24}
-              color={tokens.colors.onPrimary}
-            />
-          </AnimatedPressable>
-        </Animated.View>
-      ) : null}
+      <Animated.View
+        pointerEvents={expanded ? 'none' : 'auto'}
+        style={[styles.fabContainer, fabAnimatedStyle]}
+      >
+        <AnimatedPressable style={styles.fab} onPress={() => setExpanded(true)}>
+          <MaterialCommunityIcons
+            name="timer-outline"
+            size={24}
+            color={tokens.colors.onPrimary}
+          />
+        </AnimatedPressable>
+      </Animated.View>
 
-      {expanded ? (
-        <Animated.View
-          style={styles.panelContainer}
-          entering={FadeInDown.duration(MOTION.duration.base).reduceMotion(
-            ReduceMotion.System,
-          )}
-          exiting={FadeOutDown.duration(MOTION.duration.fast).reduceMotion(
-            ReduceMotion.System,
-          )}
-        >
-          <View style={styles.panel}>
-            <View style={styles.header}>
-              <View style={styles.headerLeft}>
-                <MaterialCommunityIcons
-                  name="timer-outline"
-                  size={18}
-                  color={tokens.colors.primary}
-                />
-                <Text style={styles.headerText}>Rest Timer</Text>
-              </View>
-              <AnimatedPressable
-                style={styles.closeButton}
-                onPress={() => setExpanded(false)}
-              >
-                <Feather
-                  name="x"
-                  size={16}
-                  color={tokens.colors.textSecondary}
-                />
-              </AnimatedPressable>
+      <Animated.View
+        pointerEvents={expanded ? 'auto' : 'none'}
+        style={[styles.panelContainer, panelAnimatedStyle]}
+      >
+        <View style={styles.panel}>
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
+              <MaterialCommunityIcons
+                name="timer-outline"
+                size={18}
+                color={tokens.colors.primary}
+              />
+              <Text style={styles.headerText}>Rest Timer</Text>
             </View>
+            <AnimatedPressable
+              style={styles.closeButton}
+              onPress={() => setExpanded(false)}
+            >
+              <Feather name="x" size={16} color={tokens.colors.textSecondary} />
+            </AnimatedPressable>
+          </View>
 
-            <View style={styles.timerSection}>
-              <View style={styles.circleOuter}>
-                <Svg
-                  width={ringSize}
-                  height={ringSize}
-                  style={styles.circleSvg}
-                >
-                  <Circle
-                    cx={ringSize / 2}
-                    cy={ringSize / 2}
-                    r={ringRadius}
-                    stroke={withAlpha(tokens.colors.primary, 0.18)}
-                    strokeWidth={ringStroke}
-                    fill="none"
-                  />
-                  <AnimatedCircle
-                    cx={ringSize / 2}
-                    cy={ringSize / 2}
-                    r={ringRadius}
-                    stroke={
-                      isComplete ? tokens.colors.success : tokens.colors.primary
-                    }
-                    strokeWidth={ringStroke}
-                    strokeLinecap="round"
-                    strokeDasharray={`${ringCircumference} ${ringCircumference}`}
-                    animatedProps={ringAnimatedProps}
-                    fill="none"
-                    rotation={-90}
-                    originX={ringSize / 2}
-                    originY={ringSize / 2}
-                  />
-                </Svg>
-                <View
-                  style={[
-                    styles.circleInner,
-                    isComplete && styles.circleComplete,
-                  ]}
-                >
-                  <Text
+          {panelContentMounted ? (
+            <>
+              <View style={styles.timerSection}>
+                <View style={styles.circleOuter}>
+                  <Svg
+                    width={RING_SIZE}
+                    height={RING_SIZE}
+                    style={styles.circleSvg}
+                  >
+                    <Circle
+                      cx={RING_SIZE / 2}
+                      cy={RING_SIZE / 2}
+                      r={RING_RADIUS}
+                      stroke={withAlpha(tokens.colors.primary, 0.18)}
+                      strokeWidth={RING_STROKE}
+                      fill="none"
+                    />
+                    <AnimatedCircle
+                      cx={RING_SIZE / 2}
+                      cy={RING_SIZE / 2}
+                      r={RING_RADIUS}
+                      stroke={
+                        isComplete
+                          ? tokens.colors.success
+                          : tokens.colors.primary
+                      }
+                      strokeWidth={RING_STROKE}
+                      strokeLinecap="round"
+                      strokeDasharray={`${RING_CIRCUMFERENCE} ${RING_CIRCUMFERENCE}`}
+                      animatedProps={ringAnimatedProps}
+                      fill="none"
+                      rotation={-90}
+                      originX={RING_SIZE / 2}
+                      originY={RING_SIZE / 2}
+                    />
+                  </Svg>
+                  <View
                     style={[
-                      styles.timerText,
-                      isComplete && styles.timerTextComplete,
+                      styles.circleInner,
+                      isComplete && styles.circleComplete,
                     ]}
                   >
-                    {formatSeconds(remainingSec)}
-                  </Text>
-                  {isComplete && (
-                    <Text style={styles.doneText}>REST COMPLETE!</Text>
-                  )}
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.controlRow}>
-              <AnimatedPressable
-                style={styles.controlButton}
-                onPress={handleReset}
-              >
-                <Feather
-                  name="refresh-cw"
-                  size={20}
-                  color={tokens.colors.textPrimary}
-                />
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={[
-                  styles.playButton,
-                  isRunning && styles.playButtonRunning,
-                ]}
-                onPress={handleToggleRunning}
-              >
-                {isRunning ? (
-                  <Feather
-                    name="pause"
-                    size={24}
-                    color={tokens.colors.accentWarning}
-                  />
-                ) : (
-                  <MaterialCommunityIcons
-                    name="play"
-                    size={28}
-                    color={tokens.colors.onPrimary}
-                    style={styles.playIcon}
-                  />
-                )}
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={[
-                  styles.controlButton,
-                  showSettings && styles.controlButtonActive,
-                ]}
-                onPress={() => setShowSettings(!showSettings)}
-              >
-                <Feather
-                  name="sliders"
-                  size={20}
-                  color={
-                    showSettings
-                      ? tokens.colors.primary
-                      : tokens.colors.textPrimary
-                  }
-                />
-              </AnimatedPressable>
-            </View>
-
-            {showSettings ? (
-              <Animated.View
-                style={styles.settingsSection}
-                layout={LinearTransition.reduceMotion(ReduceMotion.System)}
-                entering={FadeIn.duration(MOTION.duration.base).reduceMotion(
-                  ReduceMotion.System,
-                )}
-                exiting={FadeOut.duration(MOTION.duration.fast).reduceMotion(
-                  ReduceMotion.System,
-                )}
-              >
-                <View style={styles.durationRow}>
-                  <Text style={styles.settingsLabel}>Duration</Text>
-                  <View style={styles.durationControls}>
-                    <AnimatedPressable
+                    <Text
                       style={[
-                        styles.adjustButton,
-                        duration <= MIN_DURATION && styles.adjustButtonDisabled,
+                        styles.timerText,
+                        isComplete && styles.timerTextComplete,
                       ]}
-                      onPress={() => handleAdjustDuration(-STEP)}
-                      disabled={duration <= MIN_DURATION}
                     >
-                      <Feather
-                        name="minus"
-                        size={16}
-                        color={tokens.colors.textPrimary}
-                      />
-                    </AnimatedPressable>
-                    <Text style={styles.durationValue}>
-                      {formatSeconds(duration)}
+                      {formatSeconds(remainingSec)}
                     </Text>
-                    <AnimatedPressable
-                      style={[
-                        styles.adjustButton,
-                        duration >= MAX_DURATION && styles.adjustButtonDisabled,
-                      ]}
-                      onPress={() => handleAdjustDuration(STEP)}
-                      disabled={duration >= MAX_DURATION}
-                    >
-                      <Feather
-                        name="plus"
-                        size={16}
-                        color={tokens.colors.textPrimary}
-                      />
-                    </AnimatedPressable>
+                    {isComplete && (
+                      <Text style={styles.doneText}>REST COMPLETE!</Text>
+                    )}
                   </View>
                 </View>
-              </Animated.View>
-            ) : null}
-          </View>
-        </Animated.View>
-      ) : null}
+              </View>
+
+              <View style={styles.controlRow}>
+                <AnimatedPressable
+                  style={styles.controlButton}
+                  onPress={handleReset}
+                >
+                  <Feather
+                    name="refresh-cw"
+                    size={20}
+                    color={tokens.colors.textPrimary}
+                  />
+                </AnimatedPressable>
+                <AnimatedPressable
+                  style={[
+                    styles.playButton,
+                    isRunning && styles.playButtonRunning,
+                  ]}
+                  onPress={handleToggleRunning}
+                >
+                  {isRunning ? (
+                    <Feather
+                      name="pause"
+                      size={24}
+                      color={tokens.colors.accentWarning}
+                    />
+                  ) : (
+                    <MaterialCommunityIcons
+                      name="play"
+                      size={28}
+                      color={tokens.colors.onPrimary}
+                      style={styles.playIcon}
+                    />
+                  )}
+                </AnimatedPressable>
+                <AnimatedPressable
+                  style={[
+                    styles.controlButton,
+                    showSettings && styles.controlButtonActive,
+                  ]}
+                  onPress={() => setShowSettings(!showSettings)}
+                >
+                  <Feather
+                    name="sliders"
+                    size={20}
+                    color={
+                      showSettings
+                        ? tokens.colors.primary
+                        : tokens.colors.textPrimary
+                    }
+                  />
+                </AnimatedPressable>
+              </View>
+
+              {showSettings ? (
+                <Animated.View
+                  style={styles.settingsSection}
+                  layout={LinearTransition.reduceMotion(ReduceMotion.System)}
+                  entering={FadeIn.duration(MOTION.duration.base).reduceMotion(
+                    ReduceMotion.System,
+                  )}
+                  exiting={FadeOut.duration(MOTION.duration.fast).reduceMotion(
+                    ReduceMotion.System,
+                  )}
+                >
+                  <View style={styles.durationRow}>
+                    <Text style={styles.settingsLabel}>Duration</Text>
+                    <View style={styles.durationControls}>
+                      <AnimatedPressable
+                        style={[
+                          styles.adjustButton,
+                          duration <= MIN_DURATION &&
+                            styles.adjustButtonDisabled,
+                        ]}
+                        onPress={() => handleAdjustDuration(-STEP)}
+                        disabled={duration <= MIN_DURATION}
+                      >
+                        <Feather
+                          name="minus"
+                          size={16}
+                          color={tokens.colors.textPrimary}
+                        />
+                      </AnimatedPressable>
+                      <Text style={styles.durationValue}>
+                        {formatSeconds(duration)}
+                      </Text>
+                      <AnimatedPressable
+                        style={[
+                          styles.adjustButton,
+                          duration >= MAX_DURATION &&
+                            styles.adjustButtonDisabled,
+                        ]}
+                        onPress={() => handleAdjustDuration(STEP)}
+                        disabled={duration >= MAX_DURATION}
+                      >
+                        <Feather
+                          name="plus"
+                          size={16}
+                          color={tokens.colors.textPrimary}
+                        />
+                      </AnimatedPressable>
+                    </View>
+                  </View>
+                </Animated.View>
+              ) : null}
+            </>
+          ) : (
+            <View style={styles.panelWarmup} />
+          )}
+        </View>
+      </Animated.View>
     </>
   );
 }
@@ -888,6 +968,12 @@ function createStyles(
   panelBottom: number,
 ) {
   return StyleSheet.create({
+    fabContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 0,
+    },
     fab: {
       position: 'absolute',
       right: 20,
@@ -918,6 +1004,9 @@ function createStyles(
       backgroundColor: tokens.colors.surfaceContainer,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.md,
+    },
+    panelWarmup: {
+      height: 220,
     },
     header: {
       flexDirection: 'row',

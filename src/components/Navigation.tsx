@@ -34,7 +34,7 @@ export function Navigation({
         return (
           <Pressable
             key={day.id}
-            onPress={() => onDayChange(day.id)}
+            onPressIn={() => onDayChange(day.id)}
             style={styles.item}
             android_ripple={{
               color: withAlpha(tokens.colors.primary, 0.12),

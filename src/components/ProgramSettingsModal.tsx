@@ -1,5 +1,5 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -14,6 +14,7 @@ import { dayIconMap, dayIconOptions } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WeekConfig } from '../types';
+import { scheduleIdleTask } from '../utils/idle';
 import { AnimatedModalShell } from './AnimatedModalShell';
 
 interface ProgramSettingsModalProps {
@@ -26,6 +27,8 @@ interface ProgramSettingsModalProps {
   onDayConfigsChange: (value: DayConfig[]) => void;
 }
 
+const AUTOSAVE_DELAY_MS = 240;
+
 export function ProgramSettingsModal({
   open,
   tokens,
@@ -36,83 +39,236 @@ export function ProgramSettingsModal({
   onDayConfigsChange,
 }: ProgramSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
+  const [draftWeekConfigs, setDraftWeekConfigs] = useState(weekConfigs);
+  const [draftDayConfigs, setDraftDayConfigs] = useState(dayConfigs);
+  const [weeksDirty, setWeeksDirty] = useState(false);
+  const [daysDirty, setDaysDirty] = useState(false);
   const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const weekUiKeysRef = useRef<string[]>([]);
+  const weekUiKeyCounterRef = useRef(0);
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveIdleCancelRef = useRef<(() => void) | null>(null);
+  const wasOpenRef = useRef(false);
+
+  const createWeekUiKey = useCallback(() => {
+    const next = weekUiKeyCounterRef.current;
+    weekUiKeyCounterRef.current += 1;
+    return `week-ui-${next}`;
+  }, []);
+
+  useEffect(() => {
+    if (weekUiKeysRef.current.length === draftWeekConfigs.length) {
+      return;
+    }
+    if (weekUiKeysRef.current.length < draftWeekConfigs.length) {
+      const missing = draftWeekConfigs.length - weekUiKeysRef.current.length;
+      weekUiKeysRef.current = [
+        ...weekUiKeysRef.current,
+        ...Array.from({ length: missing }, () => createWeekUiKey()),
+      ];
+      return;
+    }
+    weekUiKeysRef.current = weekUiKeysRef.current.slice(
+      0,
+      draftWeekConfigs.length,
+    );
+  }, [draftWeekConfigs.length, createWeekUiKey]);
+
+  useEffect(() => {
+    if (!open) {
+      if (wasOpenRef.current) {
+        if (weeksDirty) {
+          onWeekConfigsChange(draftWeekConfigs);
+        }
+        if (daysDirty) {
+          onDayConfigsChange(draftDayConfigs);
+        }
+      }
+      wasOpenRef.current = false;
+      setWeeksDirty(false);
+      setDaysDirty(false);
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = null;
+      }
+      autosaveIdleCancelRef.current?.();
+      autosaveIdleCancelRef.current = null;
+      return;
+    }
+    if (wasOpenRef.current) {
+      return;
+    }
+    wasOpenRef.current = true;
+    setDraftWeekConfigs(weekConfigs);
+    setDraftDayConfigs(dayConfigs);
+    setWeeksDirty(false);
+    setDaysDirty(false);
+  }, [
+    dayConfigs,
+    daysDirty,
+    draftDayConfigs,
+    draftWeekConfigs,
+    onDayConfigsChange,
+    onWeekConfigsChange,
+    open,
+    weekConfigs,
+    weeksDirty,
+  ]);
+
+  useEffect(() => {
+    if (!open || (!weeksDirty && !daysDirty)) {
+      return;
+    }
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+    }
+    autosaveTimerRef.current = setTimeout(() => {
+      autosaveIdleCancelRef.current?.();
+      const weeksSnapshot = draftWeekConfigs;
+      const daysSnapshot = draftDayConfigs;
+      const commitWeeks = weeksDirty;
+      const commitDays = daysDirty;
+      setWeeksDirty(false);
+      setDaysDirty(false);
+      autosaveIdleCancelRef.current = scheduleIdleTask(() => {
+        autosaveIdleCancelRef.current = null;
+        if (commitWeeks) {
+          onWeekConfigsChange(weeksSnapshot);
+        }
+        if (commitDays) {
+          onDayConfigsChange(daysSnapshot);
+        }
+      });
+      autosaveTimerRef.current = null;
+    }, AUTOSAVE_DELAY_MS);
+    return () => {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current);
+        autosaveTimerRef.current = null;
+      }
+      autosaveIdleCancelRef.current?.();
+      autosaveIdleCancelRef.current = null;
+    };
+  }, [
+    daysDirty,
+    draftDayConfigs,
+    draftWeekConfigs,
+    onDayConfigsChange,
+    onWeekConfigsChange,
+    open,
+    weeksDirty,
+  ]);
 
   const updateWeek = (index: number, update: Partial<WeekConfig>) => {
-    onWeekConfigsChange(
-      weekConfigs.map((week, i) =>
-        i === index ? { ...week, ...update } : week,
-      ),
+    setDraftWeekConfigs((prev) =>
+      prev.map((week, i) => (i === index ? { ...week, ...update } : week)),
     );
+    setWeeksDirty(true);
   };
 
   const moveWeek = (index: number, to: number) => {
-    if (to < 0 || to >= weekConfigs.length) return;
-    const copy = [...weekConfigs];
+    if (to < 0 || to >= draftWeekConfigs.length) return;
+    const keyCopy = [...weekUiKeysRef.current];
+    const [movedKey] = keyCopy.splice(index, 1);
+    if (movedKey) {
+      keyCopy.splice(to, 0, movedKey);
+      weekUiKeysRef.current = keyCopy;
+    }
+    const copy = [...draftWeekConfigs];
     const [item] = copy.splice(index, 1);
     copy.splice(to, 0, item);
-    onWeekConfigsChange(copy.map((week, i) => ({ ...week, id: i + 1 })));
+    setDraftWeekConfigs(copy.map((week, i) => ({ ...week, id: i + 1 })));
+    setWeeksDirty(true);
   };
 
   const addWeek = () => {
-    if (weekConfigs.length >= 4) return;
-    const nextId = weekConfigs.length + 1;
-    onWeekConfigsChange([
-      ...weekConfigs,
+    if (draftWeekConfigs.length >= 4) return;
+    weekUiKeysRef.current = [...weekUiKeysRef.current, createWeekUiKey()];
+    const nextId = draftWeekConfigs.length + 1;
+    setDraftWeekConfigs([
+      ...draftWeekConfigs,
       { id: nextId, name: `Week ${nextId}`, loadModifier: 1, rir: 2 },
     ]);
+    setWeeksDirty(true);
   };
 
   const removeWeek = (index: number) => {
-    if (weekConfigs.length <= 1) return;
-    const next = weekConfigs
+    if (draftWeekConfigs.length <= 1) return;
+    const keyCopy = [...weekUiKeysRef.current];
+    keyCopy.splice(index, 1);
+    weekUiKeysRef.current = keyCopy;
+    const next = draftWeekConfigs
       .filter((_, i) => i !== index)
       .map((week, i) => ({ ...week, id: i + 1 }));
-    onWeekConfigsChange(next);
+    setDraftWeekConfigs(next);
+    setWeeksDirty(true);
   };
 
   const updateDay = (index: number, update: Partial<DayConfig>) => {
-    onDayConfigsChange(
-      dayConfigs.map((day, i) => (i === index ? { ...day, ...update } : day)),
+    setDraftDayConfigs((prev) =>
+      prev.map((day, i) => (i === index ? { ...day, ...update } : day)),
     );
+    setDaysDirty(true);
   };
 
   const moveDay = (index: number, to: number) => {
-    if (to < 0 || to >= dayConfigs.length) return;
-    const copy = [...dayConfigs];
+    if (to < 0 || to >= draftDayConfigs.length) return;
+    const copy = [...draftDayConfigs];
     const [item] = copy.splice(index, 1);
     copy.splice(to, 0, item);
-    onDayConfigsChange(copy);
+    setDraftDayConfigs(copy);
+    setDaysDirty(true);
   };
 
   const addDay = () => {
-    if (dayConfigs.length >= 7) return;
+    if (draftDayConfigs.length >= 7) return;
     const id = `day-${Date.now().toString(36)}`;
-    onDayConfigsChange([
-      ...dayConfigs,
-      { id, name: `Day ${dayConfigs.length + 1}`, icon: 'FitnessCenter' },
+    setDraftDayConfigs([
+      ...draftDayConfigs,
+      { id, name: `Day ${draftDayConfigs.length + 1}`, icon: 'FitnessCenter' },
     ]);
+    setDaysDirty(true);
   };
 
   const removeDay = (index: number) => {
-    if (dayConfigs.length <= 1) return;
-    onDayConfigsChange(dayConfigs.filter((_, i) => i !== index));
+    if (draftDayConfigs.length <= 1) return;
+    setDraftDayConfigs(draftDayConfigs.filter((_, i) => i !== index));
+    setDaysDirty(true);
   };
 
   const atLimit =
-    activeTab === 'weeks' ? weekConfigs.length >= 4 : dayConfigs.length >= 7;
+    activeTab === 'weeks'
+      ? draftWeekConfigs.length >= 4
+      : draftDayConfigs.length >= 7;
+  const handleClose = () => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current);
+      autosaveTimerRef.current = null;
+    }
+    autosaveIdleCancelRef.current?.();
+    autosaveIdleCancelRef.current = null;
+    if (weeksDirty) {
+      onWeekConfigsChange(draftWeekConfigs);
+      setWeeksDirty(false);
+    }
+    if (daysDirty) {
+      onDayConfigsChange(draftDayConfigs);
+      setDaysDirty(false);
+    }
+    onClose();
+  };
 
   return (
     <AnimatedModalShell
       open={open}
-      onClose={onClose}
+      onClose={handleClose}
       containerStyle={styles.modalRoot}
       backdropStyle={styles.backdrop}
       sheetStyle={styles.sheet}
     >
       <View style={styles.header}>
         <Text style={styles.title}>Program Settings</Text>
-        <AnimatedPressable style={styles.closeButton} onPress={onClose}>
+        <AnimatedPressable style={styles.closeButton} onPress={handleClose}>
           <Feather name="x" size={18} color={tokens.colors.textSecondary} />
         </AnimatedPressable>
       </View>
@@ -151,14 +307,14 @@ export function ProgramSettingsModal({
         showsVerticalScrollIndicator={false}
       >
         {activeTab === 'weeks' &&
-          weekConfigs.map((week, index) => (
+          draftWeekConfigs.map((week, index) => (
             <Animated.View
-              key={week.id}
+              key={weekUiKeysRef.current[index] ?? `week-ui-fallback-${index}`}
               style={styles.card}
               layout={LinearTransition.reduceMotion(ReduceMotion.System)}
-              entering={FadeInDown.delay(Math.min(index * 24, 160))
-                .duration(MOTION.duration.base)
-                .reduceMotion(ReduceMotion.System)}
+              entering={FadeInDown.duration(MOTION.duration.fast).reduceMotion(
+                ReduceMotion.System,
+              )}
               exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
                 ReduceMotion.System,
               )}
@@ -172,6 +328,7 @@ export function ProgramSettingsModal({
                       styles.rowButtonArrow,
                       index === 0 && styles.rowButtonDisabled,
                     ]}
+                    hitSlop={8}
                     disabled={index === 0}
                     onPress={() => moveWeek(index, index - 1)}
                   >
@@ -189,17 +346,18 @@ export function ProgramSettingsModal({
                     style={[
                       styles.rowButton,
                       styles.rowButtonArrow,
-                      index === weekConfigs.length - 1 &&
+                      index === draftWeekConfigs.length - 1 &&
                         styles.rowButtonDisabled,
                     ]}
-                    disabled={index === weekConfigs.length - 1}
+                    hitSlop={8}
+                    disabled={index === draftWeekConfigs.length - 1}
                     onPress={() => moveWeek(index, index + 1)}
                   >
                     <Feather
                       name="chevron-down"
                       size={14}
                       color={
-                        index === weekConfigs.length - 1
+                        index === draftWeekConfigs.length - 1
                           ? tokens.colors.textMuted
                           : tokens.colors.textSecondary
                       }
@@ -209,9 +367,10 @@ export function ProgramSettingsModal({
                     style={[
                       styles.rowButton,
                       styles.rowButtonDelete,
-                      weekConfigs.length <= 1 && styles.rowButtonDisabled,
+                      draftWeekConfigs.length <= 1 && styles.rowButtonDisabled,
                     ]}
-                    disabled={weekConfigs.length <= 1}
+                    hitSlop={8}
+                    disabled={draftWeekConfigs.length <= 1}
                     onPress={() => removeWeek(index)}
                   >
                     <MaterialCommunityIcons
@@ -265,14 +424,14 @@ export function ProgramSettingsModal({
           ))}
 
         {activeTab === 'days' &&
-          dayConfigs.map((day, index) => (
+          draftDayConfigs.map((day, index) => (
             <Animated.View
               key={day.id}
               style={styles.card}
               layout={LinearTransition.reduceMotion(ReduceMotion.System)}
-              entering={FadeInDown.delay(Math.min(index * 24, 160))
-                .duration(MOTION.duration.base)
-                .reduceMotion(ReduceMotion.System)}
+              entering={FadeInDown.duration(MOTION.duration.fast).reduceMotion(
+                ReduceMotion.System,
+              )}
               exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
                 ReduceMotion.System,
               )}
@@ -286,6 +445,7 @@ export function ProgramSettingsModal({
                       styles.rowButtonArrow,
                       index === 0 && styles.rowButtonDisabled,
                     ]}
+                    hitSlop={8}
                     disabled={index === 0}
                     onPress={() => moveDay(index, index - 1)}
                   >
@@ -303,17 +463,18 @@ export function ProgramSettingsModal({
                     style={[
                       styles.rowButton,
                       styles.rowButtonArrow,
-                      index === dayConfigs.length - 1 &&
+                      index === draftDayConfigs.length - 1 &&
                         styles.rowButtonDisabled,
                     ]}
-                    disabled={index === dayConfigs.length - 1}
+                    hitSlop={8}
+                    disabled={index === draftDayConfigs.length - 1}
                     onPress={() => moveDay(index, index + 1)}
                   >
                     <Feather
                       name="chevron-down"
                       size={14}
                       color={
-                        index === dayConfigs.length - 1
+                        index === draftDayConfigs.length - 1
                           ? tokens.colors.textMuted
                           : tokens.colors.textSecondary
                       }
@@ -323,9 +484,10 @@ export function ProgramSettingsModal({
                     style={[
                       styles.rowButton,
                       styles.rowButtonDelete,
-                      dayConfigs.length <= 1 && styles.rowButtonDisabled,
+                      draftDayConfigs.length <= 1 && styles.rowButtonDisabled,
                     ]}
-                    disabled={dayConfigs.length <= 1}
+                    hitSlop={8}
+                    disabled={draftDayConfigs.length <= 1}
                     onPress={() => removeDay(index)}
                   >
                     <MaterialCommunityIcons
@@ -360,6 +522,7 @@ export function ProgramSettingsModal({
                         styles.iconOption,
                         active && styles.iconOptionActive,
                       ]}
+                      hitSlop={8}
                       onPress={() => updateDay(index, { icon: option })}
                     >
                       <Feather
@@ -490,9 +653,9 @@ function createStyles(tokens: ThemeTokens) {
       gap: tokens.spacing.xs,
     },
     rowButton: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       justifyContent: 'center',
       alignItems: 'center',
     },
@@ -542,8 +705,8 @@ function createStyles(tokens: ThemeTokens) {
       paddingRight: tokens.spacing.xs,
     },
     iconOption: {
-      width: 36,
-      height: 36,
+      width: 44,
+      height: 44,
       borderRadius: tokens.radius.sm,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,

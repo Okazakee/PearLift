@@ -337,6 +337,44 @@ export class WorkoutRepository {
             );
             break;
           }
+          case 'adjustExerciseWeight': {
+            const existingWeight = await db.getFirstAsync<{ value: number }>(
+              'SELECT value FROM user_weights WHERE exercise_id = ?',
+              mutation.exerciseId,
+            );
+            const exerciseBase = await db.getFirstAsync<{
+              base_weight: number;
+            }>(
+              'SELECT base_weight FROM exercises WHERE id = ? AND deleted_at IS NULL',
+              mutation.exerciseId,
+            );
+            const currentWeight =
+              existingWeight?.value ?? exerciseBase?.base_weight ?? 0;
+            const nextWeight = Math.max(
+              0,
+              roundToHalf(currentWeight + mutation.delta),
+            );
+            const timestamp = nowIso();
+            await db.runAsync(
+              `INSERT INTO user_weights (exercise_id, value, updated_at)
+             VALUES (?, ?, ?)
+             ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+              mutation.exerciseId,
+              nextWeight,
+              timestamp,
+            );
+            await this.recordMutation(
+              db,
+              'weight',
+              mutation.exerciseId,
+              'upsert',
+              {
+                delta: mutation.delta,
+                value: nextWeight,
+              },
+            );
+            break;
+          }
           case 'addExercise': {
             const existing = await this.getExercisesForWorkout(
               db,

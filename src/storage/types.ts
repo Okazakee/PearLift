@@ -63,6 +63,7 @@ export type WorkoutMutation =
   | { type: 'setCurrentDay'; currentDay: WorkoutDay }
   | { type: 'setRestDuration'; restDuration: number }
   | { type: 'setExerciseWeight'; exerciseId: string; value: number }
+  | { type: 'adjustExerciseWeight'; exerciseId: string; delta: number }
   | {
       type: 'addExercise';
       workoutId: WorkoutDay;
