@@ -30,9 +30,6 @@
       ],
       "predictiveBackGestureEnabled": false
     },
-    "web": {
-      "favicon": "./assets/pearlift_icon.png"
-    },
     "plugins": [
       "expo-sharing",
       [

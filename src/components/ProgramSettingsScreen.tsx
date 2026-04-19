@@ -5,6 +5,7 @@ import DraggableFlatList, {
   type RenderItemParams,
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, {
   FadeInDown,
   FadeOutUp,
@@ -49,10 +50,11 @@ export function ProgramSettingsScreen({
 }: ProgramSettingsScreenProps) {
   const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
   const [draftWeeks, setDraftWeeks] = useState<WeekDraft[]>([]);
-  const [draftDayConfigs, setDraftDayConfigs] = useState<DayConfig[]>([]);
+  const [draftDays, setDraftDays] = useState<DayConfig[]>([]);
   const weekUiKeyCounterRef = useRef(0);
   const dayIdCounterRef = useRef(0);
   const wasOpenRef = useRef(false);
+
   const styles = useMemo(
     () => createStyles(tokens, topInset, bottomInset),
     [tokens, topInset, bottomInset],
@@ -66,11 +68,11 @@ export function ProgramSettingsScreen({
 
   const toWeekConfigs = useCallback(
     (weeks: WeekDraft[]): WeekConfig[] =>
-      weeks.map((week, index) => ({
-        id: index + 1,
-        name: week.name,
-        loadModifier: week.loadModifier,
-        rir: week.rir,
+      weeks.map((w, i) => ({
+        id: i + 1,
+        name: w.name,
+        loadModifier: w.loadModifier,
+        rir: w.rir,
       })),
     [],
   );
@@ -80,27 +82,25 @@ export function ProgramSettingsScreen({
       wasOpenRef.current = false;
       return;
     }
-    if (wasOpenRef.current) {
-      return;
-    }
+    if (wasOpenRef.current) return;
     wasOpenRef.current = true;
     weekUiKeyCounterRef.current = 0;
     dayIdCounterRef.current = 0;
     setDraftWeeks(
-      weekConfigs.map((week, index) => ({
-        ...week,
-        id: index + 1,
+      weekConfigs.map((w, i) => ({
+        ...w,
+        id: i + 1,
         uiKey: createWeekUiKey(),
       })),
     );
-    setDraftDayConfigs(dayConfigs);
+    setDraftDays(dayConfigs);
   }, [createWeekUiKey, dayConfigs, open, weekConfigs]);
 
   const updateWeek = useCallback(
     (uiKey: string, update: Partial<WeekConfig>) => {
       setDraftWeeks((prev) => {
-        const next = prev.map((week) =>
-          week.uiKey === uiKey ? { ...week, ...update } : week,
+        const next = prev.map((w) =>
+          w.uiKey === uiKey ? { ...w, ...update } : w,
         );
         onWeekConfigsChange(toWeekConfigs(next));
         return next;
@@ -113,7 +113,7 @@ export function ProgramSettingsScreen({
     setDraftWeeks((prev) => {
       if (prev.length >= MAX_WEEKS) return prev;
       const nextId = prev.length + 1;
-      const next = [
+      const next: WeekDraft[] = [
         ...prev,
         {
           id: nextId,
@@ -133,8 +133,8 @@ export function ProgramSettingsScreen({
       setDraftWeeks((prev) => {
         if (prev.length <= 1) return prev;
         const next = prev
-          .filter((week) => week.uiKey !== uiKey)
-          .map((week, index) => ({ ...week, id: index + 1 }));
+          .filter((w) => w.uiKey !== uiKey)
+          .map((w, i) => ({ ...w, id: i + 1 }));
         onWeekConfigsChange(toWeekConfigs(next));
         return next;
       });
@@ -144,10 +144,8 @@ export function ProgramSettingsScreen({
 
   const updateDay = useCallback(
     (id: string, update: Partial<DayConfig>) => {
-      setDraftDayConfigs((prev) => {
-        const next = prev.map((day) =>
-          day.id === id ? { ...day, ...update } : day,
-        );
+      setDraftDays((prev) => {
+        const next = prev.map((d) => (d.id === id ? { ...d, ...update } : d));
         onDayConfigsChange(next);
         return next;
       });
@@ -156,12 +154,11 @@ export function ProgramSettingsScreen({
   );
 
   const addDay = useCallback(() => {
-    setDraftDayConfigs((prev) => {
+    setDraftDays((prev) => {
       if (prev.length >= MAX_DAYS) return prev;
-      // Avoid `Date.now()` collisions when tapping quickly.
       const id = `day-${Date.now().toString(36)}-${dayIdCounterRef.current}`;
       dayIdCounterRef.current += 1;
-      const next = [
+      const next: DayConfig[] = [
         ...prev,
         { id, name: `Day ${prev.length + 1}`, icon: 'FitnessCenter' },
       ];
@@ -172,7 +169,7 @@ export function ProgramSettingsScreen({
 
   const removeDay = useCallback(
     (index: number) => {
-      setDraftDayConfigs((prev) => {
+      setDraftDays((prev) => {
         if (prev.length <= 1) return prev;
         const next = prev.filter((_, i) => i !== index);
         onDayConfigsChange(next);
@@ -181,11 +178,6 @@ export function ProgramSettingsScreen({
     },
     [onDayConfigsChange],
   );
-
-  const atLimit =
-    activeTab === 'weeks'
-      ? draftWeeks.length >= MAX_WEEKS
-      : draftDayConfigs.length >= MAX_DAYS;
 
   return (
     <AnimatedScreenModal open={open} onClose={onClose}>
@@ -239,7 +231,7 @@ export function ProgramSettingsScreen({
               </AnimatedPressable>
             </View>
 
-            <View style={styles.listWrap}>
+            <GestureHandlerRootView style={styles.listWrap}>
               {activeTab === 'weeks' ? (
                 <DraggableFlatList
                   data={draftWeeks}
@@ -249,18 +241,27 @@ export function ProgramSettingsScreen({
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.listContent}
-                  ListEmptyComponent={
-                    <Text style={styles.emptyText}>No weeks to edit.</Text>
-                  }
                   activationDistance={12}
                   onDragEnd={({ data }) => {
-                    const reordered = data.map((week, index) => ({
-                      ...week,
-                      id: index + 1,
-                    }));
+                    const reordered = data.map((w, i) => ({ ...w, id: i + 1 }));
                     setDraftWeeks(reordered);
                     onWeekConfigsChange(toWeekConfigs(reordered));
                   }}
+                  ListFooterComponent={
+                    draftWeeks.length < MAX_WEEKS ? (
+                      <AnimatedPressable
+                        style={styles.ghostCard}
+                        onPress={addWeek}
+                      >
+                        <Feather
+                          name="plus"
+                          size={16}
+                          color={withAlpha(tokens.colors.primary, 0.7)}
+                        />
+                        <Text style={styles.ghostCardText}>Add Week</Text>
+                      </AnimatedPressable>
+                    ) : null
+                  }
                   renderItem={({
                     item: week,
                     getIndex,
@@ -287,31 +288,28 @@ export function ProgramSettingsScreen({
                             pressScale={1}
                             onLongPress={drag}
                             delayLongPress={160}
-                            disabled={!drag}
                           >
                             <View style={styles.cardHeader}>
                               <Text style={styles.cardTitle}>
                                 Week {index + 1}
                               </Text>
-                              <View style={styles.rowActions}>
-                                <AnimatedPressable
-                                  style={[
-                                    styles.rowButton,
-                                    styles.rowButtonDelete,
-                                    draftWeeks.length <= 1 &&
-                                      styles.rowButtonDisabled,
-                                  ]}
-                                  hitSlop={8}
-                                  disabled={draftWeeks.length <= 1}
-                                  onPress={() => removeWeek(week.uiKey)}
-                                >
-                                  <MaterialCommunityIcons
-                                    name="trash-can-outline"
-                                    size={16}
-                                    color={tokens.colors.accentDanger}
-                                  />
-                                </AnimatedPressable>
-                              </View>
+                              <AnimatedPressable
+                                style={[
+                                  styles.rowButton,
+                                  styles.rowButtonDelete,
+                                  draftWeeks.length <= 1 &&
+                                    styles.rowButtonDisabled,
+                                ]}
+                                hitSlop={8}
+                                disabled={draftWeeks.length <= 1}
+                                onPress={() => removeWeek(week.uiKey)}
+                              >
+                                <MaterialCommunityIcons
+                                  name="trash-can-outline"
+                                  size={16}
+                                  color={tokens.colors.accentDanger}
+                                />
+                              </AnimatedPressable>
                             </View>
 
                             <View style={styles.weekInputRow}>
@@ -366,21 +364,33 @@ export function ProgramSettingsScreen({
                 />
               ) : (
                 <DraggableFlatList
-                  data={draftDayConfigs}
+                  data={draftDays}
                   keyExtractor={(item) => item.id}
                   style={styles.list}
                   containerStyle={styles.listContainer}
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.listContent}
-                  ListEmptyComponent={
-                    <Text style={styles.emptyText}>No days to edit.</Text>
-                  }
                   activationDistance={12}
                   onDragEnd={({ data }) => {
-                    setDraftDayConfigs(data);
+                    setDraftDays(data);
                     onDayConfigsChange(data);
                   }}
+                  ListFooterComponent={
+                    draftDays.length < MAX_DAYS ? (
+                      <AnimatedPressable
+                        style={styles.ghostCard}
+                        onPress={addDay}
+                      >
+                        <Feather
+                          name="plus"
+                          size={16}
+                          color={withAlpha(tokens.colors.primary, 0.7)}
+                        />
+                        <Text style={styles.ghostCardText}>Add Day</Text>
+                      </AnimatedPressable>
+                    ) : null
+                  }
                   renderItem={({
                     item: day,
                     getIndex,
@@ -407,31 +417,28 @@ export function ProgramSettingsScreen({
                             pressScale={1}
                             onLongPress={drag}
                             delayLongPress={160}
-                            disabled={!drag}
                           >
                             <View style={styles.cardHeader}>
                               <Text style={styles.cardTitle}>
                                 Day {index + 1}
                               </Text>
-                              <View style={styles.rowActions}>
-                                <AnimatedPressable
-                                  style={[
-                                    styles.rowButton,
-                                    styles.rowButtonDelete,
-                                    draftDayConfigs.length <= 1 &&
-                                      styles.rowButtonDisabled,
-                                  ]}
-                                  hitSlop={8}
-                                  disabled={draftDayConfigs.length <= 1}
-                                  onPress={() => removeDay(index)}
-                                >
-                                  <MaterialCommunityIcons
-                                    name="trash-can-outline"
-                                    size={16}
-                                    color={tokens.colors.accentDanger}
-                                  />
-                                </AnimatedPressable>
-                              </View>
+                              <AnimatedPressable
+                                style={[
+                                  styles.rowButton,
+                                  styles.rowButtonDelete,
+                                  draftDays.length <= 1 &&
+                                    styles.rowButtonDisabled,
+                                ]}
+                                hitSlop={8}
+                                disabled={draftDays.length <= 1}
+                                onPress={() => removeDay(index)}
+                              >
+                                <MaterialCommunityIcons
+                                  name="trash-can-outline"
+                                  size={16}
+                                  color={tokens.colors.accentDanger}
+                                />
+                              </AnimatedPressable>
                             </View>
 
                             <TextInput
@@ -443,6 +450,7 @@ export function ProgramSettingsScreen({
                               placeholder="Day name"
                               placeholderTextColor={tokens.colors.textMuted}
                             />
+
                             <ScrollView
                               horizontal
                               showsHorizontalScrollIndicator={false}
@@ -459,7 +467,7 @@ export function ProgramSettingsScreen({
                                       styles.iconOption,
                                       active && styles.iconOptionActive,
                                     ]}
-                                    hitSlop={8}
+                                    hitSlop={4}
                                     onPress={() =>
                                       updateDay(day.id, { icon: option })
                                     }
@@ -484,22 +492,8 @@ export function ProgramSettingsScreen({
                   }}
                 />
               )}
-            </View>
+            </GestureHandlerRootView>
           </View>
-          <AnimatedPressable
-            style={[styles.addButton, atLimit && styles.addButtonDisabled]}
-            onPress={activeTab === 'weeks' ? addWeek : addDay}
-            disabled={atLimit}
-          >
-            <Text
-              style={[
-                styles.addButtonText,
-                atLimit && styles.addButtonTextDisabled,
-              ]}
-            >
-              {activeTab === 'weeks' ? 'Add Week' : 'Add Day'}
-            </Text>
-          </AnimatedPressable>
         </View>
       </View>
     </AnimatedScreenModal>
@@ -541,7 +535,7 @@ function createStyles(
     title: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.subtitle,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
     },
     content: {
       flex: 1,
@@ -550,7 +544,6 @@ function createStyles(
     },
     listSection: {
       flex: 1,
-      minHeight: 0,
       borderRadius: tokens.radius.lg,
       backgroundColor: tokens.colors.surfaceContainer,
       padding: tokens.spacing.md,
@@ -575,7 +568,7 @@ function createStyles(
     },
     tabText: {
       color: tokens.colors.textSecondary,
-      fontWeight: '700',
+      fontFamily: 'SpaceGrotesk_700Bold',
       fontSize: tokens.type.body,
     },
     tabTextActive: {
@@ -584,26 +577,18 @@ function createStyles(
     listWrap: {
       flex: 1,
       minHeight: 0,
-      marginTop: tokens.spacing.xs,
-      zIndex: 0,
+      overflow: 'hidden',
     },
     list: {
       flex: 1,
     },
     listContainer: {
-      alignSelf: 'stretch',
-      flexGrow: 1,
+      flex: 1,
     },
     listContent: {
       gap: tokens.spacing.md,
       paddingTop: tokens.spacing.sm,
-      paddingBottom: tokens.spacing.xl * 2,
-    },
-    emptyText: {
-      color: tokens.colors.textSecondary,
-      textAlign: 'center',
-      paddingVertical: tokens.spacing.lg,
-      fontWeight: '600',
+      paddingBottom: tokens.spacing.sm,
     },
     card: {
       borderRadius: tokens.radius.lg,
@@ -628,10 +613,6 @@ function createStyles(
       color: tokens.colors.textPrimary,
       fontFamily: 'SpaceGrotesk_700Bold',
       fontSize: tokens.type.body,
-    },
-    rowActions: {
-      flexDirection: 'row',
-      gap: tokens.spacing.xs,
     },
     rowButton: {
       width: 44,
@@ -691,33 +672,24 @@ function createStyles(
       borderColor: tokens.colors.primary,
       backgroundColor: withAlpha(tokens.colors.primary, 0.15),
     },
-    addButton: {
-      width: '100%',
-      borderRadius: tokens.radius.md,
-      backgroundColor: tokens.colors.primary,
-      minHeight: 48,
+    ghostCard: {
+      borderRadius: tokens.radius.lg,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.35),
+      borderStyle: 'dashed',
+      backgroundColor: withAlpha(tokens.colors.primary, 0.06),
+      minHeight: 52,
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
+      gap: tokens.spacing.xs,
       paddingHorizontal: tokens.spacing.md,
       paddingVertical: tokens.spacing.sm,
-      marginTop: 12,
     },
-    addButtonDisabled: {
-      backgroundColor: withAlpha(tokens.colors.primary, 0.3),
-    },
-    addButtonText: {
-      color: tokens.colors.onPrimary,
+    ghostCardText: {
+      color: withAlpha(tokens.colors.primary, 0.7),
+      fontFamily: 'SpaceGrotesk_600SemiBold',
       fontSize: tokens.type.body,
-      fontWeight: '700',
-    },
-    addButtonTextDisabled: {
-      color: withAlpha(tokens.colors.onPrimary, 0.72),
-    },
-    addSection: {
-      flexShrink: 0,
-      borderRadius: tokens.radius.lg,
-      backgroundColor: tokens.colors.surfaceContainer,
-      padding: tokens.spacing.md,
     },
   });
 }

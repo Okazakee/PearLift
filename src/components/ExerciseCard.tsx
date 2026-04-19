@@ -299,7 +299,7 @@ function createStyles(tokens: ThemeTokens) {
       backgroundColor: tokens.colors.bgElevated,
     },
     repChipText: {
-      color: tokens.colors.secondary,
+      color: tokens.colors.textSecondary,
       fontSize: tokens.type.label,
       fontWeight: '600',
     },
