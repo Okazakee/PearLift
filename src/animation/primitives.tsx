@@ -73,7 +73,7 @@ export function AnimatedSlideInView({
         motionEnabled
           ? SlideInDown.duration(MOTION.duration.base)
               .delay(delay)
-              .springify()
+              .easing(MOTION.easing.emphasized)
               .reduceMotion(ReduceMotion.System)
           : undefined
       }

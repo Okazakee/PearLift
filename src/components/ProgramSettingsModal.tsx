@@ -312,9 +312,9 @@ export function ProgramSettingsModal({
               key={weekUiKeysRef.current[index] ?? `week-ui-fallback-${index}`}
               style={styles.card}
               layout={LinearTransition.reduceMotion(ReduceMotion.System)}
-              entering={FadeInDown.duration(MOTION.duration.fast).reduceMotion(
-                ReduceMotion.System,
-              )}
+              entering={FadeInDown.duration(MOTION.duration.fast)
+                .delay(index * 40)
+                .reduceMotion(ReduceMotion.System)}
               exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
                 ReduceMotion.System,
               )}
@@ -429,9 +429,9 @@ export function ProgramSettingsModal({
               key={day.id}
               style={styles.card}
               layout={LinearTransition.reduceMotion(ReduceMotion.System)}
-              entering={FadeInDown.duration(MOTION.duration.fast).reduceMotion(
-                ReduceMotion.System,
-              )}
+              entering={FadeInDown.duration(MOTION.duration.fast)
+                .delay(index * 40)
+                .reduceMotion(ReduceMotion.System)}
               exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
                 ReduceMotion.System,
               )}
@@ -669,7 +669,6 @@ function createStyles(tokens: ThemeTokens) {
       opacity: 0.5,
     },
     input: {
-      flex: 1,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
       borderRadius: tokens.radius.sm,

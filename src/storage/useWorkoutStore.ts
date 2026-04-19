@@ -1,18 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
-import { SyncCoordinator } from '../sync/syncCoordinator';
+import { roundToHalf } from '../utils/math';
 import type { WorkoutMutation, WorkoutStoreSnapshot } from './types';
 import type { WorkoutRepository } from './workoutRepository';
 
 interface UseWorkoutStoreResult {
   snapshot: WorkoutStoreSnapshot | null;
-  syncCoordinator: SyncCoordinator | null;
   isReady: boolean;
   reload: () => Promise<void>;
   applyMutation: (mutation: WorkoutMutation) => Promise<void>;
-}
-
-function roundToHalf(value: number) {
-  return Math.round(value * 2) / 2;
 }
 
 function shouldSkipSnapshotReload(mutation: WorkoutMutation) {
@@ -209,8 +204,6 @@ export function useWorkoutStore(
   repository: WorkoutRepository | null,
 ): UseWorkoutStoreResult {
   const [snapshot, setSnapshot] = useState<WorkoutStoreSnapshot | null>(null);
-  const [syncCoordinator, setSyncCoordinator] =
-    useState<SyncCoordinator | null>(null);
   const [isReady, setIsReady] = useState(false);
 
   const reload = useCallback(async () => {
@@ -229,7 +222,6 @@ export function useWorkoutStore(
         return;
       }
       setIsReady(false);
-      setSyncCoordinator(new SyncCoordinator(repository));
       await repository.initialize();
       const next = await repository.getSnapshot();
       if (cancelled) {
@@ -284,7 +276,6 @@ export function useWorkoutStore(
 
   return {
     snapshot,
-    syncCoordinator,
     isReady,
     reload,
     applyMutation,

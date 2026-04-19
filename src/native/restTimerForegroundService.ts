@@ -19,11 +19,6 @@ export const RestTimerForegroundService = {
     if (!native) return Promise.resolve();
     return native.start(endAtMs, startedDurationSec);
   },
-  pause() {
-    const native = getNative();
-    if (!native) return Promise.resolve();
-    return native.pause();
-  },
   stop() {
     const native = getNative();
     if (!native) return Promise.resolve();

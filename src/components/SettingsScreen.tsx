@@ -20,7 +20,6 @@ interface SettingsScreenProps {
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
-  onOpenSyncSetup: () => void;
 }
 
 export function SettingsScreen({
@@ -38,7 +37,6 @@ export function SettingsScreen({
   onClose,
   onResetData,
   onOpenGithub,
-  onOpenSyncSetup,
 }: SettingsScreenProps) {
   const styles = createStyles(tokens, topInset, bottomInset);
   const themeSubtitle =
@@ -138,11 +136,12 @@ export function SettingsScreen({
               <Text style={styles.sectionTitle}>Sync & Backup</Text>
             </View>
             <Text style={styles.rowSubtitle}>
-              Review setup mode, relay backup preference, and recovery flow.
+              Device-to-device sync is coming soon.
             </Text>
             <AnimatedPressable
-              style={styles.githubButton}
-              onPress={onOpenSyncSetup}
+              style={[styles.githubButton, styles.disabledButton]}
+              onPress={() => {}}
+              disabled
             >
               <Feather
                 name="sliders"
@@ -429,6 +428,9 @@ function createStyles(
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.body,
       fontWeight: '700',
+    },
+    disabledButton: {
+      opacity: 0.55,
     },
     resetButton: {
       marginTop: tokens.spacing.xs,

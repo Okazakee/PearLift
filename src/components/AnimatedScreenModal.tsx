@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import {
   Modal,
   type StyleProp,
@@ -17,7 +17,6 @@ interface AnimatedScreenModalProps {
 }
 
 const UNMOUNT_DELAY_MS = MOTION.duration.base;
-const CONTENT_MOUNT_DELAY_MS = 24;
 
 export function AnimatedScreenModal({
   open,
@@ -27,40 +26,23 @@ export function AnimatedScreenModal({
 }: AnimatedScreenModalProps) {
   const [modalVisible, setModalVisible] = useState(open);
   const [contentVisible, setContentVisible] = useState(open);
-  const [childrenMounted, setChildrenMounted] = useState(open);
-  const mountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (mountTimerRef.current) {
-      clearTimeout(mountTimerRef.current);
-      mountTimerRef.current = null;
-    }
     if (open) {
       setModalVisible(true);
       setContentVisible(true);
-      mountTimerRef.current = setTimeout(() => {
-        mountTimerRef.current = null;
-        setChildrenMounted(true);
-      }, CONTENT_MOUNT_DELAY_MS);
       return;
     }
+
     setContentVisible(false);
     const timer = setTimeout(() => {
-      setChildrenMounted(false);
       setModalVisible(false);
     }, UNMOUNT_DELAY_MS);
+
     return () => {
       clearTimeout(timer);
     };
   }, [open]);
-
-  useEffect(() => {
-    return () => {
-      if (mountTimerRef.current) {
-        clearTimeout(mountTimerRef.current);
-      }
-    };
-  }, []);
 
   return (
     <Modal
@@ -72,7 +54,7 @@ export function AnimatedScreenModal({
       <View style={styles.root}>
         {contentVisible ? (
           <AnimatedSlideInRightView style={[styles.screen, style]}>
-            {childrenMounted ? children : <View style={styles.warmup} />}
+            {children}
           </AnimatedSlideInRightView>
         ) : null}
       </View>
@@ -85,9 +67,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   screen: {
-    flex: 1,
-  },
-  warmup: {
     flex: 1,
   },
 });

@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Crypto from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   LOCAL_STATE_STORAGE_KEY,
@@ -18,31 +17,9 @@ import type {
   UserWeights,
   WorkoutSession,
 } from '../types';
+import { roundToHalf } from '../utils/math';
 import { getDatabase } from './database';
-import type {
-  AppSetupState,
-  SyncCheckpoint,
-  SyncEntityType,
-  SyncLogEntry,
-  SyncMode,
-  SyncOperation,
-  WorkoutMutation,
-  WorkoutStoreSnapshot,
-} from './types';
-
-const METADATA_KEYS = {
-  localRevision: 'local_revision',
-  lastBackupRevision: 'last_backup_revision',
-  lastBackupAt: 'last_backup_at',
-  lastBackupEventId: 'last_backup_event_id',
-  lastRestoreAt: 'last_restore_at',
-  setupCompleted: 'setup_completed',
-  setupSyncMode: 'setup_sync_mode',
-  setupIdentityProvisionedAt: 'setup_identity_provisioned_at',
-  setupSeenRecoveryOptions: 'setup_seen_recovery_options',
-  setupCompletedAt: 'setup_completed_at',
-  setupRecoverySource: 'setup_recovery_source',
-} as const;
+import type { WorkoutMutation, WorkoutStoreSnapshot } from './types';
 
 function cloneDefaultWorkouts() {
   return JSON.parse(JSON.stringify(defaultWorkouts)) as WorkoutSession[];
@@ -74,14 +51,6 @@ function createExerciseId(name: string) {
   return `${slug || 'exercise'}-${Date.now().toString(36)}`;
 }
 
-function roundToHalf(value: number) {
-  return Math.round(value * 2) / 2;
-}
-
-function serializePayload(payload: unknown) {
-  return JSON.stringify(payload);
-}
-
 function parseNumber(value: string | null | undefined, fallback: number) {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : fallback;
@@ -94,22 +63,6 @@ function coerceThemeMode(
     return value;
   }
   return 'system';
-}
-
-function coerceSyncMode(value: string | null | undefined): SyncMode {
-  if (value === 'd2d-sync') {
-    return value;
-  }
-  return 'local-only';
-}
-
-function coerceRecoverySource(
-  value: string | null | undefined,
-): AppSetupState['recoverySource'] {
-  if (value === 'start-fresh' || value === 'local-import') {
-    return value;
-  }
-  return null;
 }
 
 function normalizeDayConfigs(
@@ -207,17 +160,10 @@ type AppSettingRow = {
   value: string;
 };
 
-type SyncMetadataRow = {
-  key: string;
-  value: string;
-};
-
 export class WorkoutRepository {
   private initialized = false;
   private initPromise: Promise<void> | null = null;
   private writeQueue: Promise<void> = Promise.resolve();
-
-  constructor(private readonly deviceId: string) {}
 
   private enqueueWrite<T>(fn: () => Promise<T>): Promise<T> {
     // expo-sqlite uses a single native connection; overlapping transactions can fail with:
@@ -260,12 +206,28 @@ export class WorkoutRepository {
   async getSnapshot(): Promise<WorkoutStoreSnapshot> {
     await this.initialize();
     const runtime = await this.readRuntimeState();
-    const checkpoint = await this.getCheckpoint();
+    const isSetupDone = await this.isSetupDone();
     return {
       ...runtime,
-      checkpoint,
+      isSetupDone,
       isHydrating: false,
     };
+  }
+
+  async isSetupDone(): Promise<boolean> {
+    const db = await getDatabase();
+    const row = await db.getFirstAsync<{ value: string }>(
+      "SELECT value FROM app_settings WHERE key = 'setupDone'",
+    );
+    return row?.value === 'true';
+  }
+
+  async markSetupDone(): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.writeSetting(db, 'setupDone', 'true');
+    });
   }
 
   async getRuntimeState(): Promise<PearLiftRuntimeState> {
@@ -282,9 +244,6 @@ export class WorkoutRepository {
         switch (mutation.type) {
           case 'setThemeMode': {
             await this.writeSetting(db, 'themeMode', mutation.themeMode);
-            await this.recordMutation(db, 'setting', 'themeMode', 'upsert', {
-              themeMode: mutation.themeMode,
-            });
             break;
           }
           case 'setCurrentWeek': {
@@ -293,16 +252,10 @@ export class WorkoutRepository {
               'currentWeek',
               String(Math.max(1, mutation.currentWeek)),
             );
-            await this.recordMutation(db, 'setting', 'currentWeek', 'upsert', {
-              currentWeek: Math.max(1, mutation.currentWeek),
-            });
             break;
           }
           case 'setCurrentDay': {
             await this.writeSetting(db, 'currentDay', mutation.currentDay);
-            await this.recordMutation(db, 'setting', 'currentDay', 'upsert', {
-              currentDay: mutation.currentDay,
-            });
             break;
           }
           case 'setRestDuration': {
@@ -311,9 +264,6 @@ export class WorkoutRepository {
               'restDuration',
               String(Math.max(0, mutation.restDuration)),
             );
-            await this.recordMutation(db, 'setting', 'restDuration', 'upsert', {
-              restDuration: Math.max(0, mutation.restDuration),
-            });
             break;
           }
           case 'setExerciseWeight': {
@@ -325,15 +275,6 @@ export class WorkoutRepository {
               mutation.exerciseId,
               Math.max(0, roundToHalf(mutation.value)),
               timestamp,
-            );
-            await this.recordMutation(
-              db,
-              'weight',
-              mutation.exerciseId,
-              'upsert',
-              {
-                value: Math.max(0, roundToHalf(mutation.value)),
-              },
             );
             break;
           }
@@ -362,16 +303,6 @@ export class WorkoutRepository {
               mutation.exerciseId,
               nextWeight,
               timestamp,
-            );
-            await this.recordMutation(
-              db,
-              'weight',
-              mutation.exerciseId,
-              'upsert',
-              {
-                delta: mutation.delta,
-                value: nextWeight,
-              },
             );
             break;
           }
@@ -410,15 +341,6 @@ export class WorkoutRepository {
               0,
               timestamp,
             );
-            await this.recordMutation(db, 'exercise', exerciseId, 'upsert', {
-              workoutId: mutation.workoutId,
-              exercise: {
-                ...mutation.exercise,
-                id: exerciseId,
-                baseWeight: 0,
-                position: nextPosition,
-              },
-            });
             break;
           }
           case 'editExercise': {
@@ -456,16 +378,6 @@ export class WorkoutRepository {
               timestamp,
               mutation.exerciseId,
             );
-            await this.recordMutation(
-              db,
-              'exercise',
-              mutation.exerciseId,
-              'upsert',
-              {
-                workoutId: mutation.workoutId,
-                updates: mutation.updates,
-              },
-            );
             break;
           }
           case 'deleteExercise': {
@@ -481,15 +393,6 @@ export class WorkoutRepository {
               mutation.exerciseId,
             );
             await this.reindexExercises(db, mutation.workoutId);
-            await this.recordMutation(
-              db,
-              'exercise',
-              mutation.exerciseId,
-              'delete',
-              {
-                workoutId: mutation.workoutId,
-              },
-            );
             break;
           }
           case 'reorderExercise': {
@@ -520,16 +423,6 @@ export class WorkoutRepository {
                 exercise.id,
               );
             }
-            await this.recordMutation(
-              db,
-              'exercise',
-              mutation.exerciseId,
-              'reorder',
-              {
-                workoutId: mutation.workoutId,
-                direction: mutation.direction,
-              },
-            );
             break;
           }
           case 'replaceWeekConfigs': {
@@ -547,12 +440,6 @@ export class WorkoutRepository {
                 timestamp,
               );
             }
-            await this.recordMutation(db, 'program', 'week-configs', 'upsert', {
-              weekConfigs: mutation.weekConfigs.map((week, index) => ({
-                ...week,
-                id: index + 1,
-              })),
-            });
             break;
           }
           case 'replaceDayConfigs': {
@@ -602,30 +489,14 @@ export class WorkoutRepository {
               'currentDay',
               currentDayStillExists ? runtime.currentDay : nextCurrentDay,
             );
-            await this.recordMutation(db, 'program', 'day-configs', 'upsert', {
-              dayConfigs: nextDayConfigs,
-            });
             break;
           }
           case 'resetAllData': {
             await this.replaceAllState(db, buildDefaultRuntimeState());
-            await this.recordMutation(db, 'app', 'reset', 'reset', {
-              reason: 'user-reset',
-            });
             break;
           }
           case 'restoreRuntimeState': {
             await this.replaceAllState(db, mutation.runtime);
-            const timestamp = nowIso();
-            await this.upsertSyncMetadata(
-              db,
-              METADATA_KEYS.lastRestoreAt,
-              timestamp,
-            );
-            await this.recordMutation(db, 'app', 'restore', 'restore', {
-              source: mutation.source,
-              restoredAt: timestamp,
-            });
             break;
           }
           default: {
@@ -637,115 +508,6 @@ export class WorkoutRepository {
     });
   }
 
-  async setBackupCheckpoint(input: {
-    lastBackupAt: string;
-    lastBackupEventId: string;
-    lastBackupRevision: number;
-  }) {
-    await this.initialize();
-    await this.enqueueWrite(async () => {
-      const db = await getDatabase();
-      await db.withTransactionAsync(async () => {
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.lastBackupAt,
-          input.lastBackupAt,
-        );
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.lastBackupEventId,
-          input.lastBackupEventId,
-        );
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.lastBackupRevision,
-          String(input.lastBackupRevision),
-        );
-      });
-    });
-  }
-
-  async getPendingChangesCount() {
-    await this.initialize();
-    const db = await getDatabase();
-    const checkpoint = await this.getCheckpoint(db);
-    const row = await db.getFirstAsync<{ total: number }>(
-      'SELECT COUNT(*) as total FROM sync_log WHERE snapshot_version > ?',
-      checkpoint.lastBackupRevision,
-    );
-    return row?.total ?? 0;
-  }
-
-  async getSetupState(): Promise<AppSetupState> {
-    await this.initialize();
-    const db = await getDatabase();
-    const metadata = await db.getAllAsync<SyncMetadataRow>(
-      'SELECT key, value FROM sync_metadata',
-    );
-    const map = new Map(metadata.map((entry) => [entry.key, entry.value]));
-    return {
-      hasCompletedOnboarding: map.get(METADATA_KEYS.setupCompleted) === 'true',
-      syncMode: coerceSyncMode(map.get(METADATA_KEYS.setupSyncMode)),
-      identityProvisionedAt:
-        map.get(METADATA_KEYS.setupIdentityProvisionedAt) ?? null,
-      hasSeenRecoveryOptions:
-        map.get(METADATA_KEYS.setupSeenRecoveryOptions) === 'true',
-      completedAt: map.get(METADATA_KEYS.setupCompletedAt) ?? null,
-      recoverySource: coerceRecoverySource(
-        map.get(METADATA_KEYS.setupRecoverySource),
-      ),
-    };
-  }
-
-  async completeSetup(input: {
-    syncMode: SyncMode;
-    identityProvisionedAt: string;
-    hasSeenRecoveryOptions?: boolean;
-    recoverySource?: AppSetupState['recoverySource'];
-  }) {
-    await this.initialize();
-    const timestamp = nowIso();
-    await this.enqueueWrite(async () => {
-      const db = await getDatabase();
-      await db.withTransactionAsync(async () => {
-        await this.upsertSyncMetadata(db, METADATA_KEYS.setupCompleted, 'true');
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.setupSyncMode,
-          input.syncMode,
-        );
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.setupIdentityProvisionedAt,
-          input.identityProvisionedAt,
-        );
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.setupSeenRecoveryOptions,
-          input.hasSeenRecoveryOptions === false ? 'false' : 'true',
-        );
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.setupRecoverySource,
-          input.recoverySource ?? 'start-fresh',
-        );
-        await this.upsertSyncMetadata(
-          db,
-          METADATA_KEYS.setupCompletedAt,
-          timestamp,
-        );
-      });
-    });
-  }
-
-  async setSyncMode(syncMode: SyncMode) {
-    await this.initialize();
-    await this.enqueueWrite(async () => {
-      const db = await getDatabase();
-      await this.upsertSyncMetadata(db, METADATA_KEYS.setupSyncMode, syncMode);
-    });
-  }
-
   private async seedInitialState(db: SQLiteDatabase) {
     const migrated = await AsyncStorage.getItem(LOCAL_STATE_STORAGE_KEY);
     if (migrated) {
@@ -753,9 +515,6 @@ export class WorkoutRepository {
         const parsed = parseAndMigrateBackup(migrated);
         await db.withTransactionAsync(async () => {
           await this.replaceAllState(db, parsed.runtime);
-          await this.recordMutation(db, 'app', 'migration', 'restore', {
-            source: 'async-storage',
-          });
         });
         return;
       } catch {
@@ -765,9 +524,6 @@ export class WorkoutRepository {
 
     await db.withTransactionAsync(async () => {
       await this.replaceAllState(db, buildDefaultRuntimeState());
-      await this.recordMutation(db, 'app', 'bootstrap', 'restore', {
-        source: 'default-seed',
-      });
     });
   }
 
@@ -879,6 +635,7 @@ export class WorkoutRepository {
       timestamp,
     );
     await this.writeSetting(db, 'themeMode', runtime.themeMode, timestamp);
+    await this.writeSetting(db, 'setupDone', 'true', timestamp);
   }
 
   private async readRuntimeState(
@@ -971,72 +728,6 @@ export class WorkoutRepository {
     };
   }
 
-  private async getCheckpoint(dbArg?: SQLiteDatabase): Promise<SyncCheckpoint> {
-    const db = dbArg ?? (await getDatabase());
-    const metadata = await db.getAllAsync<SyncMetadataRow>(
-      'SELECT key, value FROM sync_metadata',
-    );
-    const map = new Map(metadata.map((entry) => [entry.key, entry.value]));
-    return {
-      localRevision: parseNumber(map.get(METADATA_KEYS.localRevision), 0),
-      lastBackupRevision: parseNumber(
-        map.get(METADATA_KEYS.lastBackupRevision),
-        0,
-      ),
-      lastBackupAt: map.get(METADATA_KEYS.lastBackupAt) ?? null,
-      lastBackupEventId: map.get(METADATA_KEYS.lastBackupEventId) ?? null,
-      lastRestoreAt: map.get(METADATA_KEYS.lastRestoreAt) ?? null,
-    };
-  }
-
-  private async nextRevision(db: SQLiteDatabase) {
-    const checkpoint = await this.getCheckpoint(db);
-    const next = checkpoint.localRevision + 1;
-    await this.upsertSyncMetadata(
-      db,
-      METADATA_KEYS.localRevision,
-      String(next),
-    );
-    return next;
-  }
-
-  private async recordMutation(
-    db: SQLiteDatabase,
-    entityType: SyncEntityType,
-    entityId: string,
-    operation: SyncOperation,
-    payload: Record<string, unknown>,
-  ) {
-    const revision = await this.nextRevision(db);
-    const entry: SyncLogEntry = {
-      id: Crypto.randomUUID(),
-      entityType,
-      entityId,
-      operation,
-      updatedAt: nowIso(),
-      deviceId: this.deviceId,
-      payload: serializePayload(payload),
-      snapshotVersion: revision,
-    };
-
-    await db.runAsync(
-      `INSERT INTO sync_log (
-        id, entity_type, entity_id, operation,
-        updated_at, device_id, payload, snapshot_version
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      entry.id,
-      entry.entityType,
-      entry.entityId,
-      entry.operation,
-      entry.updatedAt,
-      entry.deviceId,
-      entry.payload,
-      entry.snapshotVersion,
-    );
-
-    return revision;
-  }
-
   private async writeSetting(
     db: SQLiteDatabase,
     key: string,
@@ -1050,21 +741,6 @@ export class WorkoutRepository {
       key,
       value,
       updatedAt,
-    );
-  }
-
-  private async upsertSyncMetadata(
-    db: SQLiteDatabase,
-    key: string,
-    value: string,
-  ) {
-    await db.runAsync(
-      `INSERT INTO sync_metadata (key, value, updated_at)
-       VALUES (?, ?, ?)
-       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
-      key,
-      value,
-      nowIso(),
     );
   }
 

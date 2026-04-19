@@ -109,6 +109,7 @@ export function AddExerciseModal({
 
       <ScrollView
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
       >
         <Text style={styles.label}>Name</Text>

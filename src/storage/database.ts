@@ -61,25 +61,6 @@ async function configureDatabase(db: SQLite.SQLiteDatabase) {
       updated_at TEXT NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS sync_log (
-      id TEXT PRIMARY KEY NOT NULL,
-      entity_type TEXT NOT NULL,
-      entity_id TEXT NOT NULL,
-      operation TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      device_id TEXT NOT NULL,
-      payload TEXT NOT NULL,
-      snapshot_version INTEGER NOT NULL
-    );
-
-    CREATE INDEX IF NOT EXISTS idx_sync_log_snapshot_version
-      ON sync_log(snapshot_version);
-
-    CREATE TABLE IF NOT EXISTS sync_metadata (
-      key TEXT PRIMARY KEY NOT NULL,
-      value TEXT NOT NULL,
-      updated_at TEXT NOT NULL
-    );
   `);
 }
 

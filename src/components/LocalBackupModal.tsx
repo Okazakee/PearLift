@@ -1,7 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { SyncMode } from '../storage/types';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import { AnimatedModalShell } from './AnimatedModalShell';
@@ -9,28 +8,19 @@ import { AnimatedModalShell } from './AnimatedModalShell';
 interface LocalBackupModalProps {
   open: boolean;
   tokens: ThemeTokens;
-  syncMode: SyncMode;
-  syncSummary: string;
-  busy: boolean;
   onClose: () => void;
   onExport: () => void;
   onImport: () => void;
-  onOpenSyncSetup: () => void;
 }
 
 export function LocalBackupModal({
   open,
   tokens,
-  syncMode,
-  syncSummary,
-  busy,
   onClose,
   onExport,
   onImport,
-  onOpenSyncSetup,
 }: LocalBackupModalProps) {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
-  const d2dEnabled = syncMode === 'd2d-sync';
 
   return (
     <AnimatedModalShell
@@ -47,43 +37,19 @@ export function LocalBackupModal({
         </Pressable>
       </View>
 
-      {d2dEnabled ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Device Sync</Text>
-          <Text style={styles.message}>
-            Sync directly with another device using QR code pairing.
-          </Text>
-          <View style={styles.statusBanner}>
-            <Feather name="monitor" size={18} color={tokens.colors.primary} />
-            <Text style={styles.statusText}>{syncSummary}</Text>
-          </View>
-          <View style={styles.actions}>
-            <Pressable
-              style={[styles.actionButton, busy && styles.disabledButton]}
-              onPress={onOpenSyncSetup}
-              disabled={busy}
-            >
-              <Feather name="link" size={18} color={tokens.colors.onPrimary} />
-              <Text style={styles.actionText}>Pair Device</Text>
-            </Pressable>
-          </View>
-        </View>
-      ) : (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Device Sync</Text>
-          <Text style={styles.message}>
-            Device-to-device sync can be enabled in Sync Setup.
-          </Text>
-          <Pressable
-            style={[styles.secondaryButton, busy && styles.disabledButton]}
-            onPress={onOpenSyncSetup}
-            disabled={busy}
-          >
-            <Feather name="sliders" size={18} color={tokens.colors.primary} />
-            <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
-          </Pressable>
-        </View>
-      )}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Device Sync</Text>
+        <Text style={styles.message}>
+          Device-to-device sync is coming soon.
+        </Text>
+        <Pressable
+          style={[styles.secondaryButton, styles.disabledButton]}
+          disabled
+        >
+          <Feather name="sliders" size={18} color={tokens.colors.primary} />
+          <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
+        </Pressable>
+      </View>
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Local JSON</Text>
@@ -92,11 +58,7 @@ export function LocalBackupModal({
           backup.
         </Text>
         <View style={styles.actions}>
-          <Pressable
-            style={[styles.actionButton, busy && styles.disabledButton]}
-            onPress={onExport}
-            disabled={busy}
-          >
+          <Pressable style={styles.actionButton} onPress={onExport}>
             <Feather
               name="download"
               size={18}
@@ -104,11 +66,7 @@ export function LocalBackupModal({
             />
             <Text style={styles.actionText}>Export Backup</Text>
           </Pressable>
-          <Pressable
-            style={[styles.actionButton, busy && styles.disabledButton]}
-            onPress={onImport}
-            disabled={busy}
-          >
+          <Pressable style={styles.actionButton} onPress={onImport}>
             <Feather name="upload" size={18} color={tokens.colors.onPrimary} />
             <Text style={styles.actionText}>Import Backup</Text>
           </Pressable>
@@ -173,21 +131,6 @@ function createStyles(tokens: ThemeTokens) {
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.body,
       lineHeight: 20,
-    },
-    statusBanner: {
-      flexDirection: 'row',
-      gap: tokens.spacing.xs,
-      alignItems: 'center',
-      paddingHorizontal: tokens.spacing.sm,
-      paddingVertical: tokens.spacing.sm,
-      borderRadius: tokens.radius.md,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.1),
-    },
-    statusText: {
-      color: tokens.colors.textPrimary,
-      fontSize: tokens.type.label,
-      fontWeight: '600',
-      flex: 1,
     },
     actions: {
       gap: tokens.spacing.sm,

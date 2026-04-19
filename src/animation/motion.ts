@@ -1,4 +1,4 @@
-import { Easing, ReduceMotion } from 'react-native-reanimated';
+import { Easing } from 'react-native-reanimated';
 
 export const MOTION = {
   duration: {
@@ -15,17 +15,3 @@ export const MOTION = {
     exitY: 6,
   },
 } as const;
-
-export type MotionPreset = 'fast' | 'base' | 'slow';
-
-export interface MotionConfig {
-  duration: number;
-  reduceMotion: ReduceMotion;
-}
-
-export function getMotionConfig(preset: MotionPreset): MotionConfig {
-  return {
-    duration: MOTION.duration[preset],
-    reduceMotion: ReduceMotion.System,
-  };
-}

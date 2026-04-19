@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -23,7 +23,6 @@ interface AnimatedModalShellProps {
 }
 
 const UNMOUNT_DELAY_MS = MOTION.duration.base;
-const CONTENT_MOUNT_DELAY_MS = 24;
 
 export function AnimatedModalShell({
   open,
@@ -35,27 +34,16 @@ export function AnimatedModalShell({
 }: AnimatedModalShellProps) {
   const [modalVisible, setModalVisible] = useState(open);
   const [contentVisible, setContentVisible] = useState(open);
-  const [childrenMounted, setChildrenMounted] = useState(open);
-  const mountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (mountTimerRef.current) {
-      clearTimeout(mountTimerRef.current);
-      mountTimerRef.current = null;
-    }
     if (open) {
       setModalVisible(true);
       setContentVisible(true);
-      mountTimerRef.current = setTimeout(() => {
-        mountTimerRef.current = null;
-        setChildrenMounted(true);
-      }, CONTENT_MOUNT_DELAY_MS);
       return;
     }
 
     setContentVisible(false);
     const timer = setTimeout(() => {
-      setChildrenMounted(false);
       setModalVisible(false);
     }, UNMOUNT_DELAY_MS);
 
@@ -64,16 +52,6 @@ export function AnimatedModalShell({
     };
   }, [open]);
 
-  useEffect(() => {
-    return () => {
-      if (mountTimerRef.current) {
-        clearTimeout(mountTimerRef.current);
-      }
-    };
-  }, []);
-
-  const rootStyle = useMemo(() => styles.modalRoot, []);
-
   return (
     <Modal
       visible={modalVisible}
@@ -81,14 +59,14 @@ export function AnimatedModalShell({
       animationType="none"
       onRequestClose={onClose}
     >
-      <View style={[rootStyle, containerStyle]}>
+      <View style={[styles.modalRoot, containerStyle]}>
         {contentVisible ? (
           <>
             <AnimatedFadeInView style={backdropStyle}>
               <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
             </AnimatedFadeInView>
             <AnimatedSlideInView style={sheetStyle}>
-              {childrenMounted ? children : <View style={styles.warmup} />}
+              {children}
             </AnimatedSlideInView>
           </>
         ) : null}
@@ -102,8 +80,5 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  warmup: {
-    minHeight: 140,
   },
 });

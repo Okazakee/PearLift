@@ -71,24 +71,24 @@ function ExerciseCardComponent({
       withTiming(1.14, {
         duration: 90,
         easing: Easing.out(Easing.quad),
-        reduceMotion: ReduceMotion.Never,
+        reduceMotion: ReduceMotion.System,
       }),
       withTiming(1, {
         duration: 160,
         easing: Easing.out(Easing.cubic),
-        reduceMotion: ReduceMotion.Never,
+        reduceMotion: ReduceMotion.System,
       }),
     );
     weightTranslateY.value = withSequence(
       withTiming(-2, {
         duration: 90,
         easing: Easing.out(Easing.quad),
-        reduceMotion: ReduceMotion.Never,
+        reduceMotion: ReduceMotion.System,
       }),
       withTiming(0, {
         duration: 160,
         easing: Easing.out(Easing.cubic),
-        reduceMotion: ReduceMotion.Never,
+        reduceMotion: ReduceMotion.System,
       }),
     );
   }, [adjustedWeight, weightScale, weightTranslateY]);
