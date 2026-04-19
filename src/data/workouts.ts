@@ -13,10 +13,10 @@ export const defaultWeekConfigs: WeekConfig[] = [
 ];
 
 export const defaultDayConfigs: DayConfig[] = [
-  { id: 'day1', name: 'Day 1', icon: 'FitnessCenter' },
-  { id: 'day2', name: 'Day 2', icon: 'SwapHoriz' },
-  { id: 'day3', name: 'Day 3', icon: 'DirectionsWalk' },
-  { id: 'day4', name: 'Day 4', icon: 'Replay' },
+  { id: 'day1', name: 'Day 1', icon: 'Activity' },
+  { id: 'day2', name: 'Day 2', icon: 'Repeat' },
+  { id: 'day3', name: 'Day 3', icon: 'Navigation' },
+  { id: 'day4', name: 'Day 4', icon: 'RefreshCw' },
 ];
 
 export const dayIconMap: Record<string, string> = {
