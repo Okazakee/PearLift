@@ -51,6 +51,14 @@ import {
   roundToIncrement,
   toDisplayWeight,
 } from '../utils/units';
+import { styles } from './styles';
+import { usePromptModal } from './usePromptModal';
+import {
+  useCurrentWorkout,
+  useExerciseBaseWeights,
+  useLayout,
+  useThemeTokens,
+} from './useWorkoutComputed';
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
@@ -88,35 +96,11 @@ export function WorkoutScreen() {
     null,
   );
   const [timerExpanded, setTimerExpanded] = useState(false);
-  const [promptConfig, setPromptConfig] = useState<{
-    title: string;
-    message: string;
-    actions: AppPromptAction[];
-  } | null>(null);
+  const { promptConfig, showPrompt, closePrompt } = usePromptModal();
   const mutationQueueRef = useRef<Promise<void>>(Promise.resolve());
   const debouncedMutationsRef = useRef(new Map<string, WorkoutMutation>());
   const debounceTimersRef = useRef(
     new Map<string, ReturnType<typeof setTimeout>>(),
-  );
-
-  const showPrompt = useCallback(
-    (title: string, message: string, actions?: AppPromptAction[]) => {
-      setPromptConfig({
-        title,
-        message,
-        actions: actions ?? [{ label: 'OK' }],
-      });
-    },
-    [],
-  );
-
-  const closePrompt = useCallback(() => {
-    setPromptConfig(null);
-  }, []);
-
-  const debugLog = useCallback(
-    (_message: string, _payload?: unknown) => {},
-    [],
   );
 
   useEffect(() => {
@@ -130,7 +114,10 @@ export function WorkoutScreen() {
     pendingThemePreference ?? snapshot?.themeMode ?? 'system';
   const systemThemeMode: ThemeMode | null =
     systemScheme === 'dark' || systemScheme === 'light' ? systemScheme : null;
-  const effectiveThemeMode = resolveThemeMode(themePreference, systemThemeMode);
+  const { tokens, effectiveThemeMode } = useThemeTokens({
+    themePreference,
+    systemScheme: systemThemeMode,
+  });
   const currentWeek = pendingCurrentWeek ?? snapshot?.currentWeek ?? 1;
   const selectedDay =
     pendingCurrentDay ??
@@ -146,46 +133,13 @@ export function WorkoutScreen() {
   const weightUnit: WeightUnit =
     pendingWeightUnit ?? snapshot?.weightUnit ?? 'kg';
 
-  const exerciseBaseWeights = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const workout of workouts) {
-      for (const exercise of workout.exercises) {
-        map.set(exercise.id, exercise.baseWeight);
-      }
-    }
-    return map;
-  }, [workouts]);
-
-  const tokens = useMemo(
-    () => getThemeTokens(effectiveThemeMode, { enableDynamicColor: false }),
-    [effectiveThemeMode],
-  );
+  const exerciseBaseWeights = useExerciseBaseWeights({ workouts });
   const donationTargets = useMemo(() => getDonationTargets(), []);
-  const layout = useMemo(() => {
-    const navBottomPadding = Math.max(insets.bottom, 8) + tokens.spacing.sm;
-    const navHeight = 64 + navBottomPadding;
-    const floatingBottom = navHeight + 8;
-    return {
-      navBottomPadding,
-      navHeight,
-      timerFabBottom: floatingBottom + 8,
-      timerPanelBottom: floatingBottom,
-      workoutFabBottom: floatingBottom + 8,
-      contentBottomPadding: floatingBottom + 96,
-    };
-  }, [insets.bottom, tokens.spacing.sm]);
-
-  const currentWorkout = useMemo(() => {
-    return (
-      workouts.find((workout) => workout.id === currentDay) ??
-      workouts[0] ?? {
-        id: 'push',
-        name: 'Workout',
-        description: '',
-        exercises: [],
-      }
-    );
-  }, [workouts, currentDay]);
+  const layout = useLayout({
+    bottomInset: insets.bottom,
+    spacingSm: tokens.spacing.sm,
+  });
+  const currentWorkout = useCurrentWorkout({ workouts, currentDay });
 
   const clearOptimisticForMutation = useCallback(
     (mutation: WorkoutMutation) => {
@@ -807,28 +761,12 @@ export function WorkoutScreen() {
           dayConfigs={dayConfigs}
           onClose={() => setProgramSettingsOpen(false)}
           onWeekConfigsChange={(nextWeekConfigs) => {
-            debugLog(
-              'received week config reorder/update from ProgramSettings',
-              {
-                order: nextWeekConfigs
-                  .map((week, index) => `${index}:id${week.id}`)
-                  .join(' | '),
-              },
-            );
             void runImmediateMutation({
               type: 'replaceWeekConfigs',
               weekConfigs: nextWeekConfigs,
             });
           }}
           onDayConfigsChange={(nextDayConfigs) => {
-            debugLog(
-              'received day config reorder/update from ProgramSettings',
-              {
-                order: nextDayConfigs
-                  .map((day, index) => `${index}:${day.id}`)
-                  .join(' | '),
-              },
-            );
             void runImmediateMutation({
               type: 'replaceDayConfigs',
               dayConfigs: nextDayConfigs,
@@ -900,12 +838,3 @@ export function WorkoutScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  appShell: {
-    flex: 1,
-  },
-});
