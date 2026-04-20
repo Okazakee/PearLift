@@ -14,13 +14,13 @@ import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '../../animation/primitives';
 import { dayIconMap, dayIconOptions } from '../../data/workouts';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import type { DayConfig, WeekConfig } from '../../types';
-import { scheduleIdleTask } from '../../utils/idle';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 interface ProgramSettingsModalProps {
@@ -80,8 +80,6 @@ export function ProgramSettingsModal({
   const weekUiKeyCounterRef = useRef(0);
   const dayIdCounterRef = useRef(0);
   const wasOpenRef = useRef(false);
-  const pendingWeekPersistCancelRef = useRef<(() => void) | null>(null);
-  const pendingDayPersistCancelRef = useRef<(() => void) | null>(null);
 
   const styles = useMemo(
     () => createStyles(tokens, topInset, bottomInset),
@@ -108,10 +106,6 @@ export function ProgramSettingsModal({
   useEffect(() => {
     if (!open) {
       wasOpenRef.current = false;
-      pendingWeekPersistCancelRef.current?.();
-      pendingWeekPersistCancelRef.current = null;
-      pendingDayPersistCancelRef.current?.();
-      pendingDayPersistCancelRef.current = null;
       return;
     }
     if (wasOpenRef.current) return;
@@ -127,16 +121,6 @@ export function ProgramSettingsModal({
     );
     setDraftDays(dayConfigs);
   }, [createWeekUiKey, dayConfigs, open, weekConfigs]);
-
-  useEffect(
-    () => () => {
-      pendingWeekPersistCancelRef.current?.();
-      pendingWeekPersistCancelRef.current = null;
-      pendingDayPersistCancelRef.current?.();
-      pendingDayPersistCancelRef.current = null;
-    },
-    [],
-  );
 
   const updateWeek = useCallback(
     (uiKey: string, update: Partial<WeekConfig>) => {
@@ -253,7 +237,7 @@ export function ProgramSettingsModal({
   const renderWeekItem = useCallback(
     ({ item: week, index }: { item: WeekDraft; index: number }) => (
       <View style={styles.card}>
-        <AnimatedPressable style={styles.cardPressable} pressScale={1}>
+        <View style={styles.cardPressable}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Week {index + 1}</Text>
             <AnimatedPressable
@@ -313,7 +297,7 @@ export function ProgramSettingsModal({
               <Text style={styles.inputLabel}>RIR</Text>
             </View>
           </View>
-        </AnimatedPressable>
+        </View>
       </View>
     ),
     [
@@ -329,7 +313,7 @@ export function ProgramSettingsModal({
   const renderDayItem = useCallback(
     ({ item: day, index }: { item: DayConfig; index: number }) => (
       <View style={styles.card}>
-        <AnimatedPressable style={styles.cardPressable} pressScale={1}>
+        <View style={styles.cardPressable}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Day {index + 1}</Text>
             <AnimatedPressable
@@ -385,7 +369,7 @@ export function ProgramSettingsModal({
               );
             })}
           </ScrollView>
-        </AnimatedPressable>
+        </View>
       </View>
     ),
     [
@@ -398,6 +382,16 @@ export function ProgramSettingsModal({
       tokens.colors.textSecondary,
       updateDay,
     ],
+  );
+
+  const renderWeekSortableItem = useCallback<SortableGridRenderItem<WeekDraft>>(
+    ({ item, index }) => renderWeekItem({ item, index }),
+    [renderWeekItem],
+  );
+
+  const renderDaySortableItem = useCallback<SortableGridRenderItem<DayConfig>>(
+    ({ item, index }) => renderDayItem({ item, index }),
+    [renderDayItem],
   );
 
   return (
@@ -465,7 +459,7 @@ export function ProgramSettingsModal({
                   <Sortable.Grid
                     data={draftWeeks}
                     keyExtractor={(item) => item.uiKey}
-                    renderItem={renderWeekItem}
+                    renderItem={renderWeekSortableItem}
                     columns={1}
                     rowGap={tokens.spacing.md}
                     scrollableRef={weekScrollRef}
@@ -478,13 +472,7 @@ export function ProgramSettingsModal({
                         id: i + 1,
                       }));
                       setDraftWeeks(reordered);
-                      pendingWeekPersistCancelRef.current?.();
-                      pendingWeekPersistCancelRef.current = scheduleIdleTask(
-                        () => {
-                          pendingWeekPersistCancelRef.current = null;
-                          onWeekConfigsChange(toWeekConfigs(reordered));
-                        },
-                      );
+                      onWeekConfigsChange(toWeekConfigs(reordered));
                     }}
                   />
                   {draftWeeks.length < MAX_WEEKS && (
@@ -517,7 +505,7 @@ export function ProgramSettingsModal({
                   <Sortable.Grid
                     data={draftDays}
                     keyExtractor={(item) => item.id}
-                    renderItem={renderDayItem}
+                    renderItem={renderDaySortableItem}
                     columns={1}
                     rowGap={tokens.spacing.md}
                     scrollableRef={dayScrollRef}
@@ -526,13 +514,7 @@ export function ProgramSettingsModal({
                     dropAnimationDuration={200}
                     onDragEnd={({ data: reordered }) => {
                       setDraftDays(reordered);
-                      pendingDayPersistCancelRef.current?.();
-                      pendingDayPersistCancelRef.current = scheduleIdleTask(
-                        () => {
-                          pendingDayPersistCancelRef.current = null;
-                          onDayConfigsChange(reordered);
-                        },
-                      );
+                      onDayConfigsChange(reordered);
                     }}
                   />
                   {draftDays.length < MAX_DAYS && (

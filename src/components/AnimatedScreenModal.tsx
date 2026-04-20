@@ -6,6 +6,7 @@ import {
   View,
   type ViewStyle,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { MOTION } from '../animation/motion';
 import { AnimatedSlideInRightView } from '../animation/primitives';
 
@@ -53,9 +54,11 @@ export function AnimatedScreenModal({
     >
       <View style={styles.root}>
         {contentVisible ? (
-          <AnimatedSlideInRightView style={[styles.screen, style]}>
-            {children}
-          </AnimatedSlideInRightView>
+          <GestureHandlerRootView style={styles.gestureRoot}>
+            <AnimatedSlideInRightView style={[styles.screen, style]}>
+              {children}
+            </AnimatedSlideInRightView>
+          </GestureHandlerRootView>
         ) : null}
       </View>
     </Modal>
@@ -64,6 +67,9 @@ export function AnimatedScreenModal({
 
 const styles = StyleSheet.create({
   root: {
+    flex: 1,
+  },
+  gestureRoot: {
     flex: 1,
   },
   screen: {
