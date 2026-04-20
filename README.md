@@ -1,76 +1,124 @@
 # PearLift
 
-PearLift is a local-first workout tracking app built with Expo and React Native.
+<p align="center">
+  <img src="./assets/pearlift_icon.png" alt="PearLift Icon" width="128" />
+</p>
+
+<p align="center">
+  A beautiful rest timer app for your workouts
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/platform-iOS-000000?style=flat&logo=apple" alt="Platform iOS" />
+  <img src="https://img.shields.io/badge/platform-Android-000000?style=flat&logo=android" alt="Platform Android" />
+  <img src="https://img.shields.io/badge/expo-v55-000000?style=flat" alt="Expo" />
+  <img src="https://img.shields.io/badge/react-native-0.83-000000?style=flat" alt="React Native" />
+</p>
+
+---
 
 ## Features
 
-- Workout-day navigation with custom day and week plans
-- Exercise cards with weight adjustment, reordering, and editing
-- Local backup import/export
-- Settings and program configuration screens
-- Dark/light theme support
+- **Customizable Rest Timers** — Set rest durations that fit your workout routine
+- **Background Timer** — Keep timers running even when the app is minimized
+- **Haptic Feedback** — Feel the transition between rest and workout periods
+- **Audio Cues** — Sound notifications for timer start/end
+- **Workout Library** — Save and manage your favorite workouts
+- **Secure Storage** — Your data stays protected with local authentication
+- **Dark Mode** — Beautiful dark UI optimized for gym environments
+
+---
 
 ## Tech Stack
 
-- Expo
-- React Native
-- TypeScript
-- AsyncStorage for local persistence
+| Category | Technology |
+|----------|-------------|
+| Framework | Expo SDK 55 |
+| Language | TypeScript |
+| Runtime | React Native 0.83 |
+| State Management | Zustand |
+| Animations | React Native Reanimated |
+| Database | expo-sqlite |
+| UI Icons | Lucide React Native |
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js
-- Bun
-- Expo-compatible Android or iOS environment
+- Node.js 18+
+- Bun (recommended) or npm/yarn
+- Xcode (iOS development)
+- Android Studio (Android development)
 
-### Install
+### Installation
 
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd PearLift
+
+# Install dependencies
 bun install
+
+# Start the development server
+bun start
 ```
 
-### Run
+### Running on Device
 
+**iOS:**
 ```bash
-bun run start
+bun run ios
 ```
 
-Platform-specific commands:
-
+**Android:**
 ```bash
 bun run android
-bun run ios
-bun run web
 ```
 
-## Scripts
-
-- `bun run start` - start the Expo dev client
-- `bun run android` - run Android app
-- `bun run ios` - run iOS app
-- `bun run web` - run web build
-- `bun run lint` - run Biome checks
-- `bun run typecheck` - run TypeScript checks
-- `bun run check:full` - run lint plus typecheck
-- `bun run format` - format the codebase
+---
 
 ## Project Structure
 
-- `src/components` - reusable UI components
-- `src/screens` - screen-level app logic
-- `src/backup` - import/export and migration logic
-- `src/data` - workout defaults and seed data
-- `src/theme` - tokens and theme helpers
-- `docs` - release and architecture plans
+```
+PearLift/
+├── assets/              # App icons and splash screens
+├── src/
+│   ├── animation/       # Animation utilities
+│   ├── backup/         # Data backup functionality
+│   ├── components/     # Reusable UI components
+│   ├── config/        # App configuration
+│   ├── data/          # Static data and defaults
+│   ├── native/        # Native module bridges
+│   ├── screens/       # App screens
+│   ├── storage/       # Database and persistence
+│   ├── theme/         # Design tokens
+│   ├── types/         # TypeScript types
+│   └── utils/        # Utility functions
+├── android/            # Android native project
+├── ios/                # iOS native project
+├── app.json            # Expo configuration
+├── package.json        # Dependencies
+└── tsconfig.json       # TypeScript config
+```
 
-## Documentation
+---
 
-- [F-Droid + Play Store release plan](docs/PEARLIFT_FDROID_PLAYSTORE_RELEASE_PLAN.md)
+## Scripts
 
-## Notes
+| Command | Description |
+|---------|-------------|
+| `bun start` | Start Expo dev server |
+| `bun run ios` | Run on iOS simulator |
+| `bun run android` | Run on Android emulator |
+| `bun run lint` | Run Biome linter |
+| `bun run typecheck` | Run TypeScript check |
+| `bun run check:full` | Run lint + typecheck |
 
-- The app is designed to keep user data local first.
-- Backup/export flows use the app's own JSON schema and migration logic.
-- Android release work is tracked separately in the docs folder.
+---
+
+## License
+
+MIT

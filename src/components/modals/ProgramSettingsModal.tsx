@@ -2,7 +2,10 @@ import {
   Activity,
   ChevronLeft,
   Clock,
+  Dumbbell,
+  Flame,
   Heart,
+  Minus,
   Navigation,
   Plus,
   RefreshCw,
@@ -12,7 +15,7 @@ import {
 } from 'lucide-react-native';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
@@ -55,6 +58,8 @@ const dayIconComponents: Record<
 > = {
   Activity,
   Clock,
+  Dumbbell,
+  Flame,
   Heart,
   Navigation,
   RefreshCw,
@@ -77,6 +82,10 @@ export function ProgramSettingsModal({
   const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
   const [draftWeeks, setDraftWeeks] = useState<WeekDraft[]>([]);
   const [draftDays, setDraftDays] = useState<DayConfig[]>([]);
+  const [editingLoadWeekKey, setEditingLoadWeekKey] = useState<string | null>(
+    null,
+  );
+  const [editingLoadText, setEditingLoadText] = useState('');
   const weekUiKeyCounterRef = useRef(0);
   const dayIdCounterRef = useRef(0);
   const wasOpenRef = useRef(false);
@@ -106,6 +115,8 @@ export function ProgramSettingsModal({
   useEffect(() => {
     if (!open) {
       wasOpenRef.current = false;
+      setEditingLoadWeekKey(null);
+      setEditingLoadText('');
       return;
     }
     if (wasOpenRef.current) return;
@@ -235,143 +246,239 @@ export function ProgramSettingsModal({
   const dayScrollRef = useAnimatedRef<Animated.ScrollView>();
 
   const renderWeekItem = useCallback(
-    ({ item: week, index }: { item: WeekDraft; index: number }) => (
-      <View style={styles.card}>
-        <View style={styles.cardPressable}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Week {index + 1}</Text>
-            <AnimatedPressable
-              style={[
-                styles.rowButton,
-                styles.rowButtonDelete,
-                draftWeeks.length <= 1 && styles.rowButtonDisabled,
-              ]}
-              hitSlop={8}
-              disabled={draftWeeks.length <= 1}
-              onPress={() => removeWeek(week.uiKey)}
-              pointerEvents="box-only"
-            >
-              <Trash2 size={16} color={tokens.colors.accentDanger} />
-            </AnimatedPressable>
-          </View>
+    ({ item: week, index: _index }: { item: WeekDraft; index: number }) => {
+      const loadPct = Math.round((week.loadModifier - 1) * 100);
+      const loadLabel =
+        loadPct === 0 ? 'Baseline' : `${loadPct > 0 ? '+' : ''}${loadPct}%`;
 
-          <View style={styles.weekInputRow}>
-            <View style={styles.weekInputCol}>
+      return (
+        <View style={styles.card}>
+          <View style={styles.cardPressable}>
+            <View style={styles.cardHeader}>
               <TextInput
                 value={week.name}
                 onChangeText={(text) => updateWeek(week.uiKey, { name: text })}
-                style={styles.input}
+                style={styles.weekNameHeaderInput}
                 placeholder="Week name"
                 placeholderTextColor={tokens.colors.textMuted}
+                multiline={false}
+                returnKeyType="done"
               />
-              <Text style={styles.inputLabel}>Week Name</Text>
+
+              <AnimatedPressable
+                style={[
+                  styles.rowButton,
+                  styles.rowButtonDelete,
+                  draftWeeks.length <= 1 && styles.rowButtonDisabled,
+                ]}
+                hitSlop={8}
+                disabled={draftWeeks.length <= 1}
+                onPress={() => removeWeek(week.uiKey)}
+                pointerEvents="box-only"
+              >
+                <Trash2 size={16} color={tokens.colors.accentDanger} />
+              </AnimatedPressable>
             </View>
-            <View style={styles.weekInputCol}>
-              <TextInput
-                value={String(week.loadModifier)}
-                onChangeText={(text) =>
-                  updateWeek(week.uiKey, {
-                    loadModifier: Number(text) || 1,
-                  })
-                }
-                style={styles.input}
-                keyboardType="decimal-pad"
-                placeholder="Load"
-                placeholderTextColor={tokens.colors.textMuted}
-              />
-              <Text style={styles.inputLabel}>Load</Text>
+
+            <Text style={styles.sectionLabel}>Load Modifier</Text>
+            <View style={styles.loadControlRow}>
+              <AnimatedPressable
+                style={styles.stepButton}
+                onPress={() => {
+                  const nextPct = Math.max(-50, Math.min(50, loadPct - 5));
+                  updateWeek(week.uiKey, { loadModifier: 1 + nextPct / 100 });
+                }}
+              >
+                <Minus size={18} color={tokens.colors.textSecondary} />
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={styles.loadValueWrap}
+                pressScale={0.99}
+                onPress={() => {
+                  setEditingLoadWeekKey(week.uiKey);
+                  setEditingLoadText(String(loadPct));
+                }}
+              >
+                {editingLoadWeekKey === week.uiKey ? (
+                  <View style={styles.loadValueRow}>
+                    <TextInput
+                      value={editingLoadText}
+                      onChangeText={setEditingLoadText}
+                      style={styles.loadValueInput}
+                      keyboardType="number-pad"
+                      placeholder="0"
+                      placeholderTextColor={withAlpha(
+                        tokens.colors.textSecondary,
+                        0.72,
+                      )}
+                      onBlur={() => {
+                        const next = Number(editingLoadText);
+                        const nextPct = Number.isFinite(next)
+                          ? Math.max(-50, Math.min(50, Math.round(next)))
+                          : 0;
+                        updateWeek(week.uiKey, {
+                          loadModifier: 1 + nextPct / 100,
+                        });
+                        setEditingLoadWeekKey(null);
+                        setEditingLoadText('');
+                      }}
+                      onSubmitEditing={() => {
+                        const next = Number(editingLoadText);
+                        const nextPct = Number.isFinite(next)
+                          ? Math.max(-50, Math.min(50, Math.round(next)))
+                          : 0;
+                        updateWeek(week.uiKey, {
+                          loadModifier: 1 + nextPct / 100,
+                        });
+                        setEditingLoadWeekKey(null);
+                        setEditingLoadText('');
+                      }}
+                      returnKeyType="done"
+                    />
+                    <Text style={styles.loadValueUnit}>%</Text>
+                  </View>
+                ) : (
+                  <Text style={styles.loadValue}>{loadLabel}</Text>
+                )}
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={styles.stepButton}
+                onPress={() => {
+                  const nextPct = Math.max(-50, Math.min(50, loadPct + 5));
+                  updateWeek(week.uiKey, { loadModifier: 1 + nextPct / 100 });
+                }}
+              >
+                <Plus size={18} color={tokens.colors.textSecondary} />
+              </AnimatedPressable>
             </View>
-            <View style={styles.weekInputCol}>
-              <TextInput
-                value={String(week.rir)}
-                onChangeText={(text) =>
-                  updateWeek(week.uiKey, {
-                    rir: Number(text) || 0,
-                  })
-                }
-                style={styles.input}
-                keyboardType="number-pad"
-                placeholder="RIR"
-                placeholderTextColor={tokens.colors.textMuted}
-              />
-              <Text style={styles.inputLabel}>RIR</Text>
+
+            <Text style={styles.sectionLabel}>RIR (Reps in reserve)</Text>
+            <View style={styles.rirRow}>
+              {[1, 2, 3, 4].map((value) => {
+                const active = week.rir === value;
+                return (
+                  <AnimatedPressable
+                    key={value}
+                    style={[styles.rirButton, active && styles.rirButtonActive]}
+                    onPress={() => updateWeek(week.uiKey, { rir: value })}
+                  >
+                    <Text
+                      style={[styles.rirText, active && styles.rirTextActive]}
+                    >
+                      {value}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })}
             </View>
           </View>
         </View>
-      </View>
-    ),
+      );
+    },
     [
       draftWeeks.length,
       removeWeek,
       styles,
       tokens.colors.accentDanger,
+      tokens.colors.textSecondary,
       tokens.colors.textMuted,
       updateWeek,
+      editingLoadText,
+      editingLoadWeekKey,
     ],
   );
 
   const renderDayItem = useCallback(
-    ({ item: day, index }: { item: DayConfig; index: number }) => (
-      <View style={styles.card}>
-        <View style={styles.cardPressable}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Day {index + 1}</Text>
+    ({ item: day, index }: { item: DayConfig; index: number }) => {
+      const visibleIcons = dayIconOptions.slice(0, 9);
+      const slots: Array<string | '__custom__'> = [
+        ...visibleIcons,
+        '__custom__',
+      ];
+
+      const renderSlot = (slot: string | '__custom__') => {
+        if (slot === '__custom__') {
+          return (
             <AnimatedPressable
-              style={[
-                styles.rowButton,
-                styles.rowButtonDelete,
-                draftDays.length <= 1 && styles.rowButtonDisabled,
-              ]}
-              hitSlop={8}
-              disabled={draftDays.length <= 1}
-              onPress={() => removeDay(index)}
-              pointerEvents="box-only"
+              key="__custom__"
+              style={[styles.iconOption, styles.iconOptionMore]}
+              hitSlop={4}
+              onPress={() => {
+                // placeholder for a future custom icon selector
+              }}
             >
-              <Trash2 size={16} color={tokens.colors.accentDanger} />
+              <Plus size={18} color={tokens.colors.accentPrimary} />
+              <Text style={[styles.iconLabel, styles.iconLabelCustom]}>
+                More
+              </Text>
             </AnimatedPressable>
-          </View>
+          );
+        }
 
-          <TextInput
-            value={day.name}
-            onChangeText={(text) => updateDay(day.id, { name: text })}
-            style={styles.input}
-            placeholder="Day name"
-            placeholderTextColor={tokens.colors.textMuted}
-          />
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.iconRow}
-            nestedScrollEnabled
+        const option = slot;
+        const active = day.icon === option;
+        const label = option === 'RefreshCw' ? 'Refresh' : option;
+        const IconComponent = dayIconComponents[dayIconMap[option]];
+        return (
+          <AnimatedPressable
+            key={option}
+            style={[styles.iconOption, active && styles.iconOptionActive]}
+            hitSlop={4}
+            onPress={() => updateDay(day.id, { icon: option })}
           >
-            {dayIconOptions.map((option) => {
-              const active = day.icon === option;
-              const IconComponent = dayIconComponents[dayIconMap[option]];
-              return (
-                <AnimatedPressable
-                  key={option}
-                  style={[styles.iconOption, active && styles.iconOptionActive]}
-                  hitSlop={4}
-                  onPress={() => updateDay(day.id, { icon: option })}
-                >
-                  {IconComponent && (
-                    <IconComponent
-                      size={18}
-                      color={
-                        active
-                          ? tokens.colors.accentPrimary
-                          : tokens.colors.textSecondary
-                      }
-                    />
-                  )}
-                </AnimatedPressable>
-              );
-            })}
-          </ScrollView>
+            {IconComponent && (
+              <IconComponent
+                size={18}
+                color={
+                  active
+                    ? tokens.colors.accentPrimary
+                    : tokens.colors.textSecondary
+                }
+              />
+            )}
+            <Text style={[styles.iconLabel, active && styles.iconLabelActive]}>
+              {label}
+            </Text>
+          </AnimatedPressable>
+        );
+      };
+
+      return (
+        <View style={styles.card}>
+          <View style={styles.cardPressable}>
+            <View style={styles.cardHeader}>
+              <TextInput
+                value={day.name}
+                onChangeText={(text) => updateDay(day.id, { name: text })}
+                style={styles.weekNameHeaderInput}
+                placeholder={`Day ${index + 1}`}
+                placeholderTextColor={tokens.colors.textMuted}
+                multiline={false}
+                returnKeyType="done"
+              />
+              <AnimatedPressable
+                style={[
+                  styles.rowButton,
+                  styles.rowButtonDelete,
+                  draftDays.length <= 1 && styles.rowButtonDisabled,
+                ]}
+                hitSlop={8}
+                disabled={draftDays.length <= 1}
+                onPress={() => removeDay(index)}
+                pointerEvents="box-only"
+              >
+                <Trash2 size={16} color={tokens.colors.accentDanger} />
+              </AnimatedPressable>
+            </View>
+
+            <Text style={styles.sectionLabel}>Icon</Text>
+            <View style={styles.iconGrid}>
+              {slots.map((slot) => renderSlot(slot))}
+            </View>
+          </View>
         </View>
-      </View>
-    ),
+      );
+    },
     [
       draftDays.length,
       removeDay,
@@ -653,17 +760,32 @@ function createStyles(
       marginBottom: tokens.spacing.md,
     },
     cardPressable: {
-      gap: tokens.spacing.sm,
+      gap: tokens.spacing.xs,
     },
     cardHeader: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-start',
       alignItems: 'center',
+      gap: tokens.spacing.sm,
     },
     cardTitle: {
+      flex: 1,
       color: tokens.colors.textPrimary,
       fontFamily: 'SpaceGrotesk_700Bold',
       fontSize: tokens.type.body,
+    },
+    weekNameHeaderInput: {
+      flex: 1,
+      height: 44,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      borderRadius: tokens.radius.sm,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      color: tokens.colors.textPrimary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.body,
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 0,
     },
     rowButton: {
       width: 44,
@@ -678,6 +800,12 @@ function createStyles(
     rowButtonDisabled: {
       opacity: 0.5,
     },
+    sectionLabel: {
+      color: withAlpha(tokens.colors.textSecondary, 0.72),
+      fontSize: tokens.type.label - 1,
+      fontFamily: 'SpaceGrotesk_600SemiBold',
+      marginTop: tokens.spacing.xs,
+    },
     input: {
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
@@ -688,6 +816,88 @@ function createStyles(
       fontSize: tokens.type.body,
       paddingHorizontal: tokens.spacing.sm,
       paddingVertical: 9,
+    },
+    loadControlRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.xs,
+    },
+    stepButton: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    loadValueWrap: {
+      width: 148,
+      height: 44,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.sm,
+    },
+    loadValue: {
+      color: tokens.colors.textPrimary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.body + 2,
+      textAlign: 'center',
+    },
+    loadValueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      width: '100%',
+    },
+    loadValueInput: {
+      minWidth: 48,
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+      textAlign: 'center',
+      color: tokens.colors.textPrimary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.body + 2,
+    },
+    loadValueUnit: {
+      color: tokens.colors.textSecondary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.body + 2,
+    },
+    rirRow: {
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.xs,
+    },
+    rirButton: {
+      flex: 1,
+      height: 44,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    rirButtonActive: {
+      borderColor: tokens.colors.primary,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.14),
+    },
+    rirText: {
+      color: tokens.colors.textSecondary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.body,
+    },
+    rirTextActive: {
+      color: tokens.colors.primary,
     },
     weekInputRow: {
       flexDirection: 'row',
@@ -704,24 +914,47 @@ function createStyles(
       textAlign: 'center',
       fontFamily: 'SpaceGrotesk_600SemiBold',
     },
-    iconRow: {
+    iconGrid: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: tokens.spacing.xs,
-      paddingRight: tokens.spacing.xs,
+      justifyContent: 'space-between',
+      marginTop: tokens.spacing.xs,
     },
     iconOption: {
-      width: 44,
-      height: 44,
+      flexBasis: '19%',
+      minWidth: 44,
+      height: 64,
       borderRadius: tokens.radius.sm,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
       justifyContent: 'center',
       alignItems: 'center',
+      paddingVertical: 6,
       backgroundColor: tokens.colors.surfaceContainerHighest,
     },
     iconOptionActive: {
       borderColor: tokens.colors.primary,
       backgroundColor: withAlpha(tokens.colors.primary, 0.15),
+    },
+    iconOptionMore: {
+      borderRadius: 999,
+      borderColor: withAlpha(tokens.colors.accentPrimary, 0.7),
+      backgroundColor: withAlpha(tokens.colors.accentPrimary, 0.1),
+    },
+    iconLabel: {
+      marginTop: 4,
+      color: withAlpha(tokens.colors.textSecondary, 0.8),
+      fontFamily: 'SpaceGrotesk_600SemiBold',
+      fontSize: 10,
+      lineHeight: 12,
+      textAlign: 'center',
+    },
+    iconLabelActive: {
+      color: tokens.colors.accentPrimary,
+    },
+    iconLabelCustom: {
+      color: withAlpha(tokens.colors.accentPrimary, 0.9),
     },
     ghostCard: {
       borderRadius: tokens.radius.lg,

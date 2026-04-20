@@ -27,6 +27,8 @@ export const dayIconMap: Record<string, string> = {
   Clock: 'Clock',
   Heart: 'Heart',
   Star: 'Star',
+  Dumbbell: 'Dumbbell',
+  Flame: 'Flame',
   Settings: 'Settings',
 };
 
@@ -38,6 +40,8 @@ export const dayIconOptions = [
   'Clock',
   'Heart',
   'Star',
+  'Dumbbell',
+  'Flame',
 ];
 
 export const muscleGroups = [

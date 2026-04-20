@@ -53,6 +53,7 @@ export function WorkoutScreen() {
   const {
     snapshot,
     isReady,
+    repository,
     applyMutation,
     reload,
     initialize,
@@ -352,6 +353,9 @@ export function WorkoutScreen() {
   };
 
   const finishOnboarding = async () => {
+    if (repository) {
+      await repository.markSetupDone();
+    }
     await reload();
   };
 

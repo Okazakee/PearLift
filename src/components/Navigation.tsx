@@ -1,6 +1,8 @@
 import {
   Activity,
   Clock,
+  Dumbbell,
+  Flame,
   Heart,
   Navigation as NavigationIcon,
   RefreshCw,
@@ -26,6 +28,8 @@ const iconComponents: Record<
 > = {
   Activity,
   Clock,
+  Dumbbell,
+  Flame,
   Heart,
   Navigation: NavigationIcon,
   RefreshCw,
