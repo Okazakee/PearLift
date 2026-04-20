@@ -14,7 +14,6 @@ import type {
   WeightUnit,
   WorkoutSession,
 } from '../types';
-import { arraysEqualBy } from '../utils/array';
 import { scheduleIdleTask } from '../utils/idle';
 import { ExerciseCard } from './ExerciseCard';
 
@@ -80,9 +79,7 @@ export function WorkoutView({
     () => sortedExercises.map((exercise) => exercise.id),
     [sortedExercises],
   );
-  const activeWorkoutIdRef = useRef(workout.id);
-  const [listExerciseIds, setListExerciseIds] =
-    useState<string[]>(sortedExerciseIds);
+  const [currentOrder, setCurrentOrder] = useState<string[]>(sortedExerciseIds);
 
   useEffect(
     () => () => {
@@ -92,27 +89,27 @@ export function WorkoutView({
     [],
   );
 
-  useEffect(() => {
-    setListExerciseIds(sortedExerciseIds);
-    pendingPersistOrderRef.current = null;
-    activeWorkoutIdRef.current = workout.id;
-  }, [sortedExerciseIds, workout.id]);
+  const previousWorkoutIdRef = useRef(workout.id);
+  const orderByWorkoutRef = useRef<Record<string, string[]>>({});
 
   useEffect(() => {
-    const pendingOrder = pendingPersistOrderRef.current;
-    if (
-      pendingOrder &&
-      arraysEqualBy(sortedExerciseIds, pendingOrder, (id) => id)
-    ) {
+    if (previousWorkoutIdRef.current !== workout.id) {
+      previousWorkoutIdRef.current = workout.id;
+      const savedOrder = orderByWorkoutRef.current[workout.id];
+      if (savedOrder) {
+        setCurrentOrder(savedOrder);
+        return;
+      }
+      if (!pendingPersistCancelRef.current) {
+        setCurrentOrder(sortedExerciseIds);
+      }
       pendingPersistOrderRef.current = null;
-      return;
     }
+  }, [workout.id, sortedExerciseIds]);
 
-    if (pendingOrder) return;
-    if (!arraysEqualBy(sortedExerciseIds, listExerciseIds, (id) => id)) {
-      setListExerciseIds(sortedExerciseIds);
-    }
-  }, [listExerciseIds, sortedExerciseIds]);
+  useEffect(() => {
+    orderByWorkoutRef.current[workout.id] = currentOrder;
+  }, [currentOrder, workout.id]);
 
   const renderHeader = useCallback(
     () => (
@@ -195,10 +192,7 @@ export function WorkoutView({
     [onOpenAddExercise, styles, tokens.colors.primary],
   );
 
-  const displayExerciseIds =
-    activeWorkoutIdRef.current === workout.id
-      ? listExerciseIds
-      : sortedExerciseIds;
+  const displayExerciseIds = currentOrder;
 
   const renderItem = useCallback<SortableGridRenderItem<string>>(
     ({ item }) => {
@@ -254,7 +248,7 @@ export function WorkoutView({
           activeItemShadowOpacity={0.12}
           dropAnimationDuration={200}
           onDragEnd={({ data: reordered }) => {
-            setListExerciseIds(reordered);
+            setCurrentOrder(reordered);
             pendingPersistOrderRef.current = reordered;
             pendingPersistCancelRef.current?.();
             pendingPersistCancelRef.current = scheduleIdleTask(() => {
