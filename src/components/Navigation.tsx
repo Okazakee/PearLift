@@ -8,7 +8,7 @@ import {
   Star,
 } from 'lucide-react-native';
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -16,15 +16,26 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import DraggableFlatList, {
-  type RenderItemParams,
-  ScaleDecorator,
-} from 'react-native-draggable-flatlist';
+import Sortable from 'react-native-sortables';
 import { dayIconMap } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WorkoutDay } from '../types';
+import { arraysEqualBy } from '../utils/array';
 import { scheduleIdleTask } from '../utils/idle';
+
+const iconComponents: Record<
+  string,
+  React.ComponentType<{ size: number; color: string }>
+> = {
+  Activity,
+  Clock,
+  Heart,
+  Navigation: NavigationIcon,
+  RefreshCw,
+  Repeat,
+  Star,
+};
 
 interface NavigationProps {
   tokens: ThemeTokens;
@@ -49,14 +60,6 @@ export function Navigation({
   const pendingPersistOrderRef = useRef<DayConfig[] | null>(null);
   const [draftDayConfigs, setDraftDayConfigs] = useState(dayConfigs);
 
-  const sameOrder = useCallback((a: DayConfig[], b: DayConfig[]) => {
-    if (a.length !== b.length) return false;
-    for (let i = 0; i < a.length; i += 1) {
-      if (a[i]?.id !== b[i]?.id) return false;
-    }
-    return true;
-  }, []);
-
   useEffect(
     () => () => {
       pendingPersistCancelRef.current?.();
@@ -67,7 +70,7 @@ export function Navigation({
 
   useEffect(() => {
     const pendingOrder = pendingPersistOrderRef.current;
-    if (pendingOrder && sameOrder(dayConfigs, pendingOrder)) {
+    if (pendingOrder && arraysEqualBy(dayConfigs, pendingOrder, (d) => d.id)) {
       pendingPersistOrderRef.current = null;
       return;
     }
@@ -76,10 +79,10 @@ export function Navigation({
       return;
     }
 
-    if (!sameOrder(dayConfigs, draftDayConfigs)) {
+    if (!arraysEqualBy(dayConfigs, draftDayConfigs, (d) => d.id)) {
       setDraftDayConfigs(dayConfigs);
     }
-  }, [dayConfigs, draftDayConfigs, sameOrder]);
+  }, [dayConfigs, draftDayConfigs]);
 
   const window = useWindowDimensions();
   const styles = createStyles(tokens, bottomPadding, minHeight);
@@ -89,82 +92,58 @@ export function Navigation({
       Math.max(1, draftDayConfigs.length),
   );
 
-  const iconComponents: Record<
-    string,
-    React.ComponentType<{ size: number; color: string }>
-  > = {
-    Activity,
-    Clock,
-    Heart,
-    Navigation: NavigationIcon,
-    RefreshCw,
-    Repeat,
-    Star,
-  };
-
   return (
     <View style={styles.container}>
-      <DraggableFlatList
-        data={draftDayConfigs}
-        keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
-        activationDistance={12}
-        onDragEnd={({ data, from, to }) => {
-          if (from === to) return;
-          setDraftDayConfigs(data);
-          pendingPersistOrderRef.current = data;
+      <Sortable.Flex
+        flexDirection="row"
+        width="fill"
+        dragActivationDelay={300}
+        activeItemScale={1.03}
+        dropAnimationDuration={200}
+        onDragEnd={({ order }) => {
+          const reordered = order(draftDayConfigs);
+          setDraftDayConfigs(reordered);
+          pendingPersistOrderRef.current = reordered;
           pendingPersistCancelRef.current?.();
           pendingPersistCancelRef.current = scheduleIdleTask(() => {
             pendingPersistCancelRef.current = null;
-            onReorderDayConfigs(data);
+            onReorderDayConfigs(reordered);
           });
         }}
-        renderItem={({ item, drag, isActive }: RenderItemParams<DayConfig>) => {
+      >
+        {draftDayConfigs.map((item) => {
           const active = currentDay === item.id;
           const IconComponent = iconComponents[dayIconMap[item.icon]];
-
           return (
-            <ScaleDecorator>
-              <Pressable
-                onPress={() => onDayChange(item.id)}
-                onLongPress={drag}
-                delayLongPress={160}
-                style={[
-                  styles.item,
-                  { width: itemWidth },
-                  isActive && styles.itemActive,
-                ]}
-                android_ripple={{
-                  color: withAlpha(tokens.colors.primary, 0.12),
-                  radius: 22,
-                  borderless: false,
-                }}
-              >
-                <View
-                  style={[styles.iconWrap, active && styles.iconWrapActive]}
-                >
-                  {IconComponent && (
-                    <IconComponent
-                      size={20}
-                      color={
-                        active
-                          ? tokens.colors.accentPrimary
-                          : tokens.colors.textSecondary
-                      }
-                    />
-                  )}
-                </View>
-                <Text style={[styles.label, active && styles.labelActive]}>
-                  {item.name}
-                </Text>
-              </Pressable>
-            </ScaleDecorator>
+            <Pressable
+              key={item.id}
+              onPress={() => onDayChange(item.id)}
+              style={[styles.item, { width: itemWidth }]}
+              android_ripple={{
+                color: withAlpha(tokens.colors.primary, 0.12),
+                radius: 22,
+                borderless: false,
+              }}
+            >
+              <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
+                {IconComponent && (
+                  <IconComponent
+                    size={20}
+                    color={
+                      active
+                        ? tokens.colors.accentPrimary
+                        : tokens.colors.textSecondary
+                    }
+                  />
+                )}
+              </View>
+              <Text style={[styles.label, active && styles.labelActive]}>
+                {item.name}
+              </Text>
+            </Pressable>
           );
-        }}
-      />
+        })}
+      </Sortable.Flex>
     </View>
   );
 }
@@ -189,22 +168,12 @@ function createStyles(
       minHeight,
       flexDirection: 'row',
     },
-    list: {
-      flex: 1,
-    },
-    listContent: {
-      flexGrow: 1,
-    },
     item: {
       alignItems: 'center',
       paddingVertical: tokens.spacing.xs,
       gap: 2,
       borderRadius: tokens.radius.pill,
       overflow: 'hidden',
-    },
-    itemActive: {
-      opacity: 0.92,
-      transform: [{ scale: 1.04 }],
     },
     iconWrap: {
       width: 40,

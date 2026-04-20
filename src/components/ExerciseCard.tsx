@@ -32,8 +32,6 @@ interface ExerciseCardProps {
   onSetWeight: (exerciseId: string, value: number) => void;
   onEditExercise: (exercise: Exercise) => void;
   onDeleteExercise: (exercise: Exercise) => void;
-  onDragStart?: () => void;
-  onDragEnd?: () => void;
 }
 
 function ExerciseCardComponent({
@@ -46,8 +44,6 @@ function ExerciseCardComponent({
   onSetWeight,
   onEditExercise,
   onDeleteExercise,
-  onDragStart,
-  onDragEnd,
 }: ExerciseCardProps) {
   const styles = useMemo(() => createStyles(tokens), [tokens]);
   const setsRepsLabel = `${exercise.sets}x${exercise.reps}`;
@@ -137,14 +133,7 @@ function ExerciseCardComponent({
   }, [exercise, onDeleteExercise]);
 
   return (
-    <AnimatedPressable
-      style={styles.card}
-      onLongPress={onDragStart}
-      onPressOut={onDragEnd}
-      delayLongPress={160}
-      disabled={!onDragStart}
-      pressScale={1}
-    >
+    <AnimatedPressable style={styles.card} pressScale={1}>
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
         <View style={styles.topActions}>

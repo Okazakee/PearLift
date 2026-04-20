@@ -12,19 +12,9 @@ import {
 } from 'lucide-react-native';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  type LayoutChangeEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import DraggableFlatList, {
-  type RenderItemParams,
-  ScaleDecorator,
-} from 'react-native-draggable-flatlist';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '../../animation/primitives';
 import { dayIconMap, dayIconOptions } from '../../data/workouts';
 import type { ThemeTokens } from '../../theme/tokens';
@@ -58,14 +48,6 @@ type WeekDraft = WeekConfig & { uiKey: string };
 
 const MAX_WEEKS = 4;
 const MAX_DAYS = 7;
-const LAYOUT_DEBUG_WINDOW_MS = 1200;
-
-type DragDebugSession = {
-  id: number;
-  startedAt: number;
-  fromIndex: number;
-  startOrder: string[];
-};
 
 const dayIconComponents: Record<
   string,
@@ -98,134 +80,12 @@ export function ProgramSettingsModal({
   const weekUiKeyCounterRef = useRef(0);
   const dayIdCounterRef = useRef(0);
   const wasOpenRef = useRef(false);
-  const weekDragSessionRef = useRef<DragDebugSession | null>(null);
-  const dayDragSessionRef = useRef<DragDebugSession | null>(null);
-  const dragSessionCounterRef = useRef(0);
-  const weekLayoutDebugUntilRef = useRef(0);
-  const dayLayoutDebugUntilRef = useRef(0);
-  const weekLayoutMapRef = useRef<Record<string, string>>({});
-  const dayLayoutMapRef = useRef<Record<string, string>>({});
   const pendingWeekPersistCancelRef = useRef<(() => void) | null>(null);
   const pendingDayPersistCancelRef = useRef<(() => void) | null>(null);
 
   const styles = useMemo(
     () => createStyles(tokens, topInset, bottomInset),
     [tokens, topInset, bottomInset],
-  );
-
-  const formatWeekOrder = useCallback(
-    (weeks: WeekDraft[]) =>
-      weeks
-        .map((week, index) => `${index}:${week.uiKey}->id${week.id}`)
-        .join(' | '),
-    [],
-  );
-
-  const formatDayOrder = useCallback(
-    (days: DayConfig[]) =>
-      days.map((day, index) => `${index}:${day.id}`).join(' | '),
-    [],
-  );
-
-  const debugLog = useCallback(
-    (_message: string, _payload?: unknown) => {},
-    [],
-  );
-
-  const openDragSession = useCallback(
-    (
-      lane: 'weeks' | 'days',
-      fromIndex: number,
-      startOrder: string[],
-    ): DragDebugSession => {
-      const id = dragSessionCounterRef.current;
-      dragSessionCounterRef.current += 1;
-      const session = {
-        id,
-        startedAt: Date.now(),
-        fromIndex,
-        startOrder,
-      };
-      if (lane === 'weeks') {
-        weekDragSessionRef.current = session;
-        weekLayoutMapRef.current = {};
-      } else {
-        dayDragSessionRef.current = session;
-        dayLayoutMapRef.current = {};
-      }
-      debugLog(`${lane}: drag begin`, session);
-      return session;
-    },
-    [debugLog],
-  );
-
-  const closeDragSession = useCallback(
-    (
-      lane: 'weeks' | 'days',
-      meta: { from: number; to: number; finalOrder: string[] },
-    ) => {
-      const session =
-        lane === 'weeks'
-          ? weekDragSessionRef.current
-          : dayDragSessionRef.current;
-      const endedAt = Date.now();
-      debugLog(`${lane}: drag end`, {
-        sessionId: session?.id ?? null,
-        elapsedMs: session ? endedAt - session.startedAt : null,
-        from: meta.from,
-        to: meta.to,
-        startOrder: session?.startOrder ?? null,
-        finalOrder: meta.finalOrder,
-      });
-      if (lane === 'weeks') {
-        weekDragSessionRef.current = null;
-        weekLayoutDebugUntilRef.current = endedAt + LAYOUT_DEBUG_WINDOW_MS;
-      } else {
-        dayDragSessionRef.current = null;
-        dayLayoutDebugUntilRef.current = endedAt + LAYOUT_DEBUG_WINDOW_MS;
-      }
-    },
-    [debugLog],
-  );
-
-  const handleDebugLayout = useCallback(
-    (
-      lane: 'weeks' | 'days',
-      key: string,
-      index: number,
-      event: LayoutChangeEvent,
-    ) => {
-      const now = Date.now();
-      const sessionActive =
-        lane === 'weeks'
-          ? Boolean(weekDragSessionRef.current)
-          : Boolean(dayDragSessionRef.current);
-      const debugWindowOpen =
-        lane === 'weeks'
-          ? now <= weekLayoutDebugUntilRef.current
-          : now <= dayLayoutDebugUntilRef.current;
-      if (!sessionActive && !debugWindowOpen) return;
-
-      const { x, y, width, height } = event.nativeEvent.layout;
-      const signature = `${Math.round(x)},${Math.round(y)},${Math.round(width)},${Math.round(height)}`;
-      const mapRef = lane === 'weeks' ? weekLayoutMapRef : dayLayoutMapRef;
-      if (mapRef.current[key] === signature) return;
-      mapRef.current[key] = signature;
-      debugLog(`${lane}: layout`, {
-        key,
-        index,
-        x: Math.round(x),
-        y: Math.round(y),
-        width: Math.round(width),
-        height: Math.round(height),
-        sessionId:
-          lane === 'weeks'
-            ? (weekDragSessionRef.current?.id ?? null)
-            : (dayDragSessionRef.current?.id ?? null),
-        inPostDropWindow: debugWindowOpen,
-      });
-    },
-    [debugLog],
   );
 
   const createWeekUiKey = useCallback(() => {
@@ -267,36 +127,6 @@ export function ProgramSettingsModal({
     );
     setDraftDays(dayConfigs);
   }, [createWeekUiKey, dayConfigs, open, weekConfigs]);
-
-  useEffect(() => {
-    debugLog('props weekConfigs changed', {
-      open,
-      order: weekConfigs
-        .map((week, index) => `${index}:id${week.id}`)
-        .join(' | '),
-    });
-  }, [debugLog, open, weekConfigs]);
-
-  useEffect(() => {
-    debugLog('props dayConfigs changed', {
-      open,
-      order: formatDayOrder(dayConfigs),
-    });
-  }, [dayConfigs, debugLog, formatDayOrder, open]);
-
-  useEffect(() => {
-    debugLog('draftWeeks changed', {
-      open,
-      order: formatWeekOrder(draftWeeks),
-    });
-  }, [debugLog, draftWeeks, formatWeekOrder, open]);
-
-  useEffect(() => {
-    debugLog('draftDays changed', {
-      open,
-      order: formatDayOrder(draftDays),
-    });
-  }, [debugLog, draftDays, formatDayOrder, open]);
 
   useEffect(
     () => () => {
@@ -406,6 +236,157 @@ export function ProgramSettingsModal({
     [draftDays, onDayConfigsChange, onPrompt],
   );
 
+  const weekScrollRef = useAnimatedRef<Animated.ScrollView>();
+  const dayScrollRef = useAnimatedRef<Animated.ScrollView>();
+
+  const renderWeekItem = useCallback(
+    ({ item: week, index }: { item: WeekDraft; index: number }) => (
+      <View style={styles.card}>
+        <AnimatedPressable style={styles.cardPressable} pressScale={1}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Week {index + 1}</Text>
+            <AnimatedPressable
+              style={[
+                styles.rowButton,
+                styles.rowButtonDelete,
+                draftWeeks.length <= 1 && styles.rowButtonDisabled,
+              ]}
+              hitSlop={8}
+              disabled={draftWeeks.length <= 1}
+              onPress={() => removeWeek(week.uiKey)}
+            >
+              <Trash2 size={16} color={tokens.colors.accentDanger} />
+            </AnimatedPressable>
+          </View>
+
+          <View style={styles.weekInputRow}>
+            <View style={styles.weekInputCol}>
+              <TextInput
+                value={week.name}
+                onChangeText={(text) => updateWeek(week.uiKey, { name: text })}
+                style={styles.input}
+                placeholder="Week name"
+                placeholderTextColor={tokens.colors.textMuted}
+              />
+              <Text style={styles.inputLabel}>Week Name</Text>
+            </View>
+            <View style={styles.weekInputCol}>
+              <TextInput
+                value={String(week.loadModifier)}
+                onChangeText={(text) =>
+                  updateWeek(week.uiKey, {
+                    loadModifier: Number(text) || 1,
+                  })
+                }
+                style={styles.input}
+                keyboardType="decimal-pad"
+                placeholder="Load"
+                placeholderTextColor={tokens.colors.textMuted}
+              />
+              <Text style={styles.inputLabel}>Load</Text>
+            </View>
+            <View style={styles.weekInputCol}>
+              <TextInput
+                value={String(week.rir)}
+                onChangeText={(text) =>
+                  updateWeek(week.uiKey, {
+                    rir: Number(text) || 0,
+                  })
+                }
+                style={styles.input}
+                keyboardType="number-pad"
+                placeholder="RIR"
+                placeholderTextColor={tokens.colors.textMuted}
+              />
+              <Text style={styles.inputLabel}>RIR</Text>
+            </View>
+          </View>
+        </AnimatedPressable>
+      </View>
+    ),
+    [
+      draftWeeks.length,
+      removeWeek,
+      styles,
+      tokens.colors.accentDanger,
+      tokens.colors.textMuted,
+      updateWeek,
+    ],
+  );
+
+  const renderDayItem = useCallback(
+    ({ item: day, index }: { item: DayConfig; index: number }) => (
+      <View style={styles.card}>
+        <AnimatedPressable style={styles.cardPressable} pressScale={1}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Day {index + 1}</Text>
+            <AnimatedPressable
+              style={[
+                styles.rowButton,
+                styles.rowButtonDelete,
+                draftDays.length <= 1 && styles.rowButtonDisabled,
+              ]}
+              hitSlop={8}
+              disabled={draftDays.length <= 1}
+              onPress={() => removeDay(index)}
+            >
+              <Trash2 size={16} color={tokens.colors.accentDanger} />
+            </AnimatedPressable>
+          </View>
+
+          <TextInput
+            value={day.name}
+            onChangeText={(text) => updateDay(day.id, { name: text })}
+            style={styles.input}
+            placeholder="Day name"
+            placeholderTextColor={tokens.colors.textMuted}
+          />
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.iconRow}
+            nestedScrollEnabled
+          >
+            {dayIconOptions.map((option) => {
+              const active = day.icon === option;
+              const IconComponent = dayIconComponents[dayIconMap[option]];
+              return (
+                <AnimatedPressable
+                  key={option}
+                  style={[styles.iconOption, active && styles.iconOptionActive]}
+                  hitSlop={4}
+                  onPress={() => updateDay(day.id, { icon: option })}
+                >
+                  {IconComponent && (
+                    <IconComponent
+                      size={18}
+                      color={
+                        active
+                          ? tokens.colors.accentPrimary
+                          : tokens.colors.textSecondary
+                      }
+                    />
+                  )}
+                </AnimatedPressable>
+              );
+            })}
+          </ScrollView>
+        </AnimatedPressable>
+      </View>
+    ),
+    [
+      draftDays.length,
+      removeDay,
+      styles,
+      tokens.colors.accentDanger,
+      tokens.colors.accentPrimary,
+      tokens.colors.textMuted,
+      tokens.colors.textSecondary,
+      updateDay,
+    ],
+  );
+
   return (
     <AnimatedScreenModal open={open} onClose={onClose}>
       <View style={styles.container}>
@@ -454,350 +435,97 @@ export function ProgramSettingsModal({
               </AnimatedPressable>
             </View>
 
-            <GestureHandlerRootView style={styles.listWrap}>
+            <View style={styles.listWrap}>
               {activeTab === 'weeks' ? (
-                <DraggableFlatList
-                  data={draftWeeks}
-                  keyExtractor={(item) => item.uiKey}
+                <Animated.ScrollView
+                  ref={weekScrollRef}
                   style={styles.list}
-                  containerStyle={styles.listContainer}
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.listContent}
-                  activationDistance={12}
-                  onDragBegin={(fromIndex) => {
-                    openDragSession(
-                      'weeks',
-                      fromIndex,
-                      draftWeeks.map((week, index) => `${index}:${week.uiKey}`),
-                    );
-                  }}
-                  onPlaceholderIndexChange={(index) => {
-                    const session = weekDragSessionRef.current;
-                    debugLog('weeks: placeholder index change', {
-                      sessionId: session?.id ?? null,
-                      index,
-                    });
-                  }}
-                  onRelease={(index) => {
-                    const session = weekDragSessionRef.current;
-                    debugLog('weeks: onRelease', {
-                      sessionId: session?.id ?? null,
-                      index,
-                    });
-                  }}
-                  onDragEnd={({ data, from, to }) => {
-                    closeDragSession('weeks', {
-                      from,
-                      to,
-                      finalOrder: data.map(
-                        (week, index) => `${index}:${week.uiKey}`,
-                      ),
-                    });
-                    if (from === to) return;
-                    const reordered = data.map((w, i) => ({ ...w, id: i + 1 }));
-                    debugLog('weeks: local reorder commit', {
-                      from,
-                      to,
-                      reordered: formatWeekOrder(reordered),
-                    });
-                    setDraftWeeks(reordered);
-                    pendingWeekPersistCancelRef.current?.();
-                    pendingWeekPersistCancelRef.current = scheduleIdleTask(
-                      () => {
-                        pendingWeekPersistCancelRef.current = null;
-                        debugLog('weeks: dispatching parent mutation', {
-                          reordered: reordered.map(
-                            (week, index) => `${index}:id${week.id}`,
-                          ),
-                        });
-                        onWeekConfigsChange(toWeekConfigs(reordered));
-                      },
-                    );
-                  }}
-                  ListFooterComponent={
-                    draftWeeks.length < MAX_WEEKS ? (
-                      <AnimatedPressable
-                        style={styles.ghostCard}
-                        onPress={addWeek}
-                      >
-                        <Plus
-                          size={16}
-                          color={withAlpha(tokens.colors.primary, 0.7)}
-                        />
-                        <Text style={styles.ghostCardText}>Add Week</Text>
-                      </AnimatedPressable>
-                    ) : null
-                  }
-                  renderItem={({
-                    item: week,
-                    getIndex,
-                    drag,
-                    isActive,
-                  }: RenderItemParams<WeekDraft>) => {
-                    const index = getIndex() ?? 0;
-                    return (
-                      <ScaleDecorator activeScale={1.015}>
-                        <View
-                          style={[
-                            styles.card,
-                            styles.cardSpacing,
-                            isActive && styles.cardActive,
-                          ]}
-                          onLayout={(event) =>
-                            handleDebugLayout('weeks', week.uiKey, index, event)
-                          }
-                        >
-                          <AnimatedPressable
-                            style={styles.cardPressable}
-                            pressScale={1}
-                            onLongPress={drag}
-                            delayLongPress={160}
-                          >
-                            <View style={styles.cardHeader}>
-                              <Text style={styles.cardTitle}>
-                                Week {index + 1}
-                              </Text>
-                              <AnimatedPressable
-                                style={[
-                                  styles.rowButton,
-                                  styles.rowButtonDelete,
-                                  draftWeeks.length <= 1 &&
-                                    styles.rowButtonDisabled,
-                                ]}
-                                hitSlop={8}
-                                disabled={draftWeeks.length <= 1}
-                                onPress={() => removeWeek(week.uiKey)}
-                              >
-                                <Trash2
-                                  size={16}
-                                  color={tokens.colors.accentDanger}
-                                />
-                              </AnimatedPressable>
-                            </View>
-
-                            <View style={styles.weekInputRow}>
-                              <View style={styles.weekInputCol}>
-                                <TextInput
-                                  value={week.name}
-                                  onChangeText={(text) =>
-                                    updateWeek(week.uiKey, { name: text })
-                                  }
-                                  style={styles.input}
-                                  placeholder="Week name"
-                                  placeholderTextColor={tokens.colors.textMuted}
-                                />
-                                <Text style={styles.inputLabel}>Week Name</Text>
-                              </View>
-                              <View style={styles.weekInputCol}>
-                                <TextInput
-                                  value={String(week.loadModifier)}
-                                  onChangeText={(text) =>
-                                    updateWeek(week.uiKey, {
-                                      loadModifier: Number(text) || 1,
-                                    })
-                                  }
-                                  style={styles.input}
-                                  keyboardType="decimal-pad"
-                                  placeholder="Load"
-                                  placeholderTextColor={tokens.colors.textMuted}
-                                />
-                                <Text style={styles.inputLabel}>Load</Text>
-                              </View>
-                              <View style={styles.weekInputCol}>
-                                <TextInput
-                                  value={String(week.rir)}
-                                  onChangeText={(text) =>
-                                    updateWeek(week.uiKey, {
-                                      rir: Number(text) || 0,
-                                    })
-                                  }
-                                  style={styles.input}
-                                  keyboardType="number-pad"
-                                  placeholder="RIR"
-                                  placeholderTextColor={tokens.colors.textMuted}
-                                />
-                                <Text style={styles.inputLabel}>RIR</Text>
-                              </View>
-                            </View>
-                          </AnimatedPressable>
-                        </View>
-                      </ScaleDecorator>
-                    );
-                  }}
-                />
+                >
+                  <Sortable.Grid
+                    data={draftWeeks}
+                    keyExtractor={(item) => item.uiKey}
+                    renderItem={renderWeekItem}
+                    columns={1}
+                    rowGap={tokens.spacing.md}
+                    scrollableRef={weekScrollRef}
+                    dragActivationDelay={300}
+                    activeItemScale={1.02}
+                    dropAnimationDuration={200}
+                    onDragEnd={({ data }) => {
+                      const reordered = data.map((w, i) => ({
+                        ...w,
+                        id: i + 1,
+                      }));
+                      setDraftWeeks(reordered);
+                      pendingWeekPersistCancelRef.current?.();
+                      pendingWeekPersistCancelRef.current = scheduleIdleTask(
+                        () => {
+                          pendingWeekPersistCancelRef.current = null;
+                          onWeekConfigsChange(toWeekConfigs(reordered));
+                        },
+                      );
+                    }}
+                  />
+                  {draftWeeks.length < MAX_WEEKS && (
+                    <AnimatedPressable
+                      style={styles.ghostCard}
+                      onPress={addWeek}
+                    >
+                      <Plus
+                        size={16}
+                        color={withAlpha(tokens.colors.primary, 0.7)}
+                      />
+                      <Text style={styles.ghostCardText}>Add Week</Text>
+                    </AnimatedPressable>
+                  )}
+                </Animated.ScrollView>
               ) : (
-                <DraggableFlatList
-                  data={draftDays}
-                  keyExtractor={(item) => item.id}
+                <Animated.ScrollView
+                  ref={dayScrollRef}
                   style={styles.list}
-                  containerStyle={styles.listContainer}
                   showsVerticalScrollIndicator={false}
                   keyboardShouldPersistTaps="handled"
                   contentContainerStyle={styles.listContent}
-                  activationDistance={12}
-                  onDragBegin={(fromIndex) => {
-                    openDragSession(
-                      'days',
-                      fromIndex,
-                      draftDays.map((day, index) => `${index}:${day.id}`),
-                    );
-                  }}
-                  onPlaceholderIndexChange={(index) => {
-                    const session = dayDragSessionRef.current;
-                    debugLog('days: placeholder index change', {
-                      sessionId: session?.id ?? null,
-                      index,
-                    });
-                  }}
-                  onRelease={(index) => {
-                    const session = dayDragSessionRef.current;
-                    debugLog('days: onRelease', {
-                      sessionId: session?.id ?? null,
-                      index,
-                    });
-                  }}
-                  onDragEnd={({ data, from, to }) => {
-                    closeDragSession('days', {
-                      from,
-                      to,
-                      finalOrder: data.map(
-                        (day, index) => `${index}:${day.id}`,
-                      ),
-                    });
-                    if (from === to) return;
-                    debugLog('days: local reorder commit', {
-                      from,
-                      to,
-                      reordered: formatDayOrder(data),
-                    });
-                    setDraftDays(data);
-                    pendingDayPersistCancelRef.current?.();
-                    pendingDayPersistCancelRef.current = scheduleIdleTask(
-                      () => {
-                        pendingDayPersistCancelRef.current = null;
-                        debugLog('days: dispatching parent mutation', {
-                          reordered: formatDayOrder(data),
-                        });
-                        onDayConfigsChange(data);
-                      },
-                    );
-                  }}
-                  ListFooterComponent={
-                    draftDays.length < MAX_DAYS ? (
-                      <AnimatedPressable
-                        style={styles.ghostCard}
-                        onPress={addDay}
-                      >
-                        <Plus
-                          size={16}
-                          color={withAlpha(tokens.colors.primary, 0.7)}
-                        />
-                        <Text style={styles.ghostCardText}>Add Day</Text>
-                      </AnimatedPressable>
-                    ) : null
-                  }
-                  renderItem={({
-                    item: day,
-                    getIndex,
-                    drag,
-                    isActive,
-                  }: RenderItemParams<DayConfig>) => {
-                    const index = getIndex() ?? 0;
-                    return (
-                      <ScaleDecorator activeScale={1.015}>
-                        <View
-                          style={[
-                            styles.card,
-                            styles.cardSpacing,
-                            isActive && styles.cardActive,
-                          ]}
-                          onLayout={(event) =>
-                            handleDebugLayout('days', day.id, index, event)
-                          }
-                        >
-                          <AnimatedPressable
-                            style={styles.cardPressable}
-                            pressScale={1}
-                            onLongPress={drag}
-                            delayLongPress={160}
-                          >
-                            <View style={styles.cardHeader}>
-                              <Text style={styles.cardTitle}>
-                                Day {index + 1}
-                              </Text>
-                              <AnimatedPressable
-                                style={[
-                                  styles.rowButton,
-                                  styles.rowButtonDelete,
-                                  draftDays.length <= 1 &&
-                                    styles.rowButtonDisabled,
-                                ]}
-                                hitSlop={8}
-                                disabled={draftDays.length <= 1}
-                                onPress={() => removeDay(index)}
-                              >
-                                <Trash2
-                                  size={16}
-                                  color={tokens.colors.accentDanger}
-                                />
-                              </AnimatedPressable>
-                            </View>
-
-                            <TextInput
-                              value={day.name}
-                              onChangeText={(text) =>
-                                updateDay(day.id, { name: text })
-                              }
-                              style={styles.input}
-                              placeholder="Day name"
-                              placeholderTextColor={tokens.colors.textMuted}
-                            />
-
-                            <ScrollView
-                              horizontal
-                              showsHorizontalScrollIndicator={false}
-                              contentContainerStyle={styles.iconRow}
-                              nestedScrollEnabled
-                            >
-                              {dayIconOptions.map((option) => {
-                                const active = day.icon === option;
-                                const IconComponent =
-                                  dayIconComponents[dayIconMap[option]];
-                                return (
-                                  <AnimatedPressable
-                                    key={option}
-                                    style={[
-                                      styles.iconOption,
-                                      active && styles.iconOptionActive,
-                                    ]}
-                                    hitSlop={4}
-                                    onPress={() =>
-                                      updateDay(day.id, { icon: option })
-                                    }
-                                  >
-                                    {IconComponent && (
-                                      <IconComponent
-                                        size={18}
-                                        color={
-                                          active
-                                            ? tokens.colors.accentPrimary
-                                            : tokens.colors.textSecondary
-                                        }
-                                      />
-                                    )}
-                                  </AnimatedPressable>
-                                );
-                              })}
-                            </ScrollView>
-                          </AnimatedPressable>
-                        </View>
-                      </ScaleDecorator>
-                    );
-                  }}
-                />
+                >
+                  <Sortable.Grid
+                    data={draftDays}
+                    keyExtractor={(item) => item.id}
+                    renderItem={renderDayItem}
+                    columns={1}
+                    rowGap={tokens.spacing.md}
+                    scrollableRef={dayScrollRef}
+                    dragActivationDelay={300}
+                    activeItemScale={1.02}
+                    dropAnimationDuration={200}
+                    onDragEnd={({ data: reordered }) => {
+                      setDraftDays(reordered);
+                      pendingDayPersistCancelRef.current?.();
+                      pendingDayPersistCancelRef.current = scheduleIdleTask(
+                        () => {
+                          pendingDayPersistCancelRef.current = null;
+                          onDayConfigsChange(reordered);
+                        },
+                      );
+                    }}
+                  />
+                  {draftDays.length < MAX_DAYS && (
+                    <AnimatedPressable
+                      style={styles.ghostCard}
+                      onPress={addDay}
+                    >
+                      <Plus
+                        size={16}
+                        color={withAlpha(tokens.colors.primary, 0.7)}
+                      />
+                      <Text style={styles.ghostCardText}>Add Day</Text>
+                    </AnimatedPressable>
+                  )}
+                </Animated.ScrollView>
               )}
-            </GestureHandlerRootView>
+            </View>
           </View>
         </View>
       </View>
@@ -887,9 +615,6 @@ function createStyles(
     list: {
       flex: 1,
     },
-    listContainer: {
-      flex: 1,
-    },
     listContent: {
       paddingTop: tokens.spacing.sm,
       paddingBottom: tokens.spacing.sm,
@@ -907,9 +632,6 @@ function createStyles(
     },
     cardPressable: {
       gap: tokens.spacing.sm,
-    },
-    cardActive: {
-      borderColor: withAlpha(tokens.colors.primary, 0.45),
     },
     cardHeader: {
       flexDirection: 'row',

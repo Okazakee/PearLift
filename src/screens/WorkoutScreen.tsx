@@ -3,7 +3,7 @@ import { File, Paths } from 'expo-file-system';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
+import { startTransition, useEffect, useMemo } from 'react';
 import { Linking, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
@@ -396,7 +396,9 @@ export function WorkoutScreen() {
 
   const handleDayChange = (nextDay: WorkoutDay) => {
     if (nextDay === selectedDay) return;
-    void applyMutation({ type: 'setCurrentDay', currentDay: nextDay });
+    startTransition(() => {
+      void applyMutation({ type: 'setCurrentDay', currentDay: nextDay });
+    });
   };
 
   const handleRestDurationChange = (nextDuration: number) => {

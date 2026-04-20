@@ -1,7 +1,9 @@
 import { Plus, Sliders } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import DragList, { type DragListRenderItemInfo } from 'react-native-draglist';
+import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import type { SortableGridRenderItem } from 'react-native-sortables';
+import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -12,28 +14,9 @@ import type {
   WeightUnit,
   WorkoutSession,
 } from '../types';
+import { arraysEqualBy } from '../utils/array';
 import { scheduleIdleTask } from '../utils/idle';
 import { ExerciseCard } from './ExerciseCard';
-
-function reorderIds(
-  ids: string[],
-  fromIndex: number,
-  toIndex: number,
-): string[] {
-  const next = [...ids];
-  const [moved] = next.splice(fromIndex, 1);
-  if (!moved) return ids;
-  next.splice(toIndex, 0, moved);
-  return next;
-}
-
-function arraysEqual(a: string[], b: string[]): boolean {
-  if (a.length !== b.length) return false;
-  for (let i = 0; i < a.length; i += 1) {
-    if (a[i] !== b[i]) return false;
-  }
-  return true;
-}
 
 interface WorkoutViewProps {
   tokens: ThemeTokens;
@@ -59,7 +42,7 @@ export function WorkoutView({
   tokens,
   weightUnit,
   contentBottomPadding,
-  fabBottom,
+  fabBottom: _fabBottom,
   workout,
   currentWeek,
   weekConfigs,
@@ -74,16 +57,13 @@ export function WorkoutView({
   onSetWeight,
   onReorderExercises,
 }: WorkoutViewProps) {
-  const dragCandidateIndexRef = useRef<number | null>(null);
-  const hoverIndexRef = useRef<number | null>(null);
+  const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const pendingPersistCancelRef = useRef<(() => void) | null>(null);
   const pendingPersistOrderRef = useRef<string[] | null>(null);
-  const listExerciseIdsRef = useRef<string[]>([]);
-  const dragStartOrderIdsRef = useRef<string[] | null>(null);
 
   const styles = useMemo(
-    () => createStyles(tokens, contentBottomPadding, fabBottom),
-    [tokens, contentBottomPadding, fabBottom],
+    () => createStyles(tokens, contentBottomPadding),
+    [tokens, contentBottomPadding],
   );
   const week = weekConfigs.find((w) => w.id === currentWeek) ?? weekConfigs[0];
   const dayNumberMatch = workout.name.match(/\d+/);
@@ -104,8 +84,6 @@ export function WorkoutView({
   const [listExerciseIds, setListExerciseIds] =
     useState<string[]>(sortedExerciseIds);
 
-  const keyExtractor = useCallback((item: string) => item, []);
-
   useEffect(
     () => () => {
       pendingPersistCancelRef.current?.();
@@ -121,18 +99,17 @@ export function WorkoutView({
   }, [sortedExerciseIds, workout.id]);
 
   useEffect(() => {
-    listExerciseIdsRef.current = listExerciseIds;
-  }, [listExerciseIds]);
-
-  useEffect(() => {
     const pendingOrder = pendingPersistOrderRef.current;
-    if (pendingOrder && arraysEqual(sortedExerciseIds, pendingOrder)) {
+    if (
+      pendingOrder &&
+      arraysEqualBy(sortedExerciseIds, pendingOrder, (id) => id)
+    ) {
       pendingPersistOrderRef.current = null;
       return;
     }
 
     if (pendingOrder) return;
-    if (!arraysEqual(sortedExerciseIds, listExerciseIds)) {
+    if (!arraysEqualBy(sortedExerciseIds, listExerciseIds, (id) => id)) {
       setListExerciseIds(sortedExerciseIds);
     }
   }, [listExerciseIds, sortedExerciseIds]);
@@ -223,57 +200,32 @@ export function WorkoutView({
       ? listExerciseIds
       : sortedExerciseIds;
 
-  const renderItem = useCallback(
-    ({
-      item,
-      index,
-      onDragStart,
-      onDragEnd,
-      isActive,
-    }: DragListRenderItemInfo<string>) => {
+  const renderItem = useCallback<SortableGridRenderItem<string>>(
+    ({ item }) => {
       const exercise = exerciseById.get(item);
       if (!exercise) return null;
       return (
-        <View
-          style={[
-            index < displayExerciseIds.length - 1
-              ? styles.exerciseItem
-              : undefined,
-            isActive && styles.exerciseItemActive,
-          ]}
-        >
-          <ExerciseCard
-            tokens={tokens}
-            exercise={exercise}
-            weightUnit={weightUnit}
-            baseWeight={userWeights[exercise.id] ?? exercise.baseWeight}
-            adjustedWeight={getAdjustedWeight(exercise.id, currentWeek)}
-            onAdjustWeight={onAdjustWeight}
-            onSetWeight={onSetWeight}
-            onEditExercise={onEditExercise}
-            onDeleteExercise={onDeleteExercise}
-            onDragStart={() => {
-              dragCandidateIndexRef.current = index;
-              hoverIndexRef.current = index;
-              dragStartOrderIdsRef.current = listExerciseIdsRef.current;
-              onDragStart();
-            }}
-            onDragEnd={onDragEnd}
-          />
-        </View>
+        <ExerciseCard
+          tokens={tokens}
+          exercise={exercise}
+          weightUnit={weightUnit}
+          baseWeight={userWeights[exercise.id] ?? exercise.baseWeight}
+          adjustedWeight={getAdjustedWeight(exercise.id, currentWeek)}
+          onAdjustWeight={onAdjustWeight}
+          onSetWeight={onSetWeight}
+          onEditExercise={onEditExercise}
+          onDeleteExercise={onDeleteExercise}
+        />
       );
     },
     [
       currentWeek,
       exerciseById,
       getAdjustedWeight,
-      displayExerciseIds.length,
       onAdjustWeight,
       onDeleteExercise,
       onEditExercise,
       onSetWeight,
-      styles.exerciseItem,
-      styles.exerciseItemActive,
       tokens,
       userWeights,
       weightUnit,
@@ -282,54 +234,42 @@ export function WorkoutView({
 
   return (
     <View style={styles.container}>
-      <DragList
-        data={displayExerciseIds}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        extraData={displayExerciseIds.join('|')}
-        ListHeaderComponent={renderHeader()}
-        ListFooterComponent={renderFooter()}
+      <Animated.ScrollView
+        ref={scrollRef}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        initialNumToRender={6}
-        maxToRenderPerBatch={4}
-        updateCellsBatchingPeriod={16}
-        windowSize={7}
-        removeClippedSubviews={false}
-        onHoverChanged={(index) => {
-          hoverIndexRef.current = index;
-        }}
-        onReordered={(from, to) => {
-          const dragStartOrder =
-            dragStartOrderIdsRef.current ?? listExerciseIdsRef.current;
-          const reordered = reorderIds(dragStartOrder, from, to);
-          if (from === to) {
-            dragCandidateIndexRef.current = null;
-            return;
-          }
-
-          setListExerciseIds(reordered);
-          pendingPersistOrderRef.current = reordered;
-
-          pendingPersistCancelRef.current?.();
-          pendingPersistCancelRef.current = scheduleIdleTask(() => {
-            pendingPersistCancelRef.current = null;
-            onReorderExercises(reordered);
-          });
-          dragCandidateIndexRef.current = null;
-          hoverIndexRef.current = null;
-          dragStartOrderIdsRef.current = null;
-        }}
-      />
+        keyboardShouldPersistTaps="handled"
+      >
+        {renderHeader()}
+        <Sortable.Grid
+          data={displayExerciseIds}
+          keyExtractor={(id) => id}
+          renderItem={renderItem}
+          columns={1}
+          rowGap={tokens.spacing.md}
+          scrollableRef={scrollRef}
+          dragActivationDelay={300}
+          activeItemScale={1.02}
+          activeItemOpacity={0.95}
+          activeItemShadowOpacity={0.12}
+          dropAnimationDuration={200}
+          onDragEnd={({ data: reordered }) => {
+            setListExerciseIds(reordered);
+            pendingPersistOrderRef.current = reordered;
+            pendingPersistCancelRef.current?.();
+            pendingPersistCancelRef.current = scheduleIdleTask(() => {
+              pendingPersistCancelRef.current = null;
+              onReorderExercises(reordered);
+            });
+          }}
+        />
+        {renderFooter()}
+      </Animated.ScrollView>
     </View>
   );
 }
 
-function createStyles(
-  tokens: ThemeTokens,
-  contentBottomPadding: number,
-  _fabBottom: number,
-) {
+function createStyles(tokens: ThemeTokens, contentBottomPadding: number) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -451,15 +391,6 @@ function createStyles(
     },
     weekTabTextActive: {
       color: tokens.colors.onPrimary,
-    },
-    exerciseItem: {
-      marginBottom: tokens.spacing.md,
-    },
-    exerciseItemActive: {
-      opacity: 0.98,
-    },
-    fab: {
-      display: 'none',
     },
     addButton: {
       marginTop: tokens.spacing.md,

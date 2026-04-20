@@ -21,10 +21,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/space-grotesk": "^0.4.1",
-    "@noble/hashes": "^2.2.0",
-    "@noble/secp256k1": "^3.1.0",
     "@react-native-async-storage/async-storage": "2.2.0",
-    "@scure/base": "^2.0.0",
     "expo": "^55.0.0",
     "expo-av": "^16.0.8",
     "expo-build-properties": "~55.0.13",
@@ -46,11 +43,10 @@
     "pearlift-rest-timer-fgs": "file:./modules/pearlift-rest-timer-fgs",
     "react": "19.2.0",
     "react-native": "0.83.4",
-    "react-native-draggable-flatlist": "^4.0.2",
-    "react-native-draglist": "^3.10.0",
     "react-native-gesture-handler": "^2.28.0",
     "react-native-reanimated": "^4.3.0",
     "react-native-safe-area-context": "~5.6.2",
+    "react-native-sortables": "^1.9.4",
     "react-native-svg": "15.15.3",
     "react-native-worklets": "^0.8.1",
     "zustand": "^5.0.12"
