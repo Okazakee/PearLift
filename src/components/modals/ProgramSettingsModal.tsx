@@ -172,16 +172,27 @@ export function ProgramSettingsModal({
 
   const removeWeek = useCallback(
     (uiKey: string) => {
-      setDraftWeeks((prev) => {
-        if (prev.length <= 1) return prev;
-        const next = prev
-          .filter((w) => w.uiKey !== uiKey)
-          .map((w, i) => ({ ...w, id: i + 1 }));
-        onWeekConfigsChange(toWeekConfigs(next));
-        return next;
-      });
+      const week = draftWeeks.find((w) => w.uiKey === uiKey);
+      if (!week) return;
+      onPrompt('Delete week', `Delete "${week.name}"?`, [
+        { label: 'Cancel', tone: 'cancel', onPress: () => {} },
+        {
+          label: 'Delete',
+          tone: 'destructive',
+          onPress: () => {
+            setDraftWeeks((prev) => {
+              if (prev.length <= 1) return prev;
+              const next = prev
+                .filter((w) => w.uiKey !== uiKey)
+                .map((w, i) => ({ ...w, id: i + 1 }));
+              onWeekConfigsChange(toWeekConfigs(next));
+              return next;
+            });
+          },
+        },
+      ]);
     },
-    [onWeekConfigsChange, toWeekConfigs],
+    [draftWeeks, onWeekConfigsChange, toWeekConfigs, onPrompt],
   );
 
   const updateDay = useCallback(
@@ -202,7 +213,7 @@ export function ProgramSettingsModal({
       dayIdCounterRef.current += 1;
       const next: DayConfig[] = [
         ...prev,
-        { id, name: `Day ${prev.length + 1}`, icon: 'FitnessCenter' },
+        { id, name: `Day ${prev.length + 1}`, icon: dayIconOptions[0] },
       ];
       onDayConfigsChange(next);
       return next;
@@ -254,6 +265,7 @@ export function ProgramSettingsModal({
               hitSlop={8}
               disabled={draftWeeks.length <= 1}
               onPress={() => removeWeek(week.uiKey)}
+              pointerEvents="box-only"
             >
               <Trash2 size={16} color={tokens.colors.accentDanger} />
             </AnimatedPressable>
@@ -329,6 +341,7 @@ export function ProgramSettingsModal({
               hitSlop={8}
               disabled={draftDays.length <= 1}
               onPress={() => removeDay(index)}
+              pointerEvents="box-only"
             >
               <Trash2 size={16} color={tokens.colors.accentDanger} />
             </AnimatedPressable>
@@ -436,7 +449,12 @@ export function ProgramSettingsModal({
             </View>
 
             <View style={styles.listWrap}>
-              {activeTab === 'weeks' ? (
+              <View
+                style={[
+                  styles.listWrapper,
+                  activeTab !== 'weeks' && styles.listHidden,
+                ]}
+              >
                 <Animated.ScrollView
                   ref={weekScrollRef}
                   style={styles.list}
@@ -482,7 +500,13 @@ export function ProgramSettingsModal({
                     </AnimatedPressable>
                   )}
                 </Animated.ScrollView>
-              ) : (
+              </View>
+              <View
+                style={[
+                  styles.listWrapper,
+                  activeTab !== 'days' && styles.listHidden,
+                ]}
+              >
                 <Animated.ScrollView
                   ref={dayScrollRef}
                   style={styles.list}
@@ -524,7 +548,7 @@ export function ProgramSettingsModal({
                     </AnimatedPressable>
                   )}
                 </Animated.ScrollView>
-              )}
+              </View>
             </View>
           </View>
         </View>
@@ -611,9 +635,25 @@ function createStyles(
       flex: 1,
       minHeight: 0,
       overflow: 'hidden',
+      position: 'relative',
+    },
+    listWrapper: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 1,
     },
     list: {
       flex: 1,
+    },
+    listHidden: {
+      display: 'none',
+      position: 'absolute',
+      width: 0,
+      height: 0,
+      overflow: 'hidden',
     },
     listContent: {
       paddingTop: tokens.spacing.sm,
@@ -714,6 +754,7 @@ function createStyles(
       gap: tokens.spacing.xs,
       paddingHorizontal: tokens.spacing.md,
       paddingVertical: tokens.spacing.sm,
+      marginTop: tokens.spacing.md,
     },
     ghostCardText: {
       color: withAlpha(tokens.colors.primary, 0.7),
