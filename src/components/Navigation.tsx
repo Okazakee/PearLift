@@ -8,7 +8,6 @@ import {
   Star,
 } from 'lucide-react-native';
 import type React from 'react';
-import { useEffect, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -16,12 +15,10 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import Sortable from 'react-native-sortables';
 import { dayIconMap } from '../data/workouts';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WorkoutDay } from '../types';
-import { arraysEqualBy } from '../utils/array';
 
 const iconComponents: Record<
   string,
@@ -41,7 +38,6 @@ interface NavigationProps {
   currentDay: WorkoutDay;
   dayConfigs: DayConfig[];
   onDayChange: (day: WorkoutDay) => void;
-  onReorderDayConfigs: (value: DayConfig[]) => void;
   bottomPadding: number;
   minHeight: number;
 }
@@ -51,41 +47,20 @@ export function Navigation({
   currentDay,
   dayConfigs,
   onDayChange,
-  onReorderDayConfigs,
   bottomPadding,
   minHeight,
 }: NavigationProps) {
-  const [draftDayConfigs, setDraftDayConfigs] = useState(dayConfigs);
-
-  useEffect(() => {
-    if (!arraysEqualBy(dayConfigs, draftDayConfigs, (d) => d.id)) {
-      setDraftDayConfigs(dayConfigs);
-    }
-  }, [dayConfigs, draftDayConfigs]);
-
   const window = useWindowDimensions();
   const styles = createStyles(tokens, bottomPadding, minHeight);
   const itemWidth = Math.max(
     56,
-    (window.width - tokens.spacing.xs * 2) /
-      Math.max(1, draftDayConfigs.length),
+    (window.width - tokens.spacing.xs * 2) / Math.max(1, dayConfigs.length),
   );
 
   return (
     <View style={styles.container}>
-      <Sortable.Flex
-        flexDirection="row"
-        width="fill"
-        dragActivationDelay={300}
-        activeItemScale={1.03}
-        dropAnimationDuration={200}
-        onDragEnd={({ order }) => {
-          const reordered = order(draftDayConfigs);
-          setDraftDayConfigs(reordered);
-          onReorderDayConfigs(reordered);
-        }}
-      >
-        {draftDayConfigs.map((item) => {
+      <View style={styles.row}>
+        {dayConfigs.map((item) => {
           const active = currentDay === item.id;
           const IconComponent = iconComponents[dayIconMap[item.icon]];
           return (
@@ -117,7 +92,7 @@ export function Navigation({
             </Pressable>
           );
         })}
-      </Sortable.Flex>
+      </View>
     </View>
   );
 }
@@ -141,6 +116,10 @@ function createStyles(
       paddingBottom: bottomPadding,
       minHeight,
       flexDirection: 'row',
+    },
+    row: {
+      flexDirection: 'row',
+      width: '100%',
     },
     item: {
       alignItems: 'center',

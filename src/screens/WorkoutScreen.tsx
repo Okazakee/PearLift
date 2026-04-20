@@ -421,13 +421,6 @@ export function WorkoutScreen() {
     void applyMutation({ type: 'setExerciseWeight', exerciseId, value });
   };
 
-  const handleReorderDayConfigs = (nextDayConfigs: typeof dayConfigs) => {
-    void applyMutation({
-      type: 'replaceDayConfigs',
-      dayConfigs: nextDayConfigs,
-    });
-  };
-
   const onboardingBlocking = snapshot?.isSetupDone === false;
 
   if (onboardingBlocking) {
@@ -535,7 +528,6 @@ export function WorkoutScreen() {
           currentDay={selectedDay}
           dayConfigs={dayConfigs}
           onDayChange={handleDayChange}
-          onReorderDayConfigs={handleReorderDayConfigs}
           bottomPadding={layout.navBottomPadding}
           minHeight={layout.navHeight}
         />
