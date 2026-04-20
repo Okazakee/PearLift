@@ -1,10 +1,10 @@
 import { Eye, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { ChangeSummary } from '../backup/types';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import { AnimatedModalShell } from './AnimatedModalShell';
+import type { ChangeSummary } from '../../backup/types';
+import type { ThemeTokens } from '../../theme/tokens';
+import { withAlpha } from '../../theme/tokens';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 
 interface ImportPreviewModalProps {
   open: boolean;

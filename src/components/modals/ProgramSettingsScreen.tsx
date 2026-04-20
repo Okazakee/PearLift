@@ -25,13 +25,13 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AnimatedPressable } from '../animation/primitives';
-import { dayIconMap, dayIconOptions } from '../data/workouts';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import type { DayConfig, WeekConfig } from '../types';
-import { scheduleIdleTask } from '../utils/idle';
-import { AnimatedScreenModal } from './AnimatedScreenModal';
+import { AnimatedPressable } from '../../animation/primitives';
+import { dayIconMap, dayIconOptions } from '../../data/workouts';
+import type { ThemeTokens } from '../../theme/tokens';
+import { withAlpha } from '../../theme/tokens';
+import type { DayConfig, WeekConfig } from '../../types';
+import { scheduleIdleTask } from '../../utils/idle';
+import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 interface ProgramSettingsScreenProps {
   open: boolean;

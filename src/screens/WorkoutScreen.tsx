@@ -18,23 +18,24 @@ import {
   toPwaBackupV2,
 } from '../backup/localBackup';
 import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
-import { AddExerciseModal } from '../components/AddExerciseModal';
+import { BootstrapScreen } from '../components/BootstrapScreen';
+import { Header } from '../components/Header';
+import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import {
   type AppPromptAction,
   AppPromptModal,
-} from '../components/AppPromptModal';
-import { BootstrapScreen } from '../components/BootstrapScreen';
-import { DonateModal } from '../components/DonateModal';
-import { Header } from '../components/Header';
-import { ImportPreviewModal } from '../components/ImportPreviewModal';
-import { LocalBackupModal } from '../components/LocalBackupModal';
+} from '../components/modals/AppPromptModal';
+import { DonateModal } from '../components/modals/DonateModal';
+import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
+import { LocalBackupModal } from '../components/modals/LocalBackupModal';
+import { ProgramSettingsScreen } from '../components/modals/ProgramSettingsScreen';
+import { SettingsScreen } from '../components/modals/SettingsScreen';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
-import { ProgramSettingsScreen } from '../components/ProgramSettingsScreen';
 import { RestTimer } from '../components/RestTimer';
-import { SettingsScreen } from '../components/SettingsScreen';
 import { WorkoutView } from '../components/WorkoutView';
 import { APP_CONFIG } from '../config/app';
+import { ACTION_DEBOUNCE_MS } from '../config/constants';
 import { type DonationTarget, getDonationTargets } from '../config/donation';
 import { defaultDayConfigs } from '../data/workouts';
 import type { WorkoutMutation } from '../storage/types';
@@ -43,29 +44,13 @@ import { WorkoutRepository } from '../storage/workoutRepository';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
+import { getErrorMessage, logError } from '../utils/errors';
 import { roundToHalf } from '../utils/math';
 import {
   fromDisplayWeight,
   roundToIncrement,
   toDisplayWeight,
 } from '../utils/units';
-
-const ACTION_DEBOUNCE_MS = 96;
-
-function getErrorMessage(error: unknown) {
-  if (error instanceof Error) return error.message;
-  if (typeof error === 'string') return error;
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return 'Unknown error';
-  }
-}
-
-function logError(scope: string, error: unknown) {
-  // eslint-disable-next-line no-console
-  console.error(`[${scope}]`, error);
-}
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();

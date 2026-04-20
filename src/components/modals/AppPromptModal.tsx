@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import { AnimatedModalShell } from './AnimatedModalShell';
+import type { ThemeTokens } from '../../theme/tokens';
+import { withAlpha } from '../../theme/tokens';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 
 export interface AppPromptAction {
   label: string;

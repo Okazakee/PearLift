@@ -11,11 +11,15 @@ import {
   Sun,
 } from 'lucide-react-native';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { AnimatedPressable } from '../animation/primitives';
-import type { ThemeMode, ThemePreference, ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import type { WeightUnit } from '../types';
-import { AnimatedScreenModal } from './AnimatedScreenModal';
+import { AnimatedPressable } from '../../animation/primitives';
+import type {
+  ThemeMode,
+  ThemePreference,
+  ThemeTokens,
+} from '../../theme/tokens';
+import { withAlpha } from '../../theme/tokens';
+import type { WeightUnit } from '../../types';
+import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 interface SettingsScreenProps {
   open: boolean;

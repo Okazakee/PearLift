@@ -1,9 +1,9 @@
 import { Download, Sliders, Upload, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import { AnimatedModalShell } from './AnimatedModalShell';
+import type { ThemeTokens } from '../../theme/tokens';
+import { withAlpha } from '../../theme/tokens';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 
 interface LocalBackupModalProps {
   open: boolean;

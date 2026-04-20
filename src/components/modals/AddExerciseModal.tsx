@@ -8,10 +8,10 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { muscleGroups } from '../data/workouts';
-import type { ThemeTokens } from '../theme/tokens';
-import type { Exercise } from '../types';
-import { AnimatedModalShell } from './AnimatedModalShell';
+import { muscleGroups } from '../../data/workouts';
+import type { ThemeTokens } from '../../theme/tokens';
+import type { Exercise } from '../../types';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 
 interface FormExercise {
   name: string;

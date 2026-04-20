@@ -1,10 +1,10 @@
 import { Copy, Wallet, X, Zap } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import type { DonationTarget } from '../config/donation';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import { AnimatedModalShell } from './AnimatedModalShell';
+import type { DonationTarget } from '../../config/donation';
+import type { ThemeTokens } from '../../theme/tokens';
+import { withAlpha } from '../../theme/tokens';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 
 interface DonateModalProps {
   open: boolean;
