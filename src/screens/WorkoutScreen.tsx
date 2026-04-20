@@ -4,7 +4,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Linking, StyleSheet, useColorScheme, View } from 'react-native';
+import { Linking, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -21,10 +21,7 @@ import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
 import { BootstrapScreen } from '../components/BootstrapScreen';
 import { Header } from '../components/Header';
 import { AddExerciseModal } from '../components/modals/AddExerciseModal';
-import {
-  type AppPromptAction,
-  AppPromptModal,
-} from '../components/modals/AppPromptModal';
+import { AppPromptModal } from '../components/modals/AppPromptModal';
 import { DonateModal } from '../components/modals/DonateModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LocalBackupModal } from '../components/modals/LocalBackupModal';
@@ -42,7 +39,6 @@ import type { WorkoutMutation } from '../storage/types';
 import { useWorkoutStore } from '../storage/useWorkoutStore';
 import { WorkoutRepository } from '../storage/workoutRepository';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
-import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
 import { getErrorMessage, logError } from '../utils/errors';
 import { roundToHalf } from '../utils/math';

@@ -1,5 +1,4 @@
 import { useMemo } from 'react';
-import { defaultDayConfigs } from '../data/workouts';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { WorkoutDay, WorkoutSession } from '../types';
