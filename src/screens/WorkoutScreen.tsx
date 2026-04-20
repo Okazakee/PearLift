@@ -3,7 +3,7 @@ import { File, Paths } from 'expo-file-system';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Linking, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
@@ -17,7 +17,6 @@ import {
   serializePwaBackupV2,
   toPwaBackupV2,
 } from '../backup/localBackup';
-import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
 import { BootstrapScreen } from '../components/BootstrapScreen';
 import { Header } from '../components/Header';
 import { AddExerciseModal } from '../components/modals/AddExerciseModal';
@@ -32,13 +31,11 @@ import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
 import { WorkoutView } from '../components/WorkoutView';
 import { APP_CONFIG } from '../config/app';
-import { ACTION_DEBOUNCE_MS } from '../config/constants';
 import { type DonationTarget, getDonationTargets } from '../config/donation';
 import { defaultDayConfigs } from '../data/workouts';
-import type { WorkoutMutation } from '../storage/types';
-import { useWorkoutStore } from '../storage/useWorkoutStore';
-import { WorkoutRepository } from '../storage/workoutRepository';
+import { useWorkoutStore } from '../store/workoutStore';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
+import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
 import { getErrorMessage, logError } from '../utils/errors';
 import { roundToHalf } from '../utils/math';
@@ -48,262 +45,130 @@ import {
   toDisplayWeight,
 } from '../utils/units';
 import { styles } from './styles';
-import { usePromptModal } from './usePromptModal';
-import {
-  useCurrentWorkout,
-  useExerciseBaseWeights,
-  useLayout,
-  useThemeTokens,
-} from './useWorkoutComputed';
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
   const systemScheme = useColorScheme();
-  const [repository, setRepository] = useState<WorkoutRepository | null>(null);
-  const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
-  const [exerciseModalMode, setExerciseModalMode] = useState<'add' | 'edit'>(
-    'add',
-  );
-  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
-  const [programSettingsOpen, setProgramSettingsOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [donateModalOpen, setDonateModalOpen] = useState(false);
-  const [localBackupOpen, setLocalBackupOpen] = useState(false);
-  const [importPreviewOpen, setImportPreviewOpen] = useState(false);
-  const [pendingImport, setPendingImport] =
-    useState<MigratedBackupResult | null>(null);
-  const [importSummary, setImportSummary] = useState<ChangeSummary>({
-    workouts: [],
-    settings: [],
-    totalChanges: 0,
-  });
-  const [pendingCurrentWeek, setPendingCurrentWeek] = useState<number | null>(
-    null,
-  );
-  const [pendingCurrentDay, setPendingCurrentDay] = useState<WorkoutDay | null>(
-    null,
-  );
-  const [pendingRestDuration, setPendingRestDuration] = useState<number | null>(
-    null,
-  );
-  const [pendingThemePreference, setPendingThemePreference] =
-    useState<ThemePreference | null>(null);
-  const [pendingWeightUnit, setPendingWeightUnit] = useState<WeightUnit | null>(
-    null,
-  );
-  const [timerExpanded, setTimerExpanded] = useState(false);
-  const { promptConfig, showPrompt, closePrompt } = usePromptModal();
-  const mutationQueueRef = useRef<Promise<void>>(Promise.resolve());
-  const debouncedMutationsRef = useRef(new Map<string, WorkoutMutation>());
-  const debounceTimersRef = useRef(
-    new Map<string, ReturnType<typeof setTimeout>>(),
-  );
+
+  const {
+    snapshot,
+    isReady,
+    applyMutation,
+    reload,
+    initialize,
+    promptConfig,
+    closePrompt,
+    showPrompt,
+    exerciseModalOpen,
+    exerciseModalMode,
+    editingExerciseId,
+    setExerciseModalOpen,
+    setExerciseModalMode,
+    setEditingExerciseId,
+    programSettingsOpen,
+    setProgramSettingsOpen,
+    settingsOpen,
+    setSettingsOpen,
+    donateModalOpen,
+    setDonateModalOpen,
+    localBackupOpen,
+    setLocalBackupOpen,
+    importPreviewOpen,
+    setImportPreviewOpen,
+    pendingImport,
+    setPendingImport,
+    importSummary,
+    setImportSummary,
+    timerExpanded,
+    setTimerExpanded,
+  } = useWorkoutStore();
 
   useEffect(() => {
-    setRepository(new WorkoutRepository());
-  }, []);
+    initialize();
+  }, [initialize]);
 
-  const { snapshot, isReady, reload, applyMutation } =
-    useWorkoutStore(repository);
-
-  const themePreference: ThemePreference =
-    pendingThemePreference ?? snapshot?.themeMode ?? 'system';
   const systemThemeMode: ThemeMode | null =
     systemScheme === 'dark' || systemScheme === 'light' ? systemScheme : null;
-  const { tokens, effectiveThemeMode } = useThemeTokens({
-    themePreference,
-    systemScheme: systemThemeMode,
-  });
-  const currentWeek = pendingCurrentWeek ?? snapshot?.currentWeek ?? 1;
+  const themePreference: ThemePreference = snapshot?.themeMode ?? 'system';
+  const effectiveThemeMode = resolveThemeMode(themePreference, systemThemeMode);
+  const tokens = useMemo(
+    () => getThemeTokens(effectiveThemeMode, { enableDynamicColor: false }),
+    [effectiveThemeMode],
+  );
+
+  const currentWeek = snapshot?.currentWeek ?? 1;
   const selectedDay =
-    pendingCurrentDay ??
-    snapshot?.currentDay ??
-    defaultDayConfigs[0]?.id ??
-    'push';
+    snapshot?.currentDay ?? defaultDayConfigs[0]?.id ?? 'push';
   const currentDay = selectedDay;
   const workouts = snapshot?.workouts ?? [];
   const userWeights = snapshot?.userWeights ?? {};
   const weekConfigs = snapshot?.weekConfigs ?? [];
   const dayConfigs = snapshot?.dayConfigs ?? defaultDayConfigs;
-  const restDuration = pendingRestDuration ?? snapshot?.restDuration ?? 150;
-  const weightUnit: WeightUnit =
-    pendingWeightUnit ?? snapshot?.weightUnit ?? 'kg';
+  const restDuration = snapshot?.restDuration ?? 150;
+  const weightUnit: WeightUnit = snapshot?.weightUnit ?? 'kg';
 
-  const exerciseBaseWeights = useExerciseBaseWeights({ workouts });
-  const donationTargets = useMemo(() => getDonationTargets(), []);
-  const layout = useLayout({
-    bottomInset: insets.bottom,
-    spacingSm: tokens.spacing.sm,
-  });
-  const currentWorkout = useCurrentWorkout({ workouts, currentDay });
-
-  const clearOptimisticForMutation = useCallback(
-    (mutation: WorkoutMutation) => {
-      if (mutation.type === 'setCurrentWeek') {
-        setPendingCurrentWeek((prev) =>
-          prev === mutation.currentWeek ? null : prev,
-        );
-        return;
+  const exerciseBaseWeights = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const workout of workouts) {
+      for (const exercise of workout.exercises) {
+        map.set(exercise.id, exercise.baseWeight);
       }
-      if (mutation.type === 'setCurrentDay') {
-        setPendingCurrentDay((prev) =>
-          prev === mutation.currentDay ? null : prev,
-        );
-        return;
-      }
-      if (mutation.type === 'setRestDuration') {
-        setPendingRestDuration((prev) =>
-          prev === mutation.restDuration ? null : prev,
-        );
-        return;
-      }
-      if (mutation.type === 'setThemeMode') {
-        setPendingThemePreference((prev) =>
-          prev === mutation.themeMode ? null : prev,
-        );
-        return;
-      }
-      if (mutation.type === 'setWeightUnit') {
-        setPendingWeightUnit((prev) =>
-          prev === mutation.weightUnit ? null : prev,
-        );
-      }
-    },
-    [],
-  );
-
-  const resetOptimisticState = useCallback(() => {
-    setPendingCurrentWeek(null);
-    setPendingCurrentDay(null);
-    setPendingRestDuration(null);
-    setPendingThemePreference(null);
-    setPendingWeightUnit(null);
-  }, []);
-
-  const enqueueMutationTask = useCallback(
-    async (task: () => Promise<void>) => {
-      mutationQueueRef.current = mutationQueueRef.current
-        .then(task)
-        .catch(async (error) => {
-          logError('mutation/queue failed', error);
-          resetOptimisticState();
-          try {
-            await reload();
-          } catch (reloadError) {
-            logError('mutation/reload failed', reloadError);
-          }
-          showPrompt('Update failed', getErrorMessage(error));
-        });
-      return mutationQueueRef.current;
-    },
-    [reload, resetOptimisticState, showPrompt],
-  );
-
-  const commitMutation = useCallback(
-    async (mutation: WorkoutMutation) => {
-      await enqueueMutationTask(async () => {
-        await applyMutation(mutation);
-        clearOptimisticForMutation(mutation);
-      });
-    },
-    [applyMutation, clearOptimisticForMutation, enqueueMutationTask],
-  );
-
-  const flushDebouncedMutation = useCallback(
-    async (key: string) => {
-      const next = debouncedMutationsRef.current.get(key);
-      if (!next) {
-        return;
-      }
-      debouncedMutationsRef.current.delete(key);
-      debounceTimersRef.current.delete(key);
-      await commitMutation(next);
-    },
-    [commitMutation],
-  );
-
-  const flushAllDebouncedMutations = useCallback(async () => {
-    const keys = [...debouncedMutationsRef.current.keys()];
-    for (const key of keys) {
-      const timer = debounceTimersRef.current.get(key);
-      if (timer) {
-        clearTimeout(timer);
-      }
-      await flushDebouncedMutation(key);
     }
-  }, [flushDebouncedMutation]);
+    return map;
+  }, [workouts]);
 
-  const queueDebouncedMutation = useCallback(
-    (key: string, mutation: WorkoutMutation, delayMs = ACTION_DEBOUNCE_MS) => {
-      debouncedMutationsRef.current.set(key, mutation);
-      const previousTimer = debounceTimersRef.current.get(key);
-      if (previousTimer) {
-        clearTimeout(previousTimer);
-      }
-      const nextTimer = setTimeout(() => {
-        void flushDebouncedMutation(key);
-      }, delayMs);
-      debounceTimersRef.current.set(key, nextTimer);
-    },
-    [flushDebouncedMutation],
-  );
-
-  useEffect(() => {
-    return () => {
-      for (const timer of debounceTimersRef.current.values()) {
-        clearTimeout(timer);
-      }
-      debounceTimersRef.current.clear();
-      debouncedMutationsRef.current.clear();
+  const donationTargets = useMemo(() => getDonationTargets(), []);
+  const layout = useMemo(() => {
+    const navBottomPadding = Math.max(insets.bottom, 8) + tokens.spacing.sm;
+    const navHeight = 64 + navBottomPadding;
+    const floatingBottom = navHeight + 8;
+    return {
+      navBottomPadding,
+      navHeight,
+      timerFabBottom: floatingBottom + 8,
+      timerPanelBottom: floatingBottom,
+      workoutFabBottom: floatingBottom + 8,
+      contentBottomPadding: floatingBottom + 96,
     };
-  }, []);
+  }, [insets.bottom, tokens.spacing.sm]);
 
-  const runMutation = useCallback(
-    async (mutation: WorkoutMutation) => {
-      await flushAllDebouncedMutations();
-      await commitMutation(mutation);
-    },
-    [commitMutation, flushAllDebouncedMutations],
-  );
-
-  const runImmediateMutation = useCallback(
-    async (mutation: WorkoutMutation) => {
-      await commitMutation(mutation);
-    },
-    [commitMutation],
-  );
-
-  const getWeek = useCallback(
-    (weekId?: number) =>
-      weekConfigs.find((week) => week.id === (weekId ?? currentWeek)) ??
-      weekConfigs[0],
-    [currentWeek, weekConfigs],
-  );
-
-  const getAdjustedWeight = useCallback(
-    (exerciseId: string, weekId?: number) => {
-      const week = getWeek(weekId);
-      const fallback = exerciseBaseWeights.get(exerciseId) ?? 0;
-      const baseWeight = userWeights[exerciseId] ?? fallback;
-      const rawKg = baseWeight * (week?.loadModifier ?? 1);
-      if (weightUnit === 'lb') {
-        const rawLb = toDisplayWeight(rawKg, 'lb');
-        const roundedLb = roundToIncrement(rawLb, 2.5);
-        return fromDisplayWeight(roundedLb, 'lb');
+  const currentWorkout = useMemo(() => {
+    return (
+      workouts.find((workout) => workout.id === currentDay) ??
+      workouts[0] ?? {
+        id: 'push',
+        name: 'Workout',
+        description: '',
+        exercises: [],
       }
-      return roundToHalf(rawKg);
-    },
-    [exerciseBaseWeights, getWeek, userWeights, weightUnit],
-  );
+    );
+  }, [workouts, currentDay]);
+
+  const getWeek = (weekId?: number) =>
+    weekConfigs.find((week) => week.id === (weekId ?? currentWeek)) ??
+    weekConfigs[0];
+
+  const getAdjustedWeight = (exerciseId: string, weekId?: number) => {
+    const week = getWeek(weekId);
+    const fallback = exerciseBaseWeights.get(exerciseId) ?? 0;
+    const baseWeight = userWeights[exerciseId] ?? fallback;
+    const rawKg = baseWeight * (week?.loadModifier ?? 1);
+    if (weightUnit === 'lb') {
+      const rawLb = toDisplayWeight(rawKg, 'lb');
+      const roundedLb = roundToIncrement(rawLb, 2.5);
+      return fromDisplayWeight(roundedLb, 'lb');
+    }
+    return roundToHalf(rawKg);
+  };
 
   const handleOpenAdd = () => {
-    setEditingExercise(null);
+    setEditingExerciseId(null);
     setExerciseModalMode('add');
     setExerciseModalOpen(true);
   };
 
   const handleOpenEdit = (exercise: Exercise) => {
-    setEditingExercise(exercise);
+    setEditingExerciseId(exercise.id);
     setExerciseModalMode('edit');
     setExerciseModalOpen(true);
   };
@@ -311,20 +176,24 @@ export function WorkoutScreen() {
   const handleExerciseSubmit = async (
     payload: Omit<Exercise, 'id' | 'position' | 'baseWeight'>,
   ) => {
-    if (exerciseModalMode === 'edit' && editingExercise) {
-      await runMutation({
+    const editing = editingExerciseId
+      ? currentWorkout.exercises.find((e) => e.id === editingExerciseId)
+      : null;
+
+    if (exerciseModalMode === 'edit' && editing) {
+      await applyMutation({
         type: 'editExercise',
         workoutId: currentWorkout.id,
-        exerciseId: editingExercise.id,
+        exerciseId: editing.id,
         updates: payload,
       });
       return;
     }
 
-    await runMutation({
+    await applyMutation({
       type: 'addExercise',
       workoutId: currentWorkout.id,
-      exercise: payload,
+      exercise: payload as any,
     });
   };
 
@@ -338,7 +207,7 @@ export function WorkoutScreen() {
           label: 'Delete',
           tone: 'destructive',
           onPress: () => {
-            void runMutation({
+            void applyMutation({
               type: 'deleteExercise',
               workoutId: currentWorkout.id,
               exerciseId: exercise.id,
@@ -380,7 +249,7 @@ export function WorkoutScreen() {
                   }
                 }
 
-                await runMutation({ type: 'resetAllData' });
+                await applyMutation({ type: 'resetAllData' });
               } catch (error) {
                 logError('reset/authentication failed', error);
                 showPrompt('Reset failed', getErrorMessage(error));
@@ -392,10 +261,8 @@ export function WorkoutScreen() {
     );
   };
 
-  const handleExportBackup = useCallback(async () => {
-    if (!snapshot) {
-      return;
-    }
+  const handleExportBackup = async () => {
+    if (!snapshot) return;
     try {
       const fileName = getBackupFileName();
       const payload = serializePwaBackupV2(snapshot);
@@ -427,18 +294,14 @@ export function WorkoutScreen() {
       logError('backup/export failed', error);
       showPrompt('Export failed', getErrorMessage(error));
     }
-  }, [showPrompt, snapshot]);
+  };
 
-  const handleImportBackup = useCallback(async () => {
-    if (!snapshot) {
-      return;
-    }
+  const handleImportBackup = async () => {
+    if (!snapshot) return;
     try {
       const picked = await File.pickFileAsync(undefined, 'application/json');
       const pickedFile = Array.isArray(picked) ? picked[0] : picked;
-      if (!pickedFile) {
-        return;
-      }
+      if (!pickedFile) return;
 
       const fileText = await pickedFile.text();
       const migrated = parseAndMigrateBackup(fileText);
@@ -453,18 +316,16 @@ export function WorkoutScreen() {
       setLocalBackupOpen(false);
     } catch (error) {
       const message = getErrorMessage(error).toLowerCase();
-      if (message.includes('cancel')) {
-        return;
-      }
+      if (message.includes('cancel')) return;
       logError('backup/import failed', error);
       showPrompt('Import failed', getErrorMessage(error));
     }
-  }, [showPrompt, snapshot]);
+  };
 
-  const handleConfirmImport = useCallback(async () => {
+  const handleConfirmImport = async () => {
     if (!pendingImport) return;
     try {
-      await runMutation({
+      await applyMutation({
         type: 'restoreRuntimeState',
         runtime: pendingImport.runtime,
         source: 'local-import',
@@ -475,28 +336,24 @@ export function WorkoutScreen() {
       logError('backup/import confirm failed', error);
       showPrompt('Import failed', getErrorMessage(error));
     }
-  }, [pendingImport, runMutation, showPrompt]);
+  };
 
   const handleCancelImport = () => {
     setImportPreviewOpen(false);
     setPendingImport(null);
   };
 
-  const handleReorderExercises = useCallback(
-    (orderedExerciseIds: string[]) => {
-      void runImmediateMutation({
-        type: 'reorderExercises',
-        workoutId: currentWorkout.id,
-        orderedExerciseIds,
-      });
-    },
-    [runImmediateMutation, currentWorkout.id],
-  );
+  const handleReorderExercises = (orderedExerciseIds: string[]) => {
+    void applyMutation({
+      type: 'reorderExercises',
+      workoutId: currentWorkout.id,
+      orderedExerciseIds,
+    });
+  };
 
-  const finishOnboarding = useCallback(async () => {
-    await repository?.markSetupDone();
+  const finishOnboarding = async () => {
     await reload();
-  }, [repository, reload]);
+  };
 
   const handleOpenGithub = async () => {
     const repoUrl = APP_CONFIG.githubRepoUrl;
@@ -512,122 +369,62 @@ export function WorkoutScreen() {
     }
   };
 
-  const handleOpenDonationTarget = useCallback(
-    async (target: DonationTarget) => {
-      try {
-        const canOpen = await Linking.canOpenURL(target.uri);
-        if (!canOpen) {
-          showPrompt('Cannot open wallet link', target.uri);
-          return;
-        }
-        await Linking.openURL(target.uri);
-      } catch (error) {
-        showPrompt('Cannot open wallet link', getErrorMessage(error));
-      }
-    },
-    [showPrompt],
-  );
-
-  const handleCopyDonationTarget = useCallback(
-    async (target: DonationTarget) => {
-      try {
-        await Clipboard.setStringAsync(target.copyValue);
-      } catch (error) {
-        showPrompt('Copy failed', getErrorMessage(error));
-      }
-    },
-    [showPrompt],
-  );
-
-  const handleQueueWeekChange = useCallback(
-    (nextWeek: number) => {
-      setPendingCurrentWeek(nextWeek);
-      queueDebouncedMutation('settings:currentWeek', {
-        type: 'setCurrentWeek',
-        currentWeek: nextWeek,
-      });
-    },
-    [queueDebouncedMutation],
-  );
-
-  const handleDayChange = useCallback(
-    (nextDay: WorkoutDay) => {
-      if (nextDay === selectedDay) {
+  const handleOpenDonationTarget = async (target: DonationTarget) => {
+    try {
+      const canOpen = await Linking.canOpenURL(target.uri);
+      if (!canOpen) {
+        showPrompt('Cannot open wallet link', target.uri);
         return;
       }
-      setPendingCurrentDay(nextDay);
-      void runImmediateMutation({
-        type: 'setCurrentDay',
-        currentDay: nextDay,
-      });
-    },
-    [runImmediateMutation, selectedDay],
-  );
+      await Linking.openURL(target.uri);
+    } catch (error) {
+      showPrompt('Cannot open wallet link', getErrorMessage(error));
+    }
+  };
 
-  const handleQueueRestDuration = useCallback(
-    (nextDuration: number) => {
-      setPendingRestDuration(nextDuration);
-      queueDebouncedMutation('settings:restDuration', {
-        type: 'setRestDuration',
-        restDuration: nextDuration,
-      });
-    },
-    [queueDebouncedMutation],
-  );
+  const handleCopyDonationTarget = async (target: DonationTarget) => {
+    try {
+      await Clipboard.setStringAsync(target.copyValue);
+    } catch (error) {
+      showPrompt('Copy failed', getErrorMessage(error));
+    }
+  };
 
-  const handleQueueThemeMode = useCallback(
-    (nextTheme: ThemePreference) => {
-      setPendingThemePreference(nextTheme);
-      queueDebouncedMutation('settings:themeMode', {
-        type: 'setThemeMode',
-        themeMode: nextTheme,
-      });
-    },
-    [queueDebouncedMutation],
-  );
+  const handleWeekChange = (nextWeek: number) => {
+    void applyMutation({ type: 'setCurrentWeek', currentWeek: nextWeek });
+  };
 
-  const handleQueueWeightUnit = useCallback(
-    (nextUnit: WeightUnit) => {
-      setPendingWeightUnit(nextUnit);
-      queueDebouncedMutation('settings:weightUnit', {
-        type: 'setWeightUnit',
-        weightUnit: nextUnit,
-      });
-    },
-    [queueDebouncedMutation],
-  );
+  const handleDayChange = (nextDay: WorkoutDay) => {
+    if (nextDay === selectedDay) return;
+    void applyMutation({ type: 'setCurrentDay', currentDay: nextDay });
+  };
 
-  const handleAdjustWeight = useCallback(
-    (exerciseId: string, delta: number) => {
-      void runImmediateMutation({
-        type: 'adjustExerciseWeight',
-        exerciseId,
-        delta,
-      });
-    },
-    [runImmediateMutation],
-  );
+  const handleRestDurationChange = (nextDuration: number) => {
+    void applyMutation({ type: 'setRestDuration', restDuration: nextDuration });
+  };
 
-  const handleSetWeight = useCallback(
-    (exerciseId: string, value: number) => {
-      void runImmediateMutation({
-        type: 'setExerciseWeight',
-        exerciseId,
-        value,
-      });
-    },
-    [runImmediateMutation],
-  );
+  const handleThemeModeChange = (nextTheme: ThemePreference) => {
+    void applyMutation({ type: 'setThemeMode', themeMode: nextTheme });
+  };
 
-  const handleReorderDayConfigs = useCallback(
-    (nextDayConfigs: typeof dayConfigs) => {
-      void runImmediateMutation({
-        type: 'replaceDayConfigs',
-        dayConfigs: nextDayConfigs,
-      });
-    },
-    [runImmediateMutation],
-  );
+  const handleWeightUnitChange = (nextUnit: WeightUnit) => {
+    void applyMutation({ type: 'setWeightUnit', weightUnit: nextUnit });
+  };
+
+  const handleAdjustWeight = (exerciseId: string, delta: number) => {
+    void applyMutation({ type: 'adjustExerciseWeight', exerciseId, delta });
+  };
+
+  const handleSetWeight = (exerciseId: string, value: number) => {
+    void applyMutation({ type: 'setExerciseWeight', exerciseId, value });
+  };
+
+  const handleReorderDayConfigs = (nextDayConfigs: typeof dayConfigs) => {
+    void applyMutation({
+      type: 'replaceDayConfigs',
+      dayConfigs: nextDayConfigs,
+    });
+  };
 
   const onboardingBlocking = snapshot?.isSetupDone === false;
 
@@ -647,7 +444,7 @@ export function WorkoutScreen() {
           topInset={insets.top}
           bottomInset={insets.bottom}
           weightUnit={weightUnit}
-          onWeightUnitChange={handleQueueWeightUnit}
+          onWeightUnitChange={handleWeightUnitChange}
           onComplete={finishOnboarding}
         />
       </SafeAreaView>
@@ -678,6 +475,10 @@ export function WorkoutScreen() {
     );
   }
 
+  const editingExercise = editingExerciseId
+    ? (currentWorkout.exercises.find((e) => e.id === editingExerciseId) ?? null)
+    : null;
+
   return (
     <SafeAreaView
       edges={['left', 'right']}
@@ -704,7 +505,7 @@ export function WorkoutScreen() {
           weekConfigs={weekConfigs}
           userWeights={userWeights}
           getAdjustedWeight={getAdjustedWeight}
-          onWeekChange={handleQueueWeekChange}
+          onWeekChange={handleWeekChange}
           onOpenProgramSettings={() => setProgramSettingsOpen(true)}
           onOpenAddExercise={handleOpenAdd}
           onEditExercise={handleOpenEdit}
@@ -721,7 +522,7 @@ export function WorkoutScreen() {
         <RestTimer
           tokens={tokens}
           duration={restDuration}
-          onDurationChange={handleQueueRestDuration}
+          onDurationChange={handleRestDurationChange}
           fabBottom={layout.timerFabBottom}
           panelBottom={layout.timerPanelBottom}
           onExpandedChange={setTimerExpanded}
@@ -757,13 +558,13 @@ export function WorkoutScreen() {
           dayConfigs={dayConfigs}
           onClose={() => setProgramSettingsOpen(false)}
           onWeekConfigsChange={(nextWeekConfigs) => {
-            void runImmediateMutation({
+            void applyMutation({
               type: 'replaceWeekConfigs',
               weekConfigs: nextWeekConfigs,
             });
           }}
           onDayConfigsChange={(nextDayConfigs) => {
-            void runImmediateMutation({
+            void applyMutation({
               type: 'replaceDayConfigs',
               dayConfigs: nextDayConfigs,
             });
@@ -800,9 +601,9 @@ export function WorkoutScreen() {
           buildType={APP_CONFIG.buildType}
           themePreference={themePreference}
           systemThemeMode={systemThemeMode}
-          onThemePreferenceChange={handleQueueThemeMode}
+          onThemePreferenceChange={handleThemeModeChange}
           weightUnit={weightUnit}
-          onWeightUnitChange={handleQueueWeightUnit}
+          onWeightUnitChange={handleWeightUnitChange}
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
