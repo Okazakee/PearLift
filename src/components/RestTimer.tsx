@@ -1,7 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
-import * as Haptics from 'expo-haptics';
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import * as Notifications from 'expo-notifications';
 import {
   Minus,
@@ -30,9 +27,32 @@ import Animated, {
 import Svg, { Circle } from 'react-native-svg';
 import { MOTION } from '../animation/motion';
 import { AnimatedPressable } from '../animation/primitives';
+import {
+  KEEP_AWAKE_TAG,
+  MAX_DURATION,
+  MIN_DURATION,
+  REST_TIMER_PERSIST_KEY,
+  RING_CIRCUMFERENCE,
+  RING_RADIUS,
+  RING_SIZE,
+  RING_STROKE,
+  STEP,
+} from '../config/timer';
 import { RestTimerForegroundService } from '../native/restTimerForegroundService';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
+import type { PersistedRestTimerStateV1, RestTimerMode } from '../types/timer';
+import {
+  playCompletionSound,
+  safeActivateKeepAwake,
+  safeDeactivateKeepAwake,
+  triggerCompletionFeedback,
+} from '../utils/timerAudio';
+import {
+  computeRemainingSeconds,
+  formatSeconds,
+  safeParsePersistedState,
+} from '../utils/timerHelpers';
 
 interface RestTimerProps {
   tokens: ThemeTokens;
@@ -43,159 +63,7 @@ interface RestTimerProps {
   onExpandedChange?: (isOpen: boolean) => void;
 }
 
-const MIN_DURATION = 30;
-const MAX_DURATION = 600;
-const STEP = 15;
-
-const KEEP_AWAKE_TAG = 'rest-timer';
-const REST_TIMER_PERSIST_KEY = 'pearlift/rest_timer_v1';
-
-type RestTimerMode = 'idle' | 'running' | 'paused' | 'complete';
-
-const COMPLETION_SOUND =
-  'data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2teleW1mcYaGflxTYYqhtax6USpFjMvl3LKBXlxjdIGCd2RjcIqgtLSMakVFhLbZ48CghXlxcnl2alZcc46fr6+TdE9Hi7XI0sGnmY+IhYN8bmBeZ3+PlZ2ejnhdd5i60t3MubKsnp2bkYV0ZWVte4SNk5KKfm5rgZ2vvsrFu7KtrK6poZWIeXRzd36EioqGgHhxcIWcr7zBvba0s7W2saqfi4J9fX9/gYKBfnp3d4GUnKm2vL27ubq7u7mvn46Bf39/f39+fXt4dXiBkZyqtr3Avrq4t7W0rKCUiYOBgIB+fHp4dXN4hJOgrrm+v7y3s7CtqaWckoqFg4KBf316eHZ3fIqXo6+5vL26trKuqqahmZGLhoSCgX99e3l4eHyGk5+rsbi6uLWyr6yppZ6WjoiFg4GAfnt5eHl+h5OeqLK3t7azsK2qqKSfmJCKhoOBf358enl5fYaSmqWusbKxr62rqainop2Vj4qGg4F/fXt6en2FkJiks7e5t7SxrquopaGbk42IhYOAfn17e3x/iJObpK6ztLOwr6yqp6Sgm5SNiYWDgH5+fHt9gYqTm6OrsLGwra2rqaeinpqUjoqGg4GAf359fYGIkJeeo6iqqqmopaOhnpuXkY2JhoOBgH9+f4GGjJKYnqGjoqGgn52bmJWRjouIhoSCgYCAgoSIjZGWmZubnJuamJeVk5COi4mHhYSDg4OEhomMj5KUlZWVlJOSkI+NjIqJiIeGhoaGh4mKjI6PkJCQkI+Ojo2MjIuKioqJiYmJiouMjY6Ojo6OjY2NjYyMjIuLi4uLi4uLjIyMjY2NjY2NjY2NjY2NjYyMjIyMjIyMjIyMjIyMjI2NjY2NjY2NjY2NjY2NjY2NjYyM';
-
-let completionSoundRef: Audio.Sound | null = null;
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const RING_SIZE = 140;
-const RING_STROKE = 7;
-const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
-
-function formatSeconds(seconds: number) {
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  return `${mins}:${secs.toString().padStart(2, '0')}`;
-}
-
-async function prepareCompletionSound() {
-  if (completionSoundRef) return;
-  try {
-    await Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
-      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
-    });
-    const { sound } = await Audio.Sound.createAsync(
-      { uri: COMPLETION_SOUND },
-      { shouldPlay: false },
-    );
-    completionSoundRef = sound;
-  } catch {
-    // ignore initialization failures
-  }
-}
-
-async function playCompletionSound() {
-  if (!completionSoundRef) {
-    await prepareCompletionSound();
-  }
-  if (!completionSoundRef) return;
-  try {
-    await completionSoundRef.setPositionAsync(0);
-    await completionSoundRef.playAsync();
-  } catch {
-    // ignore playback failures
-  }
-}
-
-function triggerCompletionFeedback() {
-  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  if (Platform.OS === 'web') {
-    navigator.vibrate([200, 100, 200, 100, 200]);
-  } else {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  }
-}
-
-function safeDeactivateKeepAwake(tag: string) {
-  try {
-    Promise.resolve(deactivateKeepAwake(tag)).catch(() => {
-      // ignore if current activity is unavailable during shutdown/background transitions
-    });
-  } catch {
-    // ignore sync throws from unavailable native activity
-  }
-}
-
-function safeActivateKeepAwake(tag: string) {
-  if (AppState.currentState !== 'active') {
-    return;
-  }
-  try {
-    Promise.resolve(activateKeepAwakeAsync(tag)).catch(() => {
-      // ignore if current activity is unavailable during startup/background transitions
-    });
-  } catch {
-    // ignore sync throws from unavailable native activity
-  }
-}
-
-function computeRemainingSeconds(endAtMs: number) {
-  const diffMs = endAtMs - Date.now();
-  return Math.max(0, Math.ceil(diffMs / 1000));
-}
-
-type PersistedRestTimerStateV1 = {
-  v: 1;
-  mode: RestTimerMode;
-  endAtMs: number | null;
-  remainingSec: number;
-  startedDurationSec: number;
-  scheduledNotificationId: string | null;
-};
-
-function safeParsePersistedState(
-  raw: string | null,
-): PersistedRestTimerStateV1 | null {
-  if (!raw) return null;
-  try {
-    const parsed = JSON.parse(raw) as Partial<PersistedRestTimerStateV1>;
-    if (parsed?.v !== 1) return null;
-    if (
-      parsed.mode !== 'idle' &&
-      parsed.mode !== 'running' &&
-      parsed.mode !== 'paused' &&
-      parsed.mode !== 'complete'
-    ) {
-      return null;
-    }
-    if (
-      typeof parsed.remainingSec !== 'number' ||
-      !Number.isFinite(parsed.remainingSec)
-    ) {
-      return null;
-    }
-    if (
-      typeof parsed.startedDurationSec !== 'number' ||
-      !Number.isFinite(parsed.startedDurationSec)
-    ) {
-      return null;
-    }
-    const endAtMs =
-      parsed.endAtMs === null ||
-      (typeof parsed.endAtMs === 'number' && Number.isFinite(parsed.endAtMs))
-        ? (parsed.endAtMs ?? null)
-        : null;
-    const scheduledNotificationId =
-      parsed.scheduledNotificationId === null ||
-      typeof parsed.scheduledNotificationId === 'string'
-        ? (parsed.scheduledNotificationId ?? null)
-        : null;
-
-    return {
-      v: 1,
-      mode: parsed.mode,
-      endAtMs,
-      remainingSec: Math.max(0, Math.round(parsed.remainingSec)),
-      startedDurationSec: Math.max(0, Math.round(parsed.startedDurationSec)),
-      scheduledNotificationId,
-    };
-  } catch {
-    return null;
-  }
-}
 
 export function RestTimer({
   tokens,

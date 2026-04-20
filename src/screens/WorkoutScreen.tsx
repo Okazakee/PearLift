@@ -24,8 +24,8 @@ import { AppPromptModal } from '../components/modals/AppPromptModal';
 import { DonateModal } from '../components/modals/DonateModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LocalBackupModal } from '../components/modals/LocalBackupModal';
-import { ProgramSettingsScreen } from '../components/modals/ProgramSettingsScreen';
-import { SettingsScreen } from '../components/modals/SettingsScreen';
+import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
+import { SettingsModal } from '../components/modals/SettingsModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
@@ -549,7 +549,7 @@ export function WorkoutScreen() {
           }}
         />
 
-        <ProgramSettingsScreen
+        <ProgramSettingsModal
           open={programSettingsOpen}
           tokens={tokens}
           topInset={insets.top}
@@ -590,7 +590,7 @@ export function WorkoutScreen() {
           }}
         />
 
-        <SettingsScreen
+        <SettingsModal
           open={settingsOpen}
           tokens={tokens}
           topInset={insets.top}

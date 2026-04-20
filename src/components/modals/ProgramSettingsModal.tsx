@@ -33,7 +33,7 @@ import type { DayConfig, WeekConfig } from '../../types';
 import { scheduleIdleTask } from '../../utils/idle';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
-interface ProgramSettingsScreenProps {
+interface ProgramSettingsModalProps {
   open: boolean;
   tokens: ThemeTokens;
   topInset: number;
@@ -80,7 +80,7 @@ const dayIconComponents: Record<
   Star,
 };
 
-export function ProgramSettingsScreen({
+export function ProgramSettingsModal({
   open,
   tokens,
   topInset,
@@ -91,7 +91,7 @@ export function ProgramSettingsScreen({
   onWeekConfigsChange,
   onDayConfigsChange,
   onPrompt,
-}: ProgramSettingsScreenProps) {
+}: ProgramSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
   const [draftWeeks, setDraftWeeks] = useState<WeekDraft[]>([]);
   const [draftDays, setDraftDays] = useState<DayConfig[]>([]);

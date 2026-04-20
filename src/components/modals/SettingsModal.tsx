@@ -21,7 +21,7 @@ import { withAlpha } from '../../theme/tokens';
 import type { WeightUnit } from '../../types';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
-interface SettingsScreenProps {
+interface SettingsModalProps {
   open: boolean;
   tokens: ThemeTokens;
   topInset: number;
@@ -41,7 +41,7 @@ interface SettingsScreenProps {
   onOpenDonate: () => void;
 }
 
-export function SettingsScreen({
+export function SettingsModal({
   open,
   tokens,
   topInset,
@@ -58,7 +58,7 @@ export function SettingsScreen({
   onResetData,
   onOpenGithub,
   onOpenDonate,
-}: SettingsScreenProps) {
+}: SettingsModalProps) {
   const styles = createStyles(tokens, topInset, bottomInset);
   const themeSubtitle = 'App color schema';
 
