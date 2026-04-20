@@ -74,5 +74,7 @@ export interface SettingChange {
 export interface ChangeSummary {
   workouts: WorkoutChange[];
   settings: SettingChange[];
+  weekConfigs: SettingChange[];
+  dayConfigs: SettingChange[];
   totalChanges: number;
 }

@@ -1,9 +1,14 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Notifications from 'expo-notifications';
 import { create } from 'zustand';
 import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
 import type { AppPromptAction } from '../components/modals/AppPromptModal';
+import { REST_TIMER_PERSIST_KEY } from '../config/timer';
+import { RestTimerForegroundService } from '../native/restTimerForegroundService';
 import type { WorkoutMutation, WorkoutStoreSnapshot } from '../storage/types';
 import type { WorkoutRepository } from '../storage/workoutRepository';
 import { WorkoutRepository as WorkoutRepoClass } from '../storage/workoutRepository';
+import type { PersistedRestTimerStateV1 } from '../types/timer';
 
 interface PromptConfig {
   title: string;
@@ -73,7 +78,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   timerExpanded: false,
 
   pendingImport: null,
-  importSummary: { workouts: [], settings: [], totalChanges: 0 },
+  importSummary: {
+    workouts: [],
+    settings: [],
+    weekConfigs: [],
+    dayConfigs: [],
+    totalChanges: 0,
+  },
 
   initialize: async () => {
     const repo = new WorkoutRepoClass();
@@ -94,8 +105,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     if (!repository) return;
 
     const skipReload =
-      mutation.type !== 'resetAllData' &&
-      mutation.type !== 'restoreRuntimeState';
+      mutation.type === 'setThemeMode' ||
+      mutation.type === 'setCurrentWeek' ||
+      mutation.type === 'setCurrentDay' ||
+      mutation.type === 'setRestDuration' ||
+      mutation.type === 'setWeightUnit' ||
+      mutation.type === 'setExerciseWeight' ||
+      mutation.type === 'adjustExerciseWeight';
 
     if (skipReload) {
       const current = get().snapshot;
@@ -107,6 +123,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
     try {
       await repository.applyMutation(mutation);
+      if (mutation.type === 'resetAllData') {
+        await clearRestTimerRuntimeState();
+      }
       if (!skipReload) {
         const snapshot = await repository.getSnapshot();
         set({ snapshot });
@@ -139,95 +158,81 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   setImportSummary: (summary) => set({ importSummary: summary }),
 }));
 
+async function clearRestTimerRuntimeState() {
+  try {
+    const raw = await AsyncStorage.getItem(REST_TIMER_PERSIST_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<PersistedRestTimerStateV1>;
+      const id =
+        typeof parsed.scheduledNotificationId === 'string'
+          ? parsed.scheduledNotificationId
+          : null;
+      if (id) {
+        try {
+          await Notifications.cancelScheduledNotificationAsync(id);
+        } catch {
+          // ignore
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  try {
+    await AsyncStorage.removeItem(REST_TIMER_PERSIST_KEY);
+  } catch {
+    // ignore
+  }
+
+  if (RestTimerForegroundService.isAvailable()) {
+    try {
+      await RestTimerForegroundService.cancel();
+    } catch {
+      // ignore
+    }
+    try {
+      await RestTimerForegroundService.clearCompletion();
+    } catch {
+      // ignore
+    }
+  }
+}
+
 function applyOptimisticUpdate(
   snapshot: WorkoutStoreSnapshot,
   mutation: WorkoutMutation,
 ): WorkoutStoreSnapshot {
-  const newSnapshot = { ...snapshot };
-
   switch (mutation.type) {
     case 'setThemeMode':
-      newSnapshot.themeMode = mutation.themeMode;
-      break;
+      return { ...snapshot, themeMode: mutation.themeMode };
     case 'setCurrentWeek':
-      newSnapshot.currentWeek = mutation.currentWeek;
-      break;
+      return { ...snapshot, currentWeek: mutation.currentWeek };
     case 'setCurrentDay':
-      newSnapshot.currentDay = mutation.currentDay;
-      break;
+      return { ...snapshot, currentDay: mutation.currentDay };
     case 'setRestDuration':
-      newSnapshot.restDuration = mutation.restDuration;
-      break;
+      return { ...snapshot, restDuration: mutation.restDuration };
     case 'setWeightUnit':
-      newSnapshot.weightUnit = mutation.weightUnit;
-      break;
+      return { ...snapshot, weightUnit: mutation.weightUnit };
     case 'setExerciseWeight':
-      newSnapshot.userWeights = {
-        ...newSnapshot.userWeights,
-        [mutation.exerciseId]: mutation.value,
+      return {
+        ...snapshot,
+        userWeights: {
+          ...snapshot.userWeights,
+          [mutation.exerciseId]: mutation.value,
+        },
       };
-      break;
     case 'adjustExerciseWeight': {
-      const current = newSnapshot.userWeights[mutation.exerciseId] ?? 0;
-      newSnapshot.userWeights = {
-        ...newSnapshot.userWeights,
-        [mutation.exerciseId]: current + mutation.delta,
+      const current = snapshot.userWeights[mutation.exerciseId] ?? 0;
+      return {
+        ...snapshot,
+        userWeights: {
+          ...snapshot.userWeights,
+          [mutation.exerciseId]: current + mutation.delta,
+        },
       };
-      break;
     }
-    case 'addExercise': {
-      const workout = newSnapshot.workouts.find(
-        (w) => w.id === mutation.workoutId,
-      );
-      if (workout) {
-        workout.exercises = [...workout.exercises, mutation.exercise as any];
-      }
-      break;
-    }
-    case 'editExercise': {
-      const workout = newSnapshot.workouts.find(
-        (w) => w.id === mutation.workoutId,
-      );
-      if (workout) {
-        workout.exercises = workout.exercises.map((e) =>
-          e.id === mutation.exerciseId ? { ...e, ...mutation.updates } : e,
-        );
-      }
-      break;
-    }
-    case 'deleteExercise': {
-      const workout = newSnapshot.workouts.find(
-        (w) => w.id === mutation.workoutId,
-      );
-      if (workout) {
-        workout.exercises = workout.exercises.filter(
-          (e) => e.id !== mutation.exerciseId,
-        );
-      }
-      break;
-    }
-    case 'reorderExercises': {
-      const workout = newSnapshot.workouts.find(
-        (w) => w.id === mutation.workoutId,
-      );
-      if (workout) {
-        const reordered = mutation.orderedExerciseIds
-          .map((id) => workout.exercises.find((e) => e.id === id))
-          .filter(Boolean) as typeof workout.exercises;
-        workout.exercises = reordered;
-      }
-      break;
-    }
-    case 'replaceWeekConfigs':
-      newSnapshot.weekConfigs = mutation.weekConfigs;
-      break;
-    case 'replaceDayConfigs':
-      newSnapshot.dayConfigs = mutation.dayConfigs;
-      break;
-    case 'resetAllData':
-    case 'restoreRuntimeState':
-      break;
+    default:
+      return snapshot;
   }
-
-  return newSnapshot;
 }

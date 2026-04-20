@@ -14,7 +14,6 @@ import type {
   WeightUnit,
   WorkoutSession,
 } from '../types';
-import { scheduleIdleTask } from '../utils/idle';
 import { ExerciseCard } from './ExerciseCard';
 
 interface WorkoutViewProps {
@@ -57,8 +56,6 @@ export function WorkoutView({
   onReorderExercises,
 }: WorkoutViewProps) {
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
-  const pendingPersistCancelRef = useRef<(() => void) | null>(null);
-  const pendingPersistOrderRef = useRef<string[] | null>(null);
 
   const styles = useMemo(
     () => createStyles(tokens, contentBottomPadding),
@@ -81,14 +78,6 @@ export function WorkoutView({
   );
   const [currentOrder, setCurrentOrder] = useState<string[]>(sortedExerciseIds);
 
-  useEffect(
-    () => () => {
-      pendingPersistCancelRef.current?.();
-      pendingPersistCancelRef.current = null;
-    },
-    [],
-  );
-
   const previousWorkoutIdRef = useRef(workout.id);
   const orderByWorkoutRef = useRef<Record<string, string[]>>({});
 
@@ -100,10 +89,7 @@ export function WorkoutView({
         setCurrentOrder(savedOrder);
         return;
       }
-      if (!pendingPersistCancelRef.current) {
-        setCurrentOrder(sortedExerciseIds);
-      }
-      pendingPersistOrderRef.current = null;
+      setCurrentOrder(sortedExerciseIds);
     }
   }, [workout.id, sortedExerciseIds]);
 
@@ -249,12 +235,7 @@ export function WorkoutView({
           dropAnimationDuration={200}
           onDragEnd={({ data: reordered }) => {
             setCurrentOrder(reordered);
-            pendingPersistOrderRef.current = reordered;
-            pendingPersistCancelRef.current?.();
-            pendingPersistCancelRef.current = scheduleIdleTask(() => {
-              pendingPersistCancelRef.current = null;
-              onReorderExercises(reordered);
-            });
+            onReorderExercises(reordered);
           }}
         />
         {renderFooter()}

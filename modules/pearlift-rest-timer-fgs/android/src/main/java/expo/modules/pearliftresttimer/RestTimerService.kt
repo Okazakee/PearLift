@@ -121,6 +121,7 @@ class RestTimerService : Service() {
           .putLong(PREF_END_AT_ELAPSED_MS, 0L)
           .putInt(PREF_REMAINING_SEC, 0)
           .putInt(PREF_STARTED_DURATION_SEC, 0)
+          .putLong(PREF_COMPLETED_AT_MS, 0L)
           .apply()
         stopTicking()
         stopForegroundCompat(removeNotification = true)

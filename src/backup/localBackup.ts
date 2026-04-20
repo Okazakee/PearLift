@@ -369,7 +369,6 @@ function serializeExerciseForDiff(exercise: Exercise, weight: number) {
     exercise.baseWeight,
     exercise.muscleGroup,
     exercise.notes,
-    exercise.position,
     weight,
   ].join('|');
 }
@@ -437,6 +436,95 @@ function buildSettingDiff(
   return changes;
 }
 
+function formatWeekConfig(value: WeekConfig) {
+  const loadPct = Math.round((value.loadModifier - 1) * 100);
+  const loadLabel =
+    loadPct === 0 ? '0%' : loadPct > 0 ? `+${loadPct}%` : `${loadPct}%`;
+  return `${value.name} (RIR ${value.rir}, Load ${loadLabel})`;
+}
+
+function buildWeekConfigDiff(
+  current: PwaBackupV2,
+  incoming: PwaBackupV2,
+): SettingChange[] {
+  const a = current.data.weekConfigs ?? [];
+  const b = incoming.data.weekConfigs ?? [];
+
+  const aMap = new Map(a.map((item) => [item.id, item]));
+  const bMap = new Map(b.map((item) => [item.id, item]));
+  const ids = new Set([...aMap.keys(), ...bMap.keys()]);
+
+  const changes: SettingChange[] = [];
+  for (const id of [...ids].sort((x, y) => x - y)) {
+    const from = aMap.get(id);
+    const to = bMap.get(id);
+    const key = `Week ${id}`;
+    if (!from && to) {
+      changes.push({ key, from: '-', to: formatWeekConfig(to) });
+      continue;
+    }
+    if (from && !to) {
+      changes.push({ key, from: formatWeekConfig(from), to: '-' });
+      continue;
+    }
+    if (!from || !to) continue;
+    if (
+      from.name !== to.name ||
+      from.rir !== to.rir ||
+      from.loadModifier !== to.loadModifier
+    ) {
+      changes.push({
+        key,
+        from: formatWeekConfig(from),
+        to: formatWeekConfig(to),
+      });
+    }
+  }
+
+  return changes;
+}
+
+function formatDayConfig(value: DayConfig) {
+  return `${value.name} (${value.id}, ${value.icon})`;
+}
+
+function buildDayConfigDiff(
+  current: PwaBackupV2,
+  incoming: PwaBackupV2,
+): SettingChange[] {
+  const a = current.data.dayConfigs ?? [];
+  const b = incoming.data.dayConfigs ?? [];
+
+  const aMap = new Map(a.map((item) => [item.id, item]));
+  const bMap = new Map(b.map((item) => [item.id, item]));
+  const ids = new Set([...aMap.keys(), ...bMap.keys()]);
+
+  const changes: SettingChange[] = [];
+  for (const id of [...ids].sort()) {
+    const from = aMap.get(id);
+    const to = bMap.get(id);
+    const key = `Day ${id}`;
+    if (!from && to) {
+      changes.push({ key, from: '-', to: formatDayConfig(to) });
+      continue;
+    }
+    if (from && !to) {
+      changes.push({ key, from: formatDayConfig(from), to: '-' });
+      continue;
+    }
+    if (!from || !to) continue;
+    if (from.name !== to.name || from.icon !== to.icon) {
+      changes.push({
+        key,
+        from: formatDayConfig(from),
+        to: formatDayConfig(to),
+      });
+    }
+  }
+
+  return changes;
+}
+
 export function computeImportDiff(
   current: PwaBackupV2,
   incoming: PwaBackupV2,
@@ -444,6 +532,8 @@ export function computeImportDiff(
   const changes: ChangeSummary = {
     workouts: [],
     settings: [],
+    weekConfigs: [],
+    dayConfigs: [],
     totalChanges: 0,
   };
 
@@ -528,6 +618,12 @@ export function computeImportDiff(
 
   changes.settings = buildSettingDiff(current, incoming);
   changes.totalChanges += changes.settings.length;
+
+  changes.weekConfigs = buildWeekConfigDiff(current, incoming);
+  changes.totalChanges += changes.weekConfigs.length;
+
+  changes.dayConfigs = buildDayConfigDiff(current, incoming);
+  changes.totalChanges += changes.dayConfigs.length;
 
   return changes;
 }

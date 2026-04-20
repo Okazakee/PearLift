@@ -8,7 +8,7 @@ import {
   Star,
 } from 'lucide-react-native';
 import type React from 'react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -22,7 +22,6 @@ import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WorkoutDay } from '../types';
 import { arraysEqualBy } from '../utils/array';
-import { scheduleIdleTask } from '../utils/idle';
 
 const iconComponents: Record<
   string,
@@ -56,29 +55,9 @@ export function Navigation({
   bottomPadding,
   minHeight,
 }: NavigationProps) {
-  const pendingPersistCancelRef = useRef<(() => void) | null>(null);
-  const pendingPersistOrderRef = useRef<DayConfig[] | null>(null);
   const [draftDayConfigs, setDraftDayConfigs] = useState(dayConfigs);
 
-  useEffect(
-    () => () => {
-      pendingPersistCancelRef.current?.();
-      pendingPersistCancelRef.current = null;
-    },
-    [],
-  );
-
   useEffect(() => {
-    const pendingOrder = pendingPersistOrderRef.current;
-    if (pendingOrder && arraysEqualBy(dayConfigs, pendingOrder, (d) => d.id)) {
-      pendingPersistOrderRef.current = null;
-      return;
-    }
-
-    if (pendingOrder) {
-      return;
-    }
-
     if (!arraysEqualBy(dayConfigs, draftDayConfigs, (d) => d.id)) {
       setDraftDayConfigs(dayConfigs);
     }
@@ -103,12 +82,7 @@ export function Navigation({
         onDragEnd={({ order }) => {
           const reordered = order(draftDayConfigs);
           setDraftDayConfigs(reordered);
-          pendingPersistOrderRef.current = reordered;
-          pendingPersistCancelRef.current?.();
-          pendingPersistCancelRef.current = scheduleIdleTask(() => {
-            pendingPersistCancelRef.current = null;
-            onReorderDayConfigs(reordered);
-          });
+          onReorderDayConfigs(reordered);
         }}
       >
         {draftDayConfigs.map((item) => {

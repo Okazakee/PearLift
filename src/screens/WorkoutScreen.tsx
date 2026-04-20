@@ -193,7 +193,7 @@ export function WorkoutScreen() {
     await applyMutation({
       type: 'addExercise',
       workoutId: currentWorkout.id,
-      exercise: payload as any,
+      exercise: payload,
     });
   };
 

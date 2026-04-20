@@ -88,6 +88,7 @@ export function RestTimer({
   const appStateRef = useRef(AppState.currentState);
   const endAtMsRef = useRef<number | null>(null);
   const scheduledIdRef = useRef<string | null>(null);
+  const restoredFromNativeRef = useRef(false);
   const scheduleTokenRef = useRef(0);
   const panelMountRafRef = useRef<number | null>(null);
   const panelUnmountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -279,6 +280,7 @@ export function RestTimer({
     AsyncStorage.getItem(REST_TIMER_PERSIST_KEY)
       .then((raw) => {
         if (cancelled) return;
+        if (restoredFromNativeRef.current) return;
         const persisted = safeParsePersistedState(raw);
         if (!persisted) return;
 
@@ -330,6 +332,72 @@ export function RestTimer({
       .catch(() => {
         // ignore restore failures
       });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+    if (!RestTimerForegroundService.isAvailable()) return;
+
+    let cancelled = false;
+    void (async () => {
+      const state = await RestTimerForegroundService.getState();
+      if (cancelled || !state) return;
+
+      if (state.completedAtMs) {
+        restoredFromNativeRef.current = true;
+        setMode('complete');
+        setEndAtMs(null);
+        setRemainingSec(0);
+        if (
+          typeof state.startedDurationSec === 'number' &&
+          state.startedDurationSec > 0
+        ) {
+          setStartedDurationSec(state.startedDurationSec);
+        }
+        void RestTimerForegroundService.clearCompletion();
+      } else if (
+        state.mode === 'paused' &&
+        typeof state.remainingSec === 'number'
+      ) {
+        restoredFromNativeRef.current = true;
+        setMode('paused');
+        setEndAtMs(null);
+        setRemainingSec(Math.max(0, Math.round(state.remainingSec)));
+        if (
+          typeof state.startedDurationSec === 'number' &&
+          state.startedDurationSec > 0
+        ) {
+          setStartedDurationSec(state.startedDurationSec);
+        }
+      } else if (
+        state.mode === 'running' &&
+        typeof state.endAtMs === 'number'
+      ) {
+        restoredFromNativeRef.current = true;
+        const reconciledEndAt = Math.round(state.endAtMs);
+        if (reconciledEndAt <= Date.now()) {
+          setMode('complete');
+          setEndAtMs(null);
+          setRemainingSec(0);
+        } else {
+          setMode('running');
+          setEndAtMs(reconciledEndAt);
+        }
+        if (
+          typeof state.startedDurationSec === 'number' &&
+          state.startedDurationSec > 0
+        ) {
+          setStartedDurationSec(state.startedDurationSec);
+        }
+      }
+
+      // Always try to hand off/stop to avoid orphaned notifications on startup.
+      await RestTimerForegroundService.stop();
+    })();
 
     return () => {
       cancelled = true;
@@ -429,9 +497,11 @@ export function RestTimer({
         Platform.OS === 'android' &&
         RestTimerForegroundService.isAvailable()
       ) {
-        // Stop the foreground service to avoid a persistent notification in-app.
-        void RestTimerForegroundService.stop();
-        void RestTimerForegroundService.getState().then((state) => {
+        void (async () => {
+          // Stop the foreground service to avoid a persistent notification in-app,
+          // then reconcile from the stored native state.
+          await RestTimerForegroundService.stop();
+          const state = await RestTimerForegroundService.getState();
           if (!state) return;
 
           if (state.completedAtMs) {
@@ -467,7 +537,7 @@ export function RestTimer({
             setEndAtMs(Math.round(state.endAtMs));
             return;
           }
-        });
+        })();
         return;
       }
 

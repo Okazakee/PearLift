@@ -75,6 +75,34 @@ export function ImportPreviewModal({
             ))}
           </View>
         )}
+
+        {summary.weekConfigs.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Weeks</Text>
+            {summary.weekConfigs.map((item) => (
+              <View key={item.key} style={styles.row}>
+                <Text style={styles.rowName}>{item.key}</Text>
+                <Text style={styles.rowMeta}>
+                  {item.from} {'->'} {item.to}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {summary.dayConfigs.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Days</Text>
+            {summary.dayConfigs.map((item) => (
+              <View key={item.key} style={styles.row}>
+                <Text style={styles.rowName}>{item.key}</Text>
+                <Text style={styles.rowMeta}>
+                  {item.from} {'->'} {item.to}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       <View style={styles.actions}>
