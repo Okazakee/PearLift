@@ -13,7 +13,8 @@
       "!node_modules",
       "!.expo",
       "!dist",
-      "!web-build"
+      "!web-build",
+      "!src/sync/sync.bundle.mjs"
     ]
   },
   "formatter": {

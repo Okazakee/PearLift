@@ -61,6 +61,30 @@ async function configureDatabase(db: SQLite.SQLiteDatabase) {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS sync_state (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      sync_enabled INTEGER NOT NULL DEFAULT 0,
+      device_id TEXT,
+      pairing_secret_ciphertext TEXT,
+      pairing_secret_iv TEXT,
+      pairing_secret_tag TEXT,
+      autobase_bootstrap_key TEXT,
+      lamport_counter INTEGER NOT NULL DEFAULT 0,
+      last_error TEXT,
+      last_synced_at TEXT,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sync_applied_ops (
+      op_id TEXT PRIMARY KEY NOT NULL,
+      device_id TEXT NOT NULL,
+      lamport INTEGER NOT NULL,
+      applied_at TEXT NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_sync_applied_ops_device_lamport
+    ON sync_applied_ops(device_id, lamport);
+
   `);
 }
 

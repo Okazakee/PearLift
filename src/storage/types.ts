@@ -51,6 +51,34 @@ export type WorkoutMutation =
       source: 'local-import' | 'migration';
     };
 
+export type MutationOrigin = 'local' | 'remote';
+
+export interface MutationContext {
+  origin: MutationOrigin;
+  opId?: string;
+  deviceId?: string;
+  lamport?: number;
+  suppressSyncEmit?: boolean;
+}
+
+export interface SyncStateRow {
+  syncEnabled: boolean;
+  deviceId: string | null;
+  pairingSecretCiphertext: string | null;
+  pairingSecretIv: string | null;
+  pairingSecretTag: string | null;
+  autobaseBootstrapKey: string | null;
+  lamportCounter: number;
+  lastError: string | null;
+  lastSyncedAt: string | null;
+  updatedAt: string;
+}
+
+export interface PairedDevice {
+  deviceId: string;
+  lastSeen: string;
+}
+
 export interface WorkoutStoreSnapshot extends PearLiftRuntimeState {
   isHydrating: boolean;
   isSetupDone: boolean;

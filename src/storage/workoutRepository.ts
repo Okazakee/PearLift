@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Crypto from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   LOCAL_STATE_STORAGE_KEY,
@@ -21,7 +22,13 @@ import type {
 } from '../types';
 import { roundToPrecision } from '../utils/math';
 import { getDatabase } from './database';
-import type { WorkoutMutation, WorkoutStoreSnapshot } from './types';
+import type {
+  MutationContext,
+  PairedDevice,
+  SyncStateRow,
+  WorkoutMutation,
+  WorkoutStoreSnapshot,
+} from './types';
 
 const MAX_DAY_CONFIGS = 7;
 
@@ -228,6 +235,19 @@ type AppSettingRow = {
   value: string;
 };
 
+type SyncStateDbRow = {
+  sync_enabled: number;
+  device_id: string | null;
+  pairing_secret_ciphertext: string | null;
+  pairing_secret_iv: string | null;
+  pairing_secret_tag: string | null;
+  autobase_bootstrap_key: string | null;
+  lamport_counter: number;
+  last_error: string | null;
+  last_synced_at: string | null;
+  updated_at: string;
+};
+
 export class WorkoutRepository {
   private initialized = false;
   private initPromise: Promise<void> | null = null;
@@ -303,10 +323,26 @@ export class WorkoutRepository {
     return this.readRuntimeState();
   }
 
-  async applyMutation(mutation: WorkoutMutation) {
+  async applyMutation(
+    mutation: WorkoutMutation,
+    ctx: MutationContext = { origin: 'local' },
+  ) {
     await this.initialize();
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
+
+      if (ctx.origin === 'remote') {
+        if (!ctx.opId || !ctx.deviceId || typeof ctx.lamport !== 'number') {
+          throw new Error(
+            'Remote mutation requires opId, deviceId, and lamport.',
+          );
+        }
+
+        const alreadyApplied = await this.hasAppliedSyncOpInDb(db, ctx.opId);
+        if (alreadyApplied) {
+          return;
+        }
+      }
 
       await db.withTransactionAsync(async () => {
         switch (mutation.type) {
@@ -577,7 +613,96 @@ export class WorkoutRepository {
             return exhaustiveCheck;
           }
         }
+
+        if (ctx.origin === 'remote' && ctx.opId && ctx.deviceId) {
+          await this.markSyncOpAppliedInDb(db, {
+            opId: ctx.opId,
+            deviceId: ctx.deviceId,
+            lamport: ctx.lamport ?? 0,
+          });
+        }
       });
+    });
+  }
+
+  async getSyncState(): Promise<SyncStateRow> {
+    await this.initialize();
+    const db = await getDatabase();
+    return this.readSyncState(db);
+  }
+
+  async setSyncState(patch: Partial<SyncStateRow>): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.writeSyncStatePatch(db, patch);
+    });
+  }
+
+  async nextLamport(): Promise<number> {
+    await this.initialize();
+    return this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      const state = await this.readSyncState(db);
+      const next = Math.max(0, state.lamportCounter) + 1;
+      await this.writeSyncStatePatch(db, { lamportCounter: next });
+      return next;
+    });
+  }
+
+  async hasAppliedSyncOp(opId: string): Promise<boolean> {
+    await this.initialize();
+    const db = await getDatabase();
+    return this.hasAppliedSyncOpInDb(db, opId);
+  }
+
+  async markSyncOpApplied(meta: {
+    opId: string;
+    deviceId: string;
+    lamport: number;
+  }): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.markSyncOpAppliedInDb(db, meta);
+    });
+  }
+
+  async getPairedDevices(): Promise<PairedDevice[]> {
+    await this.initialize();
+    const db = await getDatabase();
+    const rows = await db.getAllAsync<{ device_id: string; last_seen: string }>(
+      'SELECT device_id, MAX(applied_at) as last_seen FROM sync_applied_ops GROUP BY device_id ORDER BY last_seen DESC',
+    );
+    return rows.map((row) => ({
+      deviceId: row.device_id,
+      lastSeen: row.last_seen,
+    }));
+  }
+
+  async forgetDevice(deviceId: string): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.runAsync(
+        'DELETE FROM sync_applied_ops WHERE device_id = ?',
+        deviceId,
+      );
+    });
+  }
+
+  async getOrCreateDeviceId(): Promise<string> {
+    await this.initialize();
+    return this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      const state = await this.readSyncState(db);
+      if (state.deviceId) {
+        return state.deviceId;
+      }
+
+      const deviceId = Crypto.randomUUID();
+      await this.writeSyncStatePatch(db, { deviceId });
+      return deviceId;
     });
   }
 
@@ -807,6 +932,158 @@ export class WorkoutRepository {
       weightUnit: coerceWeightUnit(settingsMap.get('weightUnit')),
       language: coerceLanguage(settingsMap.get('language')),
     };
+  }
+
+  private async ensureSyncStateRow(db: SQLiteDatabase) {
+    const row = await db.getFirstAsync<{ id: number }>(
+      'SELECT id FROM sync_state WHERE id = 1',
+    );
+    if (row?.id === 1) {
+      return;
+    }
+
+    await db.runAsync(
+      `INSERT INTO sync_state (
+        id,
+        sync_enabled,
+        device_id,
+        pairing_secret_ciphertext,
+        pairing_secret_iv,
+        pairing_secret_tag,
+        autobase_bootstrap_key,
+        lamport_counter,
+        last_error,
+        last_synced_at,
+        updated_at
+      ) VALUES (1, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, ?)`,
+      nowIso(),
+    );
+  }
+
+  private async readSyncState(db: SQLiteDatabase): Promise<SyncStateRow> {
+    await this.ensureSyncStateRow(db);
+    const row = await db.getFirstAsync<SyncStateDbRow>(
+      `SELECT
+        sync_enabled,
+        device_id,
+        pairing_secret_ciphertext,
+        pairing_secret_iv,
+        pairing_secret_tag,
+        autobase_bootstrap_key,
+        lamport_counter,
+        last_error,
+        last_synced_at,
+        updated_at
+      FROM sync_state WHERE id = 1`,
+    );
+
+    if (!row) {
+      const now = nowIso();
+      return {
+        syncEnabled: false,
+        deviceId: null,
+        pairingSecretCiphertext: null,
+        pairingSecretIv: null,
+        pairingSecretTag: null,
+        autobaseBootstrapKey: null,
+        lamportCounter: 0,
+        lastError: null,
+        lastSyncedAt: null,
+        updatedAt: now,
+      };
+    }
+
+    return {
+      syncEnabled: row.sync_enabled === 1,
+      deviceId: row.device_id,
+      pairingSecretCiphertext: row.pairing_secret_ciphertext,
+      pairingSecretIv: row.pairing_secret_iv,
+      pairingSecretTag: row.pairing_secret_tag,
+      autobaseBootstrapKey: row.autobase_bootstrap_key,
+      lamportCounter: row.lamport_counter,
+      lastError: row.last_error,
+      lastSyncedAt: row.last_synced_at,
+      updatedAt: row.updated_at,
+    };
+  }
+
+  private async writeSyncStatePatch(
+    db: SQLiteDatabase,
+    patch: Partial<SyncStateRow>,
+  ) {
+    await this.ensureSyncStateRow(db);
+
+    const keys: Array<keyof SyncStateRow> = Object.keys(patch) as Array<
+      keyof SyncStateRow
+    >;
+    if (keys.length === 0) {
+      return;
+    }
+
+    const columnMap: Record<keyof SyncStateRow, string> = {
+      syncEnabled: 'sync_enabled',
+      deviceId: 'device_id',
+      pairingSecretCiphertext: 'pairing_secret_ciphertext',
+      pairingSecretIv: 'pairing_secret_iv',
+      pairingSecretTag: 'pairing_secret_tag',
+      autobaseBootstrapKey: 'autobase_bootstrap_key',
+      lamportCounter: 'lamport_counter',
+      lastError: 'last_error',
+      lastSyncedAt: 'last_synced_at',
+      updatedAt: 'updated_at',
+    };
+
+    const setClauses: string[] = [];
+    const values: Array<number | string | null> = [];
+
+    for (const key of keys) {
+      if (key === 'updatedAt') {
+        continue;
+      }
+      const column = columnMap[key];
+      if (!column) continue;
+      setClauses.push(`${column} = ?`);
+      if (key === 'syncEnabled') {
+        values.push(patch[key] ? 1 : 0);
+      } else {
+        values.push((patch[key] as string | number | null | undefined) ?? null);
+      }
+    }
+
+    setClauses.push('updated_at = ?');
+    values.push(patch.updatedAt ?? nowIso());
+    values.push(1);
+
+    await db.runAsync(
+      `UPDATE sync_state SET ${setClauses.join(', ')} WHERE id = ?`,
+      ...values,
+    );
+  }
+
+  private async hasAppliedSyncOpInDb(db: SQLiteDatabase, opId: string) {
+    const row = await db.getFirstAsync<{ total: number }>(
+      'SELECT COUNT(*) as total FROM sync_applied_ops WHERE op_id = ?',
+      opId,
+    );
+    return (row?.total ?? 0) > 0;
+  }
+
+  private async markSyncOpAppliedInDb(
+    db: SQLiteDatabase,
+    meta: {
+      opId: string;
+      deviceId: string;
+      lamport: number;
+    },
+  ) {
+    await db.runAsync(
+      `INSERT OR IGNORE INTO sync_applied_ops (op_id, device_id, lamport, applied_at)
+       VALUES (?, ?, ?, ?)`,
+      meta.opId,
+      meta.deviceId,
+      meta.lamport,
+      nowIso(),
+    );
   }
 
   private async writeSetting(

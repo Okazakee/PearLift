@@ -637,5 +637,5 @@ export function getBackupFileName(date = new Date()) {
     .split(':')
     .slice(0, 2)
     .join('-');
-  return `pearlift-backup-${day}-${hour}.json`;
+  return `pearlift_backup_${day}-${hour}.json`;
 }

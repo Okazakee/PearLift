@@ -31,6 +31,7 @@ import { LanguageListModal } from '../components/modals/LanguageListModal';
 import { LocalBackupModal } from '../components/modals/LocalBackupModal';
 import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
+import { SyncSetupModal } from '../components/modals/SyncSetupModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
@@ -40,6 +41,7 @@ import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
+import { getPairingSecretPayload } from '../sync/syncManager';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
@@ -90,6 +92,19 @@ export function WorkoutScreen() {
     setImportSummary,
     timerExpanded,
     setTimerExpanded,
+    syncStatus,
+    syncPeers,
+    lastSyncedAt,
+    syncError,
+    startSync,
+    stopSync,
+    pairedDevices,
+    syncSecret,
+    loadPairedDevices,
+    forgetDevice,
+    setSyncSecret,
+    setSyncSetupOpen,
+    syncSetupOpen,
   } = useWorkoutStore();
 
   useEffect(() => {
@@ -495,6 +510,34 @@ export function WorkoutScreen() {
     void applyMutation({ type: 'setExerciseWeight', exerciseId, value });
   };
 
+  useEffect(() => {
+    if (!isReady) return;
+    void getPairingSecretPayload().then(setSyncSecret);
+  }, [isReady, setSyncSecret]);
+
+  useEffect(() => {
+    if (syncStatus === 'synced') {
+      void loadPairedDevices();
+    }
+  }, [syncStatus, loadPairedDevices]);
+
+  const handleForgetDevice = async (deviceId: string) => {
+    await forgetDevice(deviceId);
+  };
+
+  const handleOpenSyncSetup = () => {
+    setSettingsOpen(false);
+    setSyncSetupOpen(true);
+  };
+
+  const handleToggleSync = () => {
+    if (syncStatus === 'idle' || syncStatus === 'error') {
+      handleOpenSyncSetup();
+      return;
+    }
+    void stopSync();
+  };
+
   const onboardingBlocking = snapshot?.isSetupDone === false;
 
   if (onboardingBlocking) {
@@ -514,6 +557,10 @@ export function WorkoutScreen() {
           bottomInset={insets.bottom}
           weightUnit={weightUnit}
           onWeightUnitChange={handleWeightUnitChange}
+          syncStatus={syncStatus}
+          syncError={syncError}
+          onStartSync={startSync}
+          onStopSync={stopSync}
           onComplete={finishOnboarding}
         />
       </SafeAreaView>
@@ -677,9 +724,31 @@ export function WorkoutScreen() {
           language={currentLanguage}
           onLanguageChange={handleLanguageChange}
           onLanguageListOpen={() => setLanguageListOpen(true)}
+          syncStatus={syncStatus}
+          syncPeers={syncPeers}
+          lastSyncedAt={lastSyncedAt}
+          syncError={syncError}
+          syncSecret={syncSecret}
+          pairedDevices={pairedDevices}
+          onToggleSync={handleToggleSync}
+          onOpenSyncSetup={handleOpenSyncSetup}
+          onForgetDevice={handleForgetDevice}
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
+        />
+
+        <SyncSetupModal
+          open={syncSetupOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          syncStatus={syncStatus}
+          syncError={syncError}
+          onStartSync={startSync}
+          onStopSync={stopSync}
+          onClose={() => setSyncSetupOpen(false)}
+          onDone={() => setSyncSetupOpen(false)}
         />
 
         <LanguageListModal

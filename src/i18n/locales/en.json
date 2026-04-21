@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Get Started",
+    "notNow": "Not now",
+    "setupSync": "Set up sync",
     "settingUp": "Setting up..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Set up device sync",
+      "subtitle": "Each device creates its own identity automatically. To pair devices, share the same Sync Code.",
+      "create": "Create",
+      "join": "Join",
+      "yourCode": "Your Sync Code",
+      "shareHint": "Share this Sync Code (or QR) with your other device. That device must enter the same code to join your sync group.",
+      "enterCode": "Enter Sync Code",
+      "scanQr": "Scan QR code",
+      "scanEnableCamera": "Enable camera",
+      "scanHelp": "Point your camera at the QR code on your other device.",
+      "codePlaceholder": "Enter your share code",
+      "copy": "Copy code",
+      "start": "Start sync",
+      "stop": "Stop sync",
+      "invalidCode": "Invalid code. It must be 64 hex characters."
+    }
   },
   "workout": {
     "weekDay": "Week {{week}} - {{day}}",
@@ -110,7 +131,19 @@
     "syncBackup": {
       "title": "Sync & Backup",
       "comingSoon": "Device-to-device sync is coming soon.",
-      "openSyncSetup": "Open Sync Setup"
+      "openSyncSetup": "Open Sync Setup",
+      "enableSync": "Enable Sync",
+      "copyCode": "Copy Code",
+      "shareCode": "Share Code",
+      "pairedDevices": "Paired Devices",
+      "noDevices": "No devices paired yet",
+      "lastSeen": "Last seen",
+      "forgetDevice": "Forget",
+      "forgetConfirmTitle": "Forget this device?",
+      "forgetConfirmMessage": "This removes the pairing record locally. The device can still reconnect if it has the same sync code.",
+      "peers_one": "{{count}} peer connected",
+      "peers_other": "{{count}} peers connected",
+      "stopSync": "Stop Sync"
     },
     "data": {
       "title": "Data",

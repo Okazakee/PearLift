@@ -10,6 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MOTION } from '../animation/motion';
 import { AnimatedPressable } from '../animation/primitives';
+import { SyncSetupModal } from '../components/modals/SyncSetupModal';
+import type { SyncStatus } from '../sync/types';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { WeightUnit } from '../types';
@@ -20,6 +22,10 @@ interface OnboardingScreenProps {
   bottomInset: number;
   weightUnit: WeightUnit;
   onWeightUnitChange: (next: WeightUnit) => void;
+  syncStatus: SyncStatus;
+  syncError: string | null;
+  onStartSync: (pairingSecretBase64?: string) => Promise<void>;
+  onStopSync: () => Promise<void>;
   onComplete: () => void;
 }
 
@@ -56,11 +62,16 @@ export function OnboardingScreen({
   bottomInset,
   weightUnit,
   onWeightUnitChange,
+  syncStatus,
+  syncError,
+  onStartSync,
+  onStopSync,
   onComplete,
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [requesting, setRequesting] = useState(false);
+  const [syncSetupOpen, setSyncSetupOpen] = useState(false);
 
   const styles = useMemo(
     () => createStyles(tokens, topInset, bottomInset),
@@ -70,6 +81,7 @@ export function OnboardingScreen({
   const content = PAGE_CONTENT[page];
   const isLastPage = page === PAGE_CONTENT.length - 1;
   const isFirstPage = page === 0;
+  const isSyncPage = content.titleKey === 'onboarding.pages.sync.title';
 
   const handleNext = async () => {
     if (isLastPage) {
@@ -91,6 +103,10 @@ export function OnboardingScreen({
   const handleBack = () => {
     if (isFirstPage) return;
     setPage((p) => p - 1);
+  };
+
+  const handleNotNow = () => {
+    void handleNext();
   };
 
   return (
@@ -178,9 +194,20 @@ export function OnboardingScreen({
           </Text>
         </AnimatedPressable>
 
+        {isSyncPage ? (
+          <AnimatedPressable
+            style={styles.secondaryButton}
+            onPress={handleNotNow}
+          >
+            <Text style={styles.secondaryButtonText}>
+              {t('onboarding.notNow')}
+            </Text>
+          </AnimatedPressable>
+        ) : null}
+
         <AnimatedPressable
           style={[styles.nextButton, requesting && styles.buttonDisabled]}
-          onPress={handleNext}
+          onPress={isSyncPage ? () => setSyncSetupOpen(true) : handleNext}
           disabled={requesting}
         >
           <Text style={styles.nextButtonText}>
@@ -188,10 +215,28 @@ export function OnboardingScreen({
               ? requesting
                 ? t('onboarding.settingUp')
                 : t('onboarding.getStarted')
-              : t('common.next')}
+              : isSyncPage
+                ? t('onboarding.setupSync')
+                : t('common.next')}
           </Text>
         </AnimatedPressable>
       </View>
+
+      <SyncSetupModal
+        open={syncSetupOpen}
+        tokens={tokens}
+        topInset={topInset}
+        bottomInset={bottomInset}
+        syncStatus={syncStatus}
+        syncError={syncError}
+        onStartSync={onStartSync}
+        onStopSync={onStopSync}
+        onClose={() => setSyncSetupOpen(false)}
+        onDone={() => {
+          setSyncSetupOpen(false);
+          void handleNext();
+        }}
+      />
     </View>
   );
 }
@@ -300,6 +345,21 @@ function createStyles(
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.body,
       fontWeight: '600',
+    },
+    secondaryButton: {
+      minHeight: 48,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: tokens.spacing.md,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+    },
+    secondaryButtonText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
     },
     nextButton: {
       flex: 1,

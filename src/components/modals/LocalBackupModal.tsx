@@ -1,4 +1,4 @@
-import { Download, Sliders, Upload, X } from 'lucide-react-native';
+import { Download, Upload, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -36,20 +36,6 @@ export function LocalBackupModal({
         <Text style={styles.title}>{t('backup.title')}</Text>
         <Pressable style={styles.closeButton} onPress={onClose}>
           <X size={18} color={tokens.colors.textSecondary} />
-        </Pressable>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('backup.deviceSync.title')}</Text>
-        <Text style={styles.message}>{t('backup.deviceSync.comingSoon')}</Text>
-        <Pressable
-          style={[styles.secondaryButton, styles.disabledButton]}
-          disabled
-        >
-          <Sliders size={18} color={tokens.colors.primary} />
-          <Text style={styles.secondaryText}>
-            {t('backup.deviceSync.enableSetup')}
-          </Text>
         </Pressable>
       </View>
 
@@ -144,28 +130,8 @@ function createStyles(tokens: ThemeTokens) {
       justifyContent: 'center',
       gap: tokens.spacing.xs,
     },
-    secondaryButton: {
-      borderRadius: tokens.radius.md,
-      borderWidth: 1,
-      borderColor: withAlpha(tokens.colors.primary, 0.35),
-      backgroundColor: withAlpha(tokens.colors.primary, 0.08),
-      minHeight: 44,
-      paddingHorizontal: tokens.spacing.md,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: tokens.spacing.xs,
-    },
-    disabledButton: {
-      opacity: 0.55,
-    },
     actionText: {
       color: tokens.colors.onPrimary,
-      fontSize: tokens.type.body,
-      fontWeight: '700',
-    },
-    secondaryText: {
-      color: tokens.colors.primary,
       fontSize: tokens.type.body,
       fontWeight: '700',
     },
