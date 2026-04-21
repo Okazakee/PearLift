@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Începe",
+    "notNow": "Not now",
+    "setupSync": "Set up sync",
     "settingUp": "Configurare..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Configurați sincronizarea dispozitivului",
+      "subtitle": "Fiecare dispozitiv își creează automat propria identitate. Pentru a asocia dispozitive, partajați același cod de sincronizare.",
+      "create": "Creați",
+      "join": "Alăturați-vă",
+      "yourCode": "Codul dvs. de sincronizare",
+      "shareHint": "Partajați acest cod de sincronizare (sau QR) cu celălalt dispozitiv. Dispozitivul respectiv trebuie să introducă același cod pentru a se alătura grupului de sincronizare.",
+      "enterCode": "Introdu codul de sincronizare",
+      "scanQr": "Scanați codul QR",
+      "scanEnableCamera": "Activați camera",
+      "scanHelp": "Îndreptați camera către codul QR de pe celălalt dispozitiv.",
+      "codePlaceholder": "Introdu codul de partajare",
+      "copy": "Copiați codul",
+      "start": "Începeți sincronizarea",
+      "stop": "Opriți sincronizarea",
+      "invalidCode": "Cod nevalid. Trebuie să aibă 64 de caractere hexadecimale."
+    }
   },
   "workout": {
     "weekDay": "Săptămâna {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sincronizare și backup",
       "comingSoon": "Sincronizarea dispozitiv-dispozitiv vine curând.",
-      "openSyncSetup": "Deschide configurarea sincronizării"
+      "openSyncSetup": "Deschide configurarea sincronizării",
+      "enableSync": "Activați sincronizarea",
+      "pairNewDevice": "Asociați dispozitivul nou",
+      "copyCode": "Copiați codul",
+      "shareCode": "Partajați codul",
+      "pairedDevices": "Dispozitive asociate",
+      "noDevices": "Niciun dispozitiv asociat încă",
+      "lastSeen": "Văzut ultima dată",
+      "forgetDevice": "Uita",
+      "forgetConfirmTitle": "Ați uitat acest dispozitiv?",
+      "forgetConfirmMessage": "Aceasta elimină înregistrarea de asociere la nivel local. Dispozitivul se poate reconecta dacă are același cod de sincronizare.",
+      "peers_one": "{{count}} peer connected",
+      "peers_other": "{{count}} peers connected",
+      "stopSync": "Opriți sincronizarea"
     },
     "data": {
       "title": "Date",
@@ -173,6 +207,14 @@
       "canceledMessage": "Autentificarea sistemului nu a confirmat resetarea.",
       "failedTitle": "Resetarea a eșuat"
     },
+    "pairNewDevice": {
+      "title": "Asociați un dispozitiv nou?",
+      "message": "Aceasta va afișa codul de sincronizare și QR, astfel încât un alt dispozitiv să se poată conecta.",
+      "authPromptMessage": "Confirmați pentru a afișa codul de sincronizare",
+      "canceledTitle": "Asocierea a fost anulată",
+      "canceledMessage": "Autentificarea sistemului nu a confirmat acțiunea.",
+      "failedTitle": "Asocierea nu a reușit"
+    },
     "exportBackup": {
       "chooserTitle": "Exportă backup-ul",
       "chooserMessage": "Alegeți cum doriți să exportați backup-ul.",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import eșuat"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Confirmați pentru a uita dispozitivul",
+      "canceledTitle": "Acțiunea anulată",
+      "canceledMessage": "Autentificarea sistemului nu a confirmat acțiunea.",
+      "failedTitle": "Uită eșuat"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Nu se poate deschide linkul"

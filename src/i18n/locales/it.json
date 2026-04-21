@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Inizia",
+    "notNow": "Non ora",
+    "setupSync": "Configura sincronizzazione",
     "settingUp": "Configurazione..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Configura la sincronizzazione del dispositivo",
+      "subtitle": "Ogni dispositivo crea automaticamente la propria identità. Per accoppiare i dispositivi, condividi lo stesso codice di sincronizzazione.",
+      "create": "Crea",
+      "join": "Partecipa",
+      "yourCode": "Il tuo codice di sincronizzazione",
+      "shareHint": "Condividi questo codice di sincronizzazione (o QR) con l'altro tuo dispositivo. Quel dispositivo deve inserire lo stesso codice per unirsi al tuo gruppo di sincronizzazione.",
+      "enterCode": "Inserisci il codice di sincronizzazione",
+      "scanQr": "Scansiona il codice QR",
+      "scanEnableCamera": "Abilita fotocamera",
+      "scanHelp": "Punta la fotocamera verso il codice QR sull'altro dispositivo.",
+      "codePlaceholder": "Inserisci il tuo codice di condivisione",
+      "copy": "Copia il codice",
+      "start": "Avvia la sincronizzazione",
+      "stop": "Interrompi la sincronizzazione",
+      "invalidCode": "Codice non valido. Deve contenere 64 caratteri esadecimali."
+    }
   },
   "workout": {
     "weekDay": "Settimana {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sincronizzazione e backup",
       "comingSoon": "La sincronizzazione dispositivo-dispositivo arriverà presto.",
-      "openSyncSetup": "Apri configurazione sincronizzazione"
+      "openSyncSetup": "Apri configurazione sincronizzazione",
+      "enableSync": "Abilita sincronizzazione",
+      "pairNewDevice": "Associa il nuovo dispositivo",
+      "copyCode": "Copia codice",
+      "shareCode": "Condividi codice",
+      "pairedDevices": "Dispositivi accoppiati",
+      "noDevices": "Nessun dispositivo ancora accoppiato",
+      "lastSeen": "Visto l'ultima volta",
+      "forgetDevice": "Dimenticare",
+      "forgetConfirmTitle": "Hai dimenticato questo dispositivo?",
+      "forgetConfirmMessage": "Ciò rimuove il record di abbinamento localmente. Il dispositivo può comunque riconnettersi se ha lo stesso codice di sincronizzazione.",
+      "peers_one": "{{count}} peer connesso",
+      "peers_other": "{{count}} peer connessi",
+      "stopSync": "Interrompi la sincronizzazione"
     },
     "data": {
       "title": "Dati",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Reimpostare tutti i dati?",
-      "message": "Questo reimposterà esercizi, pesi, settimane, giorni, impostazioni del timer e la cronologia di sincronizzazione.",
+      "message": "Questo reimposterà esercizi, pesi, settimane, giorni, impostazioni del timer e tutti i dati di sincronizzazione (dispositivi accoppiati e codice di sincronizzazione).",
       "actions": {
         "confirm": "Reimposta"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Reimpostazione annullata",
       "canceledMessage": "L'autenticazione di sistema non ha confermato la reimpostazione.",
       "failedTitle": "Reimpostazione non riuscita"
+    },
+    "pairNewDevice": {
+      "title": "Accoppiare un nuovo dispositivo?",
+      "message": "Questo mostrerà il tuo codice di sincronizzazione e QR in modo che un altro dispositivo possa connettersi.",
+      "authPromptMessage": "Conferma per mostrare il codice di sincronizzazione",
+      "canceledTitle": "Associazione annullata",
+      "canceledMessage": "L'autenticazione del sistema non ha confermato l'azione.",
+      "failedTitle": "Associazione non riuscita"
     },
     "exportBackup": {
       "chooserTitle": "Esporta backup",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Importazione non riuscita"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Conferma per dimenticare il dispositivo",
+      "canceledTitle": "Azione annullata",
+      "canceledMessage": "L'autenticazione del sistema non ha confermato l'azione.",
+      "failedTitle": "Dimentica fallito"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Impossibile aprire il link"

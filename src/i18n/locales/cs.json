@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Začít",
+    "notNow": "Teď ne",
+    "setupSync": "Nastavit synchronizaci",
     "settingUp": "Nastavení..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Nastavte synchronizaci zařízení",
+      "subtitle": "Každé zařízení si automaticky vytvoří svou vlastní identitu. Chcete-li zařízení spárovat, sdílejte stejný synchronizační kód.",
+      "create": "Vytvořit",
+      "join": "Připojte se",
+      "yourCode": "Váš synchronizační kód",
+      "shareHint": "Sdílejte tento synchronizační kód (nebo QR) se svým druhým zařízením. Toto zařízení musí zadat stejný kód, aby se mohlo připojit k vaší synchronizační skupině.",
+      "enterCode": "Zadejte synchronizační kód",
+      "scanQr": "Naskenujte QR kód",
+      "scanEnableCamera": "Povolit kameru",
+      "scanHelp": "Namiřte fotoaparát na QR kód na druhém zařízení.",
+      "codePlaceholder": "Zadejte kód sdílení",
+      "copy": "Kopírovat kód",
+      "start": "Spusťte synchronizaci",
+      "stop": "Zastavit synchronizaci",
+      "invalidCode": "Neplatný kód. Musí mít 64 hexadecimálních znaků."
+    }
   },
   "workout": {
     "weekDay": "Týden {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synchronizace a záloha",
       "comingSoon": "Synchronizace zařízení-zařízení přijde brzy.",
-      "openSyncSetup": "Otevřít nastavení synchronizace"
+      "openSyncSetup": "Otevřít nastavení synchronizace",
+      "enableSync": "Povolit synchronizaci",
+      "pairNewDevice": "Spárovat nové zařízení",
+      "copyCode": "Kopírovat kód",
+      "shareCode": "Sdílet kód",
+      "pairedDevices": "Spárovaná zařízení",
+      "noDevices": "Zatím nejsou spárována žádná zařízení",
+      "lastSeen": "Naposledy viděno",
+      "forgetDevice": "Zapomenout",
+      "forgetConfirmTitle": "Zapomenout toto zařízení?",
+      "forgetConfirmMessage": "Tím se lokálně odstraní záznam o párování. Zařízení se může znovu připojit, pokud má stejný synchronizační kód.",
+      "peers_one": "{{count}} připojený peer",
+      "peers_other": "{{count}} připojených peerů",
+      "stopSync": "Zastavit synchronizaci"
     },
     "data": {
       "title": "Data",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Resetovat všechna data?",
-      "message": "Tím se resetují cviky, váhy, týdny, dny, nastavení časovače a historie synchronizace.",
+      "message": "Tím se resetují cviky, váhy, týdny, dny, nastavení časovače a všechna synchronizační data (spárovaná zařízení a synchronizační kód).",
       "actions": {
         "confirm": "Resetovat"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Reset zrušen",
       "canceledMessage": "Systémové ověření reset nepotvrdilo.",
       "failedTitle": "Reset se nezdařil"
+    },
+    "pairNewDevice": {
+      "title": "Spárovat nové zařízení?",
+      "message": "Zobrazí se váš synchronizační kód a QR, aby se mohlo připojit další zařízení.",
+      "authPromptMessage": "Potvrďte pro zobrazení synchronizačního kódu",
+      "canceledTitle": "Párování bylo zrušeno",
+      "canceledMessage": "Ověření systému akci nepotvrdilo.",
+      "failedTitle": "Párování se nezdařilo"
     },
     "exportBackup": {
       "chooserTitle": "Export zálohy",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import se nezdařil"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Chcete-li zařízení zapomenout, potvrďte",
+      "canceledTitle": "Akce zrušena",
+      "canceledMessage": "Ověření systému akci nepotvrdilo.",
+      "failedTitle": "Zapomenout se nezdařilo"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Nelze otevřít odkaz"

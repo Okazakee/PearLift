@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Loslegen",
+    "notNow": "Nicht jetzt",
+    "setupSync": "Synchronisation einrichten",
     "settingUp": "Einrichten..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Richten Sie die Gerätesynchronisierung ein",
+      "subtitle": "Jedes Gerät erstellt automatisch seine eigene Identität. Um Geräte zu koppeln, teilen Sie denselben Synchronisierungscode.",
+      "create": "Erstellen",
+      "join": "Machen Sie mit",
+      "yourCode": "Ihr Synchronisierungscode",
+      "shareHint": "Teilen Sie diesen Synchronisierungscode (oder QR) mit Ihrem anderen Gerät. Dieses Gerät muss denselben Code eingeben, um Ihrer Synchronisierungsgruppe beizutreten.",
+      "enterCode": "Geben Sie den Synchronisierungscode ein",
+      "scanQr": "QR-Code scannen",
+      "scanEnableCamera": "Kamera aktivieren",
+      "scanHelp": "Richten Sie Ihre Kamera auf den QR-Code auf Ihrem anderen Gerät.",
+      "codePlaceholder": "Geben Sie Ihren Freigabecode ein",
+      "copy": "Code kopieren",
+      "start": "Starten Sie die Synchronisierung",
+      "stop": "Stoppen Sie die Synchronisierung",
+      "invalidCode": "Ungültiger Code. Es muss 64 Hexadezimalzeichen lang sein."
+    }
   },
   "workout": {
     "weekDay": "Woche {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synchronisation & Backup",
       "comingSoon": "Geräte-zu-Gerät-Synchronisation kommt bald.",
-      "openSyncSetup": "Synchronisation einrichten"
+      "openSyncSetup": "Synchronisation einrichten",
+      "enableSync": "Aktivieren Sie die Synchronisierung",
+      "pairNewDevice": "Neues Gerät koppeln",
+      "copyCode": "Code kopieren",
+      "shareCode": "Code teilen",
+      "pairedDevices": "Gekoppelte Geräte",
+      "noDevices": "Noch keine Geräte gekoppelt",
+      "lastSeen": "Zuletzt gesehen",
+      "forgetDevice": "Vergessen",
+      "forgetConfirmTitle": "Dieses Gerät vergessen?",
+      "forgetConfirmMessage": "Dadurch wird der Pairing-Datensatz lokal entfernt. Das Gerät kann die Verbindung immer noch wiederherstellen, wenn es denselben Synchronisierungscode hat.",
+      "peers_one": "{{count}} Peer verbunden",
+      "peers_other": "{{count}} Peers verbunden",
+      "stopSync": "Stoppen Sie die Synchronisierung"
     },
     "data": {
       "title": "Daten",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Alle Daten zurücksetzen?",
-      "message": "Dadurch werden Übungen, Gewichte, Wochen, Tage, Timer-Einstellungen und der Sync-Verlauf zurückgesetzt.",
+      "message": "Dadurch werden Übungen, Gewichte, Wochen, Tage, Timer-Einstellungen und alle Synchronisationsdaten (gekoppelte Geräte und Synchronisationscode) zurückgesetzt.",
       "actions": {
         "confirm": "Zurücksetzen"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Zurücksetzen abgebrochen",
       "canceledMessage": "Die Systemauthentifizierung hat das Zurücksetzen nicht bestätigt.",
       "failedTitle": "Zurücksetzen fehlgeschlagen"
+    },
+    "pairNewDevice": {
+      "title": "Ein neues Gerät koppeln?",
+      "message": "Dadurch werden Ihr Synchronisierungscode und Ihr QR angezeigt, sodass ein anderes Gerät eine Verbindung herstellen kann.",
+      "authPromptMessage": "Bestätigen Sie, um den Synchronisierungscode anzuzeigen",
+      "canceledTitle": "Kopplung abgebrochen",
+      "canceledMessage": "Die Systemauthentifizierung hat die Aktion nicht bestätigt.",
+      "failedTitle": "Die Kopplung ist fehlgeschlagen"
     },
     "exportBackup": {
       "chooserTitle": "Backup exportieren",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import fehlgeschlagen"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Bestätigen Sie, um das Gerät zu vergessen",
+      "canceledTitle": "Aktion abgebrochen",
+      "canceledMessage": "Die Systemauthentifizierung hat die Aktion nicht bestätigt.",
+      "failedTitle": "Vergessen ist gescheitert"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Link kann nicht geöffnet werden"

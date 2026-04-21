@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Pradėti",
+    "notNow": "Ne dabar",
+    "setupSync": "Nustatyti sinchronizavimą",
     "settingUp": "Nustatymas..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Nustatykite įrenginio sinchronizavimą",
+      "subtitle": "Kiekvienas įrenginys automatiškai sukuria savo tapatybę. Norėdami susieti įrenginius, bendrinkite tą patį sinchronizavimo kodą.",
+      "create": "Sukurti",
+      "join": "Prisijunk",
+      "yourCode": "Jūsų sinchronizavimo kodas",
+      "shareHint": "Bendrinkite šį sinchronizavimo kodą (arba QR kodą) su kitu įrenginiu. Šis įrenginys turi įvesti tą patį kodą, kad prisijungtų prie sinchronizavimo grupės.",
+      "enterCode": "Įveskite sinchronizavimo kodą",
+      "scanQr": "Nuskaitykite QR kodą",
+      "scanEnableCamera": "Įjungti kamerą",
+      "scanHelp": "Nukreipkite fotoaparatą į QR kodą kitame įrenginyje.",
+      "codePlaceholder": "Įveskite savo bendrinimo kodą",
+      "copy": "Nukopijuokite kodą",
+      "start": "Pradėti sinchronizavimą",
+      "stop": "Sustabdyti sinchronizavimą",
+      "invalidCode": "Neteisingas kodas. Jį turi sudaryti 64 šešioliktainiai simboliai."
+    }
   },
   "workout": {
     "weekDay": "Savaita {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sinchronizavimas ir atsarginė kopija",
       "comingSoon": "Įrenginys-įrenginys sinchronizavimas greitai bus prieinamas.",
-      "openSyncSetup": "Atidaryti sinchronizavimo nustatymus"
+      "openSyncSetup": "Atidaryti sinchronizavimo nustatymus",
+      "enableSync": "Įgalinti sinchronizavimą",
+      "pairNewDevice": "Susiekite naują įrenginį",
+      "copyCode": "Kopijuoti kodą",
+      "shareCode": "Bendrinkite kodą",
+      "pairedDevices": "Suporuoti įrenginiai",
+      "noDevices": "Dar nėra susietų įrenginių",
+      "lastSeen": "Paskutinį kartą matytas",
+      "forgetDevice": "Pamiršk",
+      "forgetConfirmTitle": "Pamiršote šį įrenginį?",
+      "forgetConfirmMessage": "Tai pašalina susiejimo įrašą vietoje. Įrenginys vis tiek gali prisijungti iš naujo, jei turi tą patį sinchronizavimo kodą.",
+      "peers_one": "{{count}} lygiarangiškas prijungtas",
+      "peers_other": "{{count}} lygiarangiški prijungta",
+      "stopSync": "Sustabdyti sinchronizavimą"
     },
     "data": {
       "title": "Duomenys",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Atstatyti visus duomenis?",
-      "message": "Tai atstatys pratimus, svorius, savaites, dienas, laikmačio nustatymus ir sinchronizavimo istoriją.",
+      "message": "Tai atstatys pratimus, svorius, savaites, dienas, laikmačio nustatymus ir visus sinchronizavimo duomenis (suporuotus įrenginius ir sinchronizavimo kodą).",
       "actions": {
         "confirm": "Atstatyti"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Atstatymas atšauktas",
       "canceledMessage": "Sistemos autentifikavimas nepatvirtino atstatymo.",
       "failedTitle": "Atstatymas nepavyko"
+    },
+    "pairNewDevice": {
+      "title": "Susieti naują įrenginį?",
+      "message": "Bus rodomas sinchronizavimo kodas ir QR kodas, kad kitas įrenginys galėtų prisijungti.",
+      "authPromptMessage": "Patvirtinkite, kad būtų rodomas sinchronizavimo kodas",
+      "canceledTitle": "Susiejimas atšauktas",
+      "canceledMessage": "Sistemos autentifikavimas nepatvirtino veiksmo.",
+      "failedTitle": "Susieti nepavyko"
     },
     "exportBackup": {
       "chooserTitle": "Eksportuoti atsarginę kopiją",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Importavimas nepavyko"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Patvirtinkite, kad pamiršite įrenginį",
+      "canceledTitle": "Veiksmas atšauktas",
+      "canceledMessage": "Sistemos autentifikavimas nepatvirtino veiksmo.",
+      "failedTitle": "Pamiršti nepavyko"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Nepavyksta atidaryti nuorodos"

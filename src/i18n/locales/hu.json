@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Kezdjük",
+    "notNow": "Most nem",
+    "setupSync": "Szinkronizáció beállítása",
     "settingUp": "Beállítás..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Állítsa be az eszköz szinkronizálását",
+      "subtitle": "Minden eszköz automatikusan létrehozza a saját identitását. Az eszközök párosításához ossza meg ugyanazt a szinkronizálási kódot.",
+      "create": "Létrehozása",
+      "join": "Csatlakozz",
+      "yourCode": "Az Ön szinkronizálási kódja",
+      "shareHint": "Ossza meg ezt a szinkronizálási kódot (vagy QR-kódot) másik eszközével. Az eszköznek ugyanazt a kódot kell megadnia a szinkronizálási csoporthoz való csatlakozáshoz.",
+      "enterCode": "Írja be a szinkronizálási kódot",
+      "scanQr": "QR-kód beolvasása",
+      "scanEnableCamera": "Kamera engedélyezése",
+      "scanHelp": "Irányítsa a kamerát a másik eszközén lévő QR-kódra.",
+      "codePlaceholder": "Adja meg megosztási kódját",
+      "copy": "Kód másolása",
+      "start": "Indítsa el a szinkronizálást",
+      "stop": "Szinkronizálás leállítása",
+      "invalidCode": "Érvénytelen kód. 64 hexadecimális karakterből kell állnia."
+    }
   },
   "workout": {
     "weekDay": "{{week}}. hét - {{day}}. nap",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Szinkronizáció és biztonsági mentés",
       "comingSoon": "Eszköz-eszköz szinkronizáció hamarosan.",
-      "openSyncSetup": "Szinkronizáció beállítása"
+      "openSyncSetup": "Szinkronizáció beállítása",
+      "enableSync": "Szinkronizálás engedélyezése",
+      "pairNewDevice": "Új eszköz párosítása",
+      "copyCode": "Kód másolása",
+      "shareCode": "Kód megosztása",
+      "pairedDevices": "Párosított eszközök",
+      "noDevices": "Még nincs párosított eszköz",
+      "lastSeen": "Utoljára látott",
+      "forgetDevice": "Felejtsd el",
+      "forgetConfirmTitle": "Elfelejti ezt a készüléket?",
+      "forgetConfirmMessage": "Ez helyileg eltávolítja a párosítási rekordot. Az eszköz továbbra is képes újra csatlakozni, ha ugyanaz a szinkronizálási kód.",
+      "peers_one": "{{count}} társ csatlakoztatva",
+      "peers_other": "{{count}} társ csatlakoztatva",
+      "stopSync": "Szinkronizálás leállítása"
     },
     "data": {
       "title": "Adatok",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Minden adat visszaállítása?",
-      "message": "Ez visszaállítja a gyakorlatokat, súlyokat, heteket, napokat, az időzítő beállításait és a szinkronizálási előzményeket.",
+      "message": "Ez visszaállítja a gyakorlatokat, súlyokat, heteket, napokat, az időzítő beállításait és az összes szinkronizálási adatot (párosított eszközök és szinkronizálási kód).",
       "actions": {
         "confirm": "Visszaállítás"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Visszaállítás megszakítva",
       "canceledMessage": "A rendszerhitelesítés nem erősítette meg a visszaállítást.",
       "failedTitle": "A visszaállítás nem sikerült"
+    },
+    "pairNewDevice": {
+      "title": "Új eszköz párosítása?",
+      "message": "Ez megjeleníti a szinkronizálási kódot és a QR-kódot, hogy egy másik eszköz csatlakozhasson.",
+      "authPromptMessage": "Erősítse meg a szinkronizálási kód megjelenítéséhez",
+      "canceledTitle": "A párosítás megszakítva",
+      "canceledMessage": "A rendszerhitelesítés nem erősítette meg a műveletet.",
+      "failedTitle": "A párosítás nem sikerült"
     },
     "exportBackup": {
       "chooserTitle": "Biztonsági mentés exportálása",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Importálás sikertelen"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Erősítse meg az eszköz elfelejtését",
+      "canceledTitle": "Akció megszakítva",
+      "canceledMessage": "A rendszerhitelesítés nem erősítette meg a műveletet.",
+      "failedTitle": "Felejtsd sikertelen"
     },
     "openLink": {
       "cannotOpenLinkTitle": "A hivatkozás nem nyitható meg"

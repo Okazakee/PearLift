@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Kom i gang",
+    "notNow": "Ikke nu",
+    "setupSync": "Opsæt synkronisering",
     "settingUp": "Konfigurerer..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Konfigurer enhedssynkronisering",
+      "subtitle": "Hver enhed opretter automatisk sin egen identitet. For at parre enheder skal du dele den samme synkroniseringskode.",
+      "create": "Opret",
+      "join": "Deltag",
+      "yourCode": "Din synkroniseringskode",
+      "shareHint": "Del denne synkroniseringskode (eller QR) med din anden enhed. Denne enhed skal indtaste den samme kode for at deltage i din synkroniseringsgruppe.",
+      "enterCode": "Indtast synkroniseringskode",
+      "scanQr": "Scan QR-kode",
+      "scanEnableCamera": "Aktiver kamera",
+      "scanHelp": "Ret dit kamera mod QR-koden på din anden enhed.",
+      "codePlaceholder": "Indtast din delingskode",
+      "copy": "Kopiér kode",
+      "start": "Start synkronisering",
+      "stop": "Stop synkronisering",
+      "invalidCode": "Ugyldig kode. Det skal være på 64 hex-tegn."
+    }
   },
   "workout": {
     "weekDay": "Uge {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synkronisering og backup",
       "comingSoon": "Enhed-til-enhed synkronisering kommer snart.",
-      "openSyncSetup": "Åbn synkroniseringsopsætning"
+      "openSyncSetup": "Åbn synkroniseringsopsætning",
+      "enableSync": "Aktiver synkronisering",
+      "pairNewDevice": "Par ny enhed",
+      "copyCode": "Kopiér kode",
+      "shareCode": "Del kode",
+      "pairedDevices": "Parrede enheder",
+      "noDevices": "Ingen enheder parret endnu",
+      "lastSeen": "Sidst set",
+      "forgetDevice": "Glemme",
+      "forgetConfirmTitle": "Har du glemt denne enhed?",
+      "forgetConfirmMessage": "Dette fjerner parringsrecorden lokalt. Enheden kan stadig oprette forbindelse igen, hvis den har den samme synkroniseringskode.",
+      "peers_one": "{{count}} peer forbundet",
+      "peers_other": "{{count}} peers forbundet",
+      "stopSync": "Stop synkronisering"
     },
     "data": {
       "title": "Data",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Nulstil alle data?",
-      "message": "Dette vil nulstille øvelser, vægte, uger, dage, timerindstillinger og synkroniseringshistorik.",
+      "message": "Dette vil nulstille øvelser, vægte, uger, dage, timerindstillinger og alle synkroniseringsdata (parrede enheder og synkroniseringskode).",
       "actions": {
         "confirm": "Nulstil"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Nulstilling annulleret",
       "canceledMessage": "Systemgodkendelse bekræftede ikke nulstillingen.",
       "failedTitle": "Nulstilling mislykkedes"
+    },
+    "pairNewDevice": {
+      "title": "Vil du parre en ny enhed?",
+      "message": "Dette vil vise din synkroniseringskode og QR, så en anden enhed kan oprette forbindelse.",
+      "authPromptMessage": "Bekræft for at vise synkroniseringskode",
+      "canceledTitle": "Parring annulleret",
+      "canceledMessage": "Systemgodkendelse bekræftede ikke handlingen.",
+      "failedTitle": "Parring mislykkedes"
     },
     "exportBackup": {
       "chooserTitle": "Eksportér backup",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import mislykkedes"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Bekræft for at glemme enheden",
+      "canceledTitle": "Handlingen blev annulleret",
+      "canceledMessage": "Systemgodkendelse bekræftede ikke handlingen.",
+      "failedTitle": "Glem mislykkedes"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Kan ikke åbne link"

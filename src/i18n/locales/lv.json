@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Sākt",
+    "notNow": "Not now",
+    "setupSync": "Set up sync",
     "settingUp": "Iestatīšana..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Iestatiet ierīces sinhronizāciju",
+      "subtitle": "Katra ierīce automātiski izveido savu identitāti. Lai savienotu ierīces pārī, kopīgojiet to pašu sinhronizācijas kodu.",
+      "create": "Izveidot",
+      "join": "Pievienojieties",
+      "yourCode": "Jūsu sinhronizācijas kods",
+      "shareHint": "Kopīgojiet šo sinhronizācijas kodu (vai QR kodu) ar citu ierīci. Šai ierīcei ir jāievada tas pats kods, lai pievienotos jūsu sinhronizācijas grupai.",
+      "enterCode": "Ievadiet sinhronizācijas kodu",
+      "scanQr": "Skenējiet QR kodu",
+      "scanEnableCamera": "Iespējot kameru",
+      "scanHelp": "Pavērsiet kameru pret QR kodu citā ierīcē.",
+      "codePlaceholder": "Ievadiet savu koplietošanas kodu",
+      "copy": "Kopēt kodu",
+      "start": "Sākt sinhronizāciju",
+      "stop": "Apturēt sinhronizāciju",
+      "invalidCode": "Nederīgs kods. Tam jābūt 64 heksa rakstzīmēm."
+    }
   },
   "workout": {
     "weekDay": "Nedēļa {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sinhronizācija un dublēšana",
       "comingSoon": "Ierīce-ierīce sinhronizācija drīz būs pieejama.",
-      "openSyncSetup": "Atvērt sinhronizācijas iestatīšanu"
+      "openSyncSetup": "Atvērt sinhronizācijas iestatīšanu",
+      "enableSync": "Iespējot sinhronizāciju",
+      "pairNewDevice": "Savienojiet pārī jaunu ierīci",
+      "copyCode": "Kopēt kodu",
+      "shareCode": "Kopīgot kodu",
+      "pairedDevices": "Pārī savienotās ierīces",
+      "noDevices": "Vēl neviena ierīce nav savienota pārī",
+      "lastSeen": "Pēdējo reizi redzēts",
+      "forgetDevice": "Aizmirsti",
+      "forgetConfirmTitle": "Vai aizmirsāt šo ierīci?",
+      "forgetConfirmMessage": "Tas lokāli noņem ierakstu savienošanai pārī. Ierīce joprojām var atkārtoti izveidot savienojumu, ja tai ir tāds pats sinhronizācijas kods.",
+      "peers_one": "{{count}} peer connected",
+      "peers_other": "{{count}} peers connected",
+      "stopSync": "Apturēt sinhronizāciju"
     },
     "data": {
       "title": "Dati",
@@ -173,6 +207,14 @@
       "canceledMessage": "Sistēmas autentifikācija neapstiprināja atiestatīšanu.",
       "failedTitle": "Atiestatīšana neizdevās"
     },
+    "pairNewDevice": {
+      "title": "Vai savienot pārī jaunu ierīci?",
+      "message": "Tiks parādīts jūsu sinhronizācijas kods un QR kodu, lai varētu izveidot savienojumu ar citu ierīci.",
+      "authPromptMessage": "Apstipriniet, lai parādītu sinhronizācijas kodu",
+      "canceledTitle": "Savienošana pārī ir atcelta",
+      "canceledMessage": "Sistēmas autentifikācija neapstiprināja darbību.",
+      "failedTitle": "Savienošana pārī neizdevās"
+    },
     "exportBackup": {
       "chooserTitle": "Eksportēt dublējumu",
       "chooserMessage": "Izvēlieties, kā vēlaties eksportēt dublējumu.",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Imports neizdevās"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Apstipriniet, lai aizmirstu ierīci",
+      "canceledTitle": "Darbība ir atcelta",
+      "canceledMessage": "Sistēmas autentifikācija neapstiprināja darbību.",
+      "failedTitle": "Aizmirst neizdevās"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Nevar atvērt saiti"

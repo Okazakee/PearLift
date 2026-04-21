@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Commencer",
+    "notNow": "Pas maintenant",
+    "setupSync": "Configurer la synchronisation",
     "settingUp": "Configuration..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Configurer la synchronisation des appareils",
+      "subtitle": "Chaque appareil crée automatiquement sa propre identité. Pour coupler des appareils, partagez le même code de synchronisation.",
+      "create": "Créer",
+      "join": "Rejoindre",
+      "yourCode": "Votre code de synchronisation",
+      "shareHint": "Partagez ce code de synchronisation (ou QR) avec votre autre appareil. Cet appareil doit saisir le même code pour rejoindre votre groupe de synchronisation.",
+      "enterCode": "Entrez le code de synchronisation",
+      "scanQr": "Scanner le code QR",
+      "scanEnableCamera": "Activer la caméra",
+      "scanHelp": "Pointez votre appareil photo vers le code QR de votre autre appareil.",
+      "codePlaceholder": "Entrez votre code de partage",
+      "copy": "Copier le code",
+      "start": "Démarrer la synchronisation",
+      "stop": "Arrêter la synchronisation",
+      "invalidCode": "Code invalide. Il doit contenir 64 caractères hexadécimaux."
+    }
   },
   "workout": {
     "weekDay": "Semaine {{week}} - {{jour}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synchronisation et sauvegarde",
       "comingSoon": "La synchronisation appareil à appareil arrive bientôt.",
-      "openSyncSetup": "Ouvrir la configuration de synchronisation"
+      "openSyncSetup": "Ouvrir la configuration de synchronisation",
+      "enableSync": "Activer la synchronisation",
+      "pairNewDevice": "Associer un nouvel appareil",
+      "copyCode": "Copier le code",
+      "shareCode": "Partager le code",
+      "pairedDevices": "Appareils couplés",
+      "noDevices": "Aucun appareil associé pour le moment",
+      "lastSeen": "Vu pour la dernière fois",
+      "forgetDevice": "Oublier",
+      "forgetConfirmTitle": "Vous avez oublié cet appareil ?",
+      "forgetConfirmMessage": "Cela supprime l'enregistrement d'appariement localement. L'appareil peut toujours se reconnecter s'il possède le même code de synchronisation.",
+      "peers_one": "{{count}} pair connecté",
+      "peers_other": "{{count}} pairs connectés",
+      "stopSync": "Arrêter la synchronisation"
     },
     "data": {
       "title": "Données",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Réinitialiser toutes les données ?",
-      "message": "Cela réinitialisera les exercices, les charges, les semaines, les jours, les réglages du minuteur et l’historique de synchronisation.",
+      "message": "Cela réinitialisera les exercices, les charges, les semaines, les jours, les réglages du minuteur et toutes les données de synchronisation (appareils couplés et code de synchronisation).",
       "actions": {
         "confirm": "Réinitialiser"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Réinitialisation annulée",
       "canceledMessage": "L’authentification du système n’a pas confirmé la réinitialisation.",
       "failedTitle": "Échec de la réinitialisation"
+    },
+    "pairNewDevice": {
+      "title": "Associer un nouvel appareil ?",
+      "message": "Cela affichera votre code de synchronisation et votre QR afin qu'un autre appareil puisse se connecter.",
+      "authPromptMessage": "Confirmez pour afficher le code de synchronisation",
+      "canceledTitle": "Couplage annulé",
+      "canceledMessage": "L'authentification du système n'a pas confirmé l'action.",
+      "failedTitle": "Échec du couplage"
     },
     "exportBackup": {
       "chooserTitle": "Exporter la sauvegarde",
@@ -187,7 +229,13 @@
       "sharingUnavailableMessage": "Le partage n’est pas disponible sur cet appareil/cette plateforme."
     },
     "importBackup": {
-      "failedTitle": "Échec de l’import"
+      "failedTitle": "Échec de l'import"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Confirmez pour oublier l'appareil",
+      "canceledTitle": "Action annulée",
+      "canceledMessage": "L'authentification du système n'a pas confirmé l'action.",
+      "failedTitle": "Oublier a échoué"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Impossible d’ouvrir le lien"

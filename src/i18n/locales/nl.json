@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Aan de slag",
+    "notNow": "Not now",
+    "setupSync": "Set up sync",
     "settingUp": "Instellen..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Apparaatsynchronisatie instellen",
+      "subtitle": "Elk apparaat creëert automatisch zijn eigen identiteit. Deel dezelfde synchronisatiecode om apparaten te koppelen.",
+      "create": "Creëer",
+      "join": "Doe mee",
+      "yourCode": "Uw synchronisatiecode",
+      "shareHint": "Deel deze synchronisatiecode (of QR) met uw andere apparaat. Dat apparaat moet dezelfde code invoeren om lid te worden van uw synchronisatiegroep.",
+      "enterCode": "Voer de synchronisatiecode in",
+      "scanQr": "QR-code scannen",
+      "scanEnableCamera": "Camera inschakelen",
+      "scanHelp": "Richt uw camera op de QR-code op uw andere apparaat.",
+      "codePlaceholder": "Voer uw deelcode in",
+      "copy": "Kopieer code",
+      "start": "Synchronisatie starten",
+      "stop": "Synchronisatie stoppen",
+      "invalidCode": "Ongeldige code. Het moeten 64 hexadecimale tekens bevatten."
+    }
   },
   "workout": {
     "weekDay": "Week {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synchronisatie en back-up",
       "comingSoon": "Apparaat-naar-apparaat synchronisatie binnenkort beschikbaar.",
-      "openSyncSetup": "Synchronisatie-instellingen openen"
+      "openSyncSetup": "Synchronisatie-instellingen openen",
+      "enableSync": "Synchronisatie inschakelen",
+      "pairNewDevice": "Nieuw apparaat koppelen",
+      "copyCode": "Kopieer code",
+      "shareCode": "Deelcode",
+      "pairedDevices": "Gekoppelde apparaten",
+      "noDevices": "Er zijn nog geen apparaten gekoppeld",
+      "lastSeen": "Laatst gezien",
+      "forgetDevice": "Vergeten",
+      "forgetConfirmTitle": "Dit apparaat vergeten?",
+      "forgetConfirmMessage": "Hierdoor wordt het koppelingsrecord lokaal verwijderd. Het apparaat kan nog steeds opnieuw verbinding maken als het dezelfde synchronisatiecode heeft.",
+      "peers_one": "{{count}} peer connected",
+      "peers_other": "{{count}} peers connected",
+      "stopSync": "Synchronisatie stoppen"
     },
     "data": {
       "title": "Gegevens",
@@ -173,6 +207,14 @@
       "canceledMessage": "Systeemauthenticatie heeft de reset niet bevestigd.",
       "failedTitle": "Reset mislukt"
     },
+    "pairNewDevice": {
+      "title": "Een nieuw apparaat koppelen?",
+      "message": "Hier worden uw synchronisatiecode en QR weergegeven, zodat een ander apparaat verbinding kan maken.",
+      "authPromptMessage": "Bevestig om de synchronisatiecode weer te geven",
+      "canceledTitle": "Koppelen geannuleerd",
+      "canceledMessage": "Systeemverificatie heeft de actie niet bevestigd.",
+      "failedTitle": "Koppelen is mislukt"
+    },
     "exportBackup": {
       "chooserTitle": "Back-up exporteren",
       "chooserMessage": "Kies hoe je je back-up wilt exporteren.",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import mislukt"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Bevestig om het apparaat te vergeten",
+      "canceledTitle": "Actie geannuleerd",
+      "canceledMessage": "Systeemverificatie heeft de actie niet bevestigd.",
+      "failedTitle": "Vergeten mislukt"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Kan link niet openen"

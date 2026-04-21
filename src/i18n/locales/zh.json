@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "开始使用",
+    "notNow": "暂时不要",
+    "setupSync": "设置同步",
     "settingUp": "设置中..."
+  },
+  "sync": {
+    "setup": {
+      "title": "设置设备同步",
+      "subtitle": "每个设备都会自动创建自己的身份。要配对设备，请共享相同的同步代码。",
+      "create": "创建",
+      "join": "加入",
+      "yourCode": "您的同步代码",
+      "shareHint": "与您的其他设备共享此同步代码（或 QR）。该设备必须输入相同的代码才能加入您的同步组。",
+      "enterCode": "输入同步代码",
+      "scanQr": "扫描二维码",
+      "scanEnableCamera": "启用相机",
+      "scanHelp": "将相机对准其他设备上的二维码。",
+      "codePlaceholder": "输入您的分享代码",
+      "copy": "复制代码",
+      "start": "开始同步",
+      "stop": "停止同步",
+      "invalidCode": "代码无效。它必须是 64 个十六进制字符。"
+    }
   },
   "workout": {
     "weekDay": "第 {{week}} 周 - 第 {{day}} 天",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "同步与备份",
       "comingSoon": "设备间同步即将推出。",
-      "openSyncSetup": "打开同步设置"
+      "openSyncSetup": "打开同步设置",
+      "enableSync": "启用同步",
+      "pairNewDevice": "配对新设备",
+      "copyCode": "复制码",
+      "shareCode": "分享码",
+      "pairedDevices": "已配对设备",
+      "noDevices": "尚未配对设备",
+      "lastSeen": "最后在线",
+      "forgetDevice": "忘记",
+      "forgetConfirmTitle": "忘记此设备？",
+      "forgetConfirmMessage": "这将本地删除配对记录。设备仍可使用相同的同步码重新连接。",
+      "peers_one": "{{count}} 个对等设备已连接",
+      "peers_other": "{{count}} 个对等设备已连接",
+      "stopSync": "停止同步"
     },
     "data": {
       "title": "数据",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "重置所有数据？",
-      "message": "这将重置动作、重量、周、天、计时器设置以及同步历史。",
+      "message": "这将重置动作、重量、周、天、计时器设置以及所有同步数据（配对设备和同步码）。",
       "actions": {
         "confirm": "重置"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "已取消重置",
       "canceledMessage": "系统认证未确认重置。",
       "failedTitle": "重置失败"
+    },
+    "pairNewDevice": {
+      "title": "配对新设备？",
+      "message": "这将显示您的同步码和二维码，以便其他设备连接。",
+      "authPromptMessage": "确认以显示同步码",
+      "canceledTitle": "配对已取消",
+      "canceledMessage": "系统认证未确认操作。",
+      "failedTitle": "配对失败"
     },
     "exportBackup": {
       "chooserTitle": "导出备份",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "导入失败"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "确认忘记设备",
+      "canceledTitle": "操作已取消",
+      "canceledMessage": "系统认证未确认操作。",
+      "failedTitle": "忘记失败"
     },
     "openLink": {
       "cannotOpenLinkTitle": "无法打开链接"

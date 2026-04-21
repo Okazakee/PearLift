@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Zacznij",
+    "notNow": "Not now",
+    "setupSync": "Set up sync",
     "settingUp": "Konfigurowanie..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Skonfiguruj synchronizację urządzenia",
+      "subtitle": "Każde urządzenie automatycznie tworzy własną tożsamość. Aby sparować urządzenia, udostępnij ten sam kod synchronizacji.",
+      "create": "Utwórz",
+      "join": "Dołącz",
+      "yourCode": "Twój kod synchronizacji",
+      "shareHint": "Udostępnij ten kod synchronizacji (lub kod QR) swojemu innemu urządzeniu. Aby dołączyć do grupy synchronizacji, na tym urządzeniu należy wprowadzić ten sam kod.",
+      "enterCode": "Wprowadź kod synchronizacji",
+      "scanQr": "Zeskanuj kod QR",
+      "scanEnableCamera": "Włącz kamerę",
+      "scanHelp": "Skieruj aparat na kod QR na drugim urządzeniu.",
+      "codePlaceholder": "Wpisz swój kod udostępniania",
+      "copy": "Skopiuj kod",
+      "start": "Rozpocznij synchronizację",
+      "stop": "Zatrzymaj synchronizację",
+      "invalidCode": "Nieprawidłowy kod. Musi mieć 64 znaki szesnastkowe."
+    }
   },
   "workout": {
     "weekDay": "Tydzień {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synchronizacja i kopia zapasowa",
       "comingSoon": "Synchronizacja urządzenie-urządzenie już wkrótce.",
-      "openSyncSetup": "Otwórz konfigurację synchronizacji"
+      "openSyncSetup": "Otwórz konfigurację synchronizacji",
+      "enableSync": "Włącz synchronizację",
+      "pairNewDevice": "Sparuj nowe urządzenie",
+      "copyCode": "Skopiuj kod",
+      "shareCode": "Udostępnij kod",
+      "pairedDevices": "Sparowane urządzenia",
+      "noDevices": "Nie sparowano jeszcze żadnych urządzeń",
+      "lastSeen": "Ostatnio widziany",
+      "forgetDevice": "Zapominać",
+      "forgetConfirmTitle": "Zapomnij o tym urządzeniu?",
+      "forgetConfirmMessage": "Spowoduje to usunięcie lokalnego rekordu parowania. Urządzenie może nadal łączyć się ponownie, jeśli ma ten sam kod synchronizacji.",
+      "peers_one": "{{count}} peer connected",
+      "peers_other": "{{count}} peers connected",
+      "stopSync": "Zatrzymaj synchronizację"
     },
     "data": {
       "title": "Dane",
@@ -173,6 +207,14 @@
       "canceledMessage": "Uwierzytelnienie systemowe nie potwierdziło resetu.",
       "failedTitle": "Reset nieudany"
     },
+    "pairNewDevice": {
+      "title": "Sparować nowe urządzenie?",
+      "message": "Spowoduje to wyświetlenie kodu synchronizacji i kodu QR, dzięki czemu inne urządzenie będzie mogło się połączyć.",
+      "authPromptMessage": "Potwierdź, aby wyświetlić kod synchronizacji",
+      "canceledTitle": "Parowanie anulowane",
+      "canceledMessage": "Uwierzytelnienie systemu nie potwierdziło akcji.",
+      "failedTitle": "Parowanie nie powiodło się"
+    },
     "exportBackup": {
       "chooserTitle": "Eksportuj kopię zapasową",
       "chooserMessage": "Wybierz, jak chcesz wyeksportować kopię zapasową.",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import nieudany"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Potwierdź, aby zapomnieć urządzenie",
+      "canceledTitle": "Akcja anulowana",
+      "canceledMessage": "Uwierzytelnienie systemu nie potwierdziło akcji.",
+      "failedTitle": "Zapomnij o niepowodzeniu"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Nie można otworzyć linku"

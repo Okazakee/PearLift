@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Mulai",
+    "notNow": "Nanti saja",
+    "setupSync": "Siapkan sinkronisasi",
     "settingUp": "Menyiapkan..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Siapkan sinkronisasi perangkat",
+      "subtitle": "Setiap perangkat membuat identitasnya sendiri secara otomatis. Untuk memasangkan perangkat, bagikan Kode Sinkronisasi yang sama.",
+      "create": "Buat",
+      "join": "Bergabunglah",
+      "yourCode": "Kode Sinkronisasi Anda",
+      "shareHint": "Bagikan Kode Sinkronisasi (atau QR) ini dengan perangkat Anda yang lain. Perangkat tersebut harus memasukkan kode yang sama untuk bergabung dengan grup sinkronisasi Anda.",
+      "enterCode": "Masukkan Kode Sinkronisasi",
+      "scanQr": "Pindai kode QR",
+      "scanEnableCamera": "Aktifkan kamera",
+      "scanHelp": "Arahkan kamera Anda ke kode QR di perangkat Anda yang lain.",
+      "codePlaceholder": "Masukkan kode berbagi Anda",
+      "copy": "Salin kode",
+      "start": "Mulai sinkronisasi",
+      "stop": "Hentikan sinkronisasi",
+      "invalidCode": "Kode tidak valid. Itu harus 64 karakter hex."
+    }
   },
   "workout": {
     "weekDay": "Minggu {{week}} - Hari {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sinkronisasi dan pencadangan",
       "comingSoon": "Sinkronisasi antar perangkat akan segera hadir.",
-      "openSyncSetup": "Buka pengaturan sinkronisasi"
+      "openSyncSetup": "Buka pengaturan sinkronisasi",
+      "enableSync": "Aktifkan Sinkronisasi",
+      "pairNewDevice": "Pasangkan Perangkat Baru",
+      "copyCode": "Salin Kode",
+      "shareCode": "Bagikan Kode",
+      "pairedDevices": "Perangkat yang Dipasangkan",
+      "noDevices": "Belum ada perangkat yang dipasangkan",
+      "lastSeen": "Terakhir terlihat",
+      "forgetDevice": "Lupa",
+      "forgetConfirmTitle": "Lupakan perangkat ini?",
+      "forgetConfirmMessage": "Ini menghapus catatan pemasangan secara lokal. Perangkat masih dapat terhubung kembali jika memiliki kode sinkronisasi yang sama.",
+      "peers_one": "{{count}} peer terhubung",
+      "peers_other": "{{count}} peer terhubung",
+      "stopSync": "Hentikan Sinkronisasi"
     },
     "data": {
       "title": "Data",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Setel ulang semua data?",
-      "message": "Ini akan menyetel ulang latihan, beban, minggu, hari, pengaturan timer, dan riwayat sinkronisasi.",
+      "message": "Ini akan menyetel ulang latihan, beban, minggu, hari, pengaturan timer, dan semua data sinkronisasi (perangkat yang dipasangkan dan kode sinkronisasi).",
       "actions": {
         "confirm": "Setel ulang"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Setel ulang dibatalkan",
       "canceledMessage": "Autentikasi sistem tidak mengonfirmasi setel ulang.",
       "failedTitle": "Setel ulang gagal"
+    },
+    "pairNewDevice": {
+      "title": "Pasangkan perangkat baru?",
+      "message": "Ini akan menampilkan Kode Sinkronisasi dan QR Anda sehingga perangkat lain dapat terhubung.",
+      "authPromptMessage": "Konfirmasikan untuk menampilkan Kode Sinkronisasi",
+      "canceledTitle": "Penyandingan dibatalkan",
+      "canceledMessage": "Otentikasi sistem tidak mengkonfirmasi tindakan tersebut.",
+      "failedTitle": "Penyandingan gagal"
     },
     "exportBackup": {
       "chooserTitle": "Ekspor cadangan",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Impor gagal"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Konfirmasikan untuk melupakan perangkat",
+      "canceledTitle": "Tindakan dibatalkan",
+      "canceledMessage": "Otentikasi sistem tidak mengkonfirmasi tindakan tersebut.",
+      "failedTitle": "Lupakan gagal"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Tidak dapat membuka tautan"

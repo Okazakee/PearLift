@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Comenzar",
+    "notNow": "Ahora no",
+    "setupSync": "Configurar sincronización",
     "settingUp": "Configurando..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Configurar la sincronización del dispositivo",
+      "subtitle": "Cada dispositivo crea su propia identidad automáticamente. Para emparejar dispositivos, comparta el mismo código de sincronización.",
+      "create": "Crear",
+      "join": "Unirse",
+      "yourCode": "Tu código de sincronización",
+      "shareHint": "Comparte este código de sincronización (o QR) con tu otro dispositivo. Ese dispositivo debe ingresar el mismo código para unirse a su grupo de sincronización.",
+      "enterCode": "Ingrese el código de sincronización",
+      "scanQr": "Escanear código QR",
+      "scanEnableCamera": "Habilitar cámara",
+      "scanHelp": "Apunte su cámara al código QR en su otro dispositivo.",
+      "codePlaceholder": "Ingresa tu código compartido",
+      "copy": "Copiar código",
+      "start": "Iniciar sincronización",
+      "stop": "Detener sincronización",
+      "invalidCode": "Código no válido. Deben tener 64 caracteres hexadecimales."
+    }
   },
   "workout": {
     "weekDay": "Semana {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sincronización y copia de seguridad",
       "comingSoon": "La sincronización dispositivo a dispositivo llega pronto.",
-      "openSyncSetup": "Abrir configuración de sincronización"
+      "openSyncSetup": "Abrir configuración de sincronización",
+      "enableSync": "Habilitar sincronización",
+      "pairNewDevice": "Emparejar nuevo dispositivo",
+      "copyCode": "Copiar código",
+      "shareCode": "Compartir código",
+      "pairedDevices": "Dispositivos emparejados",
+      "noDevices": "Aún no hay dispositivos emparejados",
+      "lastSeen": "visto por última vez",
+      "forgetDevice": "Olvidar",
+      "forgetConfirmTitle": "¿Olvidaste este dispositivo?",
+      "forgetConfirmMessage": "Esto elimina el registro de emparejamiento localmente. El dispositivo aún puede volver a conectarse si tiene el mismo código de sincronización.",
+      "peers_one": "{{count}} peer conectado",
+      "peers_other": "{{count}} peers conectados",
+      "stopSync": "Detener sincronización"
     },
     "data": {
       "title": "Datos",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "¿Restablecer todos los datos?",
-      "message": "Esto restablecerá ejercicios, pesos, semanas, días, ajustes del temporizador y el historial de sincronización.",
+      "message": "Esto restablecerá ejercicios, pesos, semanas, días, ajustes del temporizador y todos los datos de sincronización (dispositivos emparejados y código de sincronización).",
       "actions": {
         "confirm": "Restablecer"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Restablecimiento cancelado",
       "canceledMessage": "La autenticación del sistema no confirmó el restablecimiento.",
       "failedTitle": "Error al restablecer"
+    },
+    "pairNewDevice": {
+      "title": "¿Emparejar un nuevo dispositivo?",
+      "message": "Esto mostrará su código de sincronización y QR para que se pueda conectar otro dispositivo.",
+      "authPromptMessage": "Confirmar para mostrar el código de sincronización",
+      "canceledTitle": "Emparejamiento cancelado",
+      "canceledMessage": "La autenticación del sistema no confirmó la acción.",
+      "failedTitle": "El emparejamiento falló"
     },
     "exportBackup": {
       "chooserTitle": "Exportar copia de seguridad",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Error al importar"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Confirmar para olvidar el dispositivo",
+      "canceledTitle": "Acción cancelada",
+      "canceledMessage": "La autenticación del sistema no confirmó la acción.",
+      "failedTitle": "Olvidar falló"
     },
     "openLink": {
       "cannotOpenLinkTitle": "No se puede abrir el enlace"

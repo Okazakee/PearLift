@@ -25,11 +25,32 @@
       },
       "notifications": {
         "title": "進捗を維持",
-        "description": "通知を有効にして、リタイマーを決して忘れないように 다음セットを開始する時にお知らせします。"
+        "description": "通知を有効にして、リタイマーを決して忘れないように。次のセットを開始する時にお知らせします。"
       }
     },
     "getStarted": "始める",
+    "notNow": "後で",
+    "setupSync": "同期を設定",
     "settingUp": "設定中..."
+  },
+  "sync": {
+    "setup": {
+      "title": "デバイスの同期を設定する",
+      "subtitle": "各デバイスは独自の ID を自動的に作成します。デバイスをペアリングするには、同じ同期コードを共有します。",
+      "create": "作成",
+      "join": "参加する",
+      "yourCode": "あなたの同期コード",
+      "shareHint": "この同期コード (または QR) を他のデバイスと共有します。同期グループに参加するには、そのデバイスが同じコードを入力する必要があります。",
+      "enterCode": "同期コードを入力してください",
+      "scanQr": "QRコードをスキャンします",
+      "scanEnableCamera": "カメラを有効にする",
+      "scanHelp": "カメラを他のデバイスの QR コードに向けます。",
+      "codePlaceholder": "シェアコードを入力してください",
+      "copy": "コードをコピーする",
+      "start": "同期を開始する",
+      "stop": "同期を停止する",
+      "invalidCode": "無効なコードです。 64 の 16 進文字である必要があります。"
+    }
   },
   "workout": {
     "weekDay": "週 {{week}} - 日 {{day}}",
@@ -83,7 +104,7 @@
     "submitEdit": "変更を保存",
     "errors": {
       "nameRequired": "エクササイズ名は必須です。",
-      "setsInvalid": "セットは有効な正の整数である必要があります���"
+      "setsInvalid": "セットは有効な正の整数である必要があります。"
     }
   },
   "settings": {
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "同期とバックアップ",
       "comingSoon": "デバイス間同期は近日公開。",
-      "openSyncSetup": "同期設定を開く"
+      "openSyncSetup": "同期設定を開く",
+      "enableSync": "同期を有効にする",
+      "pairNewDevice": "新しいデバイスをペアリングする",
+      "copyCode": "コードをコピーする",
+      "shareCode": "コードを共有する",
+      "pairedDevices": "ペアリングされたデバイス",
+      "noDevices": "まだデバイスがペアリングされていません",
+      "lastSeen": "最後に見た",
+      "forgetDevice": "忘れる",
+      "forgetConfirmTitle": "このデバイスを忘れましたか?",
+      "forgetConfirmMessage": "これにより、ペアリング レコードがローカルで削除されます。同じ同期コードがある場合、デバイスは再接続できます。",
+      "peers_one": "{{count}} ピア接続",
+      "peers_other": "{{count}} ピア接続",
+      "stopSync": "同期の停止"
     },
     "data": {
       "title": "データ",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "すべてのデータをリセットしますか？",
-      "message": "これにより、エクササイズ、重量、週、日、タイマー設定、同期履歴がリセットされます。",
+      "message": "これにより、エクササイズ、重量、週、日、タイマー設定、およびすべての同期データ（ペアリングされたデバイスと同期コード）がリセットされます。",
       "actions": {
         "confirm": "リセット"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "リセットをキャンセルしました",
       "canceledMessage": "システム認証でリセットが確認されませんでした。",
       "failedTitle": "リセットに失敗しました"
+    },
+    "pairNewDevice": {
+      "title": "新しいデバイスをペアリングしますか?",
+      "message": "これにより、同期コードと QR が表示され、別のデバイスが接続できるようになります。",
+      "authPromptMessage": "同期コードの表示を確認します",
+      "canceledTitle": "ペアリングが解除されました",
+      "canceledMessage": "システム認証ではアクションが確認されませんでした。",
+      "failedTitle": "ペアリングに失敗しました"
     },
     "exportBackup": {
       "chooserTitle": "バックアップを書き出し",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "インポートに失敗しました"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "デバイスを忘れることを確認します",
+      "canceledTitle": "アクションがキャンセルされました",
+      "canceledMessage": "システム認証ではアクションが確認されませんでした。",
+      "failedTitle": "失敗を忘れる"
     },
     "openLink": {
       "cannotOpenLinkTitle": "リンクを開けません"

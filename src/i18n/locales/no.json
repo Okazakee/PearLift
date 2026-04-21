@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Kom i gang",
+    "notNow": "Not now",
+    "setupSync": "Set up sync",
     "settingUp": "Konfigurerer..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Konfigurer enhetssynkronisering",
+      "subtitle": "Hver enhet lager sin egen identitet automatisk. For å pare enheter, del den samme synkroniseringskoden.",
+      "create": "Opprett",
+      "join": "Bli med",
+      "yourCode": "Din synkroniseringskode",
+      "shareHint": "Del denne synkroniseringskoden (eller QR-koden) med den andre enheten din. Den enheten må angi den samme koden for å bli med i synkroniseringsgruppen din.",
+      "enterCode": "Skriv inn synkroniseringskode",
+      "scanQr": "Skann QR-koden",
+      "scanEnableCamera": "Aktiver kamera",
+      "scanHelp": "Pek kameraet mot QR-koden på den andre enheten.",
+      "codePlaceholder": "Skriv inn delekoden din",
+      "copy": "Kopier koden",
+      "start": "Start synkronisering",
+      "stop": "Stopp synkronisering",
+      "invalidCode": "Ugyldig kode. Det må bestå av 64 heksadesimale tegn."
+    }
   },
   "workout": {
     "weekDay": "Uke {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synkronisering og sikkerhetskopi",
       "comingSoon": "Enhets-til-enhet-synkronisering kommer snart.",
-      "openSyncSetup": "Åpne synkroniseringsoppsett"
+      "openSyncSetup": "Åpne synkroniseringsoppsett",
+      "enableSync": "Aktiver synkronisering",
+      "pairNewDevice": "Par ny enhet",
+      "copyCode": "Kopier kode",
+      "shareCode": "Del kode",
+      "pairedDevices": "Sammenkoblede enheter",
+      "noDevices": "Ingen enheter er paret ennå",
+      "lastSeen": "Sist sett",
+      "forgetDevice": "Glemme",
+      "forgetConfirmTitle": "Har du glemt denne enheten?",
+      "forgetConfirmMessage": "Dette fjerner sammenkoblingsposten lokalt. Enheten kan fortsatt koble til på nytt hvis den har samme synkroniseringskode.",
+      "peers_one": "{{count}} peer connected",
+      "peers_other": "{{count}} peers connected",
+      "stopSync": "Stopp synkronisering"
     },
     "data": {
       "title": "Data",
@@ -173,6 +207,14 @@
       "canceledMessage": "Systemautentisering bekreftet ikke tilbakestillingen.",
       "failedTitle": "Tilbakestilling mislyktes"
     },
+    "pairNewDevice": {
+      "title": "Pare en ny enhet?",
+      "message": "Dette vil vise synkroniseringskoden og QR-koden din slik at en annen enhet kan koble til.",
+      "authPromptMessage": "Bekreft for å vise synkroniseringskode",
+      "canceledTitle": "Sammenkoblingen avbrutt",
+      "canceledMessage": "Systemautentisering bekreftet ikke handlingen.",
+      "failedTitle": "Sammenkoblingen mislyktes"
+    },
     "exportBackup": {
       "chooserTitle": "Eksporter sikkerhetskopi",
       "chooserMessage": "Velg hvordan du vil eksportere sikkerhetskopien.",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import mislyktes"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Bekreft for å glemme enheten",
+      "canceledTitle": "Handlingen avbrutt",
+      "canceledMessage": "Systemautentisering bekreftet ikke handlingen.",
+      "failedTitle": "Glem mislyktes"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Kan ikke åpne lenke"

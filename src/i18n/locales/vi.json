@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Bắt đầu",
+    "notNow": "Để sau",
+    "setupSync": "Thiết lập đồng bộ",
     "settingUp": "Đang thiết lập..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Thiết lập đồng bộ hóa thiết bị",
+      "subtitle": "Mỗi thiết bị tự động tạo danh tính riêng. Để ghép nối các thiết bị, hãy chia sẻ cùng một Mã đồng bộ.",
+      "create": "Tạo",
+      "join": "Tham gia",
+      "yourCode": "Mã đồng bộ hóa của bạn",
+      "shareHint": "Chia sẻ Mã đồng bộ hóa (hoặc QR) này với thiết bị khác của bạn. Thiết bị đó phải nhập cùng một mã để tham gia nhóm đồng bộ hóa của bạn.",
+      "enterCode": "Nhập mã đồng bộ",
+      "scanQr": "Quét mã QR",
+      "scanEnableCamera": "Bật máy ảnh",
+      "scanHelp": "Hướng máy ảnh của bạn vào mã QR trên thiết bị khác của bạn.",
+      "codePlaceholder": "Nhập mã chia sẻ của bạn",
+      "copy": "Sao chép mã",
+      "start": "Bắt đầu đồng bộ hóa",
+      "stop": "Dừng đồng bộ hóa",
+      "invalidCode": "Mã không hợp lệ. Nó phải có 64 ký tự hex."
+    }
   },
   "workout": {
     "weekDay": "Tuần {{week}} - Ngày {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Đồng bộ và sao lưu",
       "comingSoon": "Đồng bộ thiết bị sẽ sớm có.",
-      "openSyncSetup": "Mở cài đặt đồng bộ"
+      "openSyncSetup": "Mở cài đặt đồng bộ",
+      "enableSync": "Bật đồng bộ",
+      "pairNewDevice": "Ghép nối thiết bị mới",
+      "copyCode": "Sao chép mã",
+      "shareCode": "Chia sẻ mã",
+      "pairedDevices": "Thiết bị đã ghép nối",
+      "noDevices": "Chưa có thiết bị nào được ghép nối",
+      "lastSeen": "Hoạt động cuối",
+      "forgetDevice": "Quên",
+      "forgetConfirmTitle": "Quên thiết bị này?",
+      "forgetConfirmMessage": "Xóa bản ghi ghép nối trên máy. Thiết bị vẫn có thể kết nối lại nếu có cùng mã đồng bộ.",
+      "peers_one": "{{count}} thiết bị ngang hàng đã kết nối",
+      "peers_other": "{{count}} thiết bị ngang hàng đã kết nối",
+      "stopSync": "Dừng đồng bộ"
     },
     "data": {
       "title": "Dữ liệu",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Đặt lại tất cả dữ liệu?",
-      "message": "Thao tác này sẽ đặt lại bài tập, mức tạ, tuần, ngày, cài đặt hẹn giờ và lịch sử đồng bộ.",
+      "message": "Thao tác này sẽ đặt lại bài tập, mức tạ, tuần, ngày, cài đặt hẹn giờ và tất cả dữ liệu đồng bộ (thiết bị đã ghép nối và mã đồng bộ).",
       "actions": {
         "confirm": "Đặt lại"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Đã hủy đặt lại",
       "canceledMessage": "Xác thực hệ thống không xác nhận việc đặt lại.",
       "failedTitle": "Đặt lại thất bại"
+    },
+    "pairNewDevice": {
+      "title": "Ghép nối thiết bị mới?",
+      "message": "Thao tác này sẽ hiển thị Mã đồng bộ và QR để thiết bị khác có thể kết nối.",
+      "authPromptMessage": "Xác nhận để hiển thị Mã đồng bộ",
+      "canceledTitle": "Đã hủy ghép nối",
+      "canceledMessage": "Xác thực hệ thống không xác nhận thao tác.",
+      "failedTitle": "Ghép nối thất bại"
     },
     "exportBackup": {
       "chooserTitle": "Xuất bản sao lưu",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Nhập thất bại"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Xác nhận để quên thiết bị",
+      "canceledTitle": "Đã hủy thao tác",
+      "canceledMessage": "Xác thực hệ thống không xác nhận thao tác.",
+      "failedTitle": "Quên thất bại"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Không thể mở liên kết"

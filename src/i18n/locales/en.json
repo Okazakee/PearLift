@@ -198,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Reset all data?",
-      "message": "This will reset exercises, weights, weeks, days, timer settings, and sync state history.",
+      "message": "This will reset exercises, weights, weeks, days, timer settings, and all sync data (paired devices and sync code).",
       "actions": {
         "confirm": "Reset"
       },

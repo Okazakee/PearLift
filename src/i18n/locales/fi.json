@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Aloita",
+    "notNow": "Ei nyt",
+    "setupSync": "Määritä synkronointi",
     "settingUp": "Asetetaan..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Määritä laitteen synkronointi",
+      "subtitle": "Jokainen laite luo oman identiteettinsä automaattisesti. Muodosta laitepari jakamalla sama synkronointikoodi.",
+      "create": "Luo",
+      "join": "Liity",
+      "yourCode": "Synkronointikoodisi",
+      "shareHint": "Jaa tämä synkronointikoodi (tai QR) toisen laitteesi kanssa. Laitteen on syötettävä sama koodi liittyäkseen synkronointiryhmään.",
+      "enterCode": "Anna synkronointikoodi",
+      "scanQr": "Skannaa QR-koodi",
+      "scanEnableCamera": "Ota kamera käyttöön",
+      "scanHelp": "Osoita kamerasi toisen laitteen QR-koodiin.",
+      "codePlaceholder": "Syötä jakokoodisi",
+      "copy": "Kopioi koodi",
+      "start": "Aloita synkronointi",
+      "stop": "Pysäytä synkronointi",
+      "invalidCode": "Virheellinen koodi. Siinä on oltava 64 heksadesimaalimerkkiä."
+    }
   },
   "workout": {
     "weekDay": "Viikko {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synkronointi ja varmuuskopiointi",
       "comingSoon": "Laite-laite-synkronointi tulee pian.",
-      "openSyncSetup": "Avaa synkronointiasetukset"
+      "openSyncSetup": "Avaa synkronointiasetukset",
+      "enableSync": "Ota synkronointi käyttöön",
+      "pairNewDevice": "Yhdistä uusi laite",
+      "copyCode": "Kopioi koodi",
+      "shareCode": "Jaa koodi",
+      "pairedDevices": "Paritetut laitteet",
+      "noDevices": "Laitteita ei ole vielä yhdistetty",
+      "lastSeen": "Viimeksi nähty",
+      "forgetDevice": "Unohtaa",
+      "forgetConfirmTitle": "Unohditko tämän laitteen?",
+      "forgetConfirmMessage": "Tämä poistaa pariliitostietueen paikallisesti. Laite voi silti muodostaa yhteyden uudelleen, jos sillä on sama synkronointikoodi.",
+      "peers_one": "{{count}} vertaislaite yhdistetty",
+      "peers_other": "{{count}} vertaislaitetta yhdistetty",
+      "stopSync": "Pysäytä synkronointi"
     },
     "data": {
       "title": "Tiedot",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Nollataanko kaikki tiedot?",
-      "message": "Tämä nollaa liikkeet, painot, viikot, päivät, ajastimen asetukset ja synkronointihistorian.",
+      "message": "Tämä nollaa liikkeet, painot, viikot, päivät, ajastimen asetukset ja kaikki synkronointitiedot (paritetut laitteet ja synkronointikoodi).",
       "actions": {
         "confirm": "Nollaa"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Nollaus peruttu",
       "canceledMessage": "Järjestelmän tunnistautuminen ei vahvistanut nollausta.",
       "failedTitle": "Nollaus epäonnistui"
+    },
+    "pairNewDevice": {
+      "title": "Yhdistetäänkö uusi laite pariksi?",
+      "message": "Tämä näyttää synkronointikoodisi ja QR-koodisi, jotta toinen laite voi muodostaa yhteyden.",
+      "authPromptMessage": "Vahvista näyttääksesi synkronointikoodin",
+      "canceledTitle": "Pariliitos peruttu",
+      "canceledMessage": "Järjestelmän todennus ei vahvistanut toimintoa.",
+      "failedTitle": "Pariliitos epäonnistui"
     },
     "exportBackup": {
       "chooserTitle": "Vie varmuuskopio",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Tuonti epäonnistui"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Vahvista laitteen unohtaminen",
+      "canceledTitle": "Toiminto peruttu",
+      "canceledMessage": "Järjestelmän todennus ei vahvistanut toimintoa.",
+      "failedTitle": "Unohda epäonnistui"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Linkkiä ei voi avata"

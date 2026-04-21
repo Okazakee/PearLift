@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Kom igång",
+    "notNow": "Not now",
+    "setupSync": "Set up sync",
     "settingUp": "Konfigurerar..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Konfigurera enhetssynkronisering",
+      "subtitle": "Varje enhet skapar sin egen identitet automatiskt. Dela samma synkroniseringskod för att parkoppla enheter.",
+      "create": "Skapa",
+      "join": "Gå med",
+      "yourCode": "Din synkroniseringskod",
+      "shareHint": "Dela denna synkroniseringskod (eller QR) med din andra enhet. Den enheten måste ange samma kod för att gå med i din synkgrupp.",
+      "enterCode": "Ange synkroniseringskod",
+      "scanQr": "Skanna QR-koden",
+      "scanEnableCamera": "Aktivera kamera",
+      "scanHelp": "Rikta kameran mot QR-koden på din andra enhet.",
+      "codePlaceholder": "Ange din delningskod",
+      "copy": "Kopiera kod",
+      "start": "Starta synkronisering",
+      "stop": "Stoppa synkronisering",
+      "invalidCode": "Ogiltig kod. Det måste vara 64 hexadecken."
+    }
   },
   "workout": {
     "weekDay": "Vecka {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Synkronisering och säkerhetskopia",
       "comingSoon": "Enhet-till-enhet-synkronisering kommer snart.",
-      "openSyncSetup": "Öppna synkroniseringsinställningar"
+      "openSyncSetup": "Öppna synkroniseringsinställningar",
+      "enableSync": "Aktivera synkronisering",
+      "pairNewDevice": "Para ihop ny enhet",
+      "copyCode": "Kopiera kod",
+      "shareCode": "Dela kod",
+      "pairedDevices": "Parade enheter",
+      "noDevices": "Inga enheter har parats än",
+      "lastSeen": "Senast sett",
+      "forgetDevice": "Glömma",
+      "forgetConfirmTitle": "Har du glömt den här enheten?",
+      "forgetConfirmMessage": "Detta tar bort parningsposten lokalt. Enheten kan fortfarande återansluta om den har samma synkroniseringskod.",
+      "peers_one": "{{count}} peer connected",
+      "peers_other": "{{count}} peers connected",
+      "stopSync": "Stoppa synkronisering"
     },
     "data": {
       "title": "Data",
@@ -173,6 +207,14 @@
       "canceledMessage": "Systemautentisering bekräftade inte återställningen.",
       "failedTitle": "Återställning misslyckades"
     },
+    "pairNewDevice": {
+      "title": "Para ihop en ny enhet?",
+      "message": "Detta kommer att visa din synkroniseringskod och QR så att en annan enhet kan ansluta.",
+      "authPromptMessage": "Bekräfta för att visa Sync Code",
+      "canceledTitle": "Parningen avbröts",
+      "canceledMessage": "Systemautentisering bekräftade inte åtgärden.",
+      "failedTitle": "Det gick inte att koppla ihop"
+    },
     "exportBackup": {
       "chooserTitle": "Exportera säkerhetskopia",
       "chooserMessage": "Välj hur du vill exportera din säkerhetskopia.",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import misslyckades"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Bekräfta för att glömma enheten",
+      "canceledTitle": "Åtgärden avbröts",
+      "canceledMessage": "Systemautentisering bekräftade inte åtgärden.",
+      "failedTitle": "Glöm misslyckades"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Kan inte öppna länken"

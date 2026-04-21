@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "시작하기",
+    "notNow": "나중에",
+    "setupSync": "동기화 설정",
     "settingUp": "설정 중..."
+  },
+  "sync": {
+    "setup": {
+      "title": "장치 동기화 설정",
+      "subtitle": "각 장치는 자동으로 고유한 ID를 생성합니다. 장치를 페어링하려면 동일한 동기화 코드를 공유하세요.",
+      "create": "만들기",
+      "join": "가입",
+      "yourCode": "귀하의 동기화 코드",
+      "shareHint": "이 동기화 코드(또는 QR)를 다른 장치와 공유하세요. 해당 장치는 동기화 그룹에 참여하려면 동일한 코드를 입력해야 합니다.",
+      "enterCode": "동기화 코드 입력",
+      "scanQr": "QR 코드 스캔",
+      "scanEnableCamera": "카메라 활성화",
+      "scanHelp": "카메라를 다른 기기의 QR 코드로 향하게 하세요.",
+      "codePlaceholder": "공유 코드를 입력하세요",
+      "copy": "코드 복사",
+      "start": "동기화 시작",
+      "stop": "동기화 중지",
+      "invalidCode": "코드가 잘못되었습니다. 64개의 16진수 문자여야 합니다."
+    }
   },
   "workout": {
     "weekDay": "주 {{week}} - 일 {{day}}",
@@ -74,7 +95,7 @@
     "titleEdit": "운동 편집",
     "name": "이름",
     "namePlaceholder": "운동 이름",
-    "muscleGroup": " 근육 그룹",
+    "muscleGroup": "근육 그룹",
     "sets": "세트",
     "reps": "반복",
     "notes": "메모",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "동기화 및 백업",
       "comingSoon": "기기 간 동기화가 곧 제공됩니다.",
-      "openSyncSetup": "동기화 설정 열기"
+      "openSyncSetup": "동기화 설정 열기",
+      "enableSync": "동기화 활성화",
+      "pairNewDevice": "새 장치 페어링",
+      "copyCode": "코드 복사",
+      "shareCode": "코드 공유",
+      "pairedDevices": "페어링된 장치",
+      "noDevices": "아직 페어링된 기기가 없습니다.",
+      "lastSeen": "마지막으로 본",
+      "forgetDevice": "잊다",
+      "forgetConfirmTitle": "이 기기를 잊으셨나요?",
+      "forgetConfirmMessage": "그러면 로컬에서 페어링 기록이 제거됩니다. 동일한 동기화 코드가 있으면 장치에 다시 연결할 수 있습니다.",
+      "peers_one": "{{count}} 피어 연결됨",
+      "peers_other": "{{count}} 피어 연결됨",
+      "stopSync": "동기화 중지"
     },
     "data": {
       "title": "데이터",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "모든 데이터를 초기화할까요?",
-      "message": "운동, 무게, 주, 일, 타이머 설정 및 동기화 기록이 초기화됩니다.",
+      "message": "운동, 무게, 주, 일, 타이머 설정 및 모든 동기화 데이터(페어링된 기기 및 동기화 코드)가 초기화됩니다.",
       "actions": {
         "confirm": "초기화"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "초기화 취소됨",
       "canceledMessage": "시스템 인증에서 초기화가 확인되지 않았습니다.",
       "failedTitle": "초기화 실패"
+    },
+    "pairNewDevice": {
+      "title": "새 장치를 페어링하시겠습니까?",
+      "message": "그러면 다른 장치를 연결할 수 있도록 동기화 코드와 QR이 표시됩니다.",
+      "authPromptMessage": "동기화 코드를 표시하려면 확인하세요.",
+      "canceledTitle": "페어링이 취소되었습니다.",
+      "canceledMessage": "시스템 인증에서 작업을 확인하지 못했습니다.",
+      "failedTitle": "페어링 실패"
     },
     "exportBackup": {
       "chooserTitle": "백업 내보내기",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "가져오기 실패"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "기기 삭제 확인",
+      "canceledTitle": "작업이 취소되었습니다.",
+      "canceledMessage": "시스템 인증에서 작업을 확인하지 못했습니다.",
+      "failedTitle": "잊어버리지 못했습니다."
     },
     "openLink": {
       "cannotOpenLinkTitle": "링크를 열 수 없음"

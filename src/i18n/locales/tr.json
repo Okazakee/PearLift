@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Başla",
+    "notNow": "Şimdi değil",
+    "setupSync": "Senkronizasyonu kur",
     "settingUp": "Ayarlanıyor..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Cihaz senkronizasyonunu ayarla",
+      "subtitle": "Her cihaz kendi kimliğini otomatik olarak oluşturur. Cihazları eşleştirmek için aynı Senkronizasyon Kodunu paylaşın.",
+      "create": "Oluştur",
+      "join": "Katıl",
+      "yourCode": "Senkronizasyon Kodunuz",
+      "shareHint": "Bu Senkronizasyon Kodunu (veya QR'yi) diğer cihazınızla paylaşın. Senkronizasyon grubunuza katılmak için bu cihazın aynı kodu girmesi gerekir.",
+      "enterCode": "Senkronizasyon Kodunu Girin",
+      "scanQr": "QR kodunu tarayın",
+      "scanEnableCamera": "Kamerayı etkinleştir",
+      "scanHelp": "Kameranızı diğer cihazınızdaki QR koduna doğrultun.",
+      "codePlaceholder": "Paylaşım kodunuzu girin",
+      "copy": "Kodu kopyala",
+      "start": "Senkronizasyonu başlat",
+      "stop": "Senkronizasyonu durdur",
+      "invalidCode": "Geçersiz kod. 64 hex karakterden oluşmalıdır."
+    }
   },
   "workout": {
     "weekDay": "Hafta {{week}} - Gün {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Senkronizasyon ve yedekleme",
       "comingSoon": "Cihazdan cihaza senkronizasyon çok yakında.",
-      "openSyncSetup": "Senkronizasyon kurulumunu aç"
+      "openSyncSetup": "Senkronizasyon kurulumunu aç",
+      "enableSync": "Senkronizasyonu etkinleştir",
+      "pairNewDevice": "Yeni Cihaz Eşleştir",
+      "copyCode": "Kodu kopyala",
+      "shareCode": "Kodu paylaş",
+      "pairedDevices": "Eşleşmiş Cihazlar",
+      "noDevices": "Henüz eşleşmiş cihaz yok",
+      "lastSeen": "Son görülme",
+      "forgetDevice": "Unut",
+      "forgetConfirmTitle": "Bu cihazı unut?",
+      "forgetConfirmMessage": "Bu, eşleştirme kaydını yerel olarak kaldırır. Cihaz aynı senkronizasyon koduna sahip yeniden bağlanabilir.",
+      "peers_one": "{{count}} eş bağlı",
+      "peers_other": "{{count}} eş bağlı",
+      "stopSync": "Senkronizasyonu durdur"
     },
     "data": {
       "title": "Veriler",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Tüm veriler sıfırlansın mı?",
-      "message": "Bu işlem egzersizleri, ağırlıkları, haftaları, günleri, zamanlayıcı ayarlarını ve senkronizasyon geçmişini sıfırlar.",
+      "message": "Bu işlem egzersizleri, ağırlıkları, haftaları, günleri, zamanlayıcı ayarlarını ve tüm senkronizasyon verilerini (eşleşmiş cihazlar ve senkronizasyon kodu) sıfırlar.",
       "actions": {
         "confirm": "Sıfırla"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Sıfırlama iptal edildi",
       "canceledMessage": "Sistem kimlik doğrulaması sıfırlamayı onaylamadı.",
       "failedTitle": "Sıfırlama başarısız"
+    },
+    "pairNewDevice": {
+      "title": "Yeni cihaz eşleştirilsin mi?",
+      "message": "Bu, başka bir cihazın bağlanabilmesi için Senkronizasyon Kodunuzu ve QR'yi gösterecektir.",
+      "authPromptMessage": "Senkronizasyon Kodunu göstermeyi onayla",
+      "canceledTitle": "Eşleştirme iptal edildi",
+      "canceledMessage": "Sistem kimlik doğrulaması işlemi onaylamadı.",
+      "failedTitle": "Eşleştirme başarısız"
     },
     "exportBackup": {
       "chooserTitle": "Yedeği dışa aktar",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "İçe aktarma başarısız"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Cihazı unutmayı onayla",
+      "canceledTitle": "İşlem iptal edildi",
+      "canceledMessage": "Sistem kimlik doğrulaması işlemi onaylamadı.",
+      "failedTitle": "Unutma başarısız"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Bağlantı açılamıyor"

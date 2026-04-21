@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Začnite",
+    "notNow": "Ne zdaj",
+    "setupSync": "Nastavi sinhronizacijo",
     "settingUp": "Nastavljanje..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Nastavite sinhronizacijo naprave",
+      "subtitle": "Vsaka naprava samodejno ustvari svojo identiteto. Če želite seznaniti naprave, delite isto sinhronizacijsko kodo.",
+      "create": "Ustvari",
+      "join": "Pridruži se",
+      "yourCode": "Vaša sinhronizacijska koda",
+      "shareHint": "Delite to sinhronizacijsko kodo (ali QR) z drugo napravo. Ta naprava mora vnesti isto kodo, da se pridruži vaši sinhronizacijski skupini.",
+      "enterCode": "Vnesite kodo za sinhronizacijo",
+      "scanQr": "Skenirajte kodo QR",
+      "scanEnableCamera": "Omogoči kamero",
+      "scanHelp": "Usmerite fotoaparat proti kodi QR na drugi napravi.",
+      "codePlaceholder": "Vnesite kodo za skupno rabo",
+      "copy": "Kopiraj kodo",
+      "start": "Začni sinhronizacijo",
+      "stop": "Ustavi sinhronizacijo",
+      "invalidCode": "Neveljavna koda. Vsebovati mora 64 šestnajstiških znakov."
+    }
   },
   "workout": {
     "weekDay": "Teden {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sinhronizacija in varnostna kopija",
       "comingSoon": "Sinhronizacija naprava-naprava prihaja kmalu.",
-      "openSyncSetup": "Odpri nastavitev sinhronizacije"
+      "openSyncSetup": "Odpri nastavitev sinhronizacije",
+      "enableSync": "Omogoči sinhronizacijo",
+      "pairNewDevice": "Seženi novo napravo",
+      "copyCode": "Kopiraj kodo",
+      "shareCode": "Deli kodo",
+      "pairedDevices": "Sežene naprave",
+      "noDevices": "Nobene naprave še ni sežene",
+      "lastSeen": "Nazadnje videno",
+      "forgetDevice": "Pozabi",
+      "forgetConfirmTitle": "Pozabiti to napravo?",
+      "forgetConfirmMessage": "To odstrani zapis sezanjanja lokalno. Naprava se lahko znova poveže, če ima enako kodo za sinhronizacijo.",
+      "peers_one": "{{count}} enakovredna naprava povezana",
+      "peers_other": "{{count}} enakovrednih naprav povezanih",
+      "stopSync": "Ustavi sinhronizacijo"
     },
     "data": {
       "title": "Podatki",
@@ -168,10 +202,18 @@
       "actions": {
         "confirm": "Ponastavi"
       },
-      "authPromptMessage": "Potrdi ponastavitev",
+      "authPromptMessage": "Potrditev ponastavitve",
       "canceledTitle": "Ponastavitev preklicana",
       "canceledMessage": "Sistemsko preverjanje ni potrdilo ponastavitve.",
       "failedTitle": "Ponastavitev ni uspela"
+    },
+    "pairNewDevice": {
+      "title": "Seči novo napravo?",
+      "message": "To bo prikazalo vašo kodo za sinhronizacijo in QR, da se lahko druga naprava poveže.",
+      "authPromptMessage": "Potrditev za prikaz kode za sinhronizacijo",
+      "canceledTitle": "Sezanje preklicano",
+      "canceledMessage": "Sistemsko preverjanje ni potrdilo dejanja.",
+      "failedTitle": "Sezanje ni uspelo"
     },
     "exportBackup": {
       "chooserTitle": "Izvozi varnostno kopijo",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Uvoz ni uspel"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Potrditev pozabljenja naprave",
+      "canceledTitle": "Dejanje preklicano",
+      "canceledMessage": "Sistemsko preverjanje ni potrdilo dejanja.",
+      "failedTitle": "Pozabljenje ni uspelo"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Povezave ni mogoče odpreti"

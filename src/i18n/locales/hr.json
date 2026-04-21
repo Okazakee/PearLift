@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Počnite",
+    "notNow": "Ne sada",
+    "setupSync": "Postavi sinkronizaciju",
     "settingUp": "Postavljanje..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Postavite sinkronizaciju uređaja",
+      "subtitle": "Svaki uređaj automatski stvara vlastiti identitet. Za uparivanje uređaja podijelite isti kod za sinkronizaciju.",
+      "create": "Stvorite",
+      "join": "Pridruži se",
+      "yourCode": "Vaš kod za sinkronizaciju",
+      "shareHint": "Podijelite ovaj kod za sinkronizaciju (ili QR) sa svojim drugim uređajem. Taj uređaj mora unijeti isti kod da bi se pridružio vašoj grupi za sinkronizaciju.",
+      "enterCode": "Unesite sinkronizacijski kod",
+      "scanQr": "Skenirajte QR kod",
+      "scanEnableCamera": "Omogući kameru",
+      "scanHelp": "Usmjerite kameru prema QR kodu na drugom uređaju.",
+      "codePlaceholder": "Unesite svoj kod za dijeljenje",
+      "copy": "Kopiraj kod",
+      "start": "Započni sinkronizaciju",
+      "stop": "Zaustavi sinkronizaciju",
+      "invalidCode": "Neispravan kod. Mora imati 64 heksadecimalna znaka."
+    }
   },
   "workout": {
     "weekDay": "Tjedan {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sinkronizacija i sigurnosna kopija",
       "comingSoon": "Sinkronizacija uređaj-uređaj uskoro dolazi.",
-      "openSyncSetup": "Otvorite postavke sinkronizacije"
+      "openSyncSetup": "Otvorite postavke sinkronizacije",
+      "enableSync": "Omogući sinkronizaciju",
+      "pairNewDevice": "Uparite novi uređaj",
+      "copyCode": "Kopiraj kod",
+      "shareCode": "Podijeli kod",
+      "pairedDevices": "Upareni uređaji",
+      "noDevices": "Još nema uparenih uređaja",
+      "lastSeen": "Zadnji put viđen",
+      "forgetDevice": "Zaboraviti",
+      "forgetConfirmTitle": "Zaboraviti ovaj uređaj?",
+      "forgetConfirmMessage": "Time se lokalno uklanja zapis o uparivanju. Uređaj se i dalje može ponovno povezati ako ima isti kod za sinkronizaciju.",
+      "peers_one": "{{count}} ravnopravni uređaj povezan",
+      "peers_other": "{{count}} ravnopravnih uređaja povezano",
+      "stopSync": "Zaustavi sinkronizaciju"
     },
     "data": {
       "title": "Podaci",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Resetirati sve podatke?",
-      "message": "Ovo će resetirati vježbe, težine, tjedne, dane, postavke timera i povijest sinkronizacije.",
+      "message": "Ovo će resetirati vježbe, težine, tjedne, dane, postavke timera i sve sinkronizacijske podatke (uparene uređaje i sinkronizacijski kod).",
       "actions": {
         "confirm": "Resetiraj"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Resetiranje otkazano",
       "canceledMessage": "Provjera identiteta sustava nije potvrdila resetiranje.",
       "failedTitle": "Resetiranje nije uspjelo"
+    },
+    "pairNewDevice": {
+      "title": "Upariti novi uređaj?",
+      "message": "Ovo će prikazati vaš sinkronizacijski kod i QR kako bi se drugi uređaj mogao povezati.",
+      "authPromptMessage": "Potvrdite za prikaz koda sinkronizacije",
+      "canceledTitle": "Uparivanje je otkazano",
+      "canceledMessage": "Provjera autentičnosti sustava nije potvrdila radnju.",
+      "failedTitle": "Uparivanje nije uspjelo"
     },
     "exportBackup": {
       "chooserTitle": "Izvezi sigurnosnu kopiju",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Uvoz nije uspio"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Potvrdite da zaboravite uređaj",
+      "canceledTitle": "Akcija je otkazana",
+      "canceledMessage": "Provjera autentičnosti sustava nije potvrdila radnju.",
+      "failedTitle": "Zaborav nije uspio"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Nije moguće otvoriti poveznicu"

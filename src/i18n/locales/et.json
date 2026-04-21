@@ -29,7 +29,28 @@
       }
     },
     "getStarted": "Alusta",
+    "notNow": "Mitte praegu",
+    "setupSync": "Seadista sünkroonimine",
     "settingUp": "Seadistamine..."
+  },
+  "sync": {
+    "setup": {
+      "title": "Seadistage seadme sünkroonimine",
+      "subtitle": "Iga seade loob oma identiteedi automaatselt. Seadmete sidumiseks jagage sama sünkroonimiskoodi.",
+      "create": "Loo",
+      "join": "Liitu",
+      "yourCode": "Teie sünkroonimiskood",
+      "shareHint": "Jagage seda sünkroonimiskoodi (või QR-koodi) oma teise seadmega. See seade peab teie sünkroonimisrühmaga liitumiseks sisestama sama koodi.",
+      "enterCode": "Sisestage sünkroonimiskood",
+      "scanQr": "Skaneeri QR-kood",
+      "scanEnableCamera": "Luba kaamera",
+      "scanHelp": "Suunake kaamera teises seadmes olevale QR-koodile.",
+      "codePlaceholder": "Sisesta oma jagamise kood",
+      "copy": "Kopeeri kood",
+      "start": "Alusta sünkroonimist",
+      "stop": "Peata sünkroonimine",
+      "invalidCode": "Vale kood. See peab sisaldama 64 kuueteistkümnendmärki."
+    }
   },
   "workout": {
     "weekDay": "Nädal {{week}} - {{day}}",
@@ -110,7 +131,20 @@
     "syncBackup": {
       "title": "Sünkroniseerimine ja varukoopia",
       "comingSoon": "Seadme-seadme sünkroniseerimine tuleb peagi.",
-      "openSyncSetup": "Ava sünkroniseerimise seaded"
+      "openSyncSetup": "Ava sünkroniseerimise seaded",
+      "enableSync": "Luba sünkroonimine",
+      "pairNewDevice": "Siduge uus seade",
+      "copyCode": "Kopeeri kood",
+      "shareCode": "Jaga koodi",
+      "pairedDevices": "Seotud seadmed",
+      "noDevices": "Ühtegi seadet pole veel seotud",
+      "lastSeen": "Viimati nähtud",
+      "forgetDevice": "Unusta",
+      "forgetConfirmTitle": "Kas unustate selle seadme?",
+      "forgetConfirmMessage": "See eemaldab sidumiskirje kohapeal. Seade saab siiski uuesti ühenduse luua, kui sellel on sama sünkroonimiskood.",
+      "peers_one": "{{count}} ühendatud võrdõiguslik",
+      "peers_other": "{{count}} ühendatud võrdõiguslikku",
+      "stopSync": "Peata sünkroonimine"
     },
     "data": {
       "title": "Andmed",
@@ -164,7 +198,7 @@
     },
     "resetAllData": {
       "title": "Lähtesta kõik andmed?",
-      "message": "See lähtestab harjutused, raskused, nädalad, päevad, taimeri seaded ja sünkroonimise ajaloo.",
+      "message": "See lähtestab harjutused, raskused, nädalad, päevad, taimeri seaded ja kõik sünkroonimise andmed (seotud seadmed ja sünkroonimiskood).",
       "actions": {
         "confirm": "Lähtesta"
       },
@@ -172,6 +206,14 @@
       "canceledTitle": "Lähtestamine tühistatud",
       "canceledMessage": "Süsteemi autentimine ei kinnitanud lähtestamist.",
       "failedTitle": "Lähtestamine ebaõnnestus"
+    },
+    "pairNewDevice": {
+      "title": "Kas siduda uus seade?",
+      "message": "See kuvab teie sünkroonimiskoodi ja QR-koodi, et teine seade saaks ühenduse luua.",
+      "authPromptMessage": "Sünkroonimiskoodi kuvamiseks kinnitage",
+      "canceledTitle": "Sidumine tühistati",
+      "canceledMessage": "Süsteemi autentimine ei kinnitanud toimingut.",
+      "failedTitle": "Sidumine ebaõnnestus"
     },
     "exportBackup": {
       "chooserTitle": "Ekspordi varukoopia",
@@ -188,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import ebaõnnestus"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Kinnitage seadme unustamine",
+      "canceledTitle": "Toiming tühistati",
+      "canceledMessage": "Süsteemi autentimine ei kinnitanud toimingut.",
+      "failedTitle": "Unusta ebaõnnestus"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Linki ei saa avada"
