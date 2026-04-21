@@ -1,5 +1,6 @@
 import { Download, Sliders, Upload, X } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
@@ -20,6 +21,7 @@ export function LocalBackupModal({
   onExport,
   onImport,
 }: LocalBackupModalProps) {
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   return (
@@ -31,40 +33,41 @@ export function LocalBackupModal({
       sheetStyle={styles.card}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Backup & Sync</Text>
+        <Text style={styles.title}>{t('backup.title')}</Text>
         <Pressable style={styles.closeButton} onPress={onClose}>
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Device Sync</Text>
-        <Text style={styles.message}>
-          Device-to-device sync is coming soon.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('backup.deviceSync.title')}</Text>
+        <Text style={styles.message}>{t('backup.deviceSync.comingSoon')}</Text>
         <Pressable
           style={[styles.secondaryButton, styles.disabledButton]}
           disabled
         >
           <Sliders size={18} color={tokens.colors.primary} />
-          <Text style={styles.secondaryText}>Enable in Sync Setup</Text>
+          <Text style={styles.secondaryText}>
+            {t('backup.deviceSync.enableSetup')}
+          </Text>
         </Pressable>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Local JSON</Text>
-        <Text style={styles.message}>
-          Export your workout data to a JSON file or import a previous local
-          backup.
-        </Text>
+        <Text style={styles.sectionTitle}>{t('backup.localJson.title')}</Text>
+        <Text style={styles.message}>{t('backup.localJson.description')}</Text>
         <View style={styles.actions}>
           <Pressable style={styles.actionButton} onPress={onExport}>
             <Download size={18} color={tokens.colors.onPrimary} />
-            <Text style={styles.actionText}>Export Backup</Text>
+            <Text style={styles.actionText}>
+              {t('backup.localJson.export')}
+            </Text>
           </Pressable>
           <Pressable style={styles.actionButton} onPress={onImport}>
             <Upload size={18} color={tokens.colors.onPrimary} />
-            <Text style={styles.actionText}>Import Backup</Text>
+            <Text style={styles.actionText}>
+              {t('backup.localJson.import')}
+            </Text>
           </Pressable>
         </View>
       </View>

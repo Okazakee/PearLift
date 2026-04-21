@@ -1,5 +1,6 @@
 import { Copy, Wallet, X, Zap } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { DonationTarget } from '../../config/donation';
 import type { ThemeTokens } from '../../theme/tokens';
@@ -23,6 +24,7 @@ export function DonateModal({
   onOpenTarget,
   onCopyTarget,
 }: DonateModalProps) {
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   return (
@@ -34,15 +36,13 @@ export function DonateModal({
       sheetStyle={styles.card}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Donate</Text>
+        <Text style={styles.title}>{t('donate.title')}</Text>
         <Pressable style={styles.closeButton} onPress={onClose}>
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
 
-      <Text style={styles.subtitle}>
-        Support PearLift development with Bitcoin or Lightning.
-      </Text>
+      <Text style={styles.subtitle}>{t('donate.subtitle')}</Text>
 
       {targets.map((target) => {
         const isLightning = target.method === 'lightning';
@@ -57,7 +57,9 @@ export function DonateModal({
               <Text style={styles.sectionTitle}>{target.label}</Text>
               {target.isPlaceholder ? (
                 <View style={styles.placeholderBadge}>
-                  <Text style={styles.placeholderBadgeText}>Placeholder</Text>
+                  <Text style={styles.placeholderBadgeText}>
+                    {t('donate.placeholder')}
+                  </Text>
                 </View>
               ) : null}
             </View>
@@ -72,14 +74,18 @@ export function DonateModal({
                 onPress={() => onOpenTarget(target)}
               >
                 <Wallet size={18} color={tokens.colors.onPrimary} />
-                <Text style={styles.primaryButtonText}>Open wallet</Text>
+                <Text style={styles.primaryButtonText}>
+                  {t('donate.openWallet')}
+                </Text>
               </Pressable>
               <Pressable
                 style={styles.secondaryButton}
                 onPress={() => onCopyTarget(target)}
               >
                 <Copy size={18} color={tokens.colors.textPrimary} />
-                <Text style={styles.secondaryButtonText}>Copy</Text>
+                <Text style={styles.secondaryButtonText}>
+                  {t('donate.copy')}
+                </Text>
               </Pressable>
             </View>
           </View>

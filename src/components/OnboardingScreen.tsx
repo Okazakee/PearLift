@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Activity, Bell, Monitor, Sliders } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeInDown,
@@ -25,29 +26,26 @@ interface OnboardingScreenProps {
 const PAGE_CONTENT = [
   {
     icon: Activity,
-    title: 'Welcome to PearLift',
-    description:
-      'Track your workouts with a simple interface. Log sets, reps, and weights - no complexity, just progress.',
+    titleKey: 'onboarding.pages.welcome.title',
+    descriptionKey: 'onboarding.pages.welcome.description',
     kind: 'normal' as const,
   },
   {
     icon: Sliders,
-    title: 'Choose units',
-    description: 'Pick your preferred weight unit. You can change this later.',
+    titleKey: 'onboarding.pages.units.title',
+    descriptionKey: 'onboarding.pages.units.description',
     kind: 'units' as const,
   },
   {
     icon: Monitor,
-    title: 'Device-to-Device Sync',
-    description:
-      'Sync your workouts directly between devices. Set it up anytime in Settings. Works locally without cloud services.',
+    titleKey: 'onboarding.pages.sync.title',
+    descriptionKey: 'onboarding.pages.sync.description',
     kind: 'normal' as const,
   },
   {
     icon: Bell,
-    title: 'Stay on Track',
-    description:
-      'Enable notifications so you never forget a rest timer. We will remind you when its time to start your next set.',
+    titleKey: 'onboarding.pages.notifications.title',
+    descriptionKey: 'onboarding.pages.notifications.description',
     kind: 'normal' as const,
   },
 ] as const;
@@ -60,6 +58,7 @@ export function OnboardingScreen({
   onWeightUnitChange,
   onComplete,
 }: OnboardingScreenProps) {
+  const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [requesting, setRequesting] = useState(false);
 
@@ -99,7 +98,7 @@ export function OnboardingScreen({
       <View style={styles.pageIndicator}>
         {PAGE_CONTENT.map((content, i) => (
           <View
-            key={content.title}
+            key={content.titleKey}
             style={[
               styles.dot,
               i <= page ? styles.dotActive : styles.dotInactive,
@@ -109,7 +108,7 @@ export function OnboardingScreen({
       </View>
 
       <Animated.View
-        key={content.title}
+        key={content.titleKey}
         style={styles.content}
         entering={FadeInDown.duration(MOTION.duration.base).reduceMotion(
           ReduceMotion.System,
@@ -125,8 +124,8 @@ export function OnboardingScreen({
           })}
         </View>
 
-        <Text style={styles.title}>{content.title}</Text>
-        <Text style={styles.description}>{content.description}</Text>
+        <Text style={styles.title}>{t(content.titleKey)}</Text>
+        <Text style={styles.description}>{t(content.descriptionKey)}</Text>
 
         {content.kind === 'units' && (
           <View style={styles.unitRow}>
@@ -175,7 +174,7 @@ export function OnboardingScreen({
           <Text
             style={[styles.backButtonText, isFirstPage && styles.textDisabled]}
           >
-            Back
+            {t('common.back')}
           </Text>
         </AnimatedPressable>
 
@@ -187,9 +186,9 @@ export function OnboardingScreen({
           <Text style={styles.nextButtonText}>
             {isLastPage
               ? requesting
-                ? 'Setting up...'
-                : 'Get Started'
-              : 'Next'}
+                ? t('onboarding.settingUp')
+                : t('onboarding.getStarted')
+              : t('common.next')}
           </Text>
         </AnimatedPressable>
       </View>

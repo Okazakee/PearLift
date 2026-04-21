@@ -1,5 +1,6 @@
 import { Eye, X } from 'lucide-react-native';
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChangeSummary } from '../../backup/types';
 import type { ThemeTokens } from '../../theme/tokens';
@@ -21,6 +22,7 @@ export function ImportPreviewModal({
   onClose,
   onConfirm,
 }: ImportPreviewModalProps) {
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(tokens), [tokens]);
 
   return (
@@ -34,7 +36,7 @@ export function ImportPreviewModal({
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Eye size={18} color={tokens.colors.primary} />
-          <Text style={styles.title}>Import Preview</Text>
+          <Text style={styles.title}>{t('importPreview.title')}</Text>
         </View>
         <Pressable style={styles.closeButton} onPress={onClose}>
           <X size={18} color={tokens.colors.textSecondary} />
@@ -43,14 +45,16 @@ export function ImportPreviewModal({
 
       <Text style={styles.summaryText}>
         {summary.totalChanges > 0
-          ? `${summary.totalChanges} change(s) detected.`
-          : 'No changes detected. Backup is identical to current data.'}
+          ? t('importPreview.changesDetected', { count: summary.totalChanges })
+          : t('importPreview.noChanges')}
       </Text>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {summary.workouts.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Workouts</Text>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.workouts')}
+            </Text>
             {summary.workouts.map((item) => (
               <View key={item.workoutId} style={styles.row}>
                 <Text style={styles.rowName}>{item.name}</Text>
@@ -64,7 +68,9 @@ export function ImportPreviewModal({
 
         {summary.settings.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.settings')}
+            </Text>
             {summary.settings.map((item) => (
               <View key={item.key} style={styles.row}>
                 <Text style={styles.rowName}>{item.key}</Text>
@@ -78,7 +84,9 @@ export function ImportPreviewModal({
 
         {summary.weekConfigs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Weeks</Text>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.weeks')}
+            </Text>
             {summary.weekConfigs.map((item) => (
               <View key={item.key} style={styles.row}>
                 <Text style={styles.rowName}>{item.key}</Text>
@@ -92,7 +100,9 @@ export function ImportPreviewModal({
 
         {summary.dayConfigs.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Days</Text>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.days')}
+            </Text>
             {summary.dayConfigs.map((item) => (
               <View key={item.key} style={styles.row}>
                 <Text style={styles.rowName}>{item.key}</Text>
@@ -107,10 +117,10 @@ export function ImportPreviewModal({
 
       <View style={styles.actions}>
         <Pressable style={styles.cancelButton} onPress={onClose}>
-          <Text style={styles.cancelText}>Cancel</Text>
+          <Text style={styles.cancelText}>{t('importPreview.cancel')}</Text>
         </Pressable>
         <Pressable style={styles.confirmButton} onPress={onConfirm}>
-          <Text style={styles.confirmText}>Import Backup</Text>
+          <Text style={styles.confirmText}>{t('importPreview.confirm')}</Text>
         </Pressable>
       </View>
     </AnimatedModalShell>

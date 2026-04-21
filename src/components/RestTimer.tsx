@@ -11,6 +11,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppState, Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -73,6 +74,7 @@ export function RestTimer({
   panelBottom,
   onExpandedChange,
 }: RestTimerProps) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [panelContentMounted, setPanelContentMounted] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -203,8 +205,8 @@ export function RestTimer({
       try {
         const id = await Notifications.scheduleNotificationAsync({
           content: {
-            title: 'Rest complete',
-            body: 'Time for your next set.',
+            title: t('restTimer.notification.title'),
+            body: t('restTimer.notification.body'),
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -227,7 +229,7 @@ export function RestTimer({
         // ignore scheduling failures (permissions denied/unavailable)
       }
     },
-    [],
+    [t],
   );
 
   const completeInForeground = useCallback(async () => {
@@ -731,7 +733,7 @@ export function RestTimer({
           <View style={styles.header}>
             <View style={styles.headerLeft}>
               <Timer size={18} color={tokens.colors.primary} />
-              <Text style={styles.headerText}>Rest Timer</Text>
+              <Text style={styles.headerText}>{t('restTimer.title')}</Text>
             </View>
             <AnimatedPressable
               style={styles.closeButton}
@@ -792,7 +794,9 @@ export function RestTimer({
                       {formatSeconds(remainingSec)}
                     </Text>
                     {isComplete && (
-                      <Text style={styles.doneText}>REST COMPLETE!</Text>
+                      <Text style={styles.doneText}>
+                        {t('restTimer.complete')}
+                      </Text>
                     )}
                   </View>
                 </View>
@@ -852,7 +856,9 @@ export function RestTimer({
                   )}
                 >
                   <View style={styles.durationRow}>
-                    <Text style={styles.settingsLabel}>Duration</Text>
+                    <Text style={styles.settingsLabel}>
+                      {t('restTimer.duration')}
+                    </Text>
                     <View style={styles.durationControls}>
                       <AnimatedPressable
                         style={[

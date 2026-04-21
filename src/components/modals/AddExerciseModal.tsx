@@ -1,5 +1,6 @@
 import { X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Pressable,
   ScrollView,
@@ -46,6 +47,7 @@ export function AddExerciseModal({
   onClose,
   onSubmit,
 }: AddExerciseModalProps) {
+  const { t } = useTranslation();
   const [form, setForm] = useState<FormExercise>(blankState);
   const [error, setError] = useState<string | null>(null);
   const styles = useMemo(() => createStyles(tokens), [tokens]);
@@ -69,7 +71,7 @@ export function AddExerciseModal({
   const handleSubmit = () => {
     const parsedSets = Number(form.sets);
     if (!form.name.trim()) {
-      setError('Exercise name is required.');
+      setError(t('addExercise.errors.nameRequired'));
       return;
     }
     if (
@@ -77,7 +79,7 @@ export function AddExerciseModal({
       parsedSets <= 0 ||
       !Number.isInteger(parsedSets)
     ) {
-      setError('Sets must be a valid positive integer.');
+      setError(t('addExercise.errors.setsInvalid'));
       return;
     }
     onSubmit({
@@ -100,7 +102,9 @@ export function AddExerciseModal({
     >
       <View style={styles.titleRow}>
         <Text style={styles.title}>
-          {mode === 'add' ? 'Add Exercise' : 'Edit Exercise'}
+          {mode === 'add'
+            ? t('addExercise.titleAdd')
+            : t('addExercise.titleEdit')}
         </Text>
         <Pressable style={styles.closeButton} onPress={onClose}>
           <X size={18} color={tokens.colors.textSecondary} />
@@ -112,16 +116,16 @@ export function AddExerciseModal({
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
       >
-        <Text style={styles.label}>Name</Text>
+        <Text style={styles.label}>{t('addExercise.name')}</Text>
         <TextInput
           value={form.name}
           onChangeText={(text) => setForm((prev) => ({ ...prev, name: text }))}
-          placeholder="Exercise name"
+          placeholder={t('addExercise.namePlaceholder')}
           placeholderTextColor={tokens.colors.textMuted}
           style={styles.input}
         />
 
-        <Text style={styles.label}>Muscle Group</Text>
+        <Text style={styles.label}>{t('addExercise.muscleGroup')}</Text>
         <View style={styles.chipsWrap}>
           {muscleGroups.map((muscle) => {
             const active = form.muscleGroup === muscle;
@@ -145,7 +149,7 @@ export function AddExerciseModal({
 
         <View style={styles.row}>
           <View style={styles.col}>
-            <Text style={styles.label}>Sets</Text>
+            <Text style={styles.label}>{t('addExercise.sets')}</Text>
             <TextInput
               value={form.sets}
               onChangeText={(text) =>
@@ -156,7 +160,7 @@ export function AddExerciseModal({
             />
           </View>
           <View style={styles.col}>
-            <Text style={styles.label}>Reps</Text>
+            <Text style={styles.label}>{t('addExercise.reps')}</Text>
             <TextInput
               value={form.reps}
               onChangeText={(text) =>
@@ -167,12 +171,12 @@ export function AddExerciseModal({
           </View>
         </View>
 
-        <Text style={styles.label}>Notes</Text>
+        <Text style={styles.label}>{t('addExercise.notes')}</Text>
         <TextInput
           value={form.notes}
           onChangeText={(text) => setForm((prev) => ({ ...prev, notes: text }))}
           style={[styles.input, styles.textarea]}
-          placeholder="Optional notes..."
+          placeholder={t('addExercise.notesPlaceholder')}
           placeholderTextColor={tokens.colors.textMuted}
           multiline
         />
@@ -181,7 +185,9 @@ export function AddExerciseModal({
 
         <Pressable style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitText}>
-            {mode === 'add' ? 'Add Exercise' : 'Save Changes'}
+            {mode === 'add'
+              ? t('addExercise.submitAdd')
+              : t('addExercise.submitEdit')}
           </Text>
         </Pressable>
       </ScrollView>

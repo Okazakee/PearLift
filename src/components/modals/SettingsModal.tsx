@@ -10,6 +10,7 @@ import {
   Sliders,
   Sun,
 } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
 import type {
@@ -59,8 +60,8 @@ export function SettingsModal({
   onOpenGithub,
   onOpenDonate,
 }: SettingsModalProps) {
+  const { t } = useTranslation();
   const styles = createStyles(tokens, topInset, bottomInset);
-  const themeSubtitle = 'App color schema';
 
   const optionStyle = (value: ThemePreference) => {
     const selected = themePreference === value;
@@ -93,7 +94,7 @@ export function SettingsModal({
           <AnimatedPressable style={styles.backButton} onPress={onClose}>
             <ChevronLeft size={22} color={tokens.colors.textPrimary} />
           </AnimatedPressable>
-          <Text style={styles.title}>Settings</Text>
+          <Text style={styles.title}>{t('settings.title')}</Text>
           <View style={styles.backButtonPlaceholder} />
         </View>
 
@@ -104,39 +105,55 @@ export function SettingsModal({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Sun size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>Appearance</Text>
+              <Text style={styles.sectionTitle}>
+                {t('settings.appearance.title')}
+              </Text>
             </View>
             <View style={styles.row}>
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>Theme</Text>
-                <Text style={styles.rowSubtitle}>{themeSubtitle}</Text>
+                <Text style={styles.rowTitle}>
+                  {t('settings.appearance.theme')}
+                </Text>
+                <Text style={styles.rowSubtitle}>
+                  {t('settings.appearance.themeSubtitle')}
+                </Text>
               </View>
               <View style={styles.segmented}>
                 <AnimatedPressable
                   style={optionStyle('system')}
                   onPress={() => onThemePreferenceChange('system')}
                 >
-                  <Text style={optionTextStyle('system')}>System</Text>
+                  <Text style={optionTextStyle('system')}>
+                    {t('settings.appearance.themeSystem')}
+                  </Text>
                 </AnimatedPressable>
                 <AnimatedPressable
                   style={optionStyle('light')}
                   onPress={() => onThemePreferenceChange('light')}
                 >
-                  <Text style={optionTextStyle('light')}>Light</Text>
+                  <Text style={optionTextStyle('light')}>
+                    {t('settings.appearance.themeLight')}
+                  </Text>
                 </AnimatedPressable>
                 <AnimatedPressable
                   style={optionStyle('dark')}
                   onPress={() => onThemePreferenceChange('dark')}
                 >
-                  <Text style={optionTextStyle('dark')}>Dark</Text>
+                  <Text style={optionTextStyle('dark')}>
+                    {t('settings.appearance.themeDark')}
+                  </Text>
                 </AnimatedPressable>
               </View>
             </View>
 
             <View style={styles.row}>
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>Weight unit</Text>
-                <Text style={styles.rowSubtitle}>Choose your weight unit</Text>
+                <Text style={styles.rowTitle}>
+                  {t('settings.appearance.weightUnit')}
+                </Text>
+                <Text style={styles.rowSubtitle}>
+                  {t('settings.appearance.weightUnitSubtitle')}
+                </Text>
               </View>
               <View style={styles.segmented}>
                 <AnimatedPressable
@@ -158,15 +175,23 @@ export function SettingsModal({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Globe size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>Language</Text>
+              <Text style={styles.sectionTitle}>
+                {t('settings.language.title')}
+              </Text>
             </View>
             <View style={styles.row}>
               <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>System language</Text>
-                <Text style={styles.rowSubtitle}>App language</Text>
+                <Text style={styles.rowTitle}>
+                  {t('settings.language.systemLanguage')}
+                </Text>
+                <Text style={styles.rowSubtitle}>
+                  {t('settings.language.appLanguage')}
+                </Text>
               </View>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>System</Text>
+                <Text style={styles.badgeText}>
+                  {t('settings.language.system')}
+                </Text>
               </View>
             </View>
           </View>
@@ -174,10 +199,12 @@ export function SettingsModal({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <RefreshCw size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>Sync & Backup</Text>
+              <Text style={styles.sectionTitle}>
+                {t('settings.syncBackup.title')}
+              </Text>
             </View>
             <Text style={styles.rowSubtitle}>
-              Device-to-device sync is coming soon.
+              {t('settings.syncBackup.comingSoon')}
             </Text>
             <AnimatedPressable
               style={[styles.githubButton, styles.disabledButton]}
@@ -185,32 +212,41 @@ export function SettingsModal({
               disabled
             >
               <Sliders size={18} color={tokens.colors.onPrimary} />
-              <Text style={styles.githubButtonText}>Open Sync Setup</Text>
+              <Text style={styles.githubButtonText}>
+                {t('settings.syncBackup.openSyncSetup')}
+              </Text>
             </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <AlertTriangle size={16} color={tokens.colors.accentDanger} />
-              <Text style={styles.sectionTitle}>Data</Text>
+              <Text style={styles.sectionTitle}>
+                {t('settings.data.title')}
+              </Text>
             </View>
             <Text style={styles.rowSubtitle}>
-              Permanently reset all workouts, settings, timer data, and sync
-              history.
+              {t('settings.data.resetDescription')}
             </Text>
             <AnimatedPressable style={styles.resetButton} onPress={onResetData}>
               <RefreshCw size={18} color={tokens.colors.accentDanger} />
-              <Text style={styles.resetButtonText}>Reset All Data</Text>
+              <Text style={styles.resetButtonText}>
+                {t('settings.data.resetButton')}
+              </Text>
             </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Code size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>Developer</Text>
+              <Text style={styles.sectionTitle}>
+                {t('settings.developer.title')}
+              </Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Maintainer</Text>
+              <Text style={styles.infoLabel}>
+                {t('settings.developer.maintainer')}
+              </Text>
               <Text style={styles.infoValue}>Okazakee</Text>
             </View>
             <View style={styles.developerButtons}>
@@ -219,14 +255,18 @@ export function SettingsModal({
                 onPress={onOpenGithub}
               >
                 <CodeXml size={18} color={tokens.colors.onPrimary} />
-                <Text style={styles.githubButtonText}>Open Repo</Text>
+                <Text style={styles.githubButtonText}>
+                  {t('settings.developer.openRepo')}
+                </Text>
               </AnimatedPressable>
               <AnimatedPressable
                 style={styles.developerSecondaryButton}
                 onPress={onOpenDonate}
               >
                 <Heart size={18} color={tokens.colors.primary} />
-                <Text style={styles.donateButtonText}>Donate</Text>
+                <Text style={styles.donateButtonText}>
+                  {t('settings.developer.donate')}
+                </Text>
               </AnimatedPressable>
             </View>
           </View>
@@ -234,22 +274,30 @@ export function SettingsModal({
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Info size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>App Info</Text>
+              <Text style={styles.sectionTitle}>
+                {t('settings.appInfo.title')}
+              </Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Name</Text>
+              <Text style={styles.infoLabel}>{t('settings.appInfo.name')}</Text>
               <Text style={styles.infoValue}>{appName}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Version</Text>
+              <Text style={styles.infoLabel}>
+                {t('settings.appInfo.version')}
+              </Text>
               <Text style={styles.infoValue}>{appVersion}</Text>
             </View>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Build</Text>
+              <Text style={styles.infoLabel}>
+                {t('settings.appInfo.build')}
+              </Text>
               <Text style={styles.infoValue}>{appBuild}</Text>
             </View>
             <View style={styles.infoRowLast}>
-              <Text style={styles.infoLabel}>Build type</Text>
+              <Text style={styles.infoLabel}>
+                {t('settings.appInfo.buildType')}
+              </Text>
               <Text style={styles.infoValue}>{buildType}</Text>
             </View>
           </View>

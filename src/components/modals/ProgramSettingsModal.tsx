@@ -15,6 +15,7 @@ import {
 } from 'lucide-react-native';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
@@ -90,6 +91,7 @@ export function ProgramSettingsModal({
   const dayIdCounterRef = useRef(0);
   const wasOpenRef = useRef(false);
 
+  const { t } = useTranslation();
   const styles = useMemo(
     () => createStyles(tokens, topInset, bottomInset),
     [tokens, topInset, bottomInset],
@@ -169,25 +171,29 @@ export function ProgramSettingsModal({
     (uiKey: string) => {
       const week = draftWeeks.find((w) => w.uiKey === uiKey);
       if (!week) return;
-      onPrompt('Delete week', `Delete "${week.name}"?`, [
-        { label: 'Cancel', tone: 'cancel', onPress: () => {} },
-        {
-          label: 'Delete',
-          tone: 'destructive',
-          onPress: () => {
-            setDraftWeeks((prev) => {
-              if (prev.length <= 1) return prev;
-              const next = prev
-                .filter((w) => w.uiKey !== uiKey)
-                .map((w, i) => ({ ...w, id: i + 1 }));
-              onWeekConfigsChange(toWeekConfigs(next));
-              return next;
-            });
+      onPrompt(
+        t('programSettings.week.deleteTitle'),
+        t('programSettings.week.deleteMessage', { name: week.name }),
+        [
+          { label: t('common.cancel'), tone: 'cancel', onPress: () => {} },
+          {
+            label: t('common.delete'),
+            tone: 'destructive',
+            onPress: () => {
+              setDraftWeeks((prev) => {
+                if (prev.length <= 1) return prev;
+                const next = prev
+                  .filter((w) => w.uiKey !== uiKey)
+                  .map((w, i) => ({ ...w, id: i + 1 }));
+                onWeekConfigsChange(toWeekConfigs(next));
+                return next;
+              });
+            },
           },
-        },
-      ]);
+        ],
+      );
     },
-    [draftWeeks, onWeekConfigsChange, toWeekConfigs, onPrompt],
+    [draftWeeks, onWeekConfigsChange, toWeekConfigs, onPrompt, t],
   );
 
   const updateDay = useCallback(
@@ -220,12 +226,12 @@ export function ProgramSettingsModal({
       const day = draftDays[index];
       if (!day) return;
       onPrompt(
-        'Delete day',
-        `Delete "${day.name}"? This removes it from all weeks.`,
+        t('programSettings.day.deleteTitle'),
+        t('programSettings.day.deleteMessage', { name: day.name }),
         [
-          { label: 'Cancel', tone: 'cancel', onPress: () => {} },
+          { label: t('common.cancel'), tone: 'cancel', onPress: () => {} },
           {
-            label: 'Delete',
+            label: t('common.delete'),
             tone: 'destructive',
             onPress: () => {
               setDraftDays((prev) => {
@@ -239,7 +245,7 @@ export function ProgramSettingsModal({
         ],
       );
     },
-    [draftDays, onDayConfigsChange, onPrompt],
+    [draftDays, onDayConfigsChange, onPrompt, t],
   );
 
   const weekScrollRef = useAnimatedRef<Animated.ScrollView>();
@@ -249,7 +255,9 @@ export function ProgramSettingsModal({
     ({ item: week, index: _index }: { item: WeekDraft; index: number }) => {
       const loadPct = Math.round((week.loadModifier - 1) * 100);
       const loadLabel =
-        loadPct === 0 ? 'Baseline' : `${loadPct > 0 ? '+' : ''}${loadPct}%`;
+        loadPct === 0
+          ? t('programSettings.week.baseline')
+          : `${loadPct > 0 ? '+' : ''}${loadPct}%`;
 
       return (
         <View style={styles.card}>
@@ -259,7 +267,7 @@ export function ProgramSettingsModal({
                 value={week.name}
                 onChangeText={(text) => updateWeek(week.uiKey, { name: text })}
                 style={styles.weekNameHeaderInput}
-                placeholder="Week name"
+                placeholder={t('programSettings.week.namePlaceholder')}
                 placeholderTextColor={tokens.colors.textMuted}
                 multiline={false}
                 returnKeyType="done"
@@ -280,7 +288,9 @@ export function ProgramSettingsModal({
               </AnimatedPressable>
             </View>
 
-            <Text style={styles.sectionLabel}>Load Modifier</Text>
+            <Text style={styles.sectionLabel}>
+              {t('programSettings.week.loadModifier')}
+            </Text>
             <View style={styles.loadControlRow}>
               <AnimatedPressable
                 style={styles.stepButton}
@@ -352,7 +362,9 @@ export function ProgramSettingsModal({
               </AnimatedPressable>
             </View>
 
-            <Text style={styles.sectionLabel}>RIR (Reps in reserve)</Text>
+            <Text style={styles.sectionLabel}>
+              {t('programSettings.week.rir')}
+            </Text>
             <View style={styles.rirRow}>
               {[1, 2, 3, 4].map((value) => {
                 const active = week.rir === value;
@@ -379,6 +391,7 @@ export function ProgramSettingsModal({
       draftWeeks.length,
       removeWeek,
       styles,
+      t,
       tokens.colors.accentDanger,
       tokens.colors.textSecondary,
       tokens.colors.textMuted,
@@ -409,7 +422,7 @@ export function ProgramSettingsModal({
             >
               <Plus size={18} color={tokens.colors.accentPrimary} />
               <Text style={[styles.iconLabel, styles.iconLabelCustom]}>
-                More
+                {t('programSettings.day.iconMore')}
               </Text>
             </AnimatedPressable>
           );
@@ -417,7 +430,10 @@ export function ProgramSettingsModal({
 
         const option = slot;
         const active = day.icon === option;
-        const label = option === 'RefreshCw' ? 'Refresh' : option;
+        const label =
+          option === 'RefreshCw'
+            ? t('programSettings.day.iconRefresh')
+            : option;
         const IconComponent = dayIconComponents[dayIconMap[option]];
         return (
           <AnimatedPressable
@@ -451,7 +467,9 @@ export function ProgramSettingsModal({
                 value={day.name}
                 onChangeText={(text) => updateDay(day.id, { name: text })}
                 style={styles.weekNameHeaderInput}
-                placeholder={`Day ${index + 1}`}
+                placeholder={t('programSettings.day.namePlaceholder', {
+                  number: index + 1,
+                })}
                 placeholderTextColor={tokens.colors.textMuted}
                 multiline={false}
                 returnKeyType="done"
@@ -471,7 +489,9 @@ export function ProgramSettingsModal({
               </AnimatedPressable>
             </View>
 
-            <Text style={styles.sectionLabel}>Icon</Text>
+            <Text style={styles.sectionLabel}>
+              {t('programSettings.day.icon')}
+            </Text>
             <View style={styles.iconGrid}>
               {slots.map((slot) => renderSlot(slot))}
             </View>
@@ -483,6 +503,7 @@ export function ProgramSettingsModal({
       draftDays.length,
       removeDay,
       styles,
+      t,
       tokens.colors.accentDanger,
       tokens.colors.accentPrimary,
       tokens.colors.textMuted,
@@ -508,7 +529,7 @@ export function ProgramSettingsModal({
           <AnimatedPressable style={styles.backButton} onPress={onClose}>
             <ChevronLeft size={22} color={tokens.colors.textPrimary} />
           </AnimatedPressable>
-          <Text style={styles.title}>Program Settings</Text>
+          <Text style={styles.title}>{t('programSettings.title')}</Text>
           <View style={styles.backButtonPlaceholder} />
         </View>
 
@@ -528,7 +549,7 @@ export function ProgramSettingsModal({
                     activeTab === 'weeks' && styles.tabTextActive,
                   ]}
                 >
-                  Weeks
+                  {t('programSettings.tabs.weeks')}
                 </Text>
               </AnimatedPressable>
               <AnimatedPressable
@@ -544,7 +565,7 @@ export function ProgramSettingsModal({
                     activeTab === 'days' && styles.tabTextActive,
                   ]}
                 >
-                  Days
+                  {t('programSettings.tabs.days')}
                 </Text>
               </AnimatedPressable>
             </View>
@@ -591,7 +612,9 @@ export function ProgramSettingsModal({
                         size={16}
                         color={withAlpha(tokens.colors.primary, 0.7)}
                       />
-                      <Text style={styles.ghostCardText}>Add Week</Text>
+                      <Text style={styles.ghostCardText}>
+                        {t('programSettings.week.addWeek')}
+                      </Text>
                     </AnimatedPressable>
                   )}
                 </Animated.ScrollView>
@@ -633,7 +656,9 @@ export function ProgramSettingsModal({
                         size={16}
                         color={withAlpha(tokens.colors.primary, 0.7)}
                       />
-                      <Text style={styles.ghostCardText}>Add Day</Text>
+                      <Text style={styles.ghostCardText}>
+                        {t('programSettings.day.addDay')}
+                      </Text>
                     </AnimatedPressable>
                   )}
                 </Animated.ScrollView>

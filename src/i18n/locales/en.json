@@ -1,0 +1,164 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next"
+  },
+  "app": {
+    "loading": "Preparing your training data"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Welcome to PearLift",
+        "description": "Track your workouts with a simple interface. Log sets, reps, and weights - no complexity, just progress."
+      },
+      "units": {
+        "title": "Choose units",
+        "description": "Pick your preferred weight unit. You can change this later."
+      },
+      "sync": {
+        "title": "Device-to-Device Sync",
+        "description": "Sync your workouts directly between devices. Set it up anytime in Settings. Works locally without cloud services."
+      },
+      "notifications": {
+        "title": "Stay on Track",
+        "description": "Enable notifications so you never forget a rest timer. We will remind you when its time to start your next set."
+      }
+    },
+    "getStarted": "Get Started",
+    "settingUp": "Setting up..."
+  },
+  "workout": {
+    "weekDay": "Week {{week}} - {{day}}",
+    "addExercise": "Add Exercise"
+  },
+  "restTimer": {
+    "title": "Rest Timer",
+    "complete": "REST COMPLETE!",
+    "duration": "Duration",
+    "notification": {
+      "title": "Rest complete",
+      "body": "Time for your next set."
+    }
+  },
+  "programSettings": {
+    "title": "Program Settings",
+    "tabs": {
+      "weeks": "Weeks",
+      "days": "Days"
+    },
+    "week": {
+      "namePlaceholder": "Week name",
+      "loadModifier": "Load Modifier",
+      "rir": "RIR (Reps in reserve)",
+      "baseline": "Baseline",
+      "addWeek": "Add Week",
+      "deleteTitle": "Delete week",
+      "deleteMessage": "Delete \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Day {{number}}",
+      "icon": "Icon",
+      "iconMore": "More",
+      "iconRefresh": "Refresh",
+      "addDay": "Add Day",
+      "deleteTitle": "Delete day",
+      "deleteMessage": "Delete \"{{name}}\"? This removes it from all weeks."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Add Exercise",
+    "titleEdit": "Edit Exercise",
+    "name": "Name",
+    "namePlaceholder": "Exercise name",
+    "muscleGroup": "Muscle Group",
+    "sets": "Sets",
+    "reps": "Reps",
+    "notes": "Notes",
+    "notesPlaceholder": "Optional notes...",
+    "submitAdd": "Add Exercise",
+    "submitEdit": "Save Changes",
+    "errors": {
+      "nameRequired": "Exercise name is required.",
+      "setsInvalid": "Sets must be a valid positive integer."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "themeSubtitle": "App color schema",
+      "themeSystem": "System",
+      "themeLight": "Light",
+      "themeDark": "Dark",
+      "weightUnit": "Weight unit",
+      "weightUnitSubtitle": "Choose your weight unit"
+    },
+    "language": {
+      "title": "Language",
+      "systemLanguage": "System language",
+      "appLanguage": "App language",
+      "system": "System"
+    },
+    "syncBackup": {
+      "title": "Sync & Backup",
+      "comingSoon": "Device-to-device sync is coming soon.",
+      "openSyncSetup": "Open Sync Setup"
+    },
+    "data": {
+      "title": "Data",
+      "resetDescription": "Permanently reset all workouts, settings, timer data, and sync history.",
+      "resetButton": "Reset All Data"
+    },
+    "developer": {
+      "title": "Developer",
+      "maintainer": "Maintainer",
+      "openRepo": "Open Repo",
+      "donate": "Donate"
+    },
+    "appInfo": {
+      "title": "App Info",
+      "name": "Name",
+      "version": "Version",
+      "build": "Build",
+      "buildType": "Build type"
+    }
+  },
+  "backup": {
+    "title": "Backup & Sync",
+    "deviceSync": {
+      "title": "Device Sync",
+      "comingSoon": "Device-to-device sync is coming soon.",
+      "enableSetup": "Enable in Sync Setup"
+    },
+    "localJson": {
+      "title": "Local JSON",
+      "description": "Export your workout data to a JSON file or import a previous local backup.",
+      "export": "Export Backup",
+      "import": "Import Backup"
+    }
+  },
+  "importPreview": {
+    "title": "Import Preview",
+    "changesDetected": "{{count}} change(s) detected.",
+    "noChanges": "No changes detected. Backup is identical to current data.",
+    "sections": {
+      "workouts": "Workouts",
+      "settings": "Settings",
+      "weeks": "Weeks",
+      "days": "Days"
+    },
+    "cancel": "Cancel",
+    "confirm": "Import Backup"
+  },
+  "donate": {
+    "title": "Donate",
+    "subtitle": "Support PearLift development with Bitcoin or Lightning.",
+    "placeholder": "Placeholder",
+    "openWallet": "Open wallet",
+    "copy": "Copy"
+  }
+}

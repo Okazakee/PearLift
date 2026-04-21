@@ -1,5 +1,6 @@
 import { Plus, Sliders } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
@@ -55,6 +56,7 @@ export function WorkoutView({
   onSetWeight,
   onReorderExercises,
 }: WorkoutViewProps) {
+  const { t } = useTranslation();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
 
   const styles = useMemo(
@@ -93,7 +95,7 @@ export function WorkoutView({
           <View style={styles.decorCircleA} />
           <View style={styles.decorCircleB} />
           <Text style={styles.metaText}>
-            Week {currentWeek} - {dayLabel}
+            {t('workout.weekDay', { week: currentWeek, day: dayLabel })}
           </Text>
           <Text style={styles.workoutName}>
             {week?.name ?? `Week ${currentWeek}`}
@@ -151,6 +153,7 @@ export function WorkoutView({
       onOpenProgramSettings,
       onWeekChange,
       styles,
+      t,
       tokens.colors.textSecondary,
       week,
       weekConfigs,
@@ -161,10 +164,10 @@ export function WorkoutView({
     () => (
       <AnimatedPressable style={styles.addButton} onPress={onOpenAddExercise}>
         <Plus size={16} color={tokens.colors.primary} />
-        <Text style={styles.addButtonText}>Add Exercise</Text>
+        <Text style={styles.addButtonText}>{t('workout.addExercise')}</Text>
       </AnimatedPressable>
     ),
-    [onOpenAddExercise, styles, tokens.colors.primary],
+    [onOpenAddExercise, styles, t, tokens.colors.primary],
   );
 
   const renderItem = useCallback<SortableGridRenderItem<string>>(

@@ -7,12 +7,14 @@ import {
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
+import { I18nextProvider } from 'react-i18next';
 import { Platform, Text, TextInput } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { BootstrapScreen } from './src/components/BootstrapScreen';
 import { APP_CONFIG } from './src/config/app';
+import i18n from './src/i18n';
 import { WorkoutScreen } from './src/screens/WorkoutScreen';
 
 // While the app is foregrounded, the rest timer uses in-app sound/haptics.
@@ -97,22 +99,24 @@ export default function App() {
   }, []);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        {!fontsLoaded ? (
-          <BootstrapScreen
-            backgroundColor="#111113"
-            accentColor="#3dd68c"
-            imageSource={require('./assets/pearlift_transparent.png')}
-            title={APP_CONFIG.name}
-            subtitle="Preparing your training data"
-            textPrimary="#ffffff"
-            textSecondary="rgba(255,255,255,0.72)"
-          />
-        ) : (
-          <WorkoutScreen />
-        )}
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <I18nextProvider i18n={i18n}>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          {!fontsLoaded ? (
+            <BootstrapScreen
+              backgroundColor="#111113"
+              accentColor="#3dd68c"
+              imageSource={require('./assets/pearlift_transparent.png')}
+              title={APP_CONFIG.name}
+              subtitle={i18n.t('app.loading')}
+              textPrimary="#ffffff"
+              textSecondary="rgba(255,255,255,0.72)"
+            />
+          ) : (
+            <WorkoutScreen />
+          )}
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </I18nextProvider>
   );
 }
