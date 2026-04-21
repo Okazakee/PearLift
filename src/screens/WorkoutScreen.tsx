@@ -1,10 +1,15 @@
 import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
+import {
+  EncodingType,
+  StorageAccessFramework,
+  writeAsStringAsync,
+} from 'expo-file-system/legacy';
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
 import { startTransition, useEffect, useMemo } from 'react';
-import { Linking, useColorScheme, View } from 'react-native';
+import { Linking, Platform, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -277,39 +282,83 @@ export function WorkoutScreen() {
     );
   };
 
-  const handleExportBackup = async () => {
+  const exportBackup = async (mode: 'share' | 'save') => {
     if (!snapshot) return;
     try {
       const fileName = getBackupFileName();
       const payload = serializePwaBackupV2(snapshot);
-      const file = new File(Paths.cache, fileName);
-      file.create({ overwrite: true, intermediates: true });
-      file.write(payload, { encoding: 'utf8' });
 
-      if (await Sharing.isAvailableAsync()) {
-        try {
-          await Sharing.shareAsync(file.uri, {
-            mimeType: 'application/json',
-            dialogTitle: 'Export backup',
-            UTI: 'public.json',
-          });
-        } catch (error) {
-          const message = getErrorMessage(error).toLowerCase();
-          if (!message.includes('cancel')) {
-            throw error;
-          }
+      if (mode === 'save' && Platform.OS === 'android') {
+        const permissions =
+          await StorageAccessFramework.requestDirectoryPermissionsAsync();
+        if (!permissions.granted) {
+          setLocalBackupOpen(false);
+          return;
         }
-      } else {
-        showPrompt(
-          'Sharing unavailable',
-          'Sharing is not available on this device/platform.',
+
+        const targetUri = await StorageAccessFramework.createFileAsync(
+          permissions.directoryUri,
+          fileName,
+          'application/json',
         );
+
+        await writeAsStringAsync(targetUri, payload, {
+          encoding: EncodingType.UTF8,
+        });
+
+        showPrompt('Backup saved', `Saved ${fileName} to the selected folder.`);
+      } else {
+        const file = new File(Paths.cache, fileName);
+        file.create({ overwrite: true, intermediates: true });
+        file.write(payload, { encoding: 'utf8' });
+
+        if (await Sharing.isAvailableAsync()) {
+          try {
+            await Sharing.shareAsync(file.uri, {
+              mimeType: 'application/json',
+              dialogTitle: 'Export backup',
+              UTI: 'public.json',
+            });
+          } catch (error) {
+            const message = getErrorMessage(error).toLowerCase();
+            if (!message.includes('cancel')) {
+              throw error;
+            }
+          }
+        } else {
+          showPrompt(
+            'Sharing unavailable',
+            'Sharing is not available on this device/platform.',
+          );
+        }
       }
       setLocalBackupOpen(false);
     } catch (error) {
       logError('backup/export failed', error);
       showPrompt('Export failed', getErrorMessage(error));
     }
+  };
+
+  const handleExportBackup = () => {
+    if (!snapshot) return;
+
+    if (Platform.OS === 'android') {
+      showPrompt(
+        'Export backup',
+        'Choose how you want to export your backup.',
+        [
+          {
+            label: 'Save to device',
+            onPress: () => void exportBackup('save'),
+          },
+          { label: 'Share', onPress: () => void exportBackup('share') },
+          { label: 'Cancel', tone: 'cancel' },
+        ],
+      );
+      return;
+    }
+
+    void exportBackup('share');
   };
 
   const handleImportBackup = async () => {
