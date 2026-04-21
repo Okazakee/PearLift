@@ -42,7 +42,10 @@ import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
-import { getPairingSecretPayload } from '../sync/syncManager';
+import {
+  clearPairingSecret,
+  getPairingSecretPayload,
+} from '../sync/syncManager';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
@@ -293,7 +296,23 @@ export function WorkoutScreen() {
                   }
                 }
 
+                try {
+                  await stopSync();
+                } catch (error) {
+                  logError('sync/stop before reset failed', error);
+                }
+
+                try {
+                  await clearPairingSecret();
+                } catch (error) {
+                  logError('sync/clear pairing secret failed', error);
+                }
+
+                setSyncSecret(null);
                 await applyMutation({ type: 'resetAllData' });
+                await loadPairedDevices();
+                const nextSecret = await getPairingSecretPayload();
+                setSyncSecret(nextSecret);
               } catch (error) {
                 logError('reset/authentication failed', error);
                 showPrompt(

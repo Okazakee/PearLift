@@ -600,6 +600,7 @@ export class WorkoutRepository {
           }
           case 'resetAllData': {
             await this.replaceAllState(db, buildDefaultRuntimeState());
+            await this.resetSyncState(db);
             await this.writeSetting(db, 'setupDone', 'false');
             break;
           }
@@ -703,6 +704,21 @@ export class WorkoutRepository {
       const deviceId = Crypto.randomUUID();
       await this.writeSyncStatePatch(db, { deviceId });
       return deviceId;
+    });
+  }
+
+  private async resetSyncState(db: SQLiteDatabase) {
+    await db.runAsync('DELETE FROM sync_applied_ops');
+    await this.writeSyncStatePatch(db, {
+      syncEnabled: false,
+      deviceId: null,
+      pairingSecretCiphertext: null,
+      pairingSecretIv: null,
+      pairingSecretTag: null,
+      autobaseBootstrapKey: null,
+      lamportCounter: 0,
+      lastError: null,
+      lastSyncedAt: null,
     });
   }
 

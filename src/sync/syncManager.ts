@@ -257,3 +257,7 @@ export function createSyncManager(
 export async function getPairingSecretPayload(): Promise<string> {
   return loadOrCreatePairingSecret();
 }
+
+export async function clearPairingSecret(): Promise<void> {
+  await SecureStore.deleteItemAsync(SYNC_SECRET_KEY);
+}

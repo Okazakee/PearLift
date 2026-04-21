@@ -2,7 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Activity, Bell, Monitor, Sliders } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeOutUp,
@@ -134,10 +134,18 @@ export function OnboardingScreen({
         )}
       >
         <View style={styles.iconContainer}>
-          {React.createElement(PAGE_CONTENT[page].icon, {
-            size: 56,
-            color: tokens.colors.primary,
-          })}
+          {page === 0 ? (
+            <Image
+              source={require('../../assets/pearlift_transparent.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          ) : (
+            React.createElement(PAGE_CONTENT[page].icon, {
+              size: 56,
+              color: tokens.colors.primary,
+            })
+          )}
         </View>
 
         <Text style={styles.title}>{t(content.titleKey)}</Text>
@@ -285,6 +293,10 @@ function createStyles(
       alignItems: 'center',
       justifyContent: 'center',
       marginBottom: tokens.spacing.xl,
+    },
+    logoImage: {
+      width: 80,
+      height: 80,
     },
     title: {
       color: tokens.colors.textPrimary,
