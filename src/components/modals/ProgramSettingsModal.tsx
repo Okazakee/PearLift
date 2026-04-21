@@ -585,6 +585,7 @@ export function ProgramSettingsModal({
                   contentContainerStyle={styles.listContent}
                 >
                   <Sortable.Grid
+                    enableActiveItemSnap={false}
                     data={draftWeeks}
                     keyExtractor={(item) => item.uiKey}
                     renderItem={renderWeekSortableItem}
@@ -633,6 +634,7 @@ export function ProgramSettingsModal({
                   contentContainerStyle={styles.listContent}
                 >
                   <Sortable.Grid
+                    enableActiveItemSnap={false}
                     data={draftDays}
                     keyExtractor={(item) => item.id}
                     renderItem={renderDaySortableItem}

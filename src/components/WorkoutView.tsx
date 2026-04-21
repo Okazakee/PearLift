@@ -212,6 +212,7 @@ export function WorkoutView({
       >
         {renderHeader()}
         <Sortable.Grid
+          enableActiveItemSnap={false}
           data={displayExerciseIds}
           keyExtractor={(id) => id}
           renderItem={renderItem}
