@@ -5,12 +5,14 @@ import {
   Code,
   CodeXml,
   Copy,
+  Download,
   Info,
   RefreshCw,
   Share2,
   Sliders,
   Sun,
   Trash2,
+  Upload,
 } from 'lucide-react-native';
 import QRCode from 'qrcode';
 import { useEffect, useMemo, useState } from 'react';
@@ -56,6 +58,8 @@ interface SettingsModalProps {
   onToggleSync: () => void;
   onOpenSyncSetup: () => void;
   onForgetDevice: (deviceId: string) => Promise<void>;
+  onExportLocalBackup: () => void;
+  onImportLocalBackup: () => void;
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
@@ -86,6 +90,8 @@ export function SettingsModal({
   onToggleSync,
   onOpenSyncSetup,
   onForgetDevice,
+  onExportLocalBackup,
+  onImportLocalBackup,
   onClose,
   onResetData,
   onOpenGithub,
@@ -313,6 +319,33 @@ export function SettingsModal({
               <Text style={styles.sectionTitle}>
                 {t('settings.syncBackup.title')}
               </Text>
+            </View>
+
+            <Text style={styles.subSectionLabel}>
+              {t('backup.localJson.title')}
+            </Text>
+            <Text style={styles.rowSubtitle}>
+              {t('backup.localJson.description')}
+            </Text>
+            <View style={styles.actionRow}>
+              <AnimatedPressable
+                style={styles.outlineButton}
+                onPress={onExportLocalBackup}
+              >
+                <Download size={15} color={tokens.colors.textSecondary} />
+                <Text style={styles.outlineButtonText}>
+                  {t('backup.localJson.export')}
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={styles.outlineButton}
+                onPress={onImportLocalBackup}
+              >
+                <Upload size={15} color={tokens.colors.textSecondary} />
+                <Text style={styles.outlineButtonText}>
+                  {t('backup.localJson.import')}
+                </Text>
+              </AnimatedPressable>
             </View>
 
             {!syncActive ? (

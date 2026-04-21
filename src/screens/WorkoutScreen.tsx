@@ -28,7 +28,6 @@ import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import { AppPromptModal } from '../components/modals/AppPromptModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LanguageListModal } from '../components/modals/LanguageListModal';
-import { LocalBackupModal } from '../components/modals/LocalBackupModal';
 import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
 import { SyncSetupModal } from '../components/modals/SyncSetupModal';
@@ -82,8 +81,6 @@ export function WorkoutScreen() {
     setSettingsOpen,
     languageListOpen,
     setLanguageListOpen,
-    localBackupOpen,
-    setLocalBackupOpen,
     importPreviewOpen,
     setImportPreviewOpen,
     pendingImport,
@@ -316,7 +313,6 @@ export function WorkoutScreen() {
         const permissions =
           await StorageAccessFramework.requestDirectoryPermissionsAsync();
         if (!permissions.granted) {
-          setLocalBackupOpen(false);
           return;
         }
 
@@ -359,7 +355,6 @@ export function WorkoutScreen() {
           );
         }
       }
-      setLocalBackupOpen(false);
     } catch (error) {
       logError('backup/export failed', error);
       showPrompt(t('prompts.exportBackup.failedTitle'), getErrorMessage(error));
@@ -408,7 +403,6 @@ export function WorkoutScreen() {
       setPendingImport(migrated);
       setImportSummary(summary);
       setImportPreviewOpen(true);
-      setLocalBackupOpen(false);
     } catch (error) {
       const message = getErrorMessage(error).toLowerCase();
       if (message.includes('cancel')) return;
@@ -609,7 +603,6 @@ export function WorkoutScreen() {
         <Header
           tokens={tokens}
           topInset={insets.top}
-          onOpenLocalBackup={() => setLocalBackupOpen(true)}
           onOpenSettings={() => setSettingsOpen(true)}
         />
 
@@ -689,14 +682,6 @@ export function WorkoutScreen() {
           onPrompt={showPrompt}
         />
 
-        <LocalBackupModal
-          open={localBackupOpen}
-          tokens={tokens}
-          onClose={() => setLocalBackupOpen(false)}
-          onExport={handleExportBackup}
-          onImport={handleImportBackup}
-        />
-
         <ImportPreviewModal
           open={importPreviewOpen}
           tokens={tokens}
@@ -733,6 +718,8 @@ export function WorkoutScreen() {
           onToggleSync={handleToggleSync}
           onOpenSyncSetup={handleOpenSyncSetup}
           onForgetDevice={handleForgetDevice}
+          onExportLocalBackup={handleExportBackup}
+          onImportLocalBackup={() => void handleImportBackup()}
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}

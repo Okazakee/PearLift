@@ -1,20 +1,14 @@
-import { Save, Settings } from 'lucide-react-native';
+import { Settings } from 'lucide-react-native';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { ThemeTokens } from '../theme/tokens';
 
 interface HeaderProps {
   tokens: ThemeTokens;
   topInset: number;
-  onOpenLocalBackup: () => void;
   onOpenSettings: () => void;
 }
 
-export function Header({
-  tokens,
-  topInset,
-  onOpenLocalBackup,
-  onOpenSettings,
-}: HeaderProps) {
+export function Header({ tokens, topInset, onOpenSettings }: HeaderProps) {
   const styles = createStyles(tokens, topInset);
 
   return (
@@ -33,9 +27,6 @@ export function Header({
       </View>
 
       <View style={styles.actionsRow}>
-        <Pressable onPress={onOpenLocalBackup} style={styles.iconButton}>
-          <Save size={18} color={tokens.colors.textSecondary} />
-        </Pressable>
         <Pressable onPress={onOpenSettings} style={styles.iconButton}>
           <Settings size={18} color={tokens.colors.textSecondary} />
         </Pressable>
