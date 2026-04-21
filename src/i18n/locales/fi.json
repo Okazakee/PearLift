@@ -120,8 +120,7 @@
     "developer": {
       "title": "Kehittäjä",
       "maintainer": "Ylläpitäjä",
-      "openRepo": "Avaa repo",
-      "donate": "Lahjoita"
+      "openRepo": "Avaa repo"
     },
     "appInfo": {
       "title": "Sovellustiedot",
@@ -158,13 +157,6 @@
     "cancel": "Peruuta",
     "confirm": "Tuo varmuuskopio"
   },
-  "donate": {
-    "title": "Lahjoita",
-    "subtitle": "Tue PearLiftin kehitystä Bitcoinilla tai Lightningilla.",
-    "placeholder": "Paikkamerkki",
-    "openWallet": "Avaa lompakko",
-    "copy": "Kopioi"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Poista liike",
@@ -198,8 +190,7 @@
       "failedTitle": "Tuonti epäonnistui"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Linkkiä ei voi avata",
-      "cannotOpenWalletLinkTitle": "Lompakkolinkkiä ei voi avata"
+      "cannotOpenLinkTitle": "Linkkiä ei voi avata"
     },
     "clipboard": {
       "copyFailedTitle": "Kopiointi epäonnistui"

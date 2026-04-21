@@ -120,8 +120,7 @@
     "developer": {
       "title": "Разработчик",
       "maintainer": "Поддръжка",
-      "openRepo": "Отвори хранилището",
-      "donate": "Дарение"
+      "openRepo": "Отвори хранилището"
     },
     "appInfo": {
       "title": "Информация за приложението",
@@ -158,13 +157,6 @@
     "cancel": "Отказ",
     "confirm": "Импортирай архив"
   },
-  "donate": {
-    "title": "Дарение",
-    "subtitle": "Подкрепете развитието на PearLift с Bitcoin или Lightning.",
-    "placeholder": "Placeholder",
-    "openWallet": "Отвори портфейла",
-    "copy": "Копиране"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Изтриване на упражнение",
@@ -198,8 +190,7 @@
       "failedTitle": "Импортът не бе успешен"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Не може да се отвори връзката",
-      "cannotOpenWalletLinkTitle": "Не може да се отвори връзката към портфейла"
+      "cannotOpenLinkTitle": "Не може да се отвори връзката"
     },
     "clipboard": {
       "copyFailedTitle": "Копирането не бе успешно"

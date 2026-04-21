@@ -120,8 +120,7 @@
     "developer": {
       "title": "Geliştirici",
       "maintainer": "Bakımcı",
-      "openRepo": "Depoyu aç",
-      "donate": "Bağış yap"
+      "openRepo": "Depoyu aç"
     },
     "appInfo": {
       "title": "Uygulama bilgileri",
@@ -158,13 +157,6 @@
     "cancel": "İptal",
     "confirm": "Yedeği içe aktar"
   },
-  "donate": {
-    "title": "Bağış yap",
-    "subtitle": "PearLift geliştirmesini Bitcoin veya Lightning ile destekleyin.",
-    "placeholder": "Yer tutucu",
-    "openWallet": "Cüzdanı aç",
-    "copy": "Kopyala"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Egzersizi sil",
@@ -198,8 +190,7 @@
       "failedTitle": "İçe aktarma başarısız"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Bağlantı açılamıyor",
-      "cannotOpenWalletLinkTitle": "Cüzdan bağlantısı açılamıyor"
+      "cannotOpenLinkTitle": "Bağlantı açılamıyor"
     },
     "clipboard": {
       "copyFailedTitle": "Kopyalama başarısız"

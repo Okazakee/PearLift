@@ -120,8 +120,7 @@
     "developer": {
       "title": "Ontwikkelaar",
       "maintainer": "Beheerder",
-      "openRepo": "Repo openen",
-      "donate": "Doneren"
+      "openRepo": "Repo openen"
     },
     "appInfo": {
       "title": "App-info",
@@ -158,13 +157,6 @@
     "cancel": "Annuleren",
     "confirm": "Back-up importeren"
   },
-  "donate": {
-    "title": "Doneren",
-    "subtitle": "Ondersteun de PearLift-ontwikkeling met Bitcoin of Lightning.",
-    "placeholder": "Plaatshouder",
-    "openWallet": "Wallet openen",
-    "copy": "Kopiëren"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Oefening verwijderen",
@@ -198,8 +190,7 @@
       "failedTitle": "Import mislukt"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Kan link niet openen",
-      "cannotOpenWalletLinkTitle": "Kan wallet-link niet openen"
+      "cannotOpenLinkTitle": "Kan link niet openen"
     },
     "clipboard": {
       "copyFailedTitle": "Kopiëren mislukt"

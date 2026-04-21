@@ -120,8 +120,7 @@
     "developer": {
       "title": "Nhà phát triển",
       "maintainer": "Người duy trì",
-      "openRepo": "Mở repo",
-      "donate": "Đóng góp"
+      "openRepo": "Mở repo"
     },
     "appInfo": {
       "title": "Thông tin ứng dụng",
@@ -158,13 +157,6 @@
     "cancel": "Hủy",
     "confirm": "Nhập sao lưu"
   },
-  "donate": {
-    "title": "Đóng góp",
-    "subtitle": "Hỗ trợ phát triển PearLift với Bitcoin hoặc Lightning.",
-    "placeholder": "Trình giữ chỗ",
-    "openWallet": "Mở ví",
-    "copy": "Sao chép"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Xóa bài tập",
@@ -198,8 +190,7 @@
       "failedTitle": "Nhập thất bại"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Không thể mở liên kết",
-      "cannotOpenWalletLinkTitle": "Không thể mở liên kết ví"
+      "cannotOpenLinkTitle": "Không thể mở liên kết"
     },
     "clipboard": {
       "copyFailedTitle": "Sao chép thất bại"

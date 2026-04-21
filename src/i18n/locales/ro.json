@@ -120,8 +120,7 @@
     "developer": {
       "title": "Dezvoltator",
       "maintainer": "Mentenanță",
-      "openRepo": "Deschide repo",
-      "donate": "Donează"
+      "openRepo": "Deschide repo"
     },
     "appInfo": {
       "title": "Informații aplicație",
@@ -158,13 +157,6 @@
     "cancel": "Anulează",
     "confirm": "Importă backup"
   },
-  "donate": {
-    "title": "Donează",
-    "subtitle": "Susține dezvoltarea PearLift cu Bitcoin sau Lightning.",
-    "placeholder": "Placeholder",
-    "openWallet": "Deschide portofelul",
-    "copy": "Copiază"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Șterge exercițiul",
@@ -198,8 +190,7 @@
       "failedTitle": "Import eșuat"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Nu se poate deschide linkul",
-      "cannotOpenWalletLinkTitle": "Nu se poate deschide linkul portofelului"
+      "cannotOpenLinkTitle": "Nu se poate deschide linkul"
     },
     "clipboard": {
       "copyFailedTitle": "Copiere eșuată"

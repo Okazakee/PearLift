@@ -120,8 +120,7 @@
     "developer": {
       "title": "Programer",
       "maintainer": "Održavatelj",
-      "openRepo": "Otvori repo",
-      "donate": "Doniraj"
+      "openRepo": "Otvori repo"
     },
     "appInfo": {
       "title": "Informacije o aplikaciji",
@@ -158,13 +157,6 @@
     "cancel": "Odustani",
     "confirm": "Uvezi sigurnosnu kopiju"
   },
-  "donate": {
-    "title": "Doniraj",
-    "subtitle": "Podržite razvoj PearLift-a s Bitcoin ili Lightning.",
-    "placeholder": "Placeholder",
-    "openWallet": "Otvori novčanik",
-    "copy": "Kopiraj"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Izbriši vježbu",
@@ -198,8 +190,7 @@
       "failedTitle": "Uvoz nije uspio"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Nije moguće otvoriti poveznicu",
-      "cannotOpenWalletLinkTitle": "Nije moguće otvoriti poveznicu novčanika"
+      "cannotOpenLinkTitle": "Nije moguće otvoriti poveznicu"
     },
     "clipboard": {
       "copyFailedTitle": "Kopiranje nije uspjelo"

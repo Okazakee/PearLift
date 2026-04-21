@@ -120,8 +120,7 @@
     "developer": {
       "title": "Arendaja",
       "maintainer": "Hooldaja",
-      "openRepo": "Ava repod",
-      "donate": "Anneta"
+      "openRepo": "Ava repod"
     },
     "appInfo": {
       "title": "Rakenduse info",
@@ -158,13 +157,6 @@
     "cancel": "Tühista",
     "confirm": "Impordi varukoopia"
   },
-  "donate": {
-    "title": "Anneta",
-    "subtitle": "Toeta PearLifti arendust Bitcoin või Lightningiga.",
-    "placeholder": "Placeholder",
-    "openWallet": "Ava rahakott",
-    "copy": "Kopeeri"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Kustuta harjutus",
@@ -198,8 +190,7 @@
       "failedTitle": "Import ebaõnnestus"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Linki ei saa avada",
-      "cannotOpenWalletLinkTitle": "Rahakoti linki ei saa avada"
+      "cannotOpenLinkTitle": "Linki ei saa avada"
     },
     "clipboard": {
       "copyFailedTitle": "Kopeerimine ebaõnnestus"

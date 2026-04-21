@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   Code,
   CodeXml,
-  Heart,
   Info,
   RefreshCw,
   Sliders,
@@ -42,7 +41,6 @@ interface SettingsModalProps {
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
-  onOpenDonate: () => void;
 }
 
 export function SettingsModal({
@@ -64,7 +62,6 @@ export function SettingsModal({
   onClose,
   onResetData,
   onOpenGithub,
-  onOpenDonate,
 }: SettingsModalProps) {
   const { t } = useTranslation();
   const styles = createStyles(tokens, topInset, bottomInset);
@@ -287,15 +284,6 @@ export function SettingsModal({
                 <CodeXml size={18} color={tokens.colors.onPrimary} />
                 <Text style={styles.githubButtonText}>
                   {t('settings.developer.openRepo')}
-                </Text>
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={styles.developerSecondaryButton}
-                onPress={onOpenDonate}
-              >
-                <Heart size={18} color={tokens.colors.primary} />
-                <Text style={styles.donateButtonText}>
-                  {t('settings.developer.donate')}
                 </Text>
               </AnimatedPressable>
             </View>
@@ -527,24 +515,6 @@ function createStyles(
       justifyContent: 'center',
       gap: tokens.spacing.xs,
       paddingHorizontal: tokens.spacing.md,
-    },
-    developerSecondaryButton: {
-      flex: 1,
-      borderRadius: tokens.radius.md,
-      backgroundColor: tokens.colors.bgSurface,
-      minHeight: 44,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: tokens.spacing.xs,
-      paddingHorizontal: tokens.spacing.md,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-    },
-    donateButtonText: {
-      color: tokens.colors.textPrimary,
-      fontSize: tokens.type.body,
-      fontWeight: '700',
     },
     disabledButton: {
       opacity: 0.55,

@@ -120,8 +120,7 @@
     "developer": {
       "title": "개발자",
       "maintainer": "유지관리자",
-      "openRepo": "저장소 열기",
-      "donate": "기부"
+      "openRepo": "저장소 열기"
     },
     "appInfo": {
       "title": "앱 정보",
@@ -158,13 +157,6 @@
     "cancel": "취소",
     "confirm": "백업 가져오기"
   },
-  "donate": {
-    "title": "기부",
-    "subtitle": "Bitcoin 또는 Lightning으로 PearLift 개발을 지지하세요.",
-    "placeholder": "플레이스홀더",
-    "openWallet": "지갑 열기",
-    "copy": "복사"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "운동 삭제",
@@ -198,8 +190,7 @@
       "failedTitle": "가져오기 실패"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "링크를 열 수 없음",
-      "cannotOpenWalletLinkTitle": "지갑 링크를 열 수 없음"
+      "cannotOpenLinkTitle": "링크를 열 수 없음"
     },
     "clipboard": {
       "copyFailedTitle": "복사 실패"

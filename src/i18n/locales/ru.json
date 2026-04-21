@@ -120,8 +120,7 @@
     "developer": {
       "title": "Разработчик",
       "maintainer": "Сопровождающий",
-      "openRepo": "Открыть репозиторий",
-      "donate": "Пожертвовать"
+      "openRepo": "Открыть репозиторий"
     },
     "appInfo": {
       "title": "О приложении",
@@ -158,13 +157,6 @@
     "cancel": "Отмена",
     "confirm": "Импорт резервной копии"
   },
-  "donate": {
-    "title": "Пожертвовать",
-    "subtitle": "Поддержите разработку PearLift с помощью Bitcoin или Lightning.",
-    "placeholder": "Заполнитель",
-    "openWallet": "Открыть кошелёк",
-    "copy": "Копировать"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Удалить упражнение",
@@ -198,8 +190,7 @@
       "failedTitle": "Импорт не выполнен"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Не удалось открыть ссылку",
-      "cannotOpenWalletLinkTitle": "Не удалось открыть ссылку кошелька"
+      "cannotOpenLinkTitle": "Не удалось открыть ссылку"
     },
     "clipboard": {
       "copyFailedTitle": "Не удалось скопировать"

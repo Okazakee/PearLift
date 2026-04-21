@@ -120,8 +120,7 @@
     "developer": {
       "title": "Pengembang",
       "maintainer": "Pemeliharaan",
-      "openRepo": "Buka repo",
-      "donate": "Donasi"
+      "openRepo": "Buka repo"
     },
     "appInfo": {
       "title": "Info aplikasi",
@@ -158,13 +157,6 @@
     "cancel": "Batal",
     "confirm": "Impor cadangan"
   },
-  "donate": {
-    "title": "Donasi",
-    "subtitle": "Dukung pengembangan PearLift dengan Bitcoin atau Lightning.",
-    "placeholder": "Tempatholder",
-    "openWallet": "Buka dompet",
-    "copy": "Salin"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Hapus latihan",
@@ -198,8 +190,7 @@
       "failedTitle": "Impor gagal"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Tidak dapat membuka tautan",
-      "cannotOpenWalletLinkTitle": "Tidak dapat membuka tautan dompet"
+      "cannotOpenLinkTitle": "Tidak dapat membuka tautan"
     },
     "clipboard": {
       "copyFailedTitle": "Gagal menyalin"

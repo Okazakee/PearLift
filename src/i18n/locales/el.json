@@ -120,8 +120,7 @@
     "developer": {
       "title": "Προγραμματιστής",
       "maintainer": "Συντηρητής",
-      "openRepo": "Άνοιγμα repo",
-      "donate": "Δωρεά"
+      "openRepo": "Άνοιγμα repo"
     },
     "appInfo": {
       "title": "Πληροφορίες εφαρμογής",
@@ -158,13 +157,6 @@
     "cancel": "Ακύρωση",
     "confirm": "Εισαγωγή αντίγραφου ασφαλείας"
   },
-  "donate": {
-    "title": "Δωρεά",
-    "subtitle": "Υποστήριξε την ανάπτυξη του PearLift με Bitcoin ή Lightning.",
-    "placeholder": "Placeholder",
-    "openWallet": "Άνοιγμα πορτοφολιού",
-    "copy": "Αντιγραφή"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Διαγραφή άσκησης",
@@ -198,8 +190,7 @@
       "failedTitle": "Αποτυχία εισαγωγής"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Δεν είναι δυνατό το άνοιγμα του συνδέσμου",
-      "cannotOpenWalletLinkTitle": "Δεν είναι δυνατό το άνοιγμα του συνδέσμου του πορτοφολιού"
+      "cannotOpenLinkTitle": "Δεν είναι δυνατό το άνοιγμα του συνδέσμου"
     },
     "clipboard": {
       "copyFailedTitle": "Αποτυχία αντιγραφής"

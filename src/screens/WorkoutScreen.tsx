@@ -1,4 +1,3 @@
-import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
 import {
   EncodingType,
@@ -27,7 +26,6 @@ import { BootstrapScreen } from '../components/BootstrapScreen';
 import { Header } from '../components/Header';
 import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import { AppPromptModal } from '../components/modals/AppPromptModal';
-import { DonateModal } from '../components/modals/DonateModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LanguageListModal } from '../components/modals/LanguageListModal';
 import { LocalBackupModal } from '../components/modals/LocalBackupModal';
@@ -38,7 +36,6 @@ import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
 import { WorkoutDayStack } from '../components/WorkoutDayStack';
 import { APP_CONFIG } from '../config/app';
-import { type DonationTarget, getDonationTargets } from '../config/donation';
 import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
@@ -81,8 +78,6 @@ export function WorkoutScreen() {
     setProgramSettingsOpen,
     settingsOpen,
     setSettingsOpen,
-    donateModalOpen,
-    setDonateModalOpen,
     languageListOpen,
     setLanguageListOpen,
     localBackupOpen,
@@ -146,7 +141,6 @@ export function WorkoutScreen() {
     return map;
   }, [workouts]);
 
-  const donationTargets = useMemo(() => getDonationTargets(), []);
   const layout = useMemo(() => {
     const navBottomPadding = Math.max(insets.bottom, 8) + tokens.spacing.sm;
     const navHeight = 64 + navBottomPadding;
@@ -461,33 +455,6 @@ export function WorkoutScreen() {
     }
   };
 
-  const handleOpenDonationTarget = async (target: DonationTarget) => {
-    try {
-      const canOpen = await Linking.canOpenURL(target.uri);
-      if (!canOpen) {
-        showPrompt(t('prompts.openLink.cannotOpenWalletLinkTitle'), target.uri);
-        return;
-      }
-      await Linking.openURL(target.uri);
-    } catch (error) {
-      showPrompt(
-        t('prompts.openLink.cannotOpenWalletLinkTitle'),
-        getErrorMessage(error),
-      );
-    }
-  };
-
-  const handleCopyDonationTarget = async (target: DonationTarget) => {
-    try {
-      await Clipboard.setStringAsync(target.copyValue);
-    } catch (error) {
-      showPrompt(
-        t('prompts.clipboard.copyFailedTitle'),
-        getErrorMessage(error),
-      );
-    }
-  };
-
   const handleWeekChange = (nextWeek: number) => {
     void applyMutation({ type: 'setCurrentWeek', currentWeek: nextWeek });
   };
@@ -713,7 +680,6 @@ export function WorkoutScreen() {
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
-          onOpenDonate={() => setDonateModalOpen(true)}
         />
 
         <LanguageListModal
@@ -725,19 +691,6 @@ export function WorkoutScreen() {
           }}
           onSelectLanguage={(code) => {
             handleLanguageChange(code);
-          }}
-        />
-
-        <DonateModal
-          open={donateModalOpen}
-          tokens={tokens}
-          targets={donationTargets}
-          onClose={() => setDonateModalOpen(false)}
-          onOpenTarget={(target) => {
-            void handleOpenDonationTarget(target);
-          }}
-          onCopyTarget={(target) => {
-            void handleCopyDonationTarget(target);
           }}
         />
 

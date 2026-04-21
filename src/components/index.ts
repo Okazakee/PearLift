@@ -6,7 +6,6 @@ export * from './Header';
 export * from './modals/AddExerciseModal';
 export type { AppPromptAction } from './modals/AppPromptModal';
 export * from './modals/AppPromptModal';
-export * from './modals/DonateModal';
 export * from './modals/ImportPreviewModal';
 export * from './modals/LocalBackupModal';
 export * from './modals/ProgramSettingsModal';

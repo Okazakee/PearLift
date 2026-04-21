@@ -120,8 +120,7 @@
     "developer": {
       "title": "Fejlesztő",
       "maintainer": "Karbantartó",
-      "openRepo": "Repo megnyitása",
-      "donate": "Adományozás"
+      "openRepo": "Repo megnyitása"
     },
     "appInfo": {
       "title": "Alkalmazás info",
@@ -158,13 +157,6 @@
     "cancel": "Mégse",
     "confirm": "Biztonsági mentés importálása"
   },
-  "donate": {
-    "title": "Adományozás",
-    "subtitle": "Támogasd a PearLift fejlesztését Bitcoin vagy Lightning használatával.",
-    "placeholder": "Helyőrző",
-    "openWallet": "Tárca megnyitása",
-    "copy": "Másolás"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Gyakorlat törlése",
@@ -198,8 +190,7 @@
       "failedTitle": "Importálás sikertelen"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "A hivatkozás nem nyitható meg",
-      "cannotOpenWalletLinkTitle": "A pénztárca hivatkozása nem nyitható meg"
+      "cannotOpenLinkTitle": "A hivatkozás nem nyitható meg"
     },
     "clipboard": {
       "copyFailedTitle": "Másolás sikertelen"

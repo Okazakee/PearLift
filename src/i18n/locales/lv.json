@@ -120,8 +120,7 @@
     "developer": {
       "title": "Izstrādātājs",
       "maintainer": "Uzturētājs",
-      "openRepo": "Atvērt repo",
-      "donate": "Ziedot"
+      "openRepo": "Atvērt repo"
     },
     "appInfo": {
       "title": "Lietotnes info",
@@ -158,13 +157,6 @@
     "cancel": "Atcelt",
     "confirm": "Importēt dublējumu"
   },
-  "donate": {
-    "title": "Ziedot",
-    "subtitle": "Atbalstiet PearLift attīstību ar Bitcoin vai Lightning.",
-    "placeholder": "Vieta",
-    "openWallet": "Atvērt maka",
-    "copy": "Kopēt"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Dzēst vingrinājumu",
@@ -198,8 +190,7 @@
       "failedTitle": "Imports neizdevās"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Nevar atvērt saiti",
-      "cannotOpenWalletLinkTitle": "Nevar atvērt maka saiti"
+      "cannotOpenLinkTitle": "Nevar atvērt saiti"
     },
     "clipboard": {
       "copyFailedTitle": "Kopēšana neizdevās"

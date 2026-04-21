@@ -120,8 +120,7 @@
     "developer": {
       "title": "المطور",
       "maintainer": "المشرف",
-      "openRepo": "فتح المستودع",
-      "donate": "تبرع"
+      "openRepo": "فتح المستودع"
     },
     "appInfo": {
       "title": "معلومات التطبيق",
@@ -158,13 +157,6 @@
     "cancel": "إلغاء",
     "confirm": "استيراد النسخة الاحتياطية"
   },
-  "donate": {
-    "title": "تبرع",
-    "subtitle": "ادعم تطوير PearLift باستخدام بيتكوين أو لايتينينغ.",
-    "placeholder": "عنصر佔位符",
-    "openWallet": "فتح المحفظة",
-    "copy": "نسخ"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "حذف التمرين",
@@ -198,8 +190,7 @@
       "failedTitle": "فشل الاستيراد"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "لا يمكن فتح الرابط",
-      "cannotOpenWalletLinkTitle": "لا يمكن فتح رابط المحفظة"
+      "cannotOpenLinkTitle": "لا يمكن فتح الرابط"
     },
     "clipboard": {
       "copyFailedTitle": "فشل النسخ"

@@ -120,8 +120,7 @@
     "developer": {
       "title": "Kūrėjas",
       "maintainer": "Prižiūrėtojas",
-      "openRepo": "Atidaryti saugyklą",
-      "donate": "Duoti"
+      "openRepo": "Atidaryti saugyklą"
     },
     "appInfo": {
       "title": "Programos informacija",
@@ -158,13 +157,6 @@
     "cancel": "Atšaukti",
     "confirm": "Importuoti atsarginę kopiją"
   },
-  "donate": {
-    "title": "Duoti",
-    "subtitle": "Palaikykite PearLift kūrimą naudodami Bitcoin ar Lightning.",
-    "placeholder": "Vieta",
-    "openWallet": "Atidaryti piniginę",
-    "copy": "Kopijuoti"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Ištrinti pratimą",
@@ -198,8 +190,7 @@
       "failedTitle": "Importavimas nepavyko"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Nepavyksta atidaryti nuorodos",
-      "cannotOpenWalletLinkTitle": "Nepavyksta atidaryti piniginės nuorodos"
+      "cannotOpenLinkTitle": "Nepavyksta atidaryti nuorodos"
     },
     "clipboard": {
       "copyFailedTitle": "Kopijavimas nepavyko"

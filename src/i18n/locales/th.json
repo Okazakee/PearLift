@@ -120,8 +120,7 @@
     "developer": {
       "title": "ผู้พัฒนา",
       "maintainer": "ผู้ดูแล",
-      "openRepo": "เปิด repo",
-      "donate": "บริจาค"
+      "openRepo": "เปิด repo"
     },
     "appInfo": {
       "title": "ข้อมูลแอป",
@@ -158,13 +157,6 @@
     "cancel": "ยกเลิก",
     "confirm": "นำเข้าข้อมูลสำรอง"
   },
-  "donate": {
-    "title": "บริจาค",
-    "subtitle": "สนับสนุนการพัฒนา PearLift ด้วย Bitcoin หรือ Lightning",
-    "placeholder": "ตัวอย่าง",
-    "openWallet": "เปิดกระเป๋าเงิน",
-    "copy": "คัดลอก"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "ลบการออกกำลังกาย",
@@ -198,8 +190,7 @@
       "failedTitle": "นำเข้าไม่สำเร็จ"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "ไม่สามารถเปิดลิงก์ได้",
-      "cannotOpenWalletLinkTitle": "ไม่สามารถเปิดลิงก์กระเป๋าเงินได้"
+      "cannotOpenLinkTitle": "ไม่สามารถเปิดลิงก์ได้"
     },
     "clipboard": {
       "copyFailedTitle": "คัดลอกไม่สำเร็จ"

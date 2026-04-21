@@ -120,8 +120,7 @@
     "developer": {
       "title": "डेवलपर",
       "maintainer": "मेंटेनर",
-      "openRepo": "रेपो खोलें",
-      "donate": "दान करें"
+      "openRepo": "रेपो खोलें"
     },
     "appInfo": {
       "title": "ऐप जानकारी",
@@ -158,13 +157,6 @@
     "cancel": "रद्द करें",
     "confirm": "बैकअप इम्पोर्ट करें"
   },
-  "donate": {
-    "title": "दान करें",
-    "subtitle": "बिटकॉइन या लाइटनिंग से PearLift के विकास का समर्थन करें।",
-    "placeholder": "प्लेसहोल्डर",
-    "openWallet": "वॉलेट खोलें",
-    "copy": "कॉपी करें"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "व्यायाम हटाएँ",
@@ -198,8 +190,7 @@
       "failedTitle": "आयात विफल"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "लिंक नहीं खोल सकते",
-      "cannotOpenWalletLinkTitle": "वॉलेट लिंक नहीं खोल सकते"
+      "cannotOpenLinkTitle": "लिंक नहीं खोल सकते"
     },
     "clipboard": {
       "copyFailedTitle": "कॉपी विफल"

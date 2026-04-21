@@ -120,8 +120,7 @@
     "developer": {
       "title": "Vývojár",
       "maintainer": "Správca",
-      "openRepo": "Otvoriť repozitár",
-      "donate": "Prispejte"
+      "openRepo": "Otvoriť repozitár"
     },
     "appInfo": {
       "title": "Info o aplikácii",
@@ -158,13 +157,6 @@
     "cancel": "Zrušiť",
     "confirm": "Importovať zálohu"
   },
-  "donate": {
-    "title": "Prispejte",
-    "subtitle": "Podporte vývoj PearLift pomocou Bitcoin alebo Lightning.",
-    "placeholder": "Placeholder",
-    "openWallet": "Otvoriť peňaženku",
-    "copy": "Kopírovať"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Vymazať cvičenie",
@@ -198,8 +190,7 @@
       "failedTitle": "Import zlyhal"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Odkaz sa nedá otvoriť",
-      "cannotOpenWalletLinkTitle": "Odkaz na peňaženku sa nedá otvoriť"
+      "cannotOpenLinkTitle": "Odkaz sa nedá otvoriť"
     },
     "clipboard": {
       "copyFailedTitle": "Kopírovanie zlyhalo"

@@ -120,8 +120,7 @@
     "developer": {
       "title": "Sviluppatore",
       "maintainer": "Manutentore",
-      "openRepo": "Apri repository",
-      "donate": "Dona"
+      "openRepo": "Apri repository"
     },
     "appInfo": {
       "title": "Info app",
@@ -158,13 +157,6 @@
     "cancel": "Annulla",
     "confirm": "Importa backup"
   },
-  "donate": {
-    "title": "Dona",
-    "subtitle": "Supporta lo sviluppo di PearLift con Bitcoin o Lightning.",
-    "placeholder": "Segnaposto",
-    "openWallet": "Apri portafoglio",
-    "copy": "Copia"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "Elimina esercizio",
@@ -198,8 +190,7 @@
       "failedTitle": "Importazione non riuscita"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "Impossibile aprire il link",
-      "cannotOpenWalletLinkTitle": "Impossibile aprire il link del wallet"
+      "cannotOpenLinkTitle": "Impossibile aprire il link"
     },
     "clipboard": {
       "copyFailedTitle": "Copia non riuscita"

@@ -120,8 +120,7 @@
     "developer": {
       "title": "開発者",
       "maintainer": "メンテナー",
-      "openRepo": "リポジトリを開く",
-      "donate": "寄付"
+      "openRepo": "リポジトリを開く"
     },
     "appInfo": {
       "title": "アプリ情報",
@@ -158,13 +157,6 @@
     "cancel": "キャンセル",
     "confirm": "バックアップをインポート"
   },
-  "donate": {
-    "title": "寄付",
-    "subtitle": "BitcoinまたはLightningでPearLiftの開発，支持してください。",
-    "placeholder": "プレースホルダー",
-    "openWallet": "ウォレットを開く",
-    "copy": "コピー"
-  },
   "prompts": {
     "deleteExercise": {
       "title": "エクササイズを削除",
@@ -198,8 +190,7 @@
       "failedTitle": "インポートに失敗しました"
     },
     "openLink": {
-      "cannotOpenLinkTitle": "リンクを開けません",
-      "cannotOpenWalletLinkTitle": "ウォレットのリンクを開けません"
+      "cannotOpenLinkTitle": "リンクを開けません"
     },
     "clipboard": {
       "copyFailedTitle": "コピーに失敗しました"
