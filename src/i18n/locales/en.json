@@ -133,6 +133,7 @@
       "comingSoon": "Device-to-device sync is coming soon.",
       "openSyncSetup": "Open Sync Setup",
       "enableSync": "Enable Sync",
+      "pairNewDevice": "Pair New Device",
       "copyCode": "Copy Code",
       "shareCode": "Share Code",
       "pairedDevices": "Paired Devices",
@@ -206,6 +207,14 @@
       "canceledMessage": "System authentication did not confirm the reset.",
       "failedTitle": "Reset failed"
     },
+    "pairNewDevice": {
+      "title": "Pair a new device?",
+      "message": "This will show your Sync Code and QR so another device can connect.",
+      "authPromptMessage": "Confirm to show Sync Code",
+      "canceledTitle": "Pairing canceled",
+      "canceledMessage": "System authentication did not confirm the action.",
+      "failedTitle": "Pairing failed"
+    },
     "exportBackup": {
       "chooserTitle": "Export backup",
       "chooserMessage": "Choose how you want to export your backup.",
@@ -221,6 +230,12 @@
     },
     "importBackup": {
       "failedTitle": "Import failed"
+    },
+    "forgetDevice": {
+      "authPromptMessage": "Confirm to forget device",
+      "canceledTitle": "Action canceled",
+      "canceledMessage": "System authentication did not confirm the action.",
+      "failedTitle": "Forget failed"
     },
     "openLink": {
       "cannotOpenLinkTitle": "Cannot open link"

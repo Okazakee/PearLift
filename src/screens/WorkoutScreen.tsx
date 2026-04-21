@@ -7,7 +7,7 @@ import {
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Platform, useColorScheme, View } from 'react-native';
 import {
@@ -28,8 +28,10 @@ import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import { AppPromptModal } from '../components/modals/AppPromptModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LanguageListModal } from '../components/modals/LanguageListModal';
+import { PairedDevicesModal } from '../components/modals/PairedDevicesModal';
 import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
+import { SyncPairNewDeviceModal } from '../components/modals/SyncPairNewDeviceModal';
 import { SyncSetupModal } from '../components/modals/SyncSetupModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
@@ -58,6 +60,9 @@ export function WorkoutScreen() {
   const systemScheme = useColorScheme();
   const systemLanguage = useSystemLanguage(SUPPORTED_I18N_LANGUAGE_CODES, 'en');
   const { t } = useTranslation();
+
+  const [pairNewDeviceOpen, setPairNewDeviceOpen] = useState(false);
+  const [pairedDevicesOpen, setPairedDevicesOpen] = useState(false);
 
   const {
     snapshot,
@@ -515,8 +520,95 @@ export function WorkoutScreen() {
     }
   }, [syncStatus, loadPairedDevices]);
 
-  const handleForgetDevice = async (deviceId: string) => {
-    await forgetDevice(deviceId);
+  const authenticateIfAvailable = async (promptMessage: string) => {
+    const enrolledLevel = await LocalAuthentication.getEnrolledLevelAsync();
+    if (enrolledLevel === LocalAuthentication.SecurityLevel.NONE) {
+      return true;
+    }
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage,
+      cancelLabel: t('common.cancel'),
+      disableDeviceFallback: false,
+    });
+    return result.success;
+  };
+
+  const handleOpenPairNewDevice = () => {
+    showPrompt(
+      t('prompts.pairNewDevice.title'),
+      t('prompts.pairNewDevice.message'),
+      [
+        { label: t('common.cancel'), tone: 'cancel' },
+        {
+          label: t('common.ok'),
+          onPress: () => {
+            void (async () => {
+              try {
+                const ok = await authenticateIfAvailable(
+                  t('prompts.pairNewDevice.authPromptMessage'),
+                );
+                if (!ok) {
+                  showPrompt(
+                    t('prompts.pairNewDevice.canceledTitle'),
+                    t('prompts.pairNewDevice.canceledMessage'),
+                  );
+                  return;
+                }
+                setPairNewDeviceOpen(true);
+              } catch (error) {
+                logError('sync/pair/authentication failed', error);
+                showPrompt(
+                  t('prompts.pairNewDevice.failedTitle'),
+                  getErrorMessage(error),
+                );
+              }
+            })();
+          },
+        },
+      ],
+    );
+  };
+
+  const handleOpenPairedDevices = () => {
+    setPairedDevicesOpen(true);
+    void loadPairedDevices();
+  };
+
+  const handleForgetDevice = (deviceId: string) => {
+    showPrompt(
+      t('settings.syncBackup.forgetConfirmTitle'),
+      t('settings.syncBackup.forgetConfirmMessage'),
+      [
+        { label: t('common.cancel'), tone: 'cancel' },
+        {
+          label: t('settings.syncBackup.forgetDevice'),
+          tone: 'destructive',
+          onPress: () => {
+            void (async () => {
+              try {
+                const ok = await authenticateIfAvailable(
+                  t('prompts.forgetDevice.authPromptMessage'),
+                );
+                if (!ok) {
+                  showPrompt(
+                    t('prompts.forgetDevice.canceledTitle'),
+                    t('prompts.forgetDevice.canceledMessage'),
+                  );
+                  return;
+                }
+                await forgetDevice(deviceId);
+              } catch (error) {
+                logError('sync/forget/authentication failed', error);
+                showPrompt(
+                  t('prompts.forgetDevice.failedTitle'),
+                  getErrorMessage(error),
+                );
+              }
+            })();
+          },
+        },
+      ],
+    );
   };
 
   const handleOpenSyncSetup = () => {
@@ -713,16 +805,35 @@ export function WorkoutScreen() {
           syncPeers={syncPeers}
           lastSyncedAt={lastSyncedAt}
           syncError={syncError}
-          syncSecret={syncSecret}
           pairedDevices={pairedDevices}
           onToggleSync={handleToggleSync}
           onOpenSyncSetup={handleOpenSyncSetup}
-          onForgetDevice={handleForgetDevice}
+          onOpenPairNewDevice={handleOpenPairNewDevice}
+          onOpenPairedDevices={handleOpenPairedDevices}
           onExportLocalBackup={handleExportBackup}
           onImportLocalBackup={() => void handleImportBackup()}
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
+        />
+
+        <SyncPairNewDeviceModal
+          open={pairNewDeviceOpen}
+          tokens={tokens}
+          syncPeers={syncPeers}
+          lastSyncedAt={lastSyncedAt}
+          syncSecret={syncSecret}
+          onClose={() => setPairNewDeviceOpen(false)}
+        />
+
+        <PairedDevicesModal
+          open={pairedDevicesOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          pairedDevices={pairedDevices}
+          onForgetDevice={handleForgetDevice}
+          onClose={() => setPairedDevicesOpen(false)}
         />
 
         <SyncSetupModal

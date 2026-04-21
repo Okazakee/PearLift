@@ -1,24 +1,18 @@
-import * as Clipboard from 'expo-clipboard';
 import {
   AlertTriangle,
   ChevronLeft,
   Code,
   CodeXml,
-  Copy,
   Download,
   Info,
   RefreshCw,
-  Share2,
   Sliders,
   Sun,
-  Trash2,
   Upload,
 } from 'lucide-react-native';
-import QRCode from 'qrcode';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
-import { SvgXml } from 'react-native-svg';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
 import type { PairedDevice } from '../../storage/types';
 import { getLanguageNativeName } from '../../storage/workoutRepository';
@@ -53,11 +47,11 @@ interface SettingsModalProps {
   syncPeers: number;
   lastSyncedAt: string | null;
   syncError: string | null;
-  syncSecret: string | null;
   pairedDevices: PairedDevice[];
   onToggleSync: () => void;
   onOpenSyncSetup: () => void;
-  onForgetDevice: (deviceId: string) => Promise<void>;
+  onOpenPairNewDevice: () => void;
+  onOpenPairedDevices: () => void;
   onExportLocalBackup: () => void;
   onImportLocalBackup: () => void;
   onClose: () => void;
@@ -85,11 +79,11 @@ export function SettingsModal({
   syncPeers,
   lastSyncedAt,
   syncError,
-  syncSecret,
   pairedDevices,
   onToggleSync,
   onOpenSyncSetup,
-  onForgetDevice,
+  onOpenPairNewDevice,
+  onOpenPairedDevices,
   onExportLocalBackup,
   onImportLocalBackup,
   onClose,
@@ -102,57 +96,7 @@ export function SettingsModal({
     [tokens, topInset, bottomInset],
   );
 
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
-  const [qrSize, setQrSize] = useState(0);
-
   const syncActive = syncStatus === 'connecting' || syncStatus === 'synced';
-
-  useEffect(() => {
-    if (!syncActive || !syncSecret) {
-      setQrSvg(null);
-      return;
-    }
-    let cancelled = false;
-    void QRCode.toString(syncSecret, {
-      type: 'svg',
-      margin: 1,
-      color: { dark: '#111113', light: '#ffffff' },
-    })
-      .then((svg) => {
-        if (!cancelled) setQrSvg(svg);
-      })
-      .catch(() => {
-        if (!cancelled) setQrSvg(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [syncActive, syncSecret]);
-
-  const handleCopyCode = async () => {
-    if (!syncSecret) return;
-    await Clipboard.setStringAsync(syncSecret);
-  };
-
-  const handleShareCode = async () => {
-    if (!syncSecret) return;
-    await Share.share({ message: syncSecret });
-  };
-
-  const handleForgetConfirm = (deviceId: string) => {
-    Alert.alert(
-      t('settings.syncBackup.forgetConfirmTitle'),
-      t('settings.syncBackup.forgetConfirmMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.syncBackup.forgetDevice'),
-          style: 'destructive',
-          onPress: () => void onForgetDevice(deviceId),
-        },
-      ],
-    );
-  };
 
   const optionStyle = (value: ThemePreference) => {
     const selected = themePreference === value;
@@ -365,7 +309,6 @@ export function SettingsModal({
               </>
             ) : (
               <>
-                {/* Status row */}
                 <View style={styles.infoRow}>
                   <Text style={styles.infoLabel}>
                     {t('settings.syncBackup.peers', { count: syncPeers })}
@@ -377,85 +320,30 @@ export function SettingsModal({
                   ) : null}
                 </View>
 
-                {/* QR code */}
-                <View
-                  style={styles.qrBox}
-                  onLayout={(e) => {
-                    const next = Math.floor(e.nativeEvent.layout.width);
-                    if (Number.isFinite(next) && next > 0 && next !== qrSize) {
-                      setQrSize(next);
-                    }
-                  }}
-                >
-                  {qrSize > 0 && qrSvg ? (
-                    <SvgXml xml={qrSvg} width={qrSize} height={qrSize} />
-                  ) : null}
-                </View>
-
-                {/* Truncated code display */}
-                {syncSecret ? (
-                  <View style={styles.codeBox}>
-                    <Text style={styles.codeText}>
-                      {syncSecret.slice(0, 8)}…{syncSecret.slice(-8)}
-                    </Text>
-                  </View>
-                ) : null}
-
-                {/* Copy / Share buttons */}
                 <View style={styles.actionRow}>
                   <AnimatedPressable
-                    style={styles.outlineButton}
-                    onPress={() => void handleCopyCode()}
+                    style={styles.primaryButton}
+                    onPress={onOpenPairNewDevice}
                   >
-                    <Copy size={15} color={tokens.colors.textSecondary} />
-                    <Text style={styles.outlineButtonText}>
-                      {t('settings.syncBackup.copyCode')}
+                    <Sliders size={18} color={tokens.colors.onPrimary} />
+                    <Text style={styles.githubButtonText}>
+                      {t('settings.syncBackup.pairNewDevice')}
                     </Text>
                   </AnimatedPressable>
                   <AnimatedPressable
-                    style={styles.outlineButton}
-                    onPress={() => void handleShareCode()}
+                    style={[
+                      styles.outlineButton,
+                      pairedDevices.length === 0 && styles.disabledButton,
+                    ]}
+                    disabled={pairedDevices.length === 0}
+                    onPress={onOpenPairedDevices}
                   >
-                    <Share2 size={15} color={tokens.colors.textSecondary} />
+                    <RefreshCw size={15} color={tokens.colors.textSecondary} />
                     <Text style={styles.outlineButtonText}>
-                      {t('settings.syncBackup.shareCode')}
+                      {t('settings.syncBackup.pairedDevices')}
                     </Text>
                   </AnimatedPressable>
                 </View>
-
-                {/* Paired devices */}
-                <Text style={styles.subSectionLabel}>
-                  {t('settings.syncBackup.pairedDevices')}
-                </Text>
-                {pairedDevices.length === 0 ? (
-                  <Text style={styles.rowSubtitle}>
-                    {t('settings.syncBackup.noDevices')}
-                  </Text>
-                ) : (
-                  pairedDevices.map((device) => (
-                    <View key={device.deviceId} style={styles.deviceRow}>
-                      <View style={styles.deviceInfo}>
-                        <Text style={styles.deviceIdText}>
-                          {device.deviceId.slice(0, 8)}…
-                          {device.deviceId.slice(-8)}
-                        </Text>
-                        <Text style={styles.deviceLastSeen}>
-                          {t('settings.syncBackup.lastSeen')}{' '}
-                          {new Date(device.lastSeen).toLocaleDateString()}
-                        </Text>
-                      </View>
-                      <AnimatedPressable
-                        style={styles.forgetButton}
-                        onPress={() => handleForgetConfirm(device.deviceId)}
-                      >
-                        <Trash2 size={13} color={tokens.colors.accentDanger} />
-                        <Text style={styles.forgetButtonText}>
-                          {t('settings.syncBackup.forgetDevice')}
-                        </Text>
-                      </AnimatedPressable>
-                    </View>
-                  ))
-                )}
 
                 {/* Stop sync */}
                 <AnimatedPressable
@@ -612,6 +500,12 @@ function createStyles(
       fontSize: tokens.type.body,
       fontWeight: '700',
     },
+    subSectionLabel: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
+      marginTop: tokens.spacing.xs,
+    },
     row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -717,31 +611,6 @@ function createStyles(
       fontSize: tokens.type.label,
       lineHeight: 16,
     },
-    qrBox: {
-      borderRadius: tokens.radius.lg,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-      backgroundColor: '#ffffff',
-      width: '70%',
-      alignItems: 'center',
-      justifyContent: 'center',
-      aspectRatio: 1,
-      overflow: 'hidden',
-      alignSelf: 'center',
-    },
-    codeBox: {
-      borderRadius: tokens.radius.md,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-      backgroundColor: tokens.colors.surfaceContainerHigh,
-      padding: tokens.spacing.sm,
-      alignItems: 'center',
-    },
-    codeText: {
-      color: tokens.colors.textPrimary,
-      fontSize: 13,
-      fontFamily: 'SpaceGrotesk_600SemiBold',
-    },
     actionRow: {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
@@ -760,52 +629,6 @@ function createStyles(
     },
     outlineButtonText: {
       color: tokens.colors.textSecondary,
-      fontSize: tokens.type.label,
-      fontWeight: '700',
-    },
-    subSectionLabel: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.type.label,
-      fontWeight: '700',
-      marginTop: tokens.spacing.xs,
-    },
-    deviceRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: tokens.spacing.xs,
-      borderBottomWidth: 0.5,
-      borderBottomColor:
-        tokens.mode === 'dark'
-          ? withAlpha('#d1d1d6', 0.18)
-          : withAlpha(tokens.colors.outline, 0.12),
-    },
-    deviceInfo: {
-      flex: 1,
-      gap: 2,
-    },
-    deviceIdText: {
-      color: tokens.colors.textPrimary,
-      fontSize: 12,
-      fontFamily: 'SpaceGrotesk_600SemiBold',
-    },
-    deviceLastSeen: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.type.label,
-    },
-    forgetButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-      paddingHorizontal: tokens.spacing.sm,
-      paddingVertical: tokens.spacing.xs,
-      borderRadius: tokens.radius.sm,
-      borderWidth: 1,
-      borderColor: withAlpha(tokens.colors.accentDanger, 0.35),
-      backgroundColor: withAlpha(tokens.colors.error, 0.08),
-    },
-    forgetButtonText: {
-      color: tokens.colors.accentDanger,
       fontSize: tokens.type.label,
       fontWeight: '700',
     },
@@ -829,6 +652,17 @@ function createStyles(
     },
     githubButton: {
       marginTop: tokens.spacing.xs,
+      borderRadius: tokens.radius.md,
+      backgroundColor: tokens.colors.primary,
+      minHeight: 44,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: tokens.spacing.xs,
+      paddingHorizontal: tokens.spacing.md,
+    },
+    primaryButton: {
+      flex: 1,
       borderRadius: tokens.radius.md,
       backgroundColor: tokens.colors.primary,
       minHeight: 44,
