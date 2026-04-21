@@ -3,7 +3,8 @@
     "cancel": "Atcelt",
     "delete": "Dzēst",
     "back": "Atpakaļ",
-    "next": "Tālāk"
+    "next": "Tālāk",
+    "ok": "Labi"
   },
   "app": {
     "loading": "Treniņu datu sagatavošana"
@@ -163,5 +164,45 @@
     "placeholder": "Vieta",
     "openWallet": "Atvērt maka",
     "copy": "Kopēt"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Dzēst vingrinājumu",
+      "message": "Dzēst \"{{exercise}}\" no {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Atiestatīt visus datus?",
+      "message": "Tiks atiestatīti vingrinājumi, svari, nedēļas, dienas, taimera iestatījumi un sinhronizācijas vēsture.",
+      "actions": {
+        "confirm": "Atiestatīt"
+      },
+      "authPromptMessage": "Apstiprināt atiestatīšanu",
+      "canceledTitle": "Atiestatīšana atcelta",
+      "canceledMessage": "Sistēmas autentifikācija neapstiprināja atiestatīšanu.",
+      "failedTitle": "Atiestatīšana neizdevās"
+    },
+    "exportBackup": {
+      "chooserTitle": "Eksportēt dublējumu",
+      "chooserMessage": "Izvēlieties, kā vēlaties eksportēt dublējumu.",
+      "actions": {
+        "saveToDevice": "Saglabāt ierīcē",
+        "share": "Kopīgot"
+      },
+      "savedTitle": "Dublējums saglabāts",
+      "savedMessage": "{{fileName}} saglabāts izvēlētajā mapē.",
+      "failedTitle": "Eksports neizdevās",
+      "sharingUnavailableTitle": "Kopīgošana nav pieejama",
+      "sharingUnavailableMessage": "Kopīgošana nav pieejama šajā ierīcē/platformā."
+    },
+    "importBackup": {
+      "failedTitle": "Imports neizdevās"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Nevar atvērt saiti",
+      "cannotOpenWalletLinkTitle": "Nevar atvērt maka saiti"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopēšana neizdevās"
+    }
   }
 }

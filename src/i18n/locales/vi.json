@@ -3,7 +3,8 @@
     "cancel": "Hủy",
     "delete": "Xóa",
     "back": "Quay lại",
-    "next": "Tiếp theo"
+    "next": "Tiếp theo",
+    "ok": "OK"
   },
   "app": {
     "loading": "Đang chuẩn bị dữ liệu tập luyện của bạn"
@@ -163,5 +164,45 @@
     "placeholder": "Trình giữ chỗ",
     "openWallet": "Mở ví",
     "copy": "Sao chép"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Xóa bài tập",
+      "message": "Xóa \"{{exercise}}\" khỏi {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Đặt lại tất cả dữ liệu?",
+      "message": "Thao tác này sẽ đặt lại bài tập, mức tạ, tuần, ngày, cài đặt hẹn giờ và lịch sử đồng bộ.",
+      "actions": {
+        "confirm": "Đặt lại"
+      },
+      "authPromptMessage": "Xác nhận đặt lại",
+      "canceledTitle": "Đã hủy đặt lại",
+      "canceledMessage": "Xác thực hệ thống không xác nhận việc đặt lại.",
+      "failedTitle": "Đặt lại thất bại"
+    },
+    "exportBackup": {
+      "chooserTitle": "Xuất bản sao lưu",
+      "chooserMessage": "Chọn cách bạn muốn xuất bản sao lưu.",
+      "actions": {
+        "saveToDevice": "Lưu vào thiết bị",
+        "share": "Chia sẻ"
+      },
+      "savedTitle": "Đã lưu bản sao lưu",
+      "savedMessage": "Đã lưu {{fileName}} vào thư mục đã chọn.",
+      "failedTitle": "Xuất thất bại",
+      "sharingUnavailableTitle": "Không thể chia sẻ",
+      "sharingUnavailableMessage": "Chia sẻ không khả dụng trên thiết bị/nền tảng này."
+    },
+    "importBackup": {
+      "failedTitle": "Nhập thất bại"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Không thể mở liên kết",
+      "cannotOpenWalletLinkTitle": "Không thể mở liên kết ví"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Sao chép thất bại"
+    }
   }
 }

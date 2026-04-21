@@ -3,7 +3,8 @@
     "cancel": "Avbryt",
     "delete": "Slett",
     "back": "Tilbake",
-    "next": "Neste"
+    "next": "Neste",
+    "ok": "OK"
   },
   "app": {
     "loading": "Forbereder treningsdataene dine"
@@ -163,5 +164,45 @@
     "placeholder": "Plassholder",
     "openWallet": "Åpne lommebok",
     "copy": "Kopier"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Slett øvelse",
+      "message": "Slette \"{{exercise}}\" fra {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Tilbakestille alle data?",
+      "message": "Dette vil tilbakestille øvelser, vekter, uker, dager, timerinnstillinger og synkroniseringshistorikk.",
+      "actions": {
+        "confirm": "Tilbakestill"
+      },
+      "authPromptMessage": "Bekreft tilbakestilling",
+      "canceledTitle": "Tilbakestilling avbrutt",
+      "canceledMessage": "Systemautentisering bekreftet ikke tilbakestillingen.",
+      "failedTitle": "Tilbakestilling mislyktes"
+    },
+    "exportBackup": {
+      "chooserTitle": "Eksporter sikkerhetskopi",
+      "chooserMessage": "Velg hvordan du vil eksportere sikkerhetskopien.",
+      "actions": {
+        "saveToDevice": "Lagre på enheten",
+        "share": "Del"
+      },
+      "savedTitle": "Sikkerhetskopi lagret",
+      "savedMessage": "{{fileName}} ble lagret i valgt mappe.",
+      "failedTitle": "Eksport mislyktes",
+      "sharingUnavailableTitle": "Deling ikke tilgjengelig",
+      "sharingUnavailableMessage": "Deling er ikke tilgjengelig på denne enheten/plattformen."
+    },
+    "importBackup": {
+      "failedTitle": "Import mislyktes"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Kan ikke åpne lenke",
+      "cannotOpenWalletLinkTitle": "Kan ikke åpne lommeboklenke"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiering mislyktes"
+    }
   }
 }

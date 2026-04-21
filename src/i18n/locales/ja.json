@@ -3,7 +3,8 @@
     "cancel": "キャンセル",
     "delete": "削除",
     "back": "戻る",
-    "next": "次へ"
+    "next": "次へ",
+    "ok": "OK"
   },
   "app": {
     "loading": "トレーニングデータの準備中"
@@ -163,5 +164,45 @@
     "placeholder": "プレースホルダー",
     "openWallet": "ウォレットを開く",
     "copy": "コピー"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "エクササイズを削除",
+      "message": "{{workout}}から「{{exercise}}」を削除しますか？"
+    },
+    "resetAllData": {
+      "title": "すべてのデータをリセットしますか？",
+      "message": "これにより、エクササイズ、重量、週、日、タイマー設定、同期履歴がリセットされます。",
+      "actions": {
+        "confirm": "リセット"
+      },
+      "authPromptMessage": "リセットを確認",
+      "canceledTitle": "リセットをキャンセルしました",
+      "canceledMessage": "システム認証でリセットが確認されませんでした。",
+      "failedTitle": "リセットに失敗しました"
+    },
+    "exportBackup": {
+      "chooserTitle": "バックアップを書き出し",
+      "chooserMessage": "バックアップの書き出し方法を選択してください。",
+      "actions": {
+        "saveToDevice": "端末に保存",
+        "share": "共有"
+      },
+      "savedTitle": "バックアップを保存しました",
+      "savedMessage": "選択したフォルダーに{{fileName}}を保存しました。",
+      "failedTitle": "書き出しに失敗しました",
+      "sharingUnavailableTitle": "共有できません",
+      "sharingUnavailableMessage": "このデバイス/プラットフォームでは共有を利用できません。"
+    },
+    "importBackup": {
+      "failedTitle": "インポートに失敗しました"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "リンクを開けません",
+      "cannotOpenWalletLinkTitle": "ウォレットのリンクを開けません"
+    },
+    "clipboard": {
+      "copyFailedTitle": "コピーに失敗しました"
+    }
   }
 }

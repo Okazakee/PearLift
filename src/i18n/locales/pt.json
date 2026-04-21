@@ -3,7 +3,8 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "back": "Voltar",
-    "next": "Seguinte"
+    "next": "Seguinte",
+    "ok": "OK"
   },
   "app": {
     "loading": "A preparar os seus dados de treino"
@@ -163,5 +164,45 @@
     "placeholder": "Espaço reservado",
     "openWallet": "Abrir carteira",
     "copy": "Copiar"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Excluir exercício",
+      "message": "Excluir \"{{exercise}}\" de {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Redefinir todos os dados?",
+      "message": "Isso redefinirá exercícios, pesos, semanas, dias, configurações do temporizador e o histórico de sincronização.",
+      "actions": {
+        "confirm": "Redefinir"
+      },
+      "authPromptMessage": "Confirmar redefinição",
+      "canceledTitle": "Redefinição cancelada",
+      "canceledMessage": "A autenticação do sistema não confirmou a redefinição.",
+      "failedTitle": "Falha ao redefinir"
+    },
+    "exportBackup": {
+      "chooserTitle": "Exportar backup",
+      "chooserMessage": "Escolha como deseja exportar seu backup.",
+      "actions": {
+        "saveToDevice": "Salvar no dispositivo",
+        "share": "Compartilhar"
+      },
+      "savedTitle": "Backup salvo",
+      "savedMessage": "{{fileName}} foi salvo na pasta selecionada.",
+      "failedTitle": "Falha ao exportar",
+      "sharingUnavailableTitle": "Compartilhamento indisponível",
+      "sharingUnavailableMessage": "O compartilhamento não está disponível neste dispositivo/plataforma."
+    },
+    "importBackup": {
+      "failedTitle": "Falha ao importar"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Não é possível abrir o link",
+      "cannotOpenWalletLinkTitle": "Não é possível abrir o link da carteira"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Falha ao copiar"
+    }
   }
 }

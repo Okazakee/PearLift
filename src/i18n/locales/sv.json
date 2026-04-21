@@ -3,7 +3,8 @@
     "cancel": "Avbryt",
     "delete": "Ta bort",
     "back": "Tillbaka",
-    "next": "Nästa"
+    "next": "Nästa",
+    "ok": "OK"
   },
   "app": {
     "loading": "Förbereder dina träningsdata"
@@ -163,5 +164,45 @@
     "placeholder": "Platshållare",
     "openWallet": "Öppna plånbok",
     "copy": "Kopiera"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Ta bort övning",
+      "message": "Ta bort \"{{exercise}}\" från {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Återställ all data?",
+      "message": "Detta återställer övningar, vikter, veckor, dagar, timerinställningar och synkhistorik.",
+      "actions": {
+        "confirm": "Återställ"
+      },
+      "authPromptMessage": "Bekräfta återställning",
+      "canceledTitle": "Återställning avbruten",
+      "canceledMessage": "Systemautentisering bekräftade inte återställningen.",
+      "failedTitle": "Återställning misslyckades"
+    },
+    "exportBackup": {
+      "chooserTitle": "Exportera säkerhetskopia",
+      "chooserMessage": "Välj hur du vill exportera din säkerhetskopia.",
+      "actions": {
+        "saveToDevice": "Spara på enheten",
+        "share": "Dela"
+      },
+      "savedTitle": "Säkerhetskopia sparad",
+      "savedMessage": "{{fileName}} sparades i den valda mappen.",
+      "failedTitle": "Export misslyckades",
+      "sharingUnavailableTitle": "Delning ej tillgänglig",
+      "sharingUnavailableMessage": "Delning är inte tillgänglig på den här enheten/plattformen."
+    },
+    "importBackup": {
+      "failedTitle": "Import misslyckades"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Kan inte öppna länken",
+      "cannotOpenWalletLinkTitle": "Kan inte öppna plånbokslänken"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiering misslyckades"
+    }
   }
 }

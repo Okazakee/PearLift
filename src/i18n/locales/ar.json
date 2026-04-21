@@ -3,7 +3,8 @@
     "cancel": "إلغاء",
     "delete": "حذف",
     "back": "رجوع",
-    "next": "التالي"
+    "next": "التالي",
+    "ok": "حسنًا"
   },
   "app": {
     "loading": "جاري إعداد بيانات التدريب الخاصة بك"
@@ -163,5 +164,45 @@
     "placeholder": "عنصر佔位符",
     "openWallet": "فتح المحفظة",
     "copy": "نسخ"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "حذف التمرين",
+      "message": "حذف \"{{exercise}}\" من {{workout}}؟"
+    },
+    "resetAllData": {
+      "title": "إعادة ضبط كل البيانات؟",
+      "message": "سيؤدي ذلك إلى إعادة ضبط التمارين، الأوزان، الأسابيع، الأيام، إعدادات المؤقت، وسجل المزامنة.",
+      "actions": {
+        "confirm": "إعادة ضبط"
+      },
+      "authPromptMessage": "تأكيد إعادة الضبط",
+      "canceledTitle": "تم إلغاء إعادة الضبط",
+      "canceledMessage": "لم تؤكد مصادقة النظام عملية إعادة الضبط.",
+      "failedTitle": "فشلت إعادة الضبط"
+    },
+    "exportBackup": {
+      "chooserTitle": "تصدير النسخة الاحتياطية",
+      "chooserMessage": "اختر كيفية تصدير النسخة الاحتياطية.",
+      "actions": {
+        "saveToDevice": "حفظ على الجهاز",
+        "share": "مشاركة"
+      },
+      "savedTitle": "تم حفظ النسخة الاحتياطية",
+      "savedMessage": "تم حفظ {{fileName}} في المجلد المحدد.",
+      "failedTitle": "فشل التصدير",
+      "sharingUnavailableTitle": "المشاركة غير متاحة",
+      "sharingUnavailableMessage": "المشاركة غير متاحة على هذا الجهاز/المنصة."
+    },
+    "importBackup": {
+      "failedTitle": "فشل الاستيراد"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "لا يمكن فتح الرابط",
+      "cannotOpenWalletLinkTitle": "لا يمكن فتح رابط المحفظة"
+    },
+    "clipboard": {
+      "copyFailedTitle": "فشل النسخ"
+    }
   }
 }

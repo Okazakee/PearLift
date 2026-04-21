@@ -9,6 +9,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
 import { startTransition, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Linking, Platform, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
@@ -58,6 +59,7 @@ export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
   const systemScheme = useColorScheme();
   const systemLanguage = useSystemLanguage(SUPPORTED_I18N_LANGUAGE_CODES, 'en');
+  const { t } = useTranslation();
 
   const {
     snapshot,
@@ -220,12 +222,15 @@ export function WorkoutScreen() {
 
   const handleDeleteExercise = (exercise: Exercise) => {
     showPrompt(
-      'Delete exercise',
-      `Delete "${exercise.name}" from ${currentWorkout.name}?`,
+      t('prompts.deleteExercise.title'),
+      t('prompts.deleteExercise.message', {
+        exercise: exercise.name,
+        workout: currentWorkout.name,
+      }),
       [
-        { label: 'Cancel', tone: 'cancel' },
+        { label: t('common.cancel'), tone: 'cancel' },
         {
-          label: 'Delete',
+          label: t('common.delete'),
           tone: 'destructive',
           onPress: () => {
             void applyMutation({
@@ -241,12 +246,12 @@ export function WorkoutScreen() {
 
   const handleResetData = () => {
     showPrompt(
-      'Reset all data?',
-      'This will reset exercises, weights, weeks, days, timer settings, and sync state history.',
+      t('prompts.resetAllData.title'),
+      t('prompts.resetAllData.message'),
       [
-        { label: 'Cancel', tone: 'cancel' },
+        { label: t('common.cancel'), tone: 'cancel' },
         {
-          label: 'Reset',
+          label: t('prompts.resetAllData.actions.confirm'),
           tone: 'destructive',
           onPress: () => {
             setSettingsOpen(false);
@@ -256,15 +261,15 @@ export function WorkoutScreen() {
                   await LocalAuthentication.getEnrolledLevelAsync();
                 if (enrolledLevel !== LocalAuthentication.SecurityLevel.NONE) {
                   const result = await LocalAuthentication.authenticateAsync({
-                    promptMessage: 'Confirm reset',
-                    cancelLabel: 'Cancel',
+                    promptMessage: t('prompts.resetAllData.authPromptMessage'),
+                    cancelLabel: t('common.cancel'),
                     disableDeviceFallback: false,
                   });
 
                   if (!result.success) {
                     showPrompt(
-                      'Reset canceled',
-                      'System authentication did not confirm the reset.',
+                      t('prompts.resetAllData.canceledTitle'),
+                      t('prompts.resetAllData.canceledMessage'),
                     );
                     return;
                   }
@@ -273,7 +278,10 @@ export function WorkoutScreen() {
                 await applyMutation({ type: 'resetAllData' });
               } catch (error) {
                 logError('reset/authentication failed', error);
-                showPrompt('Reset failed', getErrorMessage(error));
+                showPrompt(
+                  t('prompts.resetAllData.failedTitle'),
+                  getErrorMessage(error),
+                );
               }
             })();
           },
@@ -306,7 +314,10 @@ export function WorkoutScreen() {
           encoding: EncodingType.UTF8,
         });
 
-        showPrompt('Backup saved', `Saved ${fileName} to the selected folder.`);
+        showPrompt(
+          t('prompts.exportBackup.savedTitle'),
+          t('prompts.exportBackup.savedMessage', { fileName }),
+        );
       } else {
         const file = new File(Paths.cache, fileName);
         file.create({ overwrite: true, intermediates: true });
@@ -316,7 +327,7 @@ export function WorkoutScreen() {
           try {
             await Sharing.shareAsync(file.uri, {
               mimeType: 'application/json',
-              dialogTitle: 'Export backup',
+              dialogTitle: t('prompts.exportBackup.chooserTitle'),
               UTI: 'public.json',
             });
           } catch (error) {
@@ -327,15 +338,15 @@ export function WorkoutScreen() {
           }
         } else {
           showPrompt(
-            'Sharing unavailable',
-            'Sharing is not available on this device/platform.',
+            t('prompts.exportBackup.sharingUnavailableTitle'),
+            t('prompts.exportBackup.sharingUnavailableMessage'),
           );
         }
       }
       setLocalBackupOpen(false);
     } catch (error) {
       logError('backup/export failed', error);
-      showPrompt('Export failed', getErrorMessage(error));
+      showPrompt(t('prompts.exportBackup.failedTitle'), getErrorMessage(error));
     }
   };
 
@@ -344,15 +355,18 @@ export function WorkoutScreen() {
 
     if (Platform.OS === 'android') {
       showPrompt(
-        'Export backup',
-        'Choose how you want to export your backup.',
+        t('prompts.exportBackup.chooserTitle'),
+        t('prompts.exportBackup.chooserMessage'),
         [
           {
-            label: 'Save to device',
+            label: t('prompts.exportBackup.actions.saveToDevice'),
             onPress: () => void exportBackup('save'),
           },
-          { label: 'Share', onPress: () => void exportBackup('share') },
-          { label: 'Cancel', tone: 'cancel' },
+          {
+            label: t('prompts.exportBackup.actions.share'),
+            onPress: () => void exportBackup('share'),
+          },
+          { label: t('common.cancel'), tone: 'cancel' },
         ],
       );
       return;
@@ -383,7 +397,7 @@ export function WorkoutScreen() {
       const message = getErrorMessage(error).toLowerCase();
       if (message.includes('cancel')) return;
       logError('backup/import failed', error);
-      showPrompt('Import failed', getErrorMessage(error));
+      showPrompt(t('prompts.importBackup.failedTitle'), getErrorMessage(error));
     }
   };
 
@@ -399,7 +413,7 @@ export function WorkoutScreen() {
       setPendingImport(null);
     } catch (error) {
       logError('backup/import confirm failed', error);
-      showPrompt('Import failed', getErrorMessage(error));
+      showPrompt(t('prompts.importBackup.failedTitle'), getErrorMessage(error));
     }
   };
 
@@ -428,12 +442,15 @@ export function WorkoutScreen() {
     try {
       const canOpen = await Linking.canOpenURL(repoUrl);
       if (!canOpen) {
-        showPrompt('Cannot open link', repoUrl);
+        showPrompt(t('prompts.openLink.cannotOpenLinkTitle'), repoUrl);
         return;
       }
       await Linking.openURL(repoUrl);
     } catch (error) {
-      showPrompt('Cannot open link', getErrorMessage(error));
+      showPrompt(
+        t('prompts.openLink.cannotOpenLinkTitle'),
+        getErrorMessage(error),
+      );
     }
   };
 
@@ -441,12 +458,15 @@ export function WorkoutScreen() {
     try {
       const canOpen = await Linking.canOpenURL(target.uri);
       if (!canOpen) {
-        showPrompt('Cannot open wallet link', target.uri);
+        showPrompt(t('prompts.openLink.cannotOpenWalletLinkTitle'), target.uri);
         return;
       }
       await Linking.openURL(target.uri);
     } catch (error) {
-      showPrompt('Cannot open wallet link', getErrorMessage(error));
+      showPrompt(
+        t('prompts.openLink.cannotOpenWalletLinkTitle'),
+        getErrorMessage(error),
+      );
     }
   };
 
@@ -454,7 +474,10 @@ export function WorkoutScreen() {
     try {
       await Clipboard.setStringAsync(target.copyValue);
     } catch (error) {
-      showPrompt('Copy failed', getErrorMessage(error));
+      showPrompt(
+        t('prompts.clipboard.copyFailedTitle'),
+        getErrorMessage(error),
+      );
     }
   };
 

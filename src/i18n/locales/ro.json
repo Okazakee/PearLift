@@ -3,7 +3,8 @@
     "cancel": "Anulează",
     "delete": "Șterge",
     "back": "Înapoi",
-    "next": "Următorul"
+    "next": "Următorul",
+    "ok": "OK"
   },
   "app": {
     "loading": "Se pregătesc datele de antrenament"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Deschide portofelul",
     "copy": "Copiază"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Șterge exercițiul",
+      "message": "Ștergeți „{{exercise}}” din {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Resetați toate datele?",
+      "message": "Aceasta va reseta exercițiile, greutățile, săptămânile, zilele, setările temporizatorului și istoricul de sincronizare.",
+      "actions": {
+        "confirm": "Resetează"
+      },
+      "authPromptMessage": "Confirmă resetarea",
+      "canceledTitle": "Resetare anulată",
+      "canceledMessage": "Autentificarea sistemului nu a confirmat resetarea.",
+      "failedTitle": "Resetarea a eșuat"
+    },
+    "exportBackup": {
+      "chooserTitle": "Exportă backup-ul",
+      "chooserMessage": "Alegeți cum doriți să exportați backup-ul.",
+      "actions": {
+        "saveToDevice": "Salvează pe dispozitiv",
+        "share": "Partajează"
+      },
+      "savedTitle": "Backup salvat",
+      "savedMessage": "{{fileName}} a fost salvat în folderul selectat.",
+      "failedTitle": "Export eșuat",
+      "sharingUnavailableTitle": "Partajarea nu este disponibilă",
+      "sharingUnavailableMessage": "Partajarea nu este disponibilă pe acest dispozitiv/această platformă."
+    },
+    "importBackup": {
+      "failedTitle": "Import eșuat"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Nu se poate deschide linkul",
+      "cannotOpenWalletLinkTitle": "Nu se poate deschide linkul portofelului"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Copiere eșuată"
+    }
   }
 }

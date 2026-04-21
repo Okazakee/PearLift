@@ -3,7 +3,8 @@
     "cancel": "Отмена",
     "delete": "Удалить",
     "back": "Назад",
-    "next": "Далее"
+    "next": "Далее",
+    "ok": "ОК"
   },
   "app": {
     "loading": "Подготовка данных тренировки"
@@ -163,5 +164,45 @@
     "placeholder": "Заполнитель",
     "openWallet": "Открыть кошелёк",
     "copy": "Копировать"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Удалить упражнение",
+      "message": "Удалить «{{exercise}}» из {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Сбросить все данные?",
+      "message": "Это сбросит упражнения, веса, недели, дни, настройки таймера и историю синхронизации.",
+      "actions": {
+        "confirm": "Сбросить"
+      },
+      "authPromptMessage": "Подтвердите сброс",
+      "canceledTitle": "Сброс отменён",
+      "canceledMessage": "Системная аутентификация не подтвердила сброс.",
+      "failedTitle": "Сброс не выполнен"
+    },
+    "exportBackup": {
+      "chooserTitle": "Экспортировать резервную копию",
+      "chooserMessage": "Выберите, как экспортировать резервную копию.",
+      "actions": {
+        "saveToDevice": "Сохранить на устройстве",
+        "share": "Поделиться"
+      },
+      "savedTitle": "Резервная копия сохранена",
+      "savedMessage": "{{fileName}} сохранён(а) в выбранную папку.",
+      "failedTitle": "Экспорт не выполнен",
+      "sharingUnavailableTitle": "Поделиться невозможно",
+      "sharingUnavailableMessage": "Функция «Поделиться» недоступна на этом устройстве/платформе."
+    },
+    "importBackup": {
+      "failedTitle": "Импорт не выполнен"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Не удалось открыть ссылку",
+      "cannotOpenWalletLinkTitle": "Не удалось открыть ссылку кошелька"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Не удалось скопировать"
+    }
   }
 }

@@ -3,7 +3,8 @@
     "cancel": "Отказ",
     "delete": "Изтрий",
     "back": "Назад",
-    "next": "Напред"
+    "next": "Напред",
+    "ok": "Добре"
   },
   "app": {
     "loading": "Подготовка на данните за тренировка"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Отвори портфейла",
     "copy": "Копиране"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Изтриване на упражнение",
+      "message": "Да се изтрие „{{exercise}}“ от {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Нулиране на всички данни?",
+      "message": "Това ще нулира упражненията, тежестите, седмиците, дните, настройките на таймера и историята на синхронизирането.",
+      "actions": {
+        "confirm": "Нулиране"
+      },
+      "authPromptMessage": "Потвърдете нулирането",
+      "canceledTitle": "Нулирането е отменено",
+      "canceledMessage": "Системната автентикация не потвърди нулирането.",
+      "failedTitle": "Нулирането не бе успешно"
+    },
+    "exportBackup": {
+      "chooserTitle": "Експорт на архив",
+      "chooserMessage": "Изберете как да експортирате архива си.",
+      "actions": {
+        "saveToDevice": "Запази на устройството",
+        "share": "Споделяне"
+      },
+      "savedTitle": "Архивът е запазен",
+      "savedMessage": "{{fileName}} е запазен(а) в избраната папка.",
+      "failedTitle": "Експортът не бе успешен",
+      "sharingUnavailableTitle": "Споделянето не е налично",
+      "sharingUnavailableMessage": "Споделянето не е налично на това устройство/платформа."
+    },
+    "importBackup": {
+      "failedTitle": "Импортът не бе успешен"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Не може да се отвори връзката",
+      "cannotOpenWalletLinkTitle": "Не може да се отвори връзката към портфейла"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Копирането не бе успешно"
+    }
   }
 }

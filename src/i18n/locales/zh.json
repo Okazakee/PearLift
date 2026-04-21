@@ -3,7 +3,8 @@
     "cancel": "取消",
     "delete": "删除",
     "back": "返回",
-    "next": "下一步"
+    "next": "下一步",
+    "ok": "好"
   },
   "app": {
     "loading": "正在准备您的训练数据"
@@ -163,5 +164,45 @@
     "placeholder": "占位符",
     "openWallet": "打开钱包",
     "copy": "复制"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "删除动作",
+      "message": "从{{workout}}中删除“{{exercise}}”？"
+    },
+    "resetAllData": {
+      "title": "重置所有数据？",
+      "message": "这将重置动作、重量、周、天、计时器设置以及同步历史。",
+      "actions": {
+        "confirm": "重置"
+      },
+      "authPromptMessage": "确认重置",
+      "canceledTitle": "已取消重置",
+      "canceledMessage": "系统认证未确认重置。",
+      "failedTitle": "重置失败"
+    },
+    "exportBackup": {
+      "chooserTitle": "导出备份",
+      "chooserMessage": "选择导出备份的方式。",
+      "actions": {
+        "saveToDevice": "保存到设备",
+        "share": "分享"
+      },
+      "savedTitle": "备份已保存",
+      "savedMessage": "已将{{fileName}}保存到所选文件夹。",
+      "failedTitle": "导出失败",
+      "sharingUnavailableTitle": "无法分享",
+      "sharingUnavailableMessage": "此设备/平台不支持分享。"
+    },
+    "importBackup": {
+      "failedTitle": "导入失败"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "无法打开链接",
+      "cannotOpenWalletLinkTitle": "无法打开钱包链接"
+    },
+    "clipboard": {
+      "copyFailedTitle": "复制失败"
+    }
   }
 }

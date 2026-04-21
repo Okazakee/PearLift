@@ -3,7 +3,8 @@
     "cancel": "Prekliči",
     "delete": "Izbriši",
     "back": "Nazaj",
-    "next": "Naprej"
+    "next": "Naprej",
+    "ok": "V redu"
   },
   "app": {
     "loading": "Priprava podatkov za trening"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Odpri denarnico",
     "copy": "Kopiraj"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Izbriši vajo",
+      "message": "Izbrisati \"{{exercise}}\" iz {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Ponastaviti vse podatke?",
+      "message": "To bo ponastavilo vaje, teže, tedne, dneve, nastavitve časovnika in zgodovino sinhronizacije.",
+      "actions": {
+        "confirm": "Ponastavi"
+      },
+      "authPromptMessage": "Potrdi ponastavitev",
+      "canceledTitle": "Ponastavitev preklicana",
+      "canceledMessage": "Sistemsko preverjanje ni potrdilo ponastavitve.",
+      "failedTitle": "Ponastavitev ni uspela"
+    },
+    "exportBackup": {
+      "chooserTitle": "Izvozi varnostno kopijo",
+      "chooserMessage": "Izberite, kako želite izvoziti varnostno kopijo.",
+      "actions": {
+        "saveToDevice": "Shrani v napravo",
+        "share": "Deli"
+      },
+      "savedTitle": "Varnostna kopija shranjena",
+      "savedMessage": "{{fileName}} je shranjen v izbrano mapo.",
+      "failedTitle": "Izvoz ni uspel",
+      "sharingUnavailableTitle": "Deljenje ni na voljo",
+      "sharingUnavailableMessage": "Deljenje ni na voljo na tej napravi/platformi."
+    },
+    "importBackup": {
+      "failedTitle": "Uvoz ni uspel"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Povezave ni mogoče odpreti",
+      "cannotOpenWalletLinkTitle": "Povezave do denarnice ni mogoče odpreti"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiranje ni uspelo"
+    }
   }
 }

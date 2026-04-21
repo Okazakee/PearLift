@@ -3,7 +3,8 @@
     "cancel": "Mégse",
     "delete": "Törlés",
     "back": "Vissza",
-    "next": "Tovább"
+    "next": "Tovább",
+    "ok": "Rendben"
   },
   "app": {
     "loading": "Edzésadatok előkészítése"
@@ -163,5 +164,45 @@
     "placeholder": "Helyőrző",
     "openWallet": "Tárca megnyitása",
     "copy": "Másolás"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Gyakorlat törlése",
+      "message": "Törlöd a(z) \"{{exercise}}\" gyakorlatot a(z) {{workout}} edzésből?"
+    },
+    "resetAllData": {
+      "title": "Minden adat visszaállítása?",
+      "message": "Ez visszaállítja a gyakorlatokat, súlyokat, heteket, napokat, az időzítő beállításait és a szinkronizálási előzményeket.",
+      "actions": {
+        "confirm": "Visszaállítás"
+      },
+      "authPromptMessage": "Visszaállítás megerősítése",
+      "canceledTitle": "Visszaállítás megszakítva",
+      "canceledMessage": "A rendszerhitelesítés nem erősítette meg a visszaállítást.",
+      "failedTitle": "A visszaállítás nem sikerült"
+    },
+    "exportBackup": {
+      "chooserTitle": "Biztonsági mentés exportálása",
+      "chooserMessage": "Válaszd ki, hogyan szeretnéd exportálni a biztonsági mentést.",
+      "actions": {
+        "saveToDevice": "Mentés az eszközre",
+        "share": "Megosztás"
+      },
+      "savedTitle": "Biztonsági mentés mentve",
+      "savedMessage": "{{fileName}} elmentve a kiválasztott mappába.",
+      "failedTitle": "Exportálás sikertelen",
+      "sharingUnavailableTitle": "A megosztás nem érhető el",
+      "sharingUnavailableMessage": "A megosztás nem érhető el ezen az eszközön/platformon."
+    },
+    "importBackup": {
+      "failedTitle": "Importálás sikertelen"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "A hivatkozás nem nyitható meg",
+      "cannotOpenWalletLinkTitle": "A pénztárca hivatkozása nem nyitható meg"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Másolás sikertelen"
+    }
   }
 }

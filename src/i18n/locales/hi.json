@@ -3,7 +3,8 @@
     "cancel": "रद्द करें",
     "delete": "हटाएं",
     "back": "वापस",
-    "next": "अगला"
+    "next": "अगला",
+    "ok": "ठीक है"
   },
   "app": {
     "loading": "आपके प्रशिक्षण डेटा की तैयारी हो रही है"
@@ -163,5 +164,45 @@
     "placeholder": "प्लेसहोल्डर",
     "openWallet": "वॉलेट खोलें",
     "copy": "कॉपी करें"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "व्यायाम हटाएँ",
+      "message": "{{workout}} से \"{{exercise}}\" हटाएँ?"
+    },
+    "resetAllData": {
+      "title": "सभी डेटा रीसेट करें?",
+      "message": "इससे व्यायाम, वज़न, सप्ताह, दिन, टाइमर सेटिंग्स और सिंक इतिहास रीसेट हो जाएगा।",
+      "actions": {
+        "confirm": "रीसेट"
+      },
+      "authPromptMessage": "रीसेट की पुष्टि करें",
+      "canceledTitle": "रीसेट रद्द",
+      "canceledMessage": "सिस्टम प्रमाणीकरण ने रीसेट की पुष्टि नहीं की।",
+      "failedTitle": "रीसेट विफल"
+    },
+    "exportBackup": {
+      "chooserTitle": "बैकअप निर्यात करें",
+      "chooserMessage": "बैकअप कैसे निर्यात करना है चुनें।",
+      "actions": {
+        "saveToDevice": "डिवाइस में सहेजें",
+        "share": "साझा करें"
+      },
+      "savedTitle": "बैकअप सहेजा गया",
+      "savedMessage": "चयनित फ़ोल्डर में {{fileName}} सहेजा गया।",
+      "failedTitle": "निर्यात विफल",
+      "sharingUnavailableTitle": "साझाकरण उपलब्ध नहीं",
+      "sharingUnavailableMessage": "इस डिवाइस/प्लेटफ़ॉर्म पर साझा करना उपलब्ध नहीं है।"
+    },
+    "importBackup": {
+      "failedTitle": "आयात विफल"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "लिंक नहीं खोल सकते",
+      "cannotOpenWalletLinkTitle": "वॉलेट लिंक नहीं खोल सकते"
+    },
+    "clipboard": {
+      "copyFailedTitle": "कॉपी विफल"
+    }
   }
 }

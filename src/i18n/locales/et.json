@@ -3,7 +3,8 @@
     "cancel": "Tühista",
     "delete": "Kustuta",
     "back": "Tagasi",
-    "next": "Edasi"
+    "next": "Edasi",
+    "ok": "OK"
   },
   "app": {
     "loading": "Treeningandmete ettevalmistamine"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Ava rahakott",
     "copy": "Kopeeri"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Kustuta harjutus",
+      "message": "Kas kustutada \"{{exercise}}\" treeningust {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Lähtesta kõik andmed?",
+      "message": "See lähtestab harjutused, raskused, nädalad, päevad, taimeri seaded ja sünkroonimise ajaloo.",
+      "actions": {
+        "confirm": "Lähtesta"
+      },
+      "authPromptMessage": "Kinnita lähtestamine",
+      "canceledTitle": "Lähtestamine tühistatud",
+      "canceledMessage": "Süsteemi autentimine ei kinnitanud lähtestamist.",
+      "failedTitle": "Lähtestamine ebaõnnestus"
+    },
+    "exportBackup": {
+      "chooserTitle": "Ekspordi varukoopia",
+      "chooserMessage": "Vali, kuidas soovid varukoopiat eksportida.",
+      "actions": {
+        "saveToDevice": "Salvesta seadmesse",
+        "share": "Jaga"
+      },
+      "savedTitle": "Varukoopia salvestatud",
+      "savedMessage": "{{fileName}} salvestati valitud kausta.",
+      "failedTitle": "Eksport ebaõnnestus",
+      "sharingUnavailableTitle": "Jagamine pole saadaval",
+      "sharingUnavailableMessage": "Jagamine pole sellel seadmel/platvormil saadaval."
+    },
+    "importBackup": {
+      "failedTitle": "Import ebaõnnestus"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Linki ei saa avada",
+      "cannotOpenWalletLinkTitle": "Rahakoti linki ei saa avada"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopeerimine ebaõnnestus"
+    }
   }
 }

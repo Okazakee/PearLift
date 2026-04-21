@@ -3,7 +3,8 @@
     "cancel": "Annuleren",
     "delete": "Verwijderen",
     "back": "Terug",
-    "next": "Volgende"
+    "next": "Volgende",
+    "ok": "OK"
   },
   "app": {
     "loading": "Je trainingsgegevens worden voorbereid"
@@ -163,5 +164,45 @@
     "placeholder": "Plaatshouder",
     "openWallet": "Wallet openen",
     "copy": "Kopiëren"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Oefening verwijderen",
+      "message": "\"{{exercise}}\" verwijderen uit {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Alle gegevens resetten?",
+      "message": "Dit reset oefeningen, gewichten, weken, dagen, timerinstellingen en de synchronisatiegeschiedenis.",
+      "actions": {
+        "confirm": "Resetten"
+      },
+      "authPromptMessage": "Reset bevestigen",
+      "canceledTitle": "Reset geannuleerd",
+      "canceledMessage": "Systeemauthenticatie heeft de reset niet bevestigd.",
+      "failedTitle": "Reset mislukt"
+    },
+    "exportBackup": {
+      "chooserTitle": "Back-up exporteren",
+      "chooserMessage": "Kies hoe je je back-up wilt exporteren.",
+      "actions": {
+        "saveToDevice": "Opslaan op apparaat",
+        "share": "Delen"
+      },
+      "savedTitle": "Back-up opgeslagen",
+      "savedMessage": "{{fileName}} is opgeslagen in de gekozen map.",
+      "failedTitle": "Export mislukt",
+      "sharingUnavailableTitle": "Delen niet beschikbaar",
+      "sharingUnavailableMessage": "Delen is niet beschikbaar op dit apparaat/platform."
+    },
+    "importBackup": {
+      "failedTitle": "Import mislukt"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Kan link niet openen",
+      "cannotOpenWalletLinkTitle": "Kan wallet-link niet openen"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiëren mislukt"
+    }
   }
 }

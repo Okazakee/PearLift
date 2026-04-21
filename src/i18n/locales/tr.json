@@ -3,7 +3,8 @@
     "cancel": "İptal",
     "delete": "Sil",
     "back": "Geri",
-    "next": "İleri"
+    "next": "İleri",
+    "ok": "Tamam"
   },
   "app": {
     "loading": "Antrenman verileriniz hazırlanıyor"
@@ -163,5 +164,45 @@
     "placeholder": "Yer tutucu",
     "openWallet": "Cüzdanı aç",
     "copy": "Kopyala"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Egzersizi sil",
+      "message": "{{workout}} içinden \"{{exercise}}\" silinsin mi?"
+    },
+    "resetAllData": {
+      "title": "Tüm veriler sıfırlansın mı?",
+      "message": "Bu işlem egzersizleri, ağırlıkları, haftaları, günleri, zamanlayıcı ayarlarını ve senkronizasyon geçmişini sıfırlar.",
+      "actions": {
+        "confirm": "Sıfırla"
+      },
+      "authPromptMessage": "Sıfırlamayı onayla",
+      "canceledTitle": "Sıfırlama iptal edildi",
+      "canceledMessage": "Sistem kimlik doğrulaması sıfırlamayı onaylamadı.",
+      "failedTitle": "Sıfırlama başarısız"
+    },
+    "exportBackup": {
+      "chooserTitle": "Yedeği dışa aktar",
+      "chooserMessage": "Yedeğinizi nasıl dışa aktarmak istediğinizi seçin.",
+      "actions": {
+        "saveToDevice": "Cihaza kaydet",
+        "share": "Paylaş"
+      },
+      "savedTitle": "Yedek kaydedildi",
+      "savedMessage": "{{fileName}} seçilen klasöre kaydedildi.",
+      "failedTitle": "Dışa aktarma başarısız",
+      "sharingUnavailableTitle": "Paylaşım kullanılamıyor",
+      "sharingUnavailableMessage": "Paylaşım bu cihazda/platformda kullanılamıyor."
+    },
+    "importBackup": {
+      "failedTitle": "İçe aktarma başarısız"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Bağlantı açılamıyor",
+      "cannotOpenWalletLinkTitle": "Cüzdan bağlantısı açılamıyor"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopyalama başarısız"
+    }
   }
 }

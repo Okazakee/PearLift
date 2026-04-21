@@ -3,7 +3,8 @@
     "cancel": "Annulla",
     "delete": "Elimina",
     "back": "Indietro",
-    "next": "Avanti"
+    "next": "Avanti",
+    "ok": "OK"
   },
   "app": {
     "loading": "Preparazione dei dati di allenamento"
@@ -163,5 +164,45 @@
     "placeholder": "Segnaposto",
     "openWallet": "Apri portafoglio",
     "copy": "Copia"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Elimina esercizio",
+      "message": "Eliminare \"{{exercise}}\" da {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Reimpostare tutti i dati?",
+      "message": "Questo reimposterà esercizi, pesi, settimane, giorni, impostazioni del timer e la cronologia di sincronizzazione.",
+      "actions": {
+        "confirm": "Reimposta"
+      },
+      "authPromptMessage": "Conferma reimpostazione",
+      "canceledTitle": "Reimpostazione annullata",
+      "canceledMessage": "L'autenticazione di sistema non ha confermato la reimpostazione.",
+      "failedTitle": "Reimpostazione non riuscita"
+    },
+    "exportBackup": {
+      "chooserTitle": "Esporta backup",
+      "chooserMessage": "Scegli come esportare il backup.",
+      "actions": {
+        "saveToDevice": "Salva sul dispositivo",
+        "share": "Condividi"
+      },
+      "savedTitle": "Backup salvato",
+      "savedMessage": "{{fileName}} salvato nella cartella selezionata.",
+      "failedTitle": "Esportazione non riuscita",
+      "sharingUnavailableTitle": "Condivisione non disponibile",
+      "sharingUnavailableMessage": "La condivisione non è disponibile su questo dispositivo/piattaforma."
+    },
+    "importBackup": {
+      "failedTitle": "Importazione non riuscita"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Impossibile aprire il link",
+      "cannotOpenWalletLinkTitle": "Impossibile aprire il link del wallet"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Copia non riuscita"
+    }
   }
 }

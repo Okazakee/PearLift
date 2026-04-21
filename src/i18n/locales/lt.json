@@ -3,7 +3,8 @@
     "cancel": "Atšaukti",
     "delete": "Ištrinti",
     "back": "Atgal",
-    "next": "Kitas"
+    "next": "Kitas",
+    "ok": "Gerai"
   },
   "app": {
     "loading": "Rengiami treniruočių duomenys"
@@ -163,5 +164,45 @@
     "placeholder": "Vieta",
     "openWallet": "Atidaryti piniginę",
     "copy": "Kopijuoti"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Ištrinti pratimą",
+      "message": "Ištrinti \"{{exercise}}\" iš {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Atstatyti visus duomenis?",
+      "message": "Tai atstatys pratimus, svorius, savaites, dienas, laikmačio nustatymus ir sinchronizavimo istoriją.",
+      "actions": {
+        "confirm": "Atstatyti"
+      },
+      "authPromptMessage": "Patvirtinti atstatymą",
+      "canceledTitle": "Atstatymas atšauktas",
+      "canceledMessage": "Sistemos autentifikavimas nepatvirtino atstatymo.",
+      "failedTitle": "Atstatymas nepavyko"
+    },
+    "exportBackup": {
+      "chooserTitle": "Eksportuoti atsarginę kopiją",
+      "chooserMessage": "Pasirinkite, kaip norite eksportuoti atsarginę kopiją.",
+      "actions": {
+        "saveToDevice": "Išsaugoti į įrenginį",
+        "share": "Bendrinti"
+      },
+      "savedTitle": "Atsarginė kopija išsaugota",
+      "savedMessage": "{{fileName}} išsaugotas pasirinktoje aplanke.",
+      "failedTitle": "Eksportavimas nepavyko",
+      "sharingUnavailableTitle": "Bendrinimas nepasiekiamas",
+      "sharingUnavailableMessage": "Bendrinimas nepasiekiamas šiame įrenginyje/platformoje."
+    },
+    "importBackup": {
+      "failedTitle": "Importavimas nepavyko"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Nepavyksta atidaryti nuorodos",
+      "cannotOpenWalletLinkTitle": "Nepavyksta atidaryti piniginės nuorodos"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopijavimas nepavyko"
+    }
   }
 }

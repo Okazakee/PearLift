@@ -3,7 +3,8 @@
     "cancel": "ยกเลิก",
     "delete": "ลบ",
     "back": "กลับ",
-    "next": "ถัดไป"
+    "next": "ถัดไป",
+    "ok": "ตกลง"
   },
   "app": {
     "loading": "กำลังเตรียมข้อมูลการฝึกซ้อมของคุณ"
@@ -163,5 +164,45 @@
     "placeholder": "ตัวอย่าง",
     "openWallet": "เปิดกระเป๋าเงิน",
     "copy": "คัดลอก"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "ลบการออกกำลังกาย",
+      "message": "ลบ \"{{exercise}}\" ออกจาก {{workout}} หรือไม่?"
+    },
+    "resetAllData": {
+      "title": "รีเซ็ตข้อมูลทั้งหมดหรือไม่?",
+      "message": "การดำเนินการนี้จะรีเซ็ตการออกกำลังกาย น้ำหนัก สัปดาห์ วัน การตั้งค่าตัวจับเวลา และประวัติการซิงค์",
+      "actions": {
+        "confirm": "รีเซ็ต"
+      },
+      "authPromptMessage": "ยืนยันการรีเซ็ต",
+      "canceledTitle": "ยกเลิกการรีเซ็ตแล้ว",
+      "canceledMessage": "การยืนยันตัวตนของระบบไม่ได้ยืนยันการรีเซ็ต",
+      "failedTitle": "รีเซ็ตไม่สำเร็จ"
+    },
+    "exportBackup": {
+      "chooserTitle": "ส่งออกข้อมูลสำรอง",
+      "chooserMessage": "เลือกวิธีที่ต้องการส่งออกข้อมูลสำรอง",
+      "actions": {
+        "saveToDevice": "บันทึกลงอุปกรณ์",
+        "share": "แชร์"
+      },
+      "savedTitle": "บันทึกข้อมูลสำรองแล้ว",
+      "savedMessage": "บันทึก {{fileName}} ไปยังโฟลเดอร์ที่เลือกแล้ว",
+      "failedTitle": "ส่งออกไม่สำเร็จ",
+      "sharingUnavailableTitle": "ไม่สามารถแชร์ได้",
+      "sharingUnavailableMessage": "ไม่สามารถแชร์ได้บนอุปกรณ์/แพลตฟอร์มนี้"
+    },
+    "importBackup": {
+      "failedTitle": "นำเข้าไม่สำเร็จ"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "ไม่สามารถเปิดลิงก์ได้",
+      "cannotOpenWalletLinkTitle": "ไม่สามารถเปิดลิงก์กระเป๋าเงินได้"
+    },
+    "clipboard": {
+      "copyFailedTitle": "คัดลอกไม่สำเร็จ"
+    }
   }
 }

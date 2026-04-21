@@ -3,7 +3,8 @@
     "cancel": "Peruuta",
     "delete": "Poista",
     "back": "Takaisin",
-    "next": "Seuraava"
+    "next": "Seuraava",
+    "ok": "OK"
   },
   "app": {
     "loading": "Valmistellaan harjoittelutietojasi"
@@ -163,5 +164,45 @@
     "placeholder": "Paikkamerkki",
     "openWallet": "Avaa lompakko",
     "copy": "Kopioi"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Poista liike",
+      "message": "Poistetaanko \"{{exercise}}\" treenistä {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Nollataanko kaikki tiedot?",
+      "message": "Tämä nollaa liikkeet, painot, viikot, päivät, ajastimen asetukset ja synkronointihistorian.",
+      "actions": {
+        "confirm": "Nollaa"
+      },
+      "authPromptMessage": "Vahvista nollaus",
+      "canceledTitle": "Nollaus peruttu",
+      "canceledMessage": "Järjestelmän tunnistautuminen ei vahvistanut nollausta.",
+      "failedTitle": "Nollaus epäonnistui"
+    },
+    "exportBackup": {
+      "chooserTitle": "Vie varmuuskopio",
+      "chooserMessage": "Valitse, miten haluat viedä varmuuskopion.",
+      "actions": {
+        "saveToDevice": "Tallenna laitteelle",
+        "share": "Jaa"
+      },
+      "savedTitle": "Varmuuskopio tallennettu",
+      "savedMessage": "{{fileName}} tallennettiin valittuun kansioon.",
+      "failedTitle": "Vienti epäonnistui",
+      "sharingUnavailableTitle": "Jakaminen ei ole käytettävissä",
+      "sharingUnavailableMessage": "Jakaminen ei ole käytettävissä tällä laitteella/alustalla."
+    },
+    "importBackup": {
+      "failedTitle": "Tuonti epäonnistui"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Linkkiä ei voi avata",
+      "cannotOpenWalletLinkTitle": "Lompakkolinkkiä ei voi avata"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiointi epäonnistui"
+    }
   }
 }

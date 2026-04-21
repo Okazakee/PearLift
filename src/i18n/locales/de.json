@@ -3,7 +3,8 @@
     "cancel": "Abbrechen",
     "delete": "Löschen",
     "back": "Zurück",
-    "next": "Weiter"
+    "next": "Weiter",
+    "ok": "OK"
   },
   "app": {
     "loading": "Trainingsdaten werden vorbereitet"
@@ -163,5 +164,45 @@
     "placeholder": "Platzhalter",
     "openWallet": "Wallet öffnen",
     "copy": "Kopieren"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Übung löschen",
+      "message": "\"{{exercise}}\" aus {{workout}} löschen?"
+    },
+    "resetAllData": {
+      "title": "Alle Daten zurücksetzen?",
+      "message": "Dadurch werden Übungen, Gewichte, Wochen, Tage, Timer-Einstellungen und der Sync-Verlauf zurückgesetzt.",
+      "actions": {
+        "confirm": "Zurücksetzen"
+      },
+      "authPromptMessage": "Zurücksetzen bestätigen",
+      "canceledTitle": "Zurücksetzen abgebrochen",
+      "canceledMessage": "Die Systemauthentifizierung hat das Zurücksetzen nicht bestätigt.",
+      "failedTitle": "Zurücksetzen fehlgeschlagen"
+    },
+    "exportBackup": {
+      "chooserTitle": "Backup exportieren",
+      "chooserMessage": "Wähle aus, wie du dein Backup exportieren möchtest.",
+      "actions": {
+        "saveToDevice": "Auf Gerät speichern",
+        "share": "Teilen"
+      },
+      "savedTitle": "Backup gespeichert",
+      "savedMessage": "{{fileName}} im ausgewählten Ordner gespeichert.",
+      "failedTitle": "Export fehlgeschlagen",
+      "sharingUnavailableTitle": "Teilen nicht verfügbar",
+      "sharingUnavailableMessage": "Teilen ist auf diesem Gerät/ dieser Plattform nicht verfügbar."
+    },
+    "importBackup": {
+      "failedTitle": "Import fehlgeschlagen"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Link kann nicht geöffnet werden",
+      "cannotOpenWalletLinkTitle": "Wallet-Link kann nicht geöffnet werden"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopieren fehlgeschlagen"
+    }
   }
 }

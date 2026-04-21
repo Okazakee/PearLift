@@ -3,7 +3,8 @@
     "cancel": "Anuluj",
     "delete": "Usuń",
     "back": "Wstecz",
-    "next": "Dalej"
+    "next": "Dalej",
+    "ok": "OK"
   },
   "app": {
     "loading": "Przygotowywanie danych treningowych"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Otwórz portfel",
     "copy": "Kopiuj"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Usuń ćwiczenie",
+      "message": "Usunąć „{{exercise}}” z {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Zresetować wszystkie dane?",
+      "message": "Spowoduje to zresetowanie ćwiczeń, ciężarów, tygodni, dni, ustawień timera i historii synchronizacji.",
+      "actions": {
+        "confirm": "Zresetuj"
+      },
+      "authPromptMessage": "Potwierdź reset",
+      "canceledTitle": "Reset anulowany",
+      "canceledMessage": "Uwierzytelnienie systemowe nie potwierdziło resetu.",
+      "failedTitle": "Reset nieudany"
+    },
+    "exportBackup": {
+      "chooserTitle": "Eksportuj kopię zapasową",
+      "chooserMessage": "Wybierz, jak chcesz wyeksportować kopię zapasową.",
+      "actions": {
+        "saveToDevice": "Zapisz na urządzeniu",
+        "share": "Udostępnij"
+      },
+      "savedTitle": "Kopia zapasowa zapisana",
+      "savedMessage": "{{fileName}} zapisano w wybranym folderze.",
+      "failedTitle": "Eksport nieudany",
+      "sharingUnavailableTitle": "Udostępnianie niedostępne",
+      "sharingUnavailableMessage": "Udostępnianie nie jest dostępne na tym urządzeniu/platformie."
+    },
+    "importBackup": {
+      "failedTitle": "Import nieudany"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Nie można otworzyć linku",
+      "cannotOpenWalletLinkTitle": "Nie można otworzyć linku portfela"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiowanie nieudane"
+    }
   }
 }

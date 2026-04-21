@@ -3,7 +3,8 @@
     "cancel": "Annuller",
     "delete": "Slet",
     "back": "Tilbage",
-    "next": "Næste"
+    "next": "Næste",
+    "ok": "OK"
   },
   "app": {
     "loading": "Forbereder dine träningsdata"
@@ -163,5 +164,45 @@
     "placeholder": "Pladsholder",
     "openWallet": "Åbn tegnebog",
     "copy": "Kopiér"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Slet øvelse",
+      "message": "Slet \"{{exercise}}\" fra {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Nulstil alle data?",
+      "message": "Dette vil nulstille øvelser, vægte, uger, dage, timerindstillinger og synkroniseringshistorik.",
+      "actions": {
+        "confirm": "Nulstil"
+      },
+      "authPromptMessage": "Bekræft nulstilling",
+      "canceledTitle": "Nulstilling annulleret",
+      "canceledMessage": "Systemgodkendelse bekræftede ikke nulstillingen.",
+      "failedTitle": "Nulstilling mislykkedes"
+    },
+    "exportBackup": {
+      "chooserTitle": "Eksportér backup",
+      "chooserMessage": "Vælg, hvordan du vil eksportere din backup.",
+      "actions": {
+        "saveToDevice": "Gem på enheden",
+        "share": "Del"
+      },
+      "savedTitle": "Backup gemt",
+      "savedMessage": "{{fileName}} blev gemt i den valgte mappe.",
+      "failedTitle": "Eksport mislykkedes",
+      "sharingUnavailableTitle": "Deling ikke tilgængelig",
+      "sharingUnavailableMessage": "Deling er ikke tilgængelig på denne enhed/platform."
+    },
+    "importBackup": {
+      "failedTitle": "Import mislykkedes"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Kan ikke åbne link",
+      "cannotOpenWalletLinkTitle": "Kan ikke åbne wallet-link"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiering mislykkedes"
+    }
   }
 }

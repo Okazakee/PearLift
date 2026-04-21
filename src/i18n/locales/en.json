@@ -3,7 +3,8 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "back": "Back",
-    "next": "Next"
+    "next": "Next",
+    "ok": "OK"
   },
   "app": {
     "loading": "Preparing your training data"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Open wallet",
     "copy": "Copy"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Delete exercise",
+      "message": "Delete \"{{exercise}}\" from {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Reset all data?",
+      "message": "This will reset exercises, weights, weeks, days, timer settings, and sync state history.",
+      "actions": {
+        "confirm": "Reset"
+      },
+      "authPromptMessage": "Confirm reset",
+      "canceledTitle": "Reset canceled",
+      "canceledMessage": "System authentication did not confirm the reset.",
+      "failedTitle": "Reset failed"
+    },
+    "exportBackup": {
+      "chooserTitle": "Export backup",
+      "chooserMessage": "Choose how you want to export your backup.",
+      "actions": {
+        "saveToDevice": "Save to device",
+        "share": "Share"
+      },
+      "savedTitle": "Backup saved",
+      "savedMessage": "Saved {{fileName}} to the selected folder.",
+      "failedTitle": "Export failed",
+      "sharingUnavailableTitle": "Sharing unavailable",
+      "sharingUnavailableMessage": "Sharing is not available on this device/platform."
+    },
+    "importBackup": {
+      "failedTitle": "Import failed"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Cannot open link",
+      "cannotOpenWalletLinkTitle": "Cannot open wallet link"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Copy failed"
+    }
   }
 }

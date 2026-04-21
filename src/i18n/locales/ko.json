@@ -3,7 +3,8 @@
     "cancel": "취소",
     "delete": "삭제",
     "back": "뒤로",
-    "next": "다음"
+    "next": "다음",
+    "ok": "확인"
   },
   "app": {
     "loading": "운동 데이터 준비 중"
@@ -163,5 +164,45 @@
     "placeholder": "플레이스홀더",
     "openWallet": "지갑 열기",
     "copy": "복사"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "운동 삭제",
+      "message": "{{workout}}에서 \"{{exercise}}\"을(를) 삭제할까요?"
+    },
+    "resetAllData": {
+      "title": "모든 데이터를 초기화할까요?",
+      "message": "운동, 무게, 주, 일, 타이머 설정 및 동기화 기록이 초기화됩니다.",
+      "actions": {
+        "confirm": "초기화"
+      },
+      "authPromptMessage": "초기화 확인",
+      "canceledTitle": "초기화 취소됨",
+      "canceledMessage": "시스템 인증에서 초기화가 확인되지 않았습니다.",
+      "failedTitle": "초기화 실패"
+    },
+    "exportBackup": {
+      "chooserTitle": "백업 내보내기",
+      "chooserMessage": "백업을 내보낼 방법을 선택하세요.",
+      "actions": {
+        "saveToDevice": "기기에 저장",
+        "share": "공유"
+      },
+      "savedTitle": "백업 저장됨",
+      "savedMessage": "선택한 폴더에 {{fileName}}을(를) 저장했습니다.",
+      "failedTitle": "내보내기 실패",
+      "sharingUnavailableTitle": "공유 불가",
+      "sharingUnavailableMessage": "이 기기/플랫폼에서는 공유를 사용할 수 없습니다."
+    },
+    "importBackup": {
+      "failedTitle": "가져오기 실패"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "링크를 열 수 없음",
+      "cannotOpenWalletLinkTitle": "지갑 링크를 열 수 없음"
+    },
+    "clipboard": {
+      "copyFailedTitle": "복사 실패"
+    }
   }
 }

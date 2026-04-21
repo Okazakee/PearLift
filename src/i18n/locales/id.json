@@ -3,7 +3,8 @@
     "cancel": "Batal",
     "delete": "Hapus",
     "back": "Kembali",
-    "next": "Berikutnya"
+    "next": "Berikutnya",
+    "ok": "OK"
   },
   "app": {
     "loading": "Mempersiapkan data latihan Anda"
@@ -163,5 +164,45 @@
     "placeholder": "Tempatholder",
     "openWallet": "Buka dompet",
     "copy": "Salin"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Hapus latihan",
+      "message": "Hapus \"{{exercise}}\" dari {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Setel ulang semua data?",
+      "message": "Ini akan menyetel ulang latihan, beban, minggu, hari, pengaturan timer, dan riwayat sinkronisasi.",
+      "actions": {
+        "confirm": "Setel ulang"
+      },
+      "authPromptMessage": "Konfirmasi setel ulang",
+      "canceledTitle": "Setel ulang dibatalkan",
+      "canceledMessage": "Autentikasi sistem tidak mengonfirmasi setel ulang.",
+      "failedTitle": "Setel ulang gagal"
+    },
+    "exportBackup": {
+      "chooserTitle": "Ekspor cadangan",
+      "chooserMessage": "Pilih cara mengekspor cadangan Anda.",
+      "actions": {
+        "saveToDevice": "Simpan ke perangkat",
+        "share": "Bagikan"
+      },
+      "savedTitle": "Cadangan disimpan",
+      "savedMessage": "{{fileName}} disimpan ke folder yang dipilih.",
+      "failedTitle": "Ekspor gagal",
+      "sharingUnavailableTitle": "Berbagi tidak tersedia",
+      "sharingUnavailableMessage": "Berbagi tidak tersedia di perangkat/platform ini."
+    },
+    "importBackup": {
+      "failedTitle": "Impor gagal"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Tidak dapat membuka tautan",
+      "cannotOpenWalletLinkTitle": "Tidak dapat membuka tautan dompet"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Gagal menyalin"
+    }
   }
 }

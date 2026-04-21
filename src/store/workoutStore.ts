@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
 import type { AppPromptAction } from '../components/modals/AppPromptModal';
 import { REST_TIMER_PERSIST_KEY } from '../config/timer';
+import i18n from '../i18n';
 import { RestTimerForegroundService } from '../native/restTimerForegroundService';
 import type { WorkoutMutation, WorkoutStoreSnapshot } from '../storage/types';
 import type { WorkoutRepository } from '../storage/workoutRepository';
@@ -142,7 +143,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
   showPrompt: (title, message, actions) => {
     set({
-      promptConfig: { title, message, actions: actions ?? [{ label: 'OK' }] },
+      promptConfig: {
+        title,
+        message,
+        actions: actions ?? [{ label: i18n.t('common.ok') }],
+      },
     });
   },
 

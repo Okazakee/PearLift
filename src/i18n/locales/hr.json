@@ -3,7 +3,8 @@
     "cancel": "Odustani",
     "delete": "Izbriši",
     "back": "Natrag",
-    "next": "Sljedeće"
+    "next": "Sljedeće",
+    "ok": "U redu"
   },
   "app": {
     "loading": "Priprema podataka za trening"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Otvori novčanik",
     "copy": "Kopiraj"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Izbriši vježbu",
+      "message": "Izbrisati \"{{exercise}}\" iz {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Resetirati sve podatke?",
+      "message": "Ovo će resetirati vježbe, težine, tjedne, dane, postavke timera i povijest sinkronizacije.",
+      "actions": {
+        "confirm": "Resetiraj"
+      },
+      "authPromptMessage": "Potvrdite resetiranje",
+      "canceledTitle": "Resetiranje otkazano",
+      "canceledMessage": "Provjera identiteta sustava nije potvrdila resetiranje.",
+      "failedTitle": "Resetiranje nije uspjelo"
+    },
+    "exportBackup": {
+      "chooserTitle": "Izvezi sigurnosnu kopiju",
+      "chooserMessage": "Odaberite kako želite izvesti sigurnosnu kopiju.",
+      "actions": {
+        "saveToDevice": "Spremi na uređaj",
+        "share": "Dijeli"
+      },
+      "savedTitle": "Sigurnosna kopija spremljena",
+      "savedMessage": "{{fileName}} je spremljen u odabranu mapu.",
+      "failedTitle": "Izvoz nije uspio",
+      "sharingUnavailableTitle": "Dijeljenje nije dostupno",
+      "sharingUnavailableMessage": "Dijeljenje nije dostupno na ovom uređaju/platformi."
+    },
+    "importBackup": {
+      "failedTitle": "Uvoz nije uspio"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Nije moguće otvoriti poveznicu",
+      "cannotOpenWalletLinkTitle": "Nije moguće otvoriti poveznicu novčanika"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopiranje nije uspjelo"
+    }
   }
 }

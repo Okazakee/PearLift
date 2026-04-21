@@ -3,7 +3,8 @@
     "cancel": "Annuler",
     "delete": "Supprimer",
     "back": "Retour",
-    "next": "Suivant"
+    "next": "Suivant",
+    "ok": "OK"
   },
   "app": {
     "loading": "Préparation de vos données d'entraînement"
@@ -163,5 +164,45 @@
     "placeholder": "Espace réservé",
     "openWallet": "Ouvrir le portefeuille",
     "copy": "Copier"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Supprimer l’exercice",
+      "message": "Supprimer « {{exercise}} » de {{workout}} ?"
+    },
+    "resetAllData": {
+      "title": "Réinitialiser toutes les données ?",
+      "message": "Cela réinitialisera les exercices, les charges, les semaines, les jours, les réglages du minuteur et l’historique de synchronisation.",
+      "actions": {
+        "confirm": "Réinitialiser"
+      },
+      "authPromptMessage": "Confirmer la réinitialisation",
+      "canceledTitle": "Réinitialisation annulée",
+      "canceledMessage": "L’authentification du système n’a pas confirmé la réinitialisation.",
+      "failedTitle": "Échec de la réinitialisation"
+    },
+    "exportBackup": {
+      "chooserTitle": "Exporter la sauvegarde",
+      "chooserMessage": "Choisissez comment exporter votre sauvegarde.",
+      "actions": {
+        "saveToDevice": "Enregistrer sur l’appareil",
+        "share": "Partager"
+      },
+      "savedTitle": "Sauvegarde enregistrée",
+      "savedMessage": "{{fileName}} a été enregistrée dans le dossier sélectionné.",
+      "failedTitle": "Échec de l’export",
+      "sharingUnavailableTitle": "Partage indisponible",
+      "sharingUnavailableMessage": "Le partage n’est pas disponible sur cet appareil/cette plateforme."
+    },
+    "importBackup": {
+      "failedTitle": "Échec de l’import"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Impossible d’ouvrir le lien",
+      "cannotOpenWalletLinkTitle": "Impossible d’ouvrir le lien du portefeuille"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Échec de la copie"
+    }
   }
 }

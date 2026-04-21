@@ -3,7 +3,8 @@
     "cancel": "Zrušit",
     "delete": "Smazat",
     "back": "Zpět",
-    "next": "Další"
+    "next": "Další",
+    "ok": "OK"
   },
   "app": {
     "loading": "Příprava dat tréninku"
@@ -163,5 +164,45 @@
     "placeholder": "Zástupný symbol",
     "openWallet": "Otevřít peněženku",
     "copy": "Kopírovat"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Smazat cvik",
+      "message": "Smazat „{{exercise}}“ z {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Resetovat všechna data?",
+      "message": "Tím se resetují cviky, váhy, týdny, dny, nastavení časovače a historie synchronizace.",
+      "actions": {
+        "confirm": "Resetovat"
+      },
+      "authPromptMessage": "Potvrďte reset",
+      "canceledTitle": "Reset zrušen",
+      "canceledMessage": "Systémové ověření reset nepotvrdilo.",
+      "failedTitle": "Reset se nezdařil"
+    },
+    "exportBackup": {
+      "chooserTitle": "Export zálohy",
+      "chooserMessage": "Vyberte, jak chcete zálohu exportovat.",
+      "actions": {
+        "saveToDevice": "Uložit do zařízení",
+        "share": "Sdílet"
+      },
+      "savedTitle": "Záloha uložena",
+      "savedMessage": "{{fileName}} bylo uloženo do vybrané složky.",
+      "failedTitle": "Export se nezdařil",
+      "sharingUnavailableTitle": "Sdílení není dostupné",
+      "sharingUnavailableMessage": "Sdílení není na tomto zařízení/platformě dostupné."
+    },
+    "importBackup": {
+      "failedTitle": "Import se nezdařil"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Nelze otevřít odkaz",
+      "cannotOpenWalletLinkTitle": "Nelze otevřít odkaz na peněženku"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopírování se nezdařilo"
+    }
   }
 }

@@ -3,7 +3,8 @@
     "cancel": "Zrušiť",
     "delete": "Vymazať",
     "back": "Späť",
-    "next": "Ďalej"
+    "next": "Ďalej",
+    "ok": "OK"
   },
   "app": {
     "loading": "Príprava údajov o tréningu"
@@ -163,5 +164,45 @@
     "placeholder": "Placeholder",
     "openWallet": "Otvoriť peňaženku",
     "copy": "Kopírovať"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Vymazať cvičenie",
+      "message": "Vymazať \"{{exercise}}\" z {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "Obnoviť všetky údaje?",
+      "message": "Tým sa obnovia cvičenia, záťaže, týždne, dni, nastavenia časovača a história synchronizácie.",
+      "actions": {
+        "confirm": "Obnoviť"
+      },
+      "authPromptMessage": "Potvrdiť obnovenie",
+      "canceledTitle": "Obnovenie zrušené",
+      "canceledMessage": "Systémové overenie nepotvrdilo obnovenie.",
+      "failedTitle": "Obnovenie zlyhalo"
+    },
+    "exportBackup": {
+      "chooserTitle": "Exportovať zálohu",
+      "chooserMessage": "Vyberte, ako chcete exportovať zálohu.",
+      "actions": {
+        "saveToDevice": "Uložiť do zariadenia",
+        "share": "Zdieľať"
+      },
+      "savedTitle": "Záloha uložená",
+      "savedMessage": "{{fileName}} bolo uložené do vybraného priečinka.",
+      "failedTitle": "Export zlyhal",
+      "sharingUnavailableTitle": "Zdieľanie nie je k dispozícii",
+      "sharingUnavailableMessage": "Zdieľanie nie je k dispozícii na tomto zariadení/platforme."
+    },
+    "importBackup": {
+      "failedTitle": "Import zlyhal"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "Odkaz sa nedá otvoriť",
+      "cannotOpenWalletLinkTitle": "Odkaz na peňaženku sa nedá otvoriť"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Kopírovanie zlyhalo"
+    }
   }
 }

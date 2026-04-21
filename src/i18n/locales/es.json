@@ -3,7 +3,8 @@
     "cancel": "Cancelar",
     "delete": "Eliminar",
     "back": "Atrás",
-    "next": "Siguiente"
+    "next": "Siguiente",
+    "ok": "OK"
   },
   "app": {
     "loading": "Preparando tus datos de entrenamiento"
@@ -163,5 +164,45 @@
     "placeholder": "Marcador de posición",
     "openWallet": "Abrir billetera",
     "copy": "Copiar"
+  },
+  "prompts": {
+    "deleteExercise": {
+      "title": "Eliminar ejercicio",
+      "message": "¿Eliminar \"{{exercise}}\" de {{workout}}?"
+    },
+    "resetAllData": {
+      "title": "¿Restablecer todos los datos?",
+      "message": "Esto restablecerá ejercicios, pesos, semanas, días, ajustes del temporizador y el historial de sincronización.",
+      "actions": {
+        "confirm": "Restablecer"
+      },
+      "authPromptMessage": "Confirmar restablecimiento",
+      "canceledTitle": "Restablecimiento cancelado",
+      "canceledMessage": "La autenticación del sistema no confirmó el restablecimiento.",
+      "failedTitle": "Error al restablecer"
+    },
+    "exportBackup": {
+      "chooserTitle": "Exportar copia de seguridad",
+      "chooserMessage": "Elige cómo quieres exportar tu copia de seguridad.",
+      "actions": {
+        "saveToDevice": "Guardar en el dispositivo",
+        "share": "Compartir"
+      },
+      "savedTitle": "Copia de seguridad guardada",
+      "savedMessage": "{{fileName}} se guardó en la carpeta seleccionada.",
+      "failedTitle": "Error al exportar",
+      "sharingUnavailableTitle": "Compartir no disponible",
+      "sharingUnavailableMessage": "Compartir no está disponible en este dispositivo/plataforma."
+    },
+    "importBackup": {
+      "failedTitle": "Error al importar"
+    },
+    "openLink": {
+      "cannotOpenLinkTitle": "No se puede abrir el enlace",
+      "cannotOpenWalletLinkTitle": "No se puede abrir el enlace de la cartera"
+    },
+    "clipboard": {
+      "copyFailedTitle": "Error al copiar"
+    }
   }
 }
