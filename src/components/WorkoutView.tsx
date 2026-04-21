@@ -1,5 +1,5 @@
 import { Plus, Sliders } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
@@ -76,26 +76,15 @@ export function WorkoutView({
     () => sortedExercises.map((exercise) => exercise.id),
     [sortedExercises],
   );
-  const [currentOrder, setCurrentOrder] = useState<string[]>(sortedExerciseIds);
+  const [savedOrderByWorkout, setSavedOrderByWorkout] = useState<
+    Record<string, string[]>
+  >({});
 
-  const previousWorkoutIdRef = useRef(workout.id);
-  const orderByWorkoutRef = useRef<Record<string, string[]>>({});
-
-  useEffect(() => {
-    if (previousWorkoutIdRef.current !== workout.id) {
-      previousWorkoutIdRef.current = workout.id;
-      const savedOrder = orderByWorkoutRef.current[workout.id];
-      if (savedOrder) {
-        setCurrentOrder(savedOrder);
-        return;
-      }
-      setCurrentOrder(sortedExerciseIds);
-    }
-  }, [workout.id, sortedExerciseIds]);
-
-  useEffect(() => {
-    orderByWorkoutRef.current[workout.id] = currentOrder;
-  }, [currentOrder, workout.id]);
+  const displayExerciseIds = useMemo(() => {
+    const saved = savedOrderByWorkout[workout.id];
+    if (saved?.every((id) => exerciseById.has(id))) return saved;
+    return sortedExerciseIds;
+  }, [savedOrderByWorkout, workout.id, sortedExerciseIds, exerciseById]);
 
   const renderHeader = useCallback(
     () => (
@@ -178,8 +167,6 @@ export function WorkoutView({
     [onOpenAddExercise, styles, tokens.colors.primary],
   );
 
-  const displayExerciseIds = currentOrder;
-
   const renderItem = useCallback<SortableGridRenderItem<string>>(
     ({ item }) => {
       const exercise = exerciseById.get(item);
@@ -233,8 +220,13 @@ export function WorkoutView({
           activeItemOpacity={0.95}
           activeItemShadowOpacity={0.12}
           dropAnimationDuration={200}
+          itemEntering={null}
+          itemExiting={null}
           onDragEnd={({ data: reordered }) => {
-            setCurrentOrder(reordered);
+            setSavedOrderByWorkout((prev) => ({
+              ...prev,
+              [workout.id]: reordered,
+            }));
             onReorderExercises(reordered);
           }}
         />

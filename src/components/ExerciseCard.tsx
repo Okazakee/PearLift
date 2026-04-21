@@ -1,15 +1,6 @@
 import { Dumbbell, Edit2, Minus, Plus, Trash2 } from 'lucide-react-native';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import Animated, {
-  cancelAnimation,
-  Easing,
-  ReduceMotion,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 import { AnimatedPressable } from '../animation/primitives';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -53,52 +44,7 @@ function ExerciseCardComponent({
   const [tempWeight, setTempWeight] = useState(
     formatWeight(baseDisplayWeight, weightUnit),
   );
-  const prevAdjustedWeightRef = useRef(adjustedWeight);
   const submitGuardRef = useRef(false);
-  const weightScale = useSharedValue(1);
-  const weightTranslateY = useSharedValue(0);
-
-  const weightBumpStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateY: weightTranslateY.value },
-      { scale: weightScale.value },
-    ],
-  }));
-
-  useEffect(() => {
-    if (prevAdjustedWeightRef.current === adjustedWeight) {
-      return;
-    }
-    prevAdjustedWeightRef.current = adjustedWeight;
-    cancelAnimation(weightScale);
-    cancelAnimation(weightTranslateY);
-    weightScale.value = 1;
-    weightTranslateY.value = 0;
-    weightScale.value = withSequence(
-      withTiming(1.14, {
-        duration: 90,
-        easing: Easing.out(Easing.quad),
-        reduceMotion: ReduceMotion.System,
-      }),
-      withTiming(1, {
-        duration: 160,
-        easing: Easing.out(Easing.cubic),
-        reduceMotion: ReduceMotion.System,
-      }),
-    );
-    weightTranslateY.value = withSequence(
-      withTiming(-2, {
-        duration: 90,
-        easing: Easing.out(Easing.quad),
-        reduceMotion: ReduceMotion.System,
-      }),
-      withTiming(0, {
-        duration: 160,
-        easing: Easing.out(Easing.cubic),
-        reduceMotion: ReduceMotion.System,
-      }),
-    );
-  }, [adjustedWeight, weightScale, weightTranslateY]);
 
   const step = getWeightStep(baseDisplayWeight, weightUnit);
   const handleWeightAdjust = useCallback(
@@ -137,10 +83,16 @@ function ExerciseCardComponent({
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
         <View style={styles.topActions}>
-          <AnimatedPressable style={styles.iconButton} onPress={handleEdit}>
+          <AnimatedPressable
+            style={[styles.iconButton, styles.iconButtonEdit]}
+            onPress={handleEdit}
+          >
             <Edit2 size={16} color={tokens.colors.textSecondary} />
           </AnimatedPressable>
-          <AnimatedPressable style={styles.iconButton} onPress={handleDelete}>
+          <AnimatedPressable
+            style={[styles.iconButton, styles.iconButtonDelete]}
+            onPress={handleDelete}
+          >
             <Trash2 size={17} color={tokens.colors.error} />
           </AnimatedPressable>
         </View>
@@ -192,11 +144,9 @@ function ExerciseCardComponent({
             }}
           >
             <Dumbbell size={24} color={tokens.colors.primary} />
-            <Animated.View style={weightBumpStyle}>
-              <Text style={styles.weightValue}>
-                {formatWeight(adjustedDisplayWeight, weightUnit)}
-              </Text>
-            </Animated.View>
+            <Text style={styles.weightValue}>
+              {formatWeight(adjustedDisplayWeight, weightUnit)}
+            </Text>
             <Text style={styles.weightUnit}>
               {formatWeightUnit(weightUnit)}
             </Text>
@@ -271,6 +221,12 @@ function createStyles(tokens: ThemeTokens) {
       justifyContent: 'center',
       alignItems: 'center',
     },
+    iconButtonEdit: {
+      backgroundColor: withAlpha(tokens.colors.textSecondary, 0.1),
+    },
+    iconButtonDelete: {
+      backgroundColor: withAlpha(tokens.colors.error, 0.12),
+    },
     repChip: {
       paddingHorizontal: tokens.spacing.sm + 6,
       paddingVertical: tokens.spacing.xs + 1,
@@ -303,7 +259,7 @@ function createStyles(tokens: ThemeTokens) {
       alignItems: 'center',
     },
     weightValue: {
-      color: '#ffffff',
+      color: tokens.colors.textPrimary,
       fontSize: tokens.type.metric,
       fontFamily: 'SpaceGrotesk_700Bold',
       minWidth: 74,
@@ -327,7 +283,7 @@ function createStyles(tokens: ThemeTokens) {
       gap: tokens.spacing.xs,
     },
     weightInput: {
-      color: '#ffffff',
+      color: tokens.colors.textPrimary,
       fontSize: tokens.type.metric,
       fontFamily: 'SpaceGrotesk_700Bold',
       minWidth: 82,

@@ -460,7 +460,7 @@ function createStyles(
     resetButton: {
       marginTop: tokens.spacing.xs,
       borderRadius: tokens.radius.md,
-      backgroundColor: '#291a1c',
+      backgroundColor: withAlpha(tokens.colors.error, 0.12),
       minHeight: 44,
       flexDirection: 'row',
       alignItems: 'center',

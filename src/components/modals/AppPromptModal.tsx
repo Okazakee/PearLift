@@ -121,7 +121,7 @@ function createStyles(tokens: ThemeTokens) {
       borderColor: tokens.colors.outlineVariant,
     },
     actionDestructive: {
-      backgroundColor: '#291a1c',
+      backgroundColor: withAlpha(tokens.colors.error, 0.12),
       borderWidth: 1,
       borderColor: withAlpha(tokens.colors.accentDanger, 0.4),
     },

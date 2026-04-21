@@ -5,9 +5,6 @@
 ### Error boundries + logs
 - Add error boundries in risky code sections and log detailed errors
 
-### Change icon system to lucide icons
-- Change current icons as these do not have necessary gym icons
-
 ### Tablet layout
 - Adjust the app to have a good tablet layout
 

@@ -50,21 +50,17 @@ export function triggerCompletionFeedback(): void {
 
 export function safeDeactivateKeepAwake(tag: string): void {
   try {
-    Promise.resolve(deactivateKeepAwake(tag)).catch(() => {
-      // ignore if current activity is unavailable during shutdown/background transitions
-    });
+    deactivateKeepAwake(tag);
   } catch {
-    // ignore sync throws from unavailable native activity
+    // ignore unavailable activity during shutdown/background transitions
   }
 }
 
 export function safeActivateKeepAwake(tag: string): void {
-  if (AppState.currentState !== 'active') {
-    return;
-  }
+  if (AppState.currentState !== 'active') return;
   try {
-    Promise.resolve(activateKeepAwakeAsync(tag)).catch(() => {
-      // ignore if current activity is unavailable during startup/background transitions
+    activateKeepAwakeAsync(tag).catch(() => {
+      // ignore unavailable activity during startup/background transitions
     });
   } catch {
     // ignore sync throws from unavailable native activity

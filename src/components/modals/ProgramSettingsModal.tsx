@@ -760,7 +760,7 @@ function createStyles(
       marginBottom: tokens.spacing.md,
     },
     cardPressable: {
-      gap: tokens.spacing.xs,
+      gap: tokens.spacing.sm,
     },
     cardHeader: {
       flexDirection: 'row',
@@ -795,7 +795,7 @@ function createStyles(
       alignItems: 'center',
     },
     rowButtonDelete: {
-      backgroundColor: '#291a1c',
+      backgroundColor: withAlpha(tokens.colors.error, 0.12),
     },
     rowButtonDisabled: {
       opacity: 0.5,
