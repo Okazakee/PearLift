@@ -26,6 +26,7 @@ import { BootstrapScreen } from '../components/BootstrapScreen';
 import { Header } from '../components/Header';
 import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import { AppPromptModal } from '../components/modals/AppPromptModal';
+import { ConnectivityInfoModal } from '../components/modals/ConnectivityInfoModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LanguageListModal } from '../components/modals/LanguageListModal';
 import { PairedDevicesModal } from '../components/modals/PairedDevicesModal';
@@ -42,6 +43,7 @@ import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
+import { logSyncEvent } from '../sync/logger';
 import {
   clearPairingSecret,
   getPairingSecretPayload,
@@ -66,6 +68,8 @@ export function WorkoutScreen() {
 
   const [pairNewDeviceOpen, setPairNewDeviceOpen] = useState(false);
   const [pairedDevicesOpen, setPairedDevicesOpen] = useState(false);
+  const [connectivityInfoOpen, setConnectivityInfoOpen] = useState(false);
+  const [localDeviceId, setLocalDeviceId] = useState<string | null>(null);
 
   const {
     snapshot,
@@ -99,6 +103,11 @@ export function WorkoutScreen() {
     setTimerExpanded,
     syncStatus,
     syncPeers,
+    syncPeerKeys,
+    syncLocalPublicKey,
+    syncAutobaseKey,
+    syncTopicHex,
+    syncBootstrapped,
     lastSyncedAt,
     syncError,
     startSync,
@@ -110,6 +119,8 @@ export function WorkoutScreen() {
     setSyncSecret,
     setSyncSetupOpen,
     syncSetupOpen,
+    newPeerSignal,
+    acknowledgeNewPeerSignal,
   } = useWorkoutStore();
 
   useEffect(() => {
@@ -534,6 +545,17 @@ export function WorkoutScreen() {
   }, [isReady, setSyncSecret]);
 
   useEffect(() => {
+    if (!repository) return;
+    void repository.getOrCreateDeviceId().then(setLocalDeviceId);
+  }, [repository]);
+
+  useEffect(() => {
+    if (!newPeerSignal) return;
+    showPrompt(t('sync.toast.newPeerTitle'), t('sync.toast.newPeerMessage'));
+    acknowledgeNewPeerSignal();
+  }, [newPeerSignal, showPrompt, t, acknowledgeNewPeerSignal]);
+
+  useEffect(() => {
     if (syncStatus === 'synced') {
       void loadPairedDevices();
     }
@@ -573,6 +595,12 @@ export function WorkoutScreen() {
                   );
                   return;
                 }
+                logSyncEvent(
+                  'info',
+                  'ui',
+                  'pair_new_device_requested',
+                  'New pair request opened.',
+                );
                 setPairNewDeviceOpen(true);
               } catch (error) {
                 logError('sync/pair/authentication failed', error);
@@ -834,6 +862,24 @@ export function WorkoutScreen() {
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
+          onOpenConnectivityInfo={() => setConnectivityInfoOpen(true)}
+        />
+
+        <ConnectivityInfoModal
+          open={connectivityInfoOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          syncStatus={syncStatus}
+          syncPeers={syncPeers}
+          syncPeerKeys={syncPeerKeys}
+          syncLocalPublicKey={syncLocalPublicKey}
+          syncAutobaseKey={syncAutobaseKey}
+          syncTopicHex={syncTopicHex}
+          syncBootstrapped={syncBootstrapped}
+          lastSyncedAt={lastSyncedAt}
+          deviceId={localDeviceId}
+          onClose={() => setConnectivityInfoOpen(false)}
         />
 
         <SyncPairNewDeviceModal
@@ -861,11 +907,16 @@ export function WorkoutScreen() {
           topInset={insets.top}
           bottomInset={insets.bottom}
           syncStatus={syncStatus}
+          syncPeers={syncPeers}
           syncError={syncError}
           onStartSync={startSync}
           onStopSync={stopSync}
           onClose={() => setSyncSetupOpen(false)}
           onDone={() => setSyncSetupOpen(false)}
+          onViewInfo={() => {
+            setSyncSetupOpen(false);
+            setConnectivityInfoOpen(true);
+          }}
         />
 
         <LanguageListModal

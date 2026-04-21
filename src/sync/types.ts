@@ -13,13 +13,25 @@ export type SyncMutation = Exclude<
   | { type: 'restoreRuntimeState' }
 >;
 
+export interface SyncPresencePayload {
+  kind: 'presence';
+}
+
+export interface SyncMutationPayload {
+  kind: 'mutation';
+  mutation: SyncMutation;
+}
+
+export type SyncPayload = SyncMutationPayload | SyncPresencePayload;
+
 export interface SyncOpEnvelope {
   schemaVersion: typeof SYNC_OP_SCHEMA_VERSION;
   opId: string;
   deviceId: string;
   lamport: number;
   createdAt: string;
-  mutation: SyncMutation;
+  payload?: SyncPayload;
+  mutation?: SyncMutation;
 }
 
 export type SyncStatus = 'idle' | 'connecting' | 'synced' | 'error';
@@ -27,9 +39,26 @@ export type SyncStatus = 'idle' | 'connecting' | 'synced' | 'error';
 export interface SyncHealth {
   status: SyncStatus;
   peers: number;
+  peerKeys: string[];
+  localPublicKey: string | null;
+  autobaseKey: string | null;
+  topicHex: string | null;
+  bootstrapped: boolean;
   lastSyncedAt: string | null;
   lastError: string | null;
 }
+
+export const INITIAL_SYNC_HEALTH: SyncHealth = {
+  status: 'idle',
+  peers: 0,
+  peerKeys: [],
+  localPublicKey: null,
+  autobaseKey: null,
+  topicHex: null,
+  bootstrapped: false,
+  lastSyncedAt: null,
+  lastError: null,
+};
 
 export interface StartSyncInput {
   pairingSecretHex: string;

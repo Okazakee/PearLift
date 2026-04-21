@@ -2,7 +2,7 @@
 
 import Autobase from 'autobase';
 import b4a from 'b4a';
-import { mkdir } from 'bare-fs/promises';
+import { mkdir, readFile, writeFile } from 'bare-fs/promises';
 import { join } from 'bare-path';
 import RPC from 'bare-rpc';
 import Corestore from 'corestore';
@@ -23,12 +23,19 @@ const { IPC } = BareKit;
 let store = null;
 let base = null;
 let swarm = null;
-let peers = 0;
+const peerKeys = new Set();
 let rpc = null;
 let sentViewLength = 0;
 let isFlushing = false;
-let _hasReceivedUpdate = false;
+let runtimeStatus = 'idle';
 let lastBackendError = null;
+let lastSyncedAt = null;
+let localDeviceId = null;
+let topicHex = null;
+let storageRoot = null;
+let cursorPersistTimer = null;
+let cursorDirty = false;
+let connectionsReady = false;
 
 function getErrorMessage(error) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
@@ -42,16 +49,19 @@ function getErrorMessage(error) {
   }
 }
 
-function emitLog(level, scope, error) {
+function emitLog(level, scope, eventName, payload, details = null) {
   if (!rpc) return;
   try {
-    const message = getErrorMessage(error);
-    const event = rpc.event(RPC_SYNC_LOG_EVENT);
-    event.send(
+    const message =
+      typeof payload === 'string' ? payload : getErrorMessage(payload);
+    const rpcEvent = rpc.event(RPC_SYNC_LOG_EVENT);
+    rpcEvent.send(
       JSON.stringify({
         level: level || 'error',
         scope: scope || 'unknown',
+        event: eventName || 'event',
         message,
+        details,
       }),
     );
   } catch {
@@ -61,13 +71,22 @@ function emitLog(level, scope, error) {
 
 function logBackendError(scope, error) {
   lastBackendError = getErrorMessage(error);
-  emitLog('error', scope, error);
+  runtimeStatus = 'error';
+  emitLog('error', scope, 'error', error);
   try {
     // eslint-disable-next-line no-console
     console.error(`[pearlift-sync/${scope}]`, error?.stack ?? error);
   } catch {
     // ignore
   }
+}
+
+function logMajorEvent(scope, eventName, message, details = null) {
+  emitLog('info', scope, eventName, message, details);
+}
+
+function logMajorWarning(scope, eventName, message, details = null) {
+  emitLog('warn', scope, eventName, message, details);
 }
 
 function parseData(data) {
@@ -81,20 +100,85 @@ function safeReply(req, payload) {
   req.reply(JSON.stringify(payload ?? {}));
 }
 
+function buildStatus(status = runtimeStatus, lastError = lastBackendError) {
+  return {
+    status,
+    peers: peerKeys.size,
+    peerKeys: Array.from(peerKeys),
+    localPublicKey: base?.local?.key
+      ? b4a.toString(base.local.key, 'hex')
+      : null,
+    autobaseKey: base?.key ? b4a.toString(base.key, 'hex') : null,
+    topicHex,
+    bootstrapped: connectionsReady || peerKeys.size > 0,
+    lastSyncedAt,
+    lastError,
+  };
+}
+
 function emitStatus(status = 'synced', lastError = null) {
   if (!rpc) return;
-  if (lastError) {
-    lastBackendError = lastError;
-  }
-  const event = rpc.event(RPC_SYNC_STATUS_EVENT);
-  event.send(
-    JSON.stringify({
-      status,
-      peers,
-      lastSyncedAt: new Date().toISOString(),
-      lastError: lastError ?? lastBackendError,
-    }),
+  runtimeStatus = status;
+  lastBackendError = lastError;
+  const rpcEvent = rpc.event(RPC_SYNC_STATUS_EVENT);
+  rpcEvent.send(JSON.stringify(buildStatus(status, lastError)));
+}
+
+function isTransientSocketError(error) {
+  const message = getErrorMessage(error).toLowerCase();
+  return (
+    message.includes('connection timed out') ||
+    message.includes('timed out') ||
+    message.includes('econnreset') ||
+    message.includes('connection reset') ||
+    message.includes('eof')
   );
+}
+
+function cursorPath() {
+  if (!storageRoot) return null;
+  return join(storageRoot, 'sync-cursor.json');
+}
+
+async function loadCursor() {
+  const path = cursorPath();
+  if (!path || !base?.key) return 0;
+  try {
+    const raw = await readFile(path);
+    const parsed = JSON.parse(b4a.toString(raw));
+    const key = b4a.toString(base.key, 'hex');
+    if (parsed && parsed.key === key && typeof parsed.sent === 'number') {
+      return parsed.sent;
+    }
+  } catch {
+    // no cursor yet
+  }
+  return 0;
+}
+
+function scheduleCursorPersist() {
+  cursorDirty = true;
+  if (cursorPersistTimer) return;
+  cursorPersistTimer = setTimeout(() => {
+    cursorPersistTimer = null;
+    if (!cursorDirty) return;
+    cursorDirty = false;
+    void persistCursor();
+  }, 500);
+}
+
+async function persistCursor() {
+  const path = cursorPath();
+  if (!path || !base?.key) return;
+  try {
+    const payload = JSON.stringify({
+      key: b4a.toString(base.key, 'hex'),
+      sent: sentViewLength,
+    });
+    await writeFile(path, payload);
+  } catch (error) {
+    logMajorWarning('cursor', 'persist_failed', getErrorMessage(error));
+  }
 }
 
 async function flushRemoteOps() {
@@ -104,11 +188,25 @@ async function flushRemoteOps() {
   isFlushing = true;
   try {
     const total = base.view.length;
+    let flushed = 0;
     while (sentViewLength < total) {
       const op = await base.view.get(sentViewLength++);
-      const event = rpc.event(RPC_SYNC_REMOTE_OP_EVENT);
-      event.send(JSON.stringify(op));
+      // Don't ship our own ops back to the UI.
+      if (op?.deviceId && localDeviceId && op.deviceId === localDeviceId) {
+        continue;
+      }
+      const rpcEvent = rpc.event(RPC_SYNC_REMOTE_OP_EVENT);
+      rpcEvent.send(JSON.stringify(op));
+      flushed += 1;
     }
+    if (flushed > 0) {
+      lastSyncedAt = new Date().toISOString();
+      emitStatus('synced', null);
+      logMajorEvent('backend', 'remote_flush', 'Remote ops flushed.', {
+        count: flushed,
+      });
+    }
+    scheduleCursorPersist();
   } finally {
     isFlushing = false;
   }
@@ -133,7 +231,37 @@ function normalizeStoragePath(pathOrUri) {
   return pathOrUri;
 }
 
+async function publishBackendPresence() {
+  if (!base || !localDeviceId) return;
+  try {
+    const op = {
+      schemaVersion: 1,
+      opId: `${localDeviceId}:presence:${Date.now()}`,
+      deviceId: localDeviceId,
+      lamport: 0,
+      createdAt: new Date().toISOString(),
+      payload: { kind: 'presence' },
+    };
+    await base.append(op, { optimistic: true });
+  } catch (error) {
+    logMajorWarning('presence', 'publish_failed', getErrorMessage(error));
+  }
+}
+
 async function ensureStopped() {
+  if (cursorPersistTimer) {
+    clearTimeout(cursorPersistTimer);
+    cursorPersistTimer = null;
+  }
+  if (cursorDirty) {
+    try {
+      await persistCursor();
+    } catch {
+      // ignore
+    }
+    cursorDirty = false;
+  }
+
   if (swarm) {
     try {
       await swarm.destroy();
@@ -161,22 +289,33 @@ async function ensureStopped() {
     store = null;
   }
 
-  peers = 0;
+  peerKeys.clear();
   sentViewLength = 0;
   isFlushing = false;
-  _hasReceivedUpdate = false;
+  runtimeStatus = 'idle';
+  lastBackendError = null;
+  lastSyncedAt = null;
+  localDeviceId = null;
+  topicHex = null;
+  storageRoot = null;
+  connectionsReady = false;
 }
 
 async function startSync(config) {
   await ensureStopped();
+  runtimeStatus = 'connecting';
+  lastBackendError = null;
+  lastSyncedAt = null;
 
   const topic = topicFromSecretHex(config.pairingSecretHex);
+  topicHex = b4a.toString(topic, 'hex');
   const basePath = normalizeStoragePath(config.storagePath);
   if (!basePath) {
     throw new Error('Missing storagePath');
   }
-  const storageRoot = join(basePath, 'pearlift-sync');
+  storageRoot = join(basePath, 'pearlift-sync');
   await mkdir(storageRoot, { recursive: true });
+  localDeviceId = config.deviceId ?? null;
 
   store = new Corestore(storageRoot);
   await store.ready();
@@ -194,8 +333,6 @@ async function startSync(config) {
     async apply(nodes, view, host) {
       for (const node of nodes) {
         if (node.value == null) continue;
-
-        // Accept writers that share the pairing secret and append optimistic ops.
         await host.ackWriter(node.from.key);
         await view.append(node.value);
       }
@@ -203,28 +340,68 @@ async function startSync(config) {
   });
 
   await base.ready();
-  sentViewLength = base.view.length;
+
+  const storedCursor = await loadCursor();
+  sentViewLength = Math.min(storedCursor, base.view.length);
 
   base.on('update', () => {
-    void flushRemoteOps()
-      .then(() => {
-        _hasReceivedUpdate = true;
-        emitStatus('synced');
-      })
-      .catch((error) => {
-        logBackendError('flushRemoteOps', error);
-        emitStatus('error', getErrorMessage(error));
-      });
+    void flushRemoteOps().catch((error) => {
+      logBackendError('flushRemoteOps', error);
+      emitStatus('error', getErrorMessage(error));
+    });
   });
 
   swarm = new Hyperswarm();
-  swarm.on('connection', (socket) => {
-    peers += 1;
-    emitStatus('connecting');
+
+  swarm.on('error', (error) => {
+    logBackendError('swarm', error);
+    emitStatus('error', getErrorMessage(error));
+  });
+
+  swarm.on('update', () => {
+    logMajorEvent('swarm', 'update', 'Swarm peer discovery updated.', {
+      peers: peerKeys.size,
+    });
+  });
+
+  swarm.on('connection', (socket, peerInfo) => {
+    const remoteKeyBuf = peerInfo?.publicKey ?? socket.remotePublicKey;
+    const remoteKey = remoteKeyBuf ? b4a.toString(remoteKeyBuf, 'hex') : null;
+    if (remoteKey && peerKeys.has(remoteKey)) {
+      // Duplicate connection event — treat as noop.
+      try {
+        store.replicate(socket);
+      } catch (error) {
+        logBackendError('replicate', error);
+      }
+      return;
+    }
+    if (remoteKey) peerKeys.add(remoteKey);
+
+    connectionsReady = true;
+    const nextStatus = runtimeStatus === 'error' ? 'error' : 'connecting';
+    emitStatus(nextStatus, runtimeStatus === 'error' ? lastBackendError : null);
+    logMajorEvent('peer', 'connected', 'Peer connected.', {
+      peers: peerKeys.size,
+      remoteKey,
+    });
 
     socket.once('close', () => {
-      peers = Math.max(0, peers - 1);
-      emitStatus('connecting');
+      if (remoteKey) peerKeys.delete(remoteKey);
+      if (runtimeStatus !== 'error') {
+        const statusAfterClose =
+          peerKeys.size > 0 && runtimeStatus === 'synced'
+            ? 'synced'
+            : peerKeys.size > 0
+              ? 'synced'
+              : 'connecting';
+        emitStatus(statusAfterClose, lastBackendError);
+      } else {
+        emitStatus('error', lastBackendError);
+      }
+      logMajorEvent('peer', 'disconnected', 'Peer disconnected.', {
+        peers: peerKeys.size,
+      });
     });
 
     try {
@@ -233,16 +410,36 @@ async function startSync(config) {
       logBackendError('replicate', error);
       emitStatus('error', getErrorMessage(error));
     }
+
     socket.on?.('error', (error) => {
+      if (isTransientSocketError(error)) {
+        const message = getErrorMessage(error);
+        logMajorWarning('socket', 'timeout', message, { peers: peerKeys.size });
+        emitStatus(peerKeys.size > 0 ? 'synced' : 'connecting', null);
+        return;
+      }
       logBackendError('socket', error);
       emitStatus('error', getErrorMessage(error));
     });
+
+    // Announce presence so the new peer flips to 'synced' promptly.
+    void publishBackendPresence();
   });
 
-  swarm.join(topic, { server: true, client: true });
-  await swarm.flush();
+  const discovery = swarm.join(topic, { server: true, client: true });
 
-  emitStatus('connecting');
+  // Don't block start on DHT flush. Log in the background.
+  void discovery
+    .flushed()
+    .then(() => {
+      logMajorEvent('swarm', 'topic_announced', 'Swarm topic announced.');
+    })
+    .catch((error) => {
+      logMajorWarning('swarm', 'flush_failed', getErrorMessage(error));
+    });
+
+  emitStatus('connecting', null);
+  logMajorEvent('backend', 'started', 'Sync backend started.');
 
   return {
     bootstrapKeyHex: b4a.toString(base.key, 'hex'),
@@ -260,18 +457,14 @@ rpc = new RPC(IPC, async (req) => {
 
     if (req.command === RPC_SYNC_STOP) {
       await ensureStopped();
-      emitStatus('idle');
+      emitStatus('idle', null);
+      logMajorEvent('backend', 'stopped', 'Sync backend stopped.');
       safeReply(req, { ok: true });
       return;
     }
 
     if (req.command === RPC_SYNC_STATUS) {
-      safeReply(req, {
-        status: base ? 'synced' : 'idle',
-        peers,
-        lastSyncedAt: null,
-        lastError: lastBackendError,
-      });
+      safeReply(req, buildStatus());
       return;
     }
 
@@ -281,6 +474,7 @@ rpc = new RPC(IPC, async (req) => {
         throw new Error('Sync base not started.');
       }
       await base.append(op, { optimistic: true });
+      // Note: do NOT advance lastSyncedAt here — that reflects remote activity.
       safeReply(req, { ok: true });
       return;
     }
@@ -294,7 +488,6 @@ rpc = new RPC(IPC, async (req) => {
   }
 });
 
-// Best-effort global crash boundaries so failures show up in logs + UI.
 try {
   const p = typeof process !== 'undefined' ? process : null;
   if (p?.on) {

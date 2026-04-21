@@ -49,7 +49,45 @@
       "copy": "Copy code",
       "start": "Start sync",
       "stop": "Stop sync",
-      "invalidCode": "Invalid code. It must be 64 hex characters."
+      "invalidCode": "Invalid code. It must be 64 hex characters.",
+      "connecting": "Searching for peers…",
+      "connectedTitle": "Connected",
+      "connectedSubtitle_one": "{{count}} device in sync group.",
+      "connectedSubtitle_other": "{{count}} devices in sync group.",
+      "viewInfo": "View connection info",
+      "done": "Done"
+    },
+    "info": {
+      "title": "Connection info",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Idle",
+        "connecting": "Searching",
+        "synced": "Connected",
+        "error": "Error"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Reachable",
+      "bootstrappedNo": "Waiting",
+      "lastSync": "Last peer sync",
+      "never": "Never",
+      "thisDevice": "This device",
+      "deviceId": "Device ID",
+      "localKey": "Local key",
+      "syncGroup": "Sync group",
+      "autobaseKey": "Autobase key",
+      "topic": "Topic",
+      "connectedPeers": "Connected peers",
+      "noPeers": "No peers connected.",
+      "storagePath": "Storage",
+      "copy": "Copy",
+      "copied": "Copied",
+      "refresh": "Refresh"
+    },
+    "toast": {
+      "newPeerTitle": "New device connected",
+      "newPeerMessage": "A paired device joined the sync group."
     }
   },
   "workout": {
@@ -144,7 +182,8 @@
       "forgetConfirmMessage": "This removes the pairing record locally. The device can still reconnect if it has the same sync code.",
       "peers_one": "{{count}} peer connected",
       "peers_other": "{{count}} peers connected",
-      "stopSync": "Stop Sync"
+      "stopSync": "Stop Sync",
+      "connectionInfo": "Connection info"
     },
     "data": {
       "title": "Data",

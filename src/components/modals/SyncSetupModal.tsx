@@ -1,12 +1,19 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as Clipboard from 'expo-clipboard';
-import { Camera } from 'lucide-react-native';
+import { Camera, CheckCircle2 } from 'lucide-react-native';
 import QRCode from 'qrcode';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { AnimatedPressable } from '../../animation/primitives';
+import { logSyncEvent } from '../../sync/logger';
 import { getPairingSecretPayload } from '../../sync/syncManager';
 import type { SyncStatus } from '../../sync/types';
 import type { ThemeTokens } from '../../theme/tokens';
@@ -20,11 +27,13 @@ interface SyncSetupModalProps {
   topInset: number;
   bottomInset: number;
   syncStatus: SyncStatus;
+  syncPeers?: number;
   syncError: string | null;
   onStartSync: (pairingSecretBase64?: string) => Promise<void>;
   onStopSync: () => Promise<void>;
   onClose: () => void;
   onDone: () => void;
+  onViewInfo?: () => void;
 }
 
 function normalizePairingCode(input: string) {
@@ -62,11 +71,13 @@ export function SyncSetupModal({
   topInset,
   bottomInset,
   syncStatus,
+  syncPeers,
   syncError,
   onStartSync,
   onStopSync,
   onClose,
   onDone,
+  onViewInfo,
 }: SyncSetupModalProps) {
   const { t } = useTranslation();
   const styles = useMemo(
@@ -135,9 +146,10 @@ export function SyncSetupModal({
     };
   }, [open, myCode]);
 
+  const isConnecting = syncStatus === 'connecting';
+  const isConnected = syncStatus === 'synced';
   const canStart =
     syncStatus === 'idle' || syncStatus === 'error' || syncStatus === 'synced';
-  const isConnected = syncStatus === 'synced';
 
   const handleCopy = async () => {
     if (!myCode) return;
@@ -172,8 +184,20 @@ export function SyncSetupModal({
           setLocalError(t('sync.setup.invalidCode'));
           return;
         }
+        logSyncEvent(
+          'info',
+          'ui',
+          'pair_join_requested',
+          'Join pairing requested.',
+        );
         await onStartSync(normalized);
       } else {
+        logSyncEvent(
+          'info',
+          'ui',
+          'pair_create_requested',
+          'Create pairing requested.',
+        );
         await onStartSync(myCode ?? undefined);
       }
     } catch (error) {
@@ -187,6 +211,7 @@ export function SyncSetupModal({
     setLocalError(null);
     setBusy(true);
     try {
+      logSyncEvent('info', 'ui', 'stop_requested', 'Sync stop requested.');
       await onStopSync();
     } catch (error) {
       setLocalError(getErrorMessage(error));
@@ -315,16 +340,52 @@ export function SyncSetupModal({
           </View>
         )}
 
-        {showError ? <Text style={styles.errorText}>{showError}</Text> : null}
+        {showError && !isConnecting ? (
+          <Text style={styles.errorText}>{showError}</Text>
+        ) : null}
+
+        {isConnected ? (
+          <View style={styles.successPanel}>
+            <View style={styles.successHeader}>
+              <CheckCircle2 size={22} color={tokens.colors.primary} />
+              <Text style={styles.successTitle}>
+                {t('sync.setup.connectedTitle')}
+              </Text>
+            </View>
+            <Text style={styles.successSubtitle}>
+              {t('sync.setup.connectedSubtitle', { count: syncPeers })}
+            </Text>
+          </View>
+        ) : null}
+
+        {isConnecting ? (
+          <View style={styles.connectingRow}>
+            <ActivityIndicator size="small" color={tokens.colors.primary} />
+            <Text style={styles.connectingText}>
+              {t('sync.setup.connecting')}
+            </Text>
+          </View>
+        ) : null}
 
         <View style={styles.actions}>
-          {mode === 'create' && myCode ? (
+          {mode === 'create' && myCode && !isConnected && !isConnecting ? (
             <AnimatedPressable
               style={styles.outlineButton}
               onPress={handleCopy}
             >
               <Text style={styles.outlineButtonText}>
                 {t('sync.setup.copy')}
+              </Text>
+            </AnimatedPressable>
+          ) : null}
+
+          {isConnected && onViewInfo ? (
+            <AnimatedPressable
+              style={styles.outlineButton}
+              onPress={onViewInfo}
+            >
+              <Text style={styles.outlineButtonText}>
+                {t('sync.setup.viewInfo')}
               </Text>
             </AnimatedPressable>
           ) : null}
@@ -341,12 +402,19 @@ export function SyncSetupModal({
           ) : null}
 
           <AnimatedPressable
-            style={[styles.primaryButton, busy && styles.disabled]}
+            style={[
+              styles.primaryButton,
+              (busy || isConnecting) && styles.disabled,
+            ]}
             onPress={isConnected ? onDone : handleStart}
-            disabled={busy}
+            disabled={busy || isConnecting}
           >
             <Text style={styles.primaryButtonText}>
-              {isConnected ? t('common.next') : t('sync.setup.start')}
+              {isConnected
+                ? t('sync.setup.done')
+                : isConnecting
+                  ? t('sync.setup.connecting')
+                  : t('sync.setup.start')}
             </Text>
           </AnimatedPressable>
         </View>
@@ -515,6 +583,40 @@ function createStyles(
       color: tokens.colors.accentDanger,
       fontSize: tokens.type.label,
       textAlign: 'center',
+    },
+    successPanel: {
+      borderRadius: tokens.radius.lg,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.12),
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.35),
+      padding: tokens.spacing.md,
+      gap: 4,
+    },
+    successHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    successTitle: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '800',
+    },
+    successSubtitle: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+    },
+    connectingRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      paddingVertical: tokens.spacing.sm,
+    },
+    connectingText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '600',
     },
     actions: {
       flexDirection: 'column',

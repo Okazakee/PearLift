@@ -6,11 +6,10 @@ let bundled = false;
 function buildBundle(projectRoot) {
   if (bundled) return;
   bundled = true;
-  console.log('[pearlift] Building sync backend bundle...');
-  execSync(
-    'node_modules/.bin/bare-pack --host ios --host android --linked --out src/sync/sync.bundle.mjs backend/sync-backend.mjs',
-    { cwd: projectRoot, stdio: 'inherit' },
-  );
+  execSync('node ./scripts/ensure-sync-backend-bundle.mjs --force', {
+    cwd: projectRoot,
+    stdio: 'inherit',
+  });
 }
 
 /** @type {import('@expo/config-plugins').ConfigPlugin} */

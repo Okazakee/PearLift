@@ -52,6 +52,7 @@ interface SettingsModalProps {
   onOpenSyncSetup: () => void;
   onOpenPairNewDevice: () => void;
   onOpenPairedDevices: () => void;
+  onOpenConnectivityInfo: () => void;
   onExportLocalBackup: () => void;
   onImportLocalBackup: () => void;
   onClose: () => void;
@@ -84,6 +85,7 @@ export function SettingsModal({
   onOpenSyncSetup,
   onOpenPairNewDevice,
   onOpenPairedDevices,
+  onOpenConnectivityInfo,
   onExportLocalBackup,
   onImportLocalBackup,
   onClose,
@@ -344,6 +346,16 @@ export function SettingsModal({
                     </Text>
                   </AnimatedPressable>
                 </View>
+
+                <AnimatedPressable
+                  style={styles.outlineButton}
+                  onPress={onOpenConnectivityInfo}
+                >
+                  <Info size={15} color={tokens.colors.textSecondary} />
+                  <Text style={styles.outlineButtonText}>
+                    {t('settings.syncBackup.connectionInfo')}
+                  </Text>
+                </AnimatedPressable>
 
                 {/* Stop sync */}
                 <AnimatedPressable

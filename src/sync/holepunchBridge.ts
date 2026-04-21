@@ -2,6 +2,7 @@ import b4a from 'b4a';
 import RPC from 'bare-rpc';
 import { documentDirectory } from 'expo-file-system/legacy';
 import { Worklet } from 'react-native-bare-kit';
+import { logSyncError, logSyncEvent } from './logger';
 import {
   RPC_SYNC_LOG_EVENT,
   RPC_SYNC_PUBLISH,
@@ -18,6 +19,7 @@ import type {
   SyncHealth,
   SyncOpEnvelope,
 } from './types';
+import { INITIAL_SYNC_HEALTH } from './types';
 
 type RpcLike = {
   request: (command: number) => {
@@ -33,7 +35,9 @@ type RuntimeRpcMessage = {
 type RuntimeLogMessage = {
   level?: 'error' | 'warn' | 'info' | 'debug';
   scope?: string;
+  event?: string;
   message?: string;
+  details?: Record<string, unknown>;
 };
 
 function encodeJson(value: unknown) {
@@ -104,35 +108,29 @@ export class HolepunchWorkletBridge implements SyncBridge {
       }
 
       if (message.command === RPC_SYNC_STATUS_EVENT && message.data) {
-        const health = decodeJson<SyncHealth>(message.data);
+        const raw = decodeJson<Partial<SyncHealth>>(message.data);
+        const health: SyncHealth = { ...INITIAL_SYNC_HEALTH, ...raw };
         for (const listener of this.statusListeners) {
           listener(health);
-        }
-        if (health.lastError) {
-          // eslint-disable-next-line no-console
-          console.error('[pearlift-sync/status]', health.lastError);
         }
         return;
       }
 
       if (message.command === RPC_SYNC_LOG_EVENT && message.data) {
         const payload = decodeJson<RuntimeLogMessage>(message.data);
-        const scope = payload.scope
-          ? `[pearlift-sync/${payload.scope}]`
-          : '[pearlift-sync]';
-        const text = payload.message ?? '';
-        if (payload.level === 'warn') {
-          // eslint-disable-next-line no-console
-          console.warn(scope, text);
-          return;
-        }
-        if (payload.level === 'info' || payload.level === 'debug') {
-          // eslint-disable-next-line no-console
-          console.log(scope, text);
-          return;
-        }
-        // eslint-disable-next-line no-console
-        console.error(scope, text);
+        const level =
+          payload.level === 'warn'
+            ? 'warn'
+            : payload.level === 'error'
+              ? 'error'
+              : 'info';
+        logSyncEvent(
+          level,
+          payload.scope ?? 'backend',
+          payload.event ?? 'event',
+          payload.message ?? '',
+          payload.details,
+        );
       }
     });
 
@@ -143,6 +141,7 @@ export class HolepunchWorkletBridge implements SyncBridge {
   async start(input: StartSyncInput): Promise<{ bootstrapKeyHex: string }> {
     this.ensureRuntime();
     if (!this.rpc) {
+      logSyncError('bridge', 'start_unavailable', 'Holepunch RPC unavailable');
       throw new Error('Holepunch RPC unavailable');
     }
 
@@ -155,6 +154,7 @@ export class HolepunchWorkletBridge implements SyncBridge {
     });
 
     if (response.error) {
+      logSyncError('bridge', 'start_failed', response.error);
       throw new Error(response.error);
     }
 
@@ -179,6 +179,11 @@ export class HolepunchWorkletBridge implements SyncBridge {
 
   async publish(op: SyncOpEnvelope): Promise<void> {
     if (!this.rpc) {
+      logSyncError(
+        'bridge',
+        'publish_without_runtime',
+        'Sync runtime not started.',
+      );
       throw new Error('Sync runtime not started.');
     }
 
@@ -188,6 +193,7 @@ export class HolepunchWorkletBridge implements SyncBridge {
     >(this.rpc, RPC_SYNC_PUBLISH, op);
 
     if (response.error) {
+      logSyncError('bridge', 'publish_failed', response.error);
       throw new Error(response.error);
     }
   }
@@ -213,16 +219,12 @@ export class HolepunchWorkletBridge implements SyncBridge {
     }
 
     try {
-      const status = await requestJson<
-        { now: number },
-        {
-          status: SyncHealth['status'];
-          peers: number;
-          lastSyncedAt: string | null;
-          lastError: string | null;
-        }
-      >(this.rpc, RPC_SYNC_STATUS, { now: Date.now() });
-
+      const raw = await requestJson<{ now: number }, Partial<SyncHealth>>(
+        this.rpc,
+        RPC_SYNC_STATUS,
+        { now: Date.now() },
+      );
+      const status: SyncHealth = { ...INITIAL_SYNC_HEALTH, ...raw };
       for (const listener of this.statusListeners) {
         listener(status);
       }

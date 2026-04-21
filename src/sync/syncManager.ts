@@ -8,12 +8,15 @@ import type {
 import { logError } from '../utils/errors';
 import { createSyncBridge } from './bridge';
 import { canonicalizeMutationForSync } from './canonicalize';
+import { logSyncError, logSyncEvent } from './logger';
 import type {
   SyncBridge,
   SyncHealth,
   SyncManager,
+  SyncMutation,
   SyncOpEnvelope,
 } from './types';
+import { INITIAL_SYNC_HEALTH } from './types';
 
 const SYNC_SECRET_KEY = 'pearlift.sync.secret';
 
@@ -29,6 +32,23 @@ function toHex(bytes: Uint8Array) {
 
 function createOpId(deviceId: string, lamport: number) {
   return `${deviceId}:${lamport}`;
+}
+
+function getOpPayload(
+  op: SyncOpEnvelope,
+): { kind: 'presence' } | { kind: 'mutation'; mutation: SyncMutation } {
+  if (op.payload) {
+    return op.payload;
+  }
+
+  if (op.mutation) {
+    return {
+      kind: 'mutation',
+      mutation: op.mutation,
+    };
+  }
+
+  throw new Error(`Sync op ${op.opId} is missing payload.`);
 }
 
 async function loadOrCreatePairingSecret() {
@@ -51,13 +71,10 @@ class SyncManagerImpl implements SyncManager {
   private active = false;
   private deviceId: string | null = null;
   private lastLoggedBackendError: string | null = null;
+  private startTask: Promise<void> | null = null;
+  private stopTask: Promise<void> | null = null;
 
-  private health: SyncHealth = {
-    status: 'idle',
-    peers: 0,
-    lastSyncedAt: null,
-    lastError: null,
-  };
+  private health: SyncHealth = { ...INITIAL_SYNC_HEALTH };
 
   constructor(repository: WorkoutRepository, bridge?: SyncBridge) {
     this.repository = repository;
@@ -80,81 +97,112 @@ class SyncManagerImpl implements SyncManager {
     if (this.active) {
       return;
     }
+    if (this.startTask) {
+      return this.startTask;
+    }
 
-    this.setHealth({ ...this.health, status: 'connecting', lastError: null });
+    this.startTask = (async () => {
+      this.setHealth({ ...this.health, status: 'connecting', lastError: null });
+      logSyncEvent(
+        'info',
+        'manager',
+        'start_requested',
+        'Sync start requested.',
+      );
 
-    try {
-      const secret = pairingSecretHex ?? (await loadOrCreatePairingSecret());
-      const deviceId = await this.repository.getOrCreateDeviceId();
-      this.deviceId = deviceId;
+      try {
+        const secret = pairingSecretHex ?? (await loadOrCreatePairingSecret());
+        const deviceId = await this.repository.getOrCreateDeviceId();
+        this.deviceId = deviceId;
 
-      this.unsubscribeStatus = this.bridge.onStatus((health) => {
+        this.unsubscribeStatus = this.bridge.onStatus((health) => {
+          this.setHealth({
+            ...this.health,
+            ...health,
+            lastError: health.lastError,
+          });
+        });
+
+        this.unsubscribeRemoteOp = this.bridge.onRemoteOp((op) => {
+          void this.handleRemoteOp(op);
+        });
+
+        const state = await this.repository.getSyncState();
+        const started = await this.bridge.start({
+          pairingSecretHex: secret,
+          deviceId,
+          bootstrapKeyHex: state.autobaseBootstrapKey,
+        });
+
+        await this.repository.setSyncState({
+          syncEnabled: true,
+          autobaseBootstrapKey: started.bootstrapKeyHex,
+          lastError: null,
+        });
+
+        this.active = true;
         this.setHealth({
           ...this.health,
-          ...health,
-          lastError: health.lastError ?? this.health.lastError,
+          lastError: null,
         });
-      });
+        logSyncEvent('info', 'manager', 'started', 'Sync started.');
+      } catch (error) {
+        logError('sync/start failed', error);
+        logSyncError('manager', 'start_failed', error);
+        const message =
+          error instanceof Error ? error.message : 'Sync start failed';
+        await this.repository.setSyncState({
+          syncEnabled: false,
+          lastError: message,
+        });
+        this.setHealth({
+          ...this.health,
+          status: 'error',
+          lastError: message,
+        });
+        throw error;
+      } finally {
+        this.startTask = null;
+      }
+    })();
 
-      this.unsubscribeRemoteOp = this.bridge.onRemoteOp((op) => {
-        void this.handleRemoteOp(op);
-      });
-
-      const state = await this.repository.getSyncState();
-      const started = await this.bridge.start({
-        pairingSecretHex: secret,
-        deviceId,
-        bootstrapKeyHex: state.autobaseBootstrapKey,
-      });
-
-      await this.repository.setSyncState({
-        syncEnabled: true,
-        autobaseBootstrapKey: started.bootstrapKeyHex,
-        lastError: null,
-      });
-
-      this.active = true;
-      this.setHealth({
-        ...this.health,
-        status: 'synced',
-        lastError: null,
-      });
-    } catch (error) {
-      logError('sync/start failed', error);
-      const message =
-        error instanceof Error ? error.message : 'Sync start failed';
-      await this.repository.setSyncState({
-        syncEnabled: false,
-        lastError: message,
-      });
-      this.setHealth({
-        ...this.health,
-        status: 'error',
-        lastError: message,
-      });
-      throw error;
-    }
+    return this.startTask;
   }
 
   async stop() {
-    try {
-      await this.bridge.stop();
-    } finally {
-      // stop should never crash the app; surface failures in logs.
-      // (bridge.stop errors will be thrown before finally runs)
-      this.unsubscribeStatus?.();
-      this.unsubscribeRemoteOp?.();
-      this.unsubscribeStatus = null;
-      this.unsubscribeRemoteOp = null;
-      this.active = false;
-      this.setHealth({
-        status: 'idle',
-        peers: 0,
-        lastSyncedAt: this.health.lastSyncedAt,
-        lastError: null,
-      });
-      await this.repository.setSyncState({ syncEnabled: false });
+    if (this.stopTask) {
+      return this.stopTask;
     }
+
+    this.stopTask = (async () => {
+      try {
+        if (this.startTask) {
+          try {
+            await this.startTask;
+          } catch {
+            // Ignore start failures when explicitly stopping.
+          }
+        }
+        await this.bridge.stop();
+        logSyncEvent('info', 'manager', 'stopped', 'Sync stopped.');
+      } finally {
+        // stop should never crash the app; surface failures in logs.
+        // (bridge.stop errors will be thrown before finally runs)
+        this.unsubscribeStatus?.();
+        this.unsubscribeRemoteOp?.();
+        this.unsubscribeStatus = null;
+        this.unsubscribeRemoteOp = null;
+        this.active = false;
+        this.setHealth({
+          ...INITIAL_SYNC_HEALTH,
+          lastSyncedAt: this.health.lastSyncedAt,
+        });
+        await this.repository.setSyncState({ syncEnabled: false });
+        this.stopTask = null;
+      }
+    })();
+
+    return this.stopTask;
   }
 
   async publishLocalMutation(
@@ -177,24 +225,23 @@ class SyncManagerImpl implements SyncManager {
       deviceId: this.deviceId,
       lamport,
       createdAt: nowIso(),
-      mutation: canonical,
+      payload: {
+        kind: 'mutation',
+        mutation: canonical,
+      },
     };
 
     try {
       await this.bridge.publish(op);
     } catch (error) {
       logError('sync/publish failed', error);
+      logSyncError('manager', 'publish_failed', error);
       throw error;
     }
-    await this.repository.setSyncState({
-      lastSyncedAt: nowIso(),
-      lastError: null,
-    });
-    this.setHealth({
-      ...this.health,
-      lastSyncedAt: nowIso(),
-      lastError: null,
-    });
+    await this.repository.setSyncState({ lastError: null });
+    if (this.health.lastError) {
+      this.setHealth({ ...this.health, lastError: null });
+    }
   }
 
   async handleRemoteOp(op: SyncOpEnvelope) {
@@ -206,8 +253,37 @@ class SyncManagerImpl implements SyncManager {
       return;
     }
 
+    const payload = getOpPayload(op);
+
+    if (payload.kind === 'presence') {
+      await this.repository.markSyncOpApplied({
+        opId: op.opId,
+        deviceId: op.deviceId,
+        lamport: op.lamport,
+      });
+      const syncedAt = nowIso();
+      await this.repository.setSyncState({
+        lastSyncedAt: syncedAt,
+        lastError: null,
+      });
+      this.setHealth({
+        ...this.health,
+        status: 'synced',
+        lastSyncedAt: syncedAt,
+        lastError: null,
+      });
+      logSyncEvent(
+        'info',
+        'manager',
+        'presence_received',
+        'Remote device presence recorded.',
+        { deviceId: op.deviceId },
+      );
+      return;
+    }
+
     try {
-      await this.repository.applyMutation(op.mutation, {
+      await this.repository.applyMutation(payload.mutation, {
         origin: 'remote',
         opId: op.opId,
         deviceId: op.deviceId,
@@ -216,6 +292,10 @@ class SyncManagerImpl implements SyncManager {
       });
     } catch (error) {
       logError('sync/remote apply failed', error);
+      logSyncError('manager', 'remote_apply_failed', error, {
+        opId: op.opId,
+        deviceId: op.deviceId,
+      });
       throw error;
     }
 
@@ -226,6 +306,7 @@ class SyncManagerImpl implements SyncManager {
     });
     this.setHealth({
       ...this.health,
+      status: 'synced',
       lastSyncedAt: syncedAt,
       lastError: null,
     });
@@ -239,6 +320,9 @@ class SyncManagerImpl implements SyncManager {
     if (next.lastError && next.lastError !== this.lastLoggedBackendError) {
       this.lastLoggedBackendError = next.lastError;
       logError('sync/backend', next.lastError);
+    }
+    if (!next.lastError) {
+      this.lastLoggedBackendError = null;
     }
     this.health = next;
     for (const listener of this.healthListeners) {

@@ -15,6 +15,7 @@ import type { WorkoutRepository } from '../storage/workoutRepository';
 import { WorkoutRepository as WorkoutRepoClass } from '../storage/workoutRepository';
 import { createSyncManager } from '../sync/syncManager';
 import type { SyncHealth, SyncManager, SyncStatus } from '../sync/types';
+import { INITIAL_SYNC_HEALTH } from '../sync/types';
 import type { PersistedRestTimerStateV1 } from '../types/timer';
 
 interface PromptConfig {
@@ -31,11 +32,17 @@ interface WorkoutStore {
 
   syncStatus: SyncStatus;
   syncPeers: number;
+  syncPeerKeys: string[];
+  syncLocalPublicKey: string | null;
+  syncAutobaseKey: string | null;
+  syncTopicHex: string | null;
+  syncBootstrapped: boolean;
   lastSyncedAt: string | null;
   syncError: string | null;
   pairedDevices: PairedDevice[];
   syncSecret: string | null;
   syncSetupOpen: boolean;
+  newPeerSignal: string | null;
 
   promptConfig: PromptConfig | null;
 
@@ -52,6 +59,8 @@ interface WorkoutStore {
   pendingImport: MigratedBackupResult | null;
   importSummary: ChangeSummary;
 
+  seenPeerKeys: Set<string>;
+
   initialize: () => Promise<void>;
   reload: () => Promise<void>;
   applyMutation: (mutation: WorkoutMutation) => Promise<void>;
@@ -62,6 +71,7 @@ interface WorkoutStore {
   forgetDevice: (deviceId: string) => Promise<void>;
   setSyncSecret: (secret: string | null) => void;
   setSyncSetupOpen: (open: boolean) => void;
+  acknowledgeNewPeerSignal: () => void;
 
   showPrompt: (
     title: string,
@@ -89,13 +99,20 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   snapshot: null,
   isReady: false,
 
-  syncStatus: 'idle',
-  syncPeers: 0,
-  lastSyncedAt: null,
-  syncError: null,
+  syncStatus: INITIAL_SYNC_HEALTH.status,
+  syncPeers: INITIAL_SYNC_HEALTH.peers,
+  syncPeerKeys: INITIAL_SYNC_HEALTH.peerKeys,
+  syncLocalPublicKey: INITIAL_SYNC_HEALTH.localPublicKey,
+  syncAutobaseKey: INITIAL_SYNC_HEALTH.autobaseKey,
+  syncTopicHex: INITIAL_SYNC_HEALTH.topicHex,
+  syncBootstrapped: INITIAL_SYNC_HEALTH.bootstrapped,
+  lastSyncedAt: INITIAL_SYNC_HEALTH.lastSyncedAt,
+  syncError: INITIAL_SYNC_HEALTH.lastError,
   pairedDevices: [],
   syncSecret: null,
   syncSetupOpen: false,
+  newPeerSignal: null,
+  seenPeerKeys: new Set<string>(),
 
   promptConfig: null,
 
@@ -130,13 +147,36 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       if (current !== syncManager) {
         return;
       }
+      const prev = get();
+      const prevKeys = new Set(prev.syncPeerKeys);
+      const nextKeys = health.peerKeys;
+      let newPeer: string | null = prev.newPeerSignal;
+      for (const key of nextKeys) {
+        if (!prev.seenPeerKeys.has(key)) {
+          newPeer = key;
+        }
+      }
+      const mergedSeen = new Set(prev.seenPeerKeys);
+      for (const key of nextKeys) mergedSeen.add(key);
+
       set({
         syncStatus: health.status,
         syncPeers: health.peers,
+        syncPeerKeys: nextKeys,
+        syncLocalPublicKey: health.localPublicKey,
+        syncAutobaseKey: health.autobaseKey,
+        syncTopicHex: health.topicHex,
+        syncBootstrapped: health.bootstrapped,
         lastSyncedAt: health.lastSyncedAt,
         syncError: health.lastError,
+        seenPeerKeys: mergedSeen,
+        newPeerSignal: newPeer,
       });
-      if (health.status === 'synced') {
+
+      const peerSetChanged =
+        prevKeys.size !== nextKeys.length ||
+        nextKeys.some((k) => !prevKeys.has(k));
+      if (peerSetChanged || health.status === 'synced') {
         void get().loadPairedDevices();
       }
     });
@@ -241,17 +281,36 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       return;
     }
     await syncManager.stop();
-    set({ syncStatus: 'idle', syncPeers: 0, syncError: null });
+    set({
+      syncStatus: 'idle',
+      syncPeers: 0,
+      syncPeerKeys: [],
+      syncLocalPublicKey: null,
+      syncAutobaseKey: null,
+      syncTopicHex: null,
+      syncBootstrapped: false,
+      syncError: null,
+      pairedDevices: [],
+      seenPeerKeys: new Set<string>(),
+      newPeerSignal: null,
+    });
   },
 
   setSyncHealth: (health) => {
     set({
       syncStatus: health.status,
       syncPeers: health.peers,
+      syncPeerKeys: health.peerKeys,
+      syncLocalPublicKey: health.localPublicKey,
+      syncAutobaseKey: health.autobaseKey,
+      syncTopicHex: health.topicHex,
+      syncBootstrapped: health.bootstrapped,
       lastSyncedAt: health.lastSyncedAt,
       syncError: health.lastError,
     });
   },
+
+  acknowledgeNewPeerSignal: () => set({ newPeerSignal: null }),
 
   showPrompt: (title, message, actions) => {
     set({
