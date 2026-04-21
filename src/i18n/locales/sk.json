@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Zrušiť",
+    "delete": "Vymazať",
+    "back": "Späť",
+    "next": "Ďalej"
+  },
+  "app": {
+    "loading": "Príprava údajov o tréningu"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Vitajte v PearLift",
+        "description": "Sledujte svoje tréningy pomocou jednoduchého rozhrania. Zaznamenávajte série, opakovania a záťaž - bez zložitosti, len pokrok."
+      },
+      "units": {
+        "title": "Zvoľte jednotky",
+        "description": "Zvoľte preferovanú jednotku hmotnosti. Môžete to zmeniť neskôr."
+      },
+      "sync": {
+        "title": "Synchronizácia zariadenie-zariadenie",
+        "description": "Synchronizujte svoje tréningy priamo medzi zariadeniami. Nastavte kedykoľvek v Nastaveniach. Funguje lokálne bez cloudových služieb."
+      },
+      "notifications": {
+        "title": "Zostaňte na správnej ceste",
+        "description": "Povolte upozornenia, aby ste nikdy nezabudli na časovač oddychu. Pripomenieme vám, keď bude čas na ďalšiu sériu."
+      }
+    },
+    "getStarted": "Začať",
+    "settingUp": "Nastavenie..."
+  },
+  "workout": {
+    "weekDay": "Týždeň {{week}} - {{day}}",
+    "addExercise": "Pridať cvičenie"
+  },
+  "restTimer": {
+    "title": "Časovač oddychu",
+    "complete": "ODDYCH HOTOVÝ!",
+    "duration": "Trvanie",
+    "notification": {
+      "title": "Oddych hotový",
+      "body": "Čas na ďalšiu sériu."
+    }
+  },
+  "programSettings": {
+    "title": "Nastavenia programu",
+    "tabs": {
+      "weeks": "Týždne",
+      "days": "Dni"
+    },
+    "week": {
+      "namePlaceholder": "Názov týždňa",
+      "loadModifier": "Modifikátor záťaže",
+      "rir": "RIR (Rezervné opakovania)",
+      "baseline": "Základná línia",
+      "addWeek": "Pridať týždeň",
+      "deleteTitle": "Vymazať týždeň",
+      "deleteMessage": "Vymazať \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Deň {{number}}",
+      "icon": "Ikona",
+      "iconMore": "Viac",
+      "iconRefresh": "Obnoviť",
+      "addDay": "Pridať deň",
+      "deleteTitle": "Vymazať deň",
+      "deleteMessage": "Vymazať \"{{name}}\"? Toto ho odstráni zo všetkých týždňov."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Pridať cvičenie",
+    "titleEdit": "Upraviť cvičenie",
+    "name": "Názov",
+    "namePlaceholder": "Názov cvičenia",
+    "muscleGroup": "Svalová skupina",
+    "sets": "Série",
+    "reps": "Opakovania",
+    "notes": "Poznámky",
+    "notesPlaceholder": "Voliteľné poznámky...",
+    "submitAdd": "Pridať cvičenie",
+    "submitEdit": "Uložiť zmeny",
+    "errors": {
+      "nameRequired": "Názov cvičenia je povinný.",
+      "setsInvalid": "Série musia byť platné kladné celé číslo."
+    }
+  },
+  "settings": {
+    "title": "Nastavenia",
+    "appearance": {
+      "title": "Vzhľad",
+      "theme": "Téma",
+      "themeSubtitle": "Farebná schéma aplikácie",
+      "themeSystem": "Systém",
+      "themeLight": "Svetlý",
+      "themeDark": "Tmavý",
+      "weightUnit": "Jednotka hmotnosti",
+      "weightUnitSubtitle": "Zvoľte jednotku hmotnosti",
+      "language": "Jazyk",
+      "system": "Systém",
+      "manual": "Manuálne"
+    },
+    "language": {
+      "title": "Jazyk",
+      "systemLanguage": "Systémový jazyk",
+      "appLanguage": "Jazyk aplikácie",
+      "system": "Systém"
+    },
+    "syncBackup": {
+      "title": "Synchronizácia a záloha",
+      "comingSoon": "Synchronizácia zariadenie-zariadenie bude čoskoro dostupná.",
+      "openSyncSetup": "Otvoriť nastavenia synchronizácie"
+    },
+    "data": {
+      "title": "Údaje",
+      "resetDescription": "Trvalo obnoviť všetky tréningy, nastavenia, údaje časovača a históriu synchronizácie.",
+      "resetButton": "Obnoviť všetky údaje"
+    },
+    "developer": {
+      "title": "Vývojár",
+      "maintainer": "Správca",
+      "openRepo": "Otvoriť repozitár",
+      "donate": "Prispejte"
+    },
+    "appInfo": {
+      "title": "Info o aplikácii",
+      "name": "Názov",
+      "version": "Verzia",
+      "build": "Build",
+      "buildType": "Typ build"
+    }
+  },
+  "backup": {
+    "title": "Záloha a synchronizácia",
+    "deviceSync": {
+      "title": "Synchronizácia zariadení",
+      "comingSoon": "Synchronizácia zariadenie-zariadenie bude čoskoro dostupná.",
+      "enableSetup": "Povoliť v nastaveniach synchronizácie"
+    },
+    "localJson": {
+      "title": "Lokálny JSON",
+      "description": "Exportujte údaje o tréningu do súboru JSON alebo importujte predchádzajúcu lokálnu zálohu.",
+      "export": "Exportovať zálohu",
+      "import": "Importovať zálohu"
+    }
+  },
+  "importPreview": {
+    "title": "Náhľad importu",
+    "changesDetected": "Zistených {{count}} zmien.",
+    "noChanges": "Nezistené žiadne zmeny. Záloha je identická s aktuálnymi údajmi.",
+    "sections": {
+      "workouts": "Tréningy",
+      "settings": "Nastavenia",
+      "weeks": "Týždne",
+      "days": "Dni"
+    },
+    "cancel": "Zrušiť",
+    "confirm": "Importovať zálohu"
+  },
+  "donate": {
+    "title": "Prispejte",
+    "subtitle": "Podporte vývoj PearLift pomocou Bitcoin alebo Lightning.",
+    "placeholder": "Placeholder",
+    "openWallet": "Otvoriť peňaženku",
+    "copy": "Kopírovať"
+  }
+}

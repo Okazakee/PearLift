@@ -22,6 +22,7 @@ export type WorkoutMutation =
   | { type: 'setCurrentDay'; currentDay: WorkoutDay }
   | { type: 'setRestDuration'; restDuration: number }
   | { type: 'setWeightUnit'; weightUnit: WeightUnit }
+  | { type: 'setLanguage'; language: string }
   | { type: 'setExerciseWeight'; exerciseId: string; value: number }
   | { type: 'adjustExerciseWeight'; exerciseId: string; delta: number }
   | {

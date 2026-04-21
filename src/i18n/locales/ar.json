@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "إلغاء",
+    "delete": "حذف",
+    "back": "رجوع",
+    "next": "التالي"
+  },
+  "app": {
+    "loading": "جاري إعداد بيانات التدريب الخاصة بك"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "مرحباً بك في PearLift",
+        "description": "تتبع تمارينك بواجهة بسيطة. سجّل المجموعات والتكرارات والأوزان - بدون تعقيد، فقط تقدم."
+      },
+      "units": {
+        "title": "اختر الوحدات",
+        "description": "اختر وحدة الوزن المفضلة لديك. يمكنك تغيير هذا لاحقاً."
+      },
+      "sync": {
+        "title": "مزامنة الجهاز إلى الجهاز",
+        "description": "زامن تمارينك مباشرة بين الأجهزة. قم بإعدادها في أي وقت من الإعدادات. تعمل محلياً بدون خدمات سحابية."
+      },
+      "notifications": {
+        "title": "ابقَ على المسار",
+        "description": "تفعّل الإشعارات حتى لا تنسى مؤقت الراحة. سنذكّرك عندما يحين وقت المجموعة التالية."
+      }
+    },
+    "getStarted": "ابدأ الآن",
+    "settingUp": "جاري الإعداد..."
+  },
+  "workout": {
+    "weekDay": "الأسبوع {{week}} - اليوم {{day}}",
+    "addExercise": "إضافة تمرين"
+  },
+  "restTimer": {
+    "title": "مؤقت الراحة",
+    "complete": "انتهى الراحة!",
+    "duration": "المدة",
+    "notification": {
+      "title": "انتهت الراحة",
+      "body": "حان وقت مجموعتك التالية."
+    }
+  },
+  "programSettings": {
+    "title": "إعدادات البرنامج",
+    "tabs": {
+      "weeks": "الأسابيع",
+      "days": "الأيام"
+    },
+    "week": {
+      "namePlaceholder": "اسم الأسبوع",
+      "loadModifier": "معدّل الحمل",
+      "rir": "RIR (التكرارات الاحتياطية)",
+      "baseline": "الخط الأساسي",
+      "addWeek": "إضافة أسبوع",
+      "deleteTitle": "حذف أسبوع",
+      "deleteMessage": "حذف \"{{name}}\"؟"
+    },
+    "day": {
+      "namePlaceholder": "اليوم {{number}}",
+      "icon": "أيقونة",
+      "iconMore": "المزيد",
+      "iconRefresh": "تحديث",
+      "addDay": "إضافة يوم",
+      "deleteTitle": "حذف يوم",
+      "deleteMessage": "حذف \"{{name}}\"؟ سيؤدي هذا إلى إزالته من جميع الأسابيع."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "إضافة تمرين",
+    "titleEdit": "تعديل تمرين",
+    "name": "الاسم",
+    "namePlaceholder": "اسم التمرين",
+    "muscleGroup": "مجموعة العضلات",
+    "sets": "المجموعات",
+    "reps": "التكرارات",
+    "notes": "ملاحظات",
+    "notesPlaceholder": "ملاحظات اختيارية...",
+    "submitAdd": "إضافة تمرين",
+    "submitEdit": "حفظ التغييرات",
+    "errors": {
+      "nameRequired": "اسم التمرين مطلوب.",
+      "setsInvalid": "يجب أن تكون المجموعات عدداً صحيحاً موجباً."
+    }
+  },
+  "settings": {
+    "title": "الإعدادات",
+    "appearance": {
+      "title": "المظهر",
+      "theme": "السمة",
+      "themeSubtitle": "مخطط ألوان التطبيق",
+      "themeSystem": "النظام",
+      "themeLight": "فاتح",
+      "themeDark": "داكن",
+      "weightUnit": "وحدة الوزن",
+      "weightUnitSubtitle": "اختر وحدة وزنك",
+      "language": "اللغة",
+      "system": "النظام",
+      "manual": "يدوي"
+    },
+    "language": {
+      "title": "اللغة",
+      "systemLanguage": "لغة النظام",
+      "appLanguage": "لغة التطبيق",
+      "system": "النظام"
+    },
+    "syncBackup": {
+      "title": "المزامنة والنسخ الاحتياطي",
+      "comingSoon": "مزامنة الجهاز إلى الجهاز قادمة قريباً.",
+      "openSyncSetup": "فتح إعداد المزامنة"
+    },
+    "data": {
+      "title": "البيانات",
+      "resetDescription": "إعادة تعيين جميع التمارين والإعدادات وبيانات المؤقت وسجل المزامنة نهائياً.",
+      "resetButton": "إعادة تعيين جميع البيانات"
+    },
+    "developer": {
+      "title": "المطور",
+      "maintainer": "المشرف",
+      "openRepo": "فتح المستودع",
+      "donate": "تبرع"
+    },
+    "appInfo": {
+      "title": "معلومات التطبيق",
+      "name": "الاسم",
+      "version": "الإصدار",
+      "build": "البناء",
+      "buildType": "نوع البناء"
+    }
+  },
+  "backup": {
+    "title": "النسخ الاحتياطي والمزامنة",
+    "deviceSync": {
+      "title": "مزامنة الأجهزة",
+      "comingSoon": "مزامنة الجهاز إلى الجهاز قادمة قريباً.",
+      "enableSetup": "تفعيل في إعدادات المزامنة"
+    },
+    "localJson": {
+      "title": "JSON محلي",
+      "description": "تصدير بيانات التمرين إلى ملف JSON أو استيراد نسخة احتياطية محلية سابقة.",
+      "export": "تصدير النسخة الاحتياطية",
+      "import": "استيراد النسخة الاحتياطية"
+    }
+  },
+  "importPreview": {
+    "title": "معاينة الاستيراد",
+    "changesDetected": "تم اكتشاف {{count}} تغيير(ات).",
+    "noChanges": "لم يتم اكتشاف تغييرات. النسخة الاحتياطية مطابقة للبيانات الحالية.",
+    "sections": {
+      "workouts": "التمارين",
+      "settings": "الإعدادات",
+      "weeks": "الأسابيع",
+      "days": "الأيام"
+    },
+    "cancel": "إلغاء",
+    "confirm": "استيراد النسخة الاحتياطية"
+  },
+  "donate": {
+    "title": "تبرع",
+    "subtitle": "ادعم تطوير PearLift باستخدام بيتكوين أو لايتينينغ.",
+    "placeholder": "عنصر佔位符",
+    "openWallet": "فتح المحفظة",
+    "copy": "نسخ"
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Annuller",
+    "delete": "Slet",
+    "back": "Tilbage",
+    "next": "Næste"
+  },
+  "app": {
+    "loading": "Forbereder dine träningsdata"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Velkommen til PearLift",
+        "description": "Spor dine träninger med en enkel gränseflade. Log sæt, gentagelser og vægte - ingen kompleksitet, bare fremskridt."
+      },
+      "units": {
+        "title": "Vælg enheder",
+        "description": "Vælg din foretrukne vægtenhed. Du kan ændre dette senere."
+      },
+      "sync": {
+        "title": "Enhed-til-enhed synkronisering",
+        "description": "Synkroniser dine träninger direkte mellem enheder. Konfigurer det når som helst i Indstillinger. Fungerer lokalt uden cloud-tjenester."
+      },
+      "notifications": {
+        "title": "Hold dig på sporet",
+        "description": "Aktiver notifikationer så du aldrig glemmer en hviletimer. Vi minder dig om, når det er tid til dit næste sæt."
+      }
+    },
+    "getStarted": "Kom i gang",
+    "settingUp": "Konfigurerer..."
+  },
+  "workout": {
+    "weekDay": "Uge {{week}} - {{day}}",
+    "addExercise": "Tilføj øvelse"
+  },
+  "restTimer": {
+    "title": "Hviletimer",
+    "complete": "HVILE FÆRDIG!",
+    "duration": "Varighed",
+    "notification": {
+      "title": "Hvil færdig",
+      "body": "Tid til dit næste sæt."
+    }
+  },
+  "programSettings": {
+    "title": "Programindstillinger",
+    "tabs": {
+      "weeks": "Uger",
+      "days": "Dage"
+    },
+    "week": {
+      "namePlaceholder": "Ugenavn",
+      "loadModifier": "Lastmodifikator",
+      "rir": "RIR (Reserverepetitioner)",
+      "baseline": "Basislinje",
+      "addWeek": "Tilføj uge",
+      "deleteTitle": "Slet uge",
+      "deleteMessage": "Slet \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Dag {{number}}",
+      "icon": "Ikon",
+      "iconMore": "Mere",
+      "iconRefresh": "Opdater",
+      "addDay": "Tilføj dag",
+      "deleteTitle": "Slet dag",
+      "deleteMessage": "Slet \"{{name}}\"? Dette fjerner den fra alle uger."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Tilføj øvelse",
+    "titleEdit": "Rediger øvelse",
+    "name": "Navn",
+    "namePlaceholder": "Øvelsens navn",
+    "muscleGroup": "Muskelgruppe",
+    "sets": "Sæt",
+    "reps": "Gentagelser",
+    "notes": "Noter",
+    "notesPlaceholder": "Valgfrie notater...",
+    "submitAdd": "Tilføj øvelse",
+    "submitEdit": "Gem ændringer",
+    "errors": {
+      "nameRequired": "Øvelsens navn er påkrævet.",
+      "setsInvalid": "Sæt skal være et gyldigt positivt heltal."
+    }
+  },
+  "settings": {
+    "title": "Indstillinger",
+    "appearance": {
+      "title": "Udseende",
+      "theme": "Tema",
+      "themeSubtitle": "Appens farveskema",
+      "themeSystem": "System",
+      "themeLight": "Lys",
+      "themeDark": "Mørk",
+      "weightUnit": "Vægtenhed",
+      "weightUnitSubtitle": "Vælg din vægtenhed",
+      "language": "Sprog",
+      "system": "System",
+      "manual": "Manuel"
+    },
+    "language": {
+      "title": "Sprog",
+      "systemLanguage": "Systemsprog",
+      "appLanguage": "Appsprog",
+      "system": "System"
+    },
+    "syncBackup": {
+      "title": "Synkronisering og backup",
+      "comingSoon": "Enhed-til-enhed synkronisering kommer snart.",
+      "openSyncSetup": "Åbn synkroniseringsopsætning"
+    },
+    "data": {
+      "title": "Data",
+      "resetDescription": "Nulstil alle träninger, indstillinger, timerdata og synkroniseringshistorik permanent.",
+      "resetButton": "Nulstil alle data"
+    },
+    "developer": {
+      "title": "Udvikler",
+      "maintainer": "Vedligeholder",
+      "openRepo": "Åbn repo",
+      "donate": "Doner"
+    },
+    "appInfo": {
+      "title": "App-info",
+      "name": "Navn",
+      "version": "Version",
+      "build": "Build",
+      "buildType": "Build-type"
+    }
+  },
+  "backup": {
+    "title": "Backup og synkronisering",
+    "deviceSync": {
+      "title": "Enhedsynkronisering",
+      "comingSoon": "Enhed-til-enhed synkronisering kommer snart.",
+      "enableSetup": "Aktiver i synkroniseringsindstillinger"
+    },
+    "localJson": {
+      "title": "Lokal JSON",
+      "description": "Eksporter dine träningsdata til en JSON-fil eller importer en tidligere lokal backup.",
+      "export": "Eksporter backup",
+      "import": "Importer backup"
+    }
+  },
+  "importPreview": {
+    "title": "Import forhåndsvisning",
+    "changesDetected": "{{count}} ændring(er) fundet.",
+    "noChanges": "Ingen ændringer fundet. Backup er identisk med aktuelle data.",
+    "sections": {
+      "workouts": "Träninger",
+      "settings": "Indstillinger",
+      "weeks": "Uger",
+      "days": "Dage"
+    },
+    "cancel": "Annuller",
+    "confirm": "Importer backup"
+  },
+  "donate": {
+    "title": "Doner",
+    "subtitle": "Støt PearLift-udviklingen med Bitcoin eller Lightning.",
+    "placeholder": "Pladsholder",
+    "openWallet": "Åbn tegnebog",
+    "copy": "Kopiér"
+  }
+}

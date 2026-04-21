@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "取消",
+    "delete": "删除",
+    "back": "返回",
+    "next": "下一步"
+  },
+  "app": {
+    "loading": "正在准备您的训练数据"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "欢迎使用 PearLift",
+        "description": "通过简单界面追踪您的训练。记录组数、次数和重量——无需复杂操作，只有进步。"
+      },
+      "units": {
+        "title": "选择单位",
+        "description": "选择您喜欢的重量单位。您可以稍后更改此设置。"
+      },
+      "sync": {
+        "title": "设备间同步",
+        "description": "直接在设备之间同步您的训练。随时可在设置中进行设置。无需云服务，本地运行。"
+      },
+      "notifications": {
+        "title": "保持进度",
+        "description": "启用通知，这样您就不会忘记休息计时器。我们会在下一组开始时提醒您。"
+      }
+    },
+    "getStarted": "开始使用",
+    "settingUp": "设置中..."
+  },
+  "workout": {
+    "weekDay": "第 {{week}} 周 - 第 {{day}} 天",
+    "addExercise": "添加动作"
+  },
+  "restTimer": {
+    "title": "休息计时器",
+    "complete": "休息结束！",
+    "duration": "时长",
+    "notification": {
+      "title": "休息结束",
+      "body": "是时候开始下一组了。"
+    }
+  },
+  "programSettings": {
+    "title": "训练计划设置",
+    "tabs": {
+      "weeks": "周",
+      "days": "天"
+    },
+    "week": {
+      "namePlaceholder": "周名称",
+      "loadModifier": "负荷调整",
+      "rir": "RIR（储备次数）",
+      "baseline": "基准",
+      "addWeek": "添加周",
+      "deleteTitle": "删除周",
+      "deleteMessage": "删除 \"{{name}}\"？"
+    },
+    "day": {
+      "namePlaceholder": "第 {{number}} 天",
+      "icon": "图标",
+      "iconMore": "更多",
+      "iconRefresh": "刷新",
+      "addDay": "添加天",
+      "deleteTitle": "删除天",
+      "deleteMessage": "删除 \"{{name}}\"？这将从所有周中移除它。"
+    }
+  },
+  "addExercise": {
+    "titleAdd": "添加动作",
+    "titleEdit": "编辑动作",
+    "name": "名称",
+    "namePlaceholder": "动作名称",
+    "muscleGroup": "肌肉群",
+    "sets": "组数",
+    "reps": "次数",
+    "notes": "备注",
+    "notesPlaceholder": "可选备注...",
+    "submitAdd": "添加动作",
+    "submitEdit": "保存更改",
+    "errors": {
+      "nameRequired": "动作名称为必填项。",
+      "setsInvalid": "组数必须是有效的正整数。"
+    }
+  },
+  "settings": {
+    "title": "设置",
+    "appearance": {
+      "title": "外观",
+      "theme": "主题",
+      "themeSubtitle": "应用配色方案",
+      "themeSystem": "跟随系统",
+      "themeLight": "浅色",
+      "themeDark": "深色",
+      "weightUnit": "重量单位",
+      "weightUnitSubtitle": "选择您的重量单位",
+      "language": "语言",
+      "system": "系统",
+      "manual": "手动"
+    },
+    "language": {
+      "title": "语言",
+      "systemLanguage": "系统语言",
+      "appLanguage": "应用语言",
+      "system": "系统"
+    },
+    "syncBackup": {
+      "title": "同步与备份",
+      "comingSoon": "设备间同步即将推出。",
+      "openSyncSetup": "打开同步设置"
+    },
+    "data": {
+      "title": "数据",
+      "resetDescription": "永久重置所有训练、设置、计时器数据和同步历史。",
+      "resetButton": "重置所有数据"
+    },
+    "developer": {
+      "title": "开发者",
+      "maintainer": "维护者",
+      "openRepo": "打开仓库",
+      "donate": "捐赠"
+    },
+    "appInfo": {
+      "title": "应用信息",
+      "name": "名称",
+      "version": "版本",
+      "build": "构建号",
+      "buildType": "构建类型"
+    }
+  },
+  "backup": {
+    "title": "备份与同步",
+    "deviceSync": {
+      "title": "设备同步",
+      "comingSoon": "设备间同步即将推出。",
+      "enableSetup": "在同步设置中启用"
+    },
+    "localJson": {
+      "title": "本地 JSON",
+      "description": "将您的训练数据导出为 JSON 文件或导入之前的本地备份。",
+      "export": "导出备份",
+      "import": "导入备份"
+    }
+  },
+  "importPreview": {
+    "title": "导入预览",
+    "changesDetected": "检测到 {{count}} 项更改。",
+    "noChanges": "未检测到更改。备份与当前数据相同。",
+    "sections": {
+      "workouts": "训练",
+      "settings": "设置",
+      "weeks": "周",
+      "days": "天"
+    },
+    "cancel": "取消",
+    "confirm": "导入备份"
+  },
+  "donate": {
+    "title": "捐赠",
+    "subtitle": "使用比特币或闪电网络支持 PearLift 开发。",
+    "placeholder": "占位符",
+    "openWallet": "打开钱包",
+    "copy": "复制"
+  }
+}

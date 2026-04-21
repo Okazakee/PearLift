@@ -317,6 +317,7 @@ export function migrateToCurrentState(
     restDuration,
     themeMode,
     weightUnit,
+    language: 'en',
   };
 
   return { backup, runtime };

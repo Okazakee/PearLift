@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Atcelt",
+    "delete": "Dzēst",
+    "back": "Atpakaļ",
+    "next": "Tālāk"
+  },
+  "app": {
+    "loading": "Treniņu datu sagatavošana"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Laipni lūdzam PearLift",
+        "description": "Sekojiet saviem treniņiem ar vienkāšu saskarni. Pierakstiet komplektus, atkārtojumus un svarus - bez sarežģījumiem, tikai progress."
+      },
+      "units": {
+        "title": "Izvēlieties vienības",
+        "description": "Izvēlieties vēlamo svara vienību. To varat mainīt vēlāk."
+      },
+      "sync": {
+        "title": "Ierīce-ierīce sinhronizācija",
+        "description": "Sinhronizējiet treniņus tieši starp ierīcēm. Iestatiet jebkurā laikā Iestatījumos. Darbojas lokāli bez mākoņpakalpojumiem."
+      },
+      "notifications": {
+        "title": "Sekojiet kursam",
+        "description": "Iespējojiet paziņojums, lai nekad neaizmirstu atpūtas taimeri. Atgādināsim, kad pienāks laiks sākt nākamo komplektu."
+      }
+    },
+    "getStarted": "Sākt",
+    "settingUp": "Iestatīšana..."
+  },
+  "workout": {
+    "weekDay": "Nedēļa {{week}} - {{day}}",
+    "addExercise": "Pievienot vingrojumu"
+  },
+  "restTimer": {
+    "title": "Atpūtas taimeris",
+    "complete": "ATPŪTA PABEIGTA!",
+    "duration": "Ilgums",
+    "notification": {
+      "title": "Atpūta pabeigta",
+      "body": "Laiks nākamajam komplektam."
+    }
+  },
+  "programSettings": {
+    "title": "Programmas iestatījumi",
+    "tabs": {
+      "weeks": "Nedēļas",
+      "days": "Dienas"
+    },
+    "week": {
+      "namePlaceholder": "Nedēļas nosaukums",
+      "loadModifier": "Slodzes modifikators",
+      "rir": "RIR (Rezerves atkārtojumi)",
+      "baseline": "Bāzes līnija",
+      "addWeek": "Pievienot nedēļu",
+      "deleteTitle": "Dzēst nedēļu",
+      "deleteMessage": "Dzēst \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Diena {{number}}",
+      "icon": "Ikona",
+      "iconMore": "Vairāk",
+      "iconRefresh": "Atjaunot",
+      "addDay": "Pievienot dienu",
+      "deleteTitle": "Dzēst dienu",
+      "deleteMessage": "Dzēst \"{{name}}\"? Tas to noņems no visām nedēļām."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Pievienot vingrojumu",
+    "titleEdit": "Rediģēt vingrojumu",
+    "name": "Nosaukums",
+    "namePlaceholder": "Vingrojuma nosaukums",
+    "muscleGroup": "Muskuļu grupa",
+    "sets": "Komplekti",
+    "reps": "Atkārtojumi",
+    "notes": "Piezīmes",
+    "notesPlaceholder": "Neobligātas piezīmes...",
+    "submitAdd": "Pievienot vingrojumu",
+    "submitEdit": "Saglabāt izmaiņas",
+    "errors": {
+      "nameRequired": "Vingrojuma nosaukums ir obligāts.",
+      "setsInvalid": "Komplektiem jābūt derīgam pozitīvam veselajam skaitlim."
+    }
+  },
+  "settings": {
+    "title": "Iestatījumi",
+    "appearance": {
+      "title": "Izskats",
+      "theme": "Tēma",
+      "themeSubtitle": "Lietotnes krāshēma",
+      "themeSystem": "Sistēma",
+      "themeLight": "Gaišs",
+      "themeDark": "Tumšs",
+      "weightUnit": "Svara vienība",
+      "weightUnitSubtitle": "Izvēlieties savu svara vienību",
+      "language": "Valoda",
+      "system": "Sistēma",
+      "manual": "Manuāli"
+    },
+    "language": {
+      "title": "Valoda",
+      "systemLanguage": "Sistēmas valoda",
+      "appLanguage": "Lietotnes valoda",
+      "system": "Sistēma"
+    },
+    "syncBackup": {
+      "title": "Sinhronizācija un dublēšana",
+      "comingSoon": "Ierīce-ierīce sinhronizācija drīz būs pieejama.",
+      "openSyncSetup": "Atvērt sinhronizācijas iestatīšanu"
+    },
+    "data": {
+      "title": "Dati",
+      "resetDescription": "Pastāvīgi atiestatīt visus treniņus, iestatījumus, taimera datus un sinhronizācijas vēsturi.",
+      "resetButton": "Atiestatīt visus datus"
+    },
+    "developer": {
+      "title": "Izstrādātājs",
+      "maintainer": "Uzturētājs",
+      "openRepo": "Atvērt repo",
+      "donate": "Ziedot"
+    },
+    "appInfo": {
+      "title": "Lietotnes info",
+      "name": "Nosaukums",
+      "version": "Versija",
+      "build": "Build",
+      "buildType": "Build veids"
+    }
+  },
+  "backup": {
+    "title": "Dublēšana un sinhronizācija",
+    "deviceSync": {
+      "title": "Ierīču sinhronizācija",
+      "comingSoon": "Ierīce-ierīce sinhronizācija drīz būs pieejama.",
+      "enableSetup": "Iespējot sinhronizācijas iestatījumos"
+    },
+    "localJson": {
+      "title": "Lokāls JSON",
+      "description": "Eksportējiet treniņu datus uz JSON failu vai importējiet iepriekšēju lokālo dublējumu.",
+      "export": "Eksportēt dublējumu",
+      "import": "Importēt dublējumu"
+    }
+  },
+  "importPreview": {
+    "title": "Importa priekšskatījums",
+    "changesDetected": "Konstatētas {{count}} izmaiņas.",
+    "noChanges": "Nav konstatētu izmaiņu. Dublējums ir identisks pašreizējiem datiem.",
+    "sections": {
+      "workouts": "Treniņi",
+      "settings": "Iestatījumi",
+      "weeks": "Nedēļas",
+      "days": "Dienas"
+    },
+    "cancel": "Atcelt",
+    "confirm": "Importēt dublējumu"
+  },
+  "donate": {
+    "title": "Ziedot",
+    "subtitle": "Atbalstiet PearLift attīstību ar Bitcoin vai Lightning.",
+    "placeholder": "Vieta",
+    "openWallet": "Atvērt maka",
+    "copy": "Kopēt"
+  }
+}

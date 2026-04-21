@@ -95,7 +95,10 @@
       "themeLight": "Light",
       "themeDark": "Dark",
       "weightUnit": "Weight unit",
-      "weightUnitSubtitle": "Choose your weight unit"
+      "weightUnitSubtitle": "Choose your weight unit",
+      "language": "Language",
+      "system": "System",
+      "manual": "Manual"
     },
     "language": {
       "title": "Language",

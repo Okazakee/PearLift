@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "İptal",
+    "delete": "Sil",
+    "back": "Geri",
+    "next": "İleri"
+  },
+  "app": {
+    "loading": "Antrenman verileriniz hazırlanıyor"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "PearLift'e Hoş Geldiniz",
+        "description": "Basit bir arayüzle antrenmanlarınızı takip edin. Set, tekrar ve ağırlık kaydedin - karmaşıklık yok, sadece ilerleme."
+      },
+      "units": {
+        "title": "Birimleri seçin",
+        "description": "Tercih ettiğiniz ağırlık birimini seçin. Bunu daha sonra değiştirebilirsiniz."
+      },
+      "sync": {
+        "title": "Cihazdan cihaza senkronizasyon",
+        "description": "Antrenmanlarınızı cihazlar arasında doğrudan senkronize edin. Ayarlardan istediğiniz zaman ayarlayın. Bulut servisleri olmadan local olarak çalışır."
+      },
+      "notifications": {
+        "title": "Yolda kalın",
+        "description": "Asla bir dinlenme zamanlayıcısını unutmamak için bildirimleri etkinleştirin. Bir sonraki setin başlama zamanı geldiğinde size hatırlatacağız."
+      }
+    },
+    "getStarted": "Başla",
+    "settingUp": "Ayarlanıyor..."
+  },
+  "workout": {
+    "weekDay": "Hafta {{week}} - Gün {{day}}",
+    "addExercise": "Egzersiz ekle"
+  },
+  "restTimer": {
+    "title": "Dinlenme zamanlayıcısı",
+    "complete": "DİNLENME TAMAMLANDI!",
+    "duration": "Süre",
+    "notification": {
+      "title": "Dinlenme tamamlandı",
+      "body": "Bir sonraki setin zamanı."
+    }
+  },
+  "programSettings": {
+    "title": "Program ayarları",
+    "tabs": {
+      "weeks": "Haftalar",
+      "days": "Günler"
+    },
+    "week": {
+      "namePlaceholder": "Hafta adı",
+      "loadModifier": "Yük değiştirici",
+      "rir": "RIR (Rezerv tekrarlar)",
+      "baseline": "Temel",
+      "addWeek": "Hafta ekle",
+      "deleteTitle": "Haftayı sil",
+      "deleteMessage": "\"{{name}}\" silinsin mi?"
+    },
+    "day": {
+      "namePlaceholder": "Gün {{number}}",
+      "icon": "İkon",
+      "iconMore": "Daha fazla",
+      "iconRefresh": "Yenile",
+      "addDay": "Gün ekle",
+      "deleteTitle": "Günü sil",
+      "deleteMessage": "\"{{name}}\" silinsin mi? Bu tüm haftalardan kaldırır."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Egzersiz ekle",
+    "titleEdit": "Egzersizi düzenle",
+    "name": "Ad",
+    "namePlaceholder": "Egzersiz adı",
+    "muscleGroup": "Kas grubu",
+    "sets": "Setler",
+    "reps": "Tekrarlar",
+    "notes": "Notlar",
+    "notesPlaceholder": "İsteğe bağlı notlar...",
+    "submitAdd": "Egzersiz ekle",
+    "submitEdit": "Değişiklikleri kaydet",
+    "errors": {
+      "nameRequired": "Egzersiz adı gereklidir.",
+      "setsInvalid": "Setler geçerli pozitif tam sayı olmalıdır."
+    }
+  },
+  "settings": {
+    "title": "Ayarlar",
+    "appearance": {
+      "title": "Görünüm",
+      "theme": "Tema",
+      "themeSubtitle": "Uygulama renk şeması",
+      "themeSystem": "Sistem",
+      "themeLight": "Açık",
+      "themeDark": "Koyu",
+      "weightUnit": "Ağırlık birimi",
+      "weightUnitSubtitle": "Ağırlık biriminizi seçin",
+      "language": "Dil",
+      "system": "Sistem",
+      "manual": "Manuel"
+    },
+    "language": {
+      "title": "Dil",
+      "systemLanguage": "Sistem dili",
+      "appLanguage": "Uygulama dili",
+      "system": "Sistem"
+    },
+    "syncBackup": {
+      "title": "Senkronizasyon ve yedekleme",
+      "comingSoon": "Cihazdan cihaza senkronizasyon çok yakında.",
+      "openSyncSetup": "Senkronizasyon kurulumunu aç"
+    },
+    "data": {
+      "title": "Veriler",
+      "resetDescription": "Tüm antrenmanları, ayarları, zamanlayıcı verilerini ve senkronizasyon geçmişini kalıcı olarak sıfırlayın.",
+      "resetButton": "Tüm verileri sıfırla"
+    },
+    "developer": {
+      "title": "Geliştirici",
+      "maintainer": "Bakımcı",
+      "openRepo": "Depoyu aç",
+      "donate": "Bağış yap"
+    },
+    "appInfo": {
+      "title": "Uygulama bilgileri",
+      "name": "Ad",
+      "version": "Sürüm",
+      "build": "Build",
+      "buildType": "Build türü"
+    }
+  },
+  "backup": {
+    "title": "Yedekleme ve senkronizasyon",
+    "deviceSync": {
+      "title": "Cihaz senkronizasyonu",
+      "comingSoon": "Cihazdan cihaza senkronizasyon çok yakında.",
+      "enableSetup": "Senkronizasyon ayarlarında etkinleştir"
+    },
+    "localJson": {
+      "title": "Yerel JSON",
+      "description": "Antrenman verilerinizi bir JSON dosyasına aktarın veya önceki yerel yedeğinizi içe aktarın.",
+      "export": "Yedeği aktar",
+      "import": "Yedeği içe aktar"
+    }
+  },
+  "importPreview": {
+    "title": "İçe aktarma önizlemesi",
+    "changesDetected": "{{count}} değişiklik tespit edildi.",
+    "noChanges": "Değişiklik tespit edilmedi. Yedek, mevcut verilerle aynı.",
+    "sections": {
+      "workouts": "Antrenmanlar",
+      "settings": "Ayarlar",
+      "weeks": "Haftalar",
+      "days": "Günler"
+    },
+    "cancel": "İptal",
+    "confirm": "Yedeği içe aktar"
+  },
+  "donate": {
+    "title": "Bağış yap",
+    "subtitle": "PearLift geliştirmesini Bitcoin veya Lightning ile destekleyin.",
+    "placeholder": "Yer tutucu",
+    "openWallet": "Cüzdanı aç",
+    "copy": "Kopyala"
+  }
+}

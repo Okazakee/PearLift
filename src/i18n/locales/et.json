@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Tühista",
+    "delete": "Kustuta",
+    "back": "Tagasi",
+    "next": "Edasi"
+  },
+  "app": {
+    "loading": "Treeningandmete ettevalmistamine"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Tere tulemast PearLifti",
+        "description": "Jälgi oma treeninguid lihtsa liidesega. Logi seerid, kordused ja kaalud - keerukuseta, ainult edusammi."
+      },
+      "units": {
+        "title": "Vali ühikud",
+        "description": "Vali oma eelistatud kaaluühik. Saad seda hiljem muuta."
+      },
+      "sync": {
+        "title": "Seadme-seadme sünkroniseerimine",
+        "description": "Sünkroniseeri oma treeningud otse seadmete vahel. Sea see sisse Seadetes igal ajal. Töötab kohalikult pilveteenusteta."
+      },
+      "notifications": {
+        "title": "Püsi teel",
+        "description": "Luba märguanded, et sa ei unustaks kunagi puhkuse taimeri. Meeldime sulle, kui on aeg alustada järgmise seeriga."
+      }
+    },
+    "getStarted": "Alusta",
+    "settingUp": "Seadistamine..."
+  },
+  "workout": {
+    "weekDay": "Nädal {{week}} - {{day}}",
+    "addExercise": "Lisa harjutus"
+  },
+  "restTimer": {
+    "title": "Puhkuse taimer",
+    "complete": "PUHKUS LÄBITUD!",
+    "duration": "Kestus",
+    "notification": {
+      "title": "Puhkus läbi",
+      "body": "Aeg järgmiseks seeriaks."
+    }
+  },
+  "programSettings": {
+    "title": "Programmi seaded",
+    "tabs": {
+      "weeks": "Nädalad",
+      "days": "Päevad"
+    },
+    "week": {
+      "namePlaceholder": "Nädala nimi",
+      "loadModifier": "Koormuse muutja",
+      "rir": "RIR (Reservkordused)",
+      "baseline": "Alus",
+      "addWeek": "Lisa nädal",
+      "deleteTitle": "Kustuta nädal",
+      "deleteMessage": "Kustuta \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Päev {{number}}",
+      "icon": "Ikoon",
+      "iconMore": "Rohkem",
+      "iconRefresh": "Värskenda",
+      "addDay": "Lisa päev",
+      "deleteTitle": "Kustuta päev",
+      "deleteMessage": "Kustuta \"{{name}}\"? See eemaldab selle kõikidest nädalatest."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Lisa harjutus",
+    "titleEdit": "Muuda harjutust",
+    "name": "Nimi",
+    "namePlaceholder": "Harjutuse nimi",
+    "muscleGroup": "Lihasgrupp",
+    "sets": "Seerid",
+    "reps": "Kordused",
+    "notes": "Märkmed",
+    "notesPlaceholder": "Valikulised märkmed...",
+    "submitAdd": "Lisa harjutus",
+    "submitEdit": "Salve muudatused",
+    "errors": {
+      "nameRequired": "Harjutuse nimi on nõutav.",
+      "setsInvalid": "Seerid peavad olema positiivne täisarv."
+    }
+  },
+  "settings": {
+    "title": "Seaded",
+    "appearance": {
+      "title": "Välimus",
+      "theme": "Teema",
+      "themeSubtitle": "Rakenduse värvisskeem",
+      "themeSystem": "Süsteem",
+      "themeLight": "Hele",
+      "themeDark": "Tume",
+      "weightUnit": "Kaaluühik",
+      "weightUnitSubtitle": "Vali oma kaaluühik",
+      "language": "Keel",
+      "system": "Süsteem",
+      "manual": "Käsitsi"
+    },
+    "language": {
+      "title": "Keel",
+      "systemLanguage": "Süsteemi keel",
+      "appLanguage": "Rakenduse keel",
+      "system": "Süsteem"
+    },
+    "syncBackup": {
+      "title": "Sünkroniseerimine ja varukoopia",
+      "comingSoon": "Seadme-seadme sünkroniseerimine tuleb peagi.",
+      "openSyncSetup": "Ava sünkroniseerimise seaded"
+    },
+    "data": {
+      "title": "Andmed",
+      "resetDescription": "Lähtesta püsivalt kõik treeningud, seaded, taimeri andmed ja sünkroniseerimise ajalugu.",
+      "resetButton": "Lähtesta kõik andmed"
+    },
+    "developer": {
+      "title": "Arendaja",
+      "maintainer": "Hooldaja",
+      "openRepo": "Ava repod",
+      "donate": "Anneta"
+    },
+    "appInfo": {
+      "title": "Rakenduse info",
+      "name": "Nimi",
+      "version": "Versioon",
+      "build": "Build",
+      "buildType": "Buildi tüüp"
+    }
+  },
+  "backup": {
+    "title": "Varukoopia ja sünkroniseerimine",
+    "deviceSync": {
+      "title": "Seadme sünkroniseerimine",
+      "comingSoon": "Seadme-seadme sünkroniseerimine tuleb peagi.",
+      "enableSetup": "Luba sünkroniseerimise seadetes"
+    },
+    "localJson": {
+      "title": "Kohalik JSON",
+      "description": "Ekspordi oma treeninguandmed JSON-faili või impordi eelmine kohalik varukoopia.",
+      "export": "Ekspordi varukoopia",
+      "import": "Impordi varukoopia"
+    }
+  },
+  "importPreview": {
+    "title": "Impordi eelvaade",
+    "changesDetected": "Leitud {{count}} muutust.",
+    "noChanges": "Muutusi ei leitud. Varukoopia on identne praeguste andmetega.",
+    "sections": {
+      "workouts": "Treeningud",
+      "settings": "Seaded",
+      "weeks": "Nädalad",
+      "days": "Päevad"
+    },
+    "cancel": "Tühista",
+    "confirm": "Impordi varukoopia"
+  },
+  "donate": {
+    "title": "Anneta",
+    "subtitle": "Toeta PearLifti arendust Bitcoin või Lightningiga.",
+    "placeholder": "Placeholder",
+    "openWallet": "Ava rahakott",
+    "copy": "Kopeeri"
+  }
+}

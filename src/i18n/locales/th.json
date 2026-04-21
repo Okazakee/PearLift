@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "ยกเลิก",
+    "delete": "ลบ",
+    "back": "กลับ",
+    "next": "ถัดไป"
+  },
+  "app": {
+    "loading": "กำลังเตรียมข้อมูลการฝึกซ้อมของคุณ"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "ยินดีต้อนรับสู่ PearLift",
+        "description": "ติดตามการฝึกซ้อมของคุณด้วยอินเทอร์เฟซที่เรียบง่าย บันทึกเซ็ต จำนวนครั้ง และน้ำหนัก - ไม่มีความซับซ้อน มีแต่ความก้าวหน้า"
+      },
+      "units": {
+        "title": "เลือกหน่วย",
+        "description": "เลือกหน่วยน้ำหนักที่คุณชอบ คุณสามารถเปลี่ยนได้ภายหลัง"
+      },
+      "sync": {
+        "title": "ซิงค์ข้ามอุปกรณ์",
+        "description": "ซิงค์การฝึกซ้อมของคุณระหว่างอุปกรณ์โดยตรง ตั้งค่าได้ตลอดเวลาในการตั้งค่า ทำงานแบบเฉพาะที่โดยไม่ต้องใช้บริการคลาวด์"
+      },
+      "notifications": {
+        "title": "ติดตามอย่างต่อเนื่อง",
+        "description": "เปิดการแจ้งเตือนเพื่อไม่ให้ลืมตัวจับเวลาพัก เราจะเตือนคุณเมื่อถึงเวลาของเซ็ตถัดไป"
+      }
+    },
+    "getStarted": "เริ่มต้น",
+    "settingUp": "กำลังตั้งค่า..."
+  },
+  "workout": {
+    "weekDay": "สัปดาห์ {{week}} - วัน {{day}}",
+    "addExercise": "เพิ่มการฝึก"
+  },
+  "restTimer": {
+    "title": "ตัวจับเวลาพัก",
+    "complete": "พักเสร็จแล้ว!",
+    "duration": "ระยะเวลา",
+    "notification": {
+      "title": "พักเสร็จแล้ว",
+      "body": "ถึงเวลาของเซ็ตถัดไปแล้ว"
+    }
+  },
+  "programSettings": {
+    "title": "การตั้งค่าโปรแกรม",
+    "tabs": {
+      "weeks": "สัปดาห์",
+      "days": "วัน"
+    },
+    "week": {
+      "namePlaceholder": "ชื่อสัปดาห์",
+      "loadModifier": "ตัวแก้ไขโหลด",
+      "rir": "RIR (จำนวนครั้งสำรอง)",
+      "baseline": "พื้นฐาน",
+      "addWeek": "เพิ่มสัปดาห์",
+      "deleteTitle": "ลบสัปดาห์",
+      "deleteMessage": "ลบ \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "วัน {{number}}",
+      "icon": "ไอคอน",
+      "iconMore": "เพิ่มเติม",
+      "iconRefresh": "รีเฟรช",
+      "addDay": "เพิ่มวัน",
+      "deleteTitle": "ลบวัน",
+      "deleteMessage": "ลบ \"{{name}}\"? จะลบออกจากทุกสัปดาห์"
+    }
+  },
+  "addExercise": {
+    "titleAdd": "เพิ่มการฝึก",
+    "titleEdit": "แก้ไขการฝึก",
+    "name": "ชื่อ",
+    "namePlaceholder": "ชื่อการฝึก",
+    "muscleGroup": "กลุ่มกล้ามเนื้อ",
+    "sets": "เซ็ต",
+    "reps": "จำนวนครั้ง",
+    "notes": "หมายเหตุ",
+    "notesPlaceholder": "หมายเหตุเพิ่มเติม...",
+    "submitAdd": "เพิ่มการฝึก",
+    "submitEdit": "บันทึกการเปลี่ยนแปลง",
+    "errors": {
+      "nameRequired": "ต้องระบุชื่อการฝึก",
+      "setsInvalid": "เซ็ตต้องเป็นจำนวนเต็มบวกที่ถูกต้อง"
+    }
+  },
+  "settings": {
+    "title": "การตั้งค่า",
+    "appearance": {
+      "title": "รูปลักษณ์",
+      "theme": "ธีม",
+      "themeSubtitle": "โทนสีของแอป",
+      "themeSystem": "ระบบ",
+      "themeLight": "สว่าง",
+      "themeDark": "มืด",
+      "weightUnit": "หน่วยน้ำหนัก",
+      "weightUnitSubtitle": "เลือกหน่วยน้ำหนักของคุณ",
+      "language": "ภาษา",
+      "system": "ระบบ",
+      "manual": "คู่มือ"
+    },
+    "language": {
+      "title": "ภาษา",
+      "systemLanguage": "ภาษาระบบ",
+      "appLanguage": "ภาษาแอป",
+      "system": "ระบบ"
+    },
+    "syncBackup": {
+      "title": "ซิงค์และสำรองข้อมูล",
+      "comingSoon": "ซิงค์ข้ามอุปกรณ์จะมาเร็วๆ นี้",
+      "openSyncSetup": "เปิดการตั้งค่าซิงค์"
+    },
+    "data": {
+      "title": "ข้อมูล",
+      "resetDescription": "รีเซ็ตการฝึกซ้อม การตั้งค่า ข้อมูลตัวจับเวลา และประวัติซิงค์ ถาวร",
+      "resetButton": "รีเซ็ตข้อมูลทั้งหมด"
+    },
+    "developer": {
+      "title": "ผู้พัฒนา",
+      "maintainer": "ผู้ดูแล",
+      "openRepo": "เปิด repo",
+      "donate": "บริจาค"
+    },
+    "appInfo": {
+      "title": "ข้อมูลแอป",
+      "name": "ชื่อ",
+      "version": "เวอร์ชัน",
+      "build": "บิลด์",
+      "buildType": "ประเภทบิลด์"
+    }
+  },
+  "backup": {
+    "title": "สำรองข้อมูลและซิงค์",
+    "deviceSync": {
+      "title": "ซิงค์อุปกรณ์",
+      "comingSoon": "ซิงค์ข้ามอุปกรณ์จะมาเร็วๆ นี้",
+      "enableSetup": "เปิดในการตั้งค่าซิงค์"
+    },
+    "localJson": {
+      "title": "JSON ในเครื่อง",
+      "description": "ส่งออกข้อมูลการฝึกซ้อมเป็นไฟล์ JSON หรือนำเข้าสำรองข้อมูลในเครื่องก่อนหน้า",
+      "export": "ส่งออกข้อมูลสำรอง",
+      "import": "นำเข้าข้อมูลสำรอง"
+    }
+  },
+  "importPreview": {
+    "title": "แสดงตัวอย่างการนำเข้า",
+    "changesDetected": "พบการเปลี่ยนแปลง {{count}} รายการ",
+    "noChanges": "ไม่พบการเปลี่ยนแปลง ข้อมูลสำรองเหมือนกับข้อมูลปัจจุบัน",
+    "sections": {
+      "workouts": "การฝึกซ้อม",
+      "settings": "การตั้งค่า",
+      "weeks": "สัปดาห์",
+      "days": "วัน"
+    },
+    "cancel": "ยกเลิก",
+    "confirm": "นำเข้าข้อมูลสำรอง"
+  },
+  "donate": {
+    "title": "บริจาค",
+    "subtitle": "สนับสนุนการพัฒนา PearLift ด้วย Bitcoin หรือ Lightning",
+    "placeholder": "ตัวอย่าง",
+    "openWallet": "เปิดกระเป๋าเงิน",
+    "copy": "คัดลอก"
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Prekliči",
+    "delete": "Izbriši",
+    "back": "Nazaj",
+    "next": "Naprej"
+  },
+  "app": {
+    "loading": "Priprava podatkov za trening"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Dobrodošli v PearLift",
+        "description": "Spremljajte svoje treninge z enim preprostim vmesnikom. Beležite nize, ponovitve in uteži - brez zapletenosti, samo napredek."
+      },
+      "units": {
+        "title": "Izberite enote",
+        "description": "Izberite svojo preferenčno enoto za težo. To lahko kasneje spremenite."
+      },
+      "sync": {
+        "title": "Sinhronizacija naprava-naprava",
+        "description": "Sinhronizirajte svoje treninge neposredno med napravami. Nastavite kadar koli v Nastavitvah. Deluje lokalno brez oblakovnih storitev."
+      },
+      "notifications": {
+        "title": "Ostanite na pravi poti",
+        "description": "Omogočite obvestila, da nikoli ne pozabite na časovnik za počitek. Opomnili vas bomo, ko bo čas za naslednjo niz."
+      }
+    },
+    "getStarted": "Začnite",
+    "settingUp": "Nastavljanje..."
+  },
+  "workout": {
+    "weekDay": "Teden {{week}} - {{day}}",
+    "addExercise": "Dodaj vajo"
+  },
+  "restTimer": {
+    "title": "Časovnik za počitek",
+    "complete": "POČITEK KONČAN!",
+    "duration": "Trajanje",
+    "notification": {
+      "title": "Počitek končan",
+      "body": "Čas za vaš naslednji niz."
+    }
+  },
+  "programSettings": {
+    "title": "Nastavitve programa",
+    "tabs": {
+      "weeks": "Tedni",
+      "days": "Dnevi"
+    },
+    "week": {
+      "namePlaceholder": "Ime tedna",
+      "loadModifier": "Modifikator obremenitve",
+      "rir": "RIR (Ponovitve v rezervi)",
+      "baseline": "Izhodišče",
+      "addWeek": "Dodaj teden",
+      "deleteTitle": "Izbriši teden",
+      "deleteMessage": "Izbrišite \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Dan {{number}}",
+      "icon": "Ikona",
+      "iconMore": "Več",
+      "iconRefresh": "Osveži",
+      "addDay": "Dodaj dan",
+      "deleteTitle": "Izbriši dan",
+      "deleteMessage": "Izbrišite \"{{name}}\"? To ga odstrani iz vseh tednov."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Dodaj vajo",
+    "titleEdit": "Uredi vajo",
+    "name": "Ime",
+    "namePlaceholder": "Ime vaje",
+    "muscleGroup": "Mišična skupina",
+    "sets": "Nize",
+    "reps": "Ponovitve",
+    "notes": "Opombe",
+    "notesPlaceholder": "Izbirne opombe...",
+    "submitAdd": "Dodaj vajo",
+    "submitEdit": "Shrani spremembe",
+    "errors": {
+      "nameRequired": "Ime vaje je obvezno.",
+      "setsInvalid": "Nize morajo biti veljavno pozitivno celo število."
+    }
+  },
+  "settings": {
+    "title": "Nastavitve",
+    "appearance": {
+      "title": "Videz",
+      "theme": "Tema",
+      "themeSubtitle": "Barvna shema aplikacije",
+      "themeSystem": "Sistem",
+      "themeLight": "Svetla",
+      "themeDark": "Temna",
+      "weightUnit": "Enota za težo",
+      "weightUnitSubtitle": "Izberite svojo enoto za težo",
+      "language": "Jezik",
+      "system": "Sistem",
+      "manual": "Ročno"
+    },
+    "language": {
+      "title": "Jezik",
+      "systemLanguage": "Sistemski jezik",
+      "appLanguage": "Jezik aplikacije",
+      "system": "Sistem"
+    },
+    "syncBackup": {
+      "title": "Sinhronizacija in varnostna kopija",
+      "comingSoon": "Sinhronizacija naprava-naprava prihaja kmalu.",
+      "openSyncSetup": "Odpri nastavitev sinhronizacije"
+    },
+    "data": {
+      "title": "Podatki",
+      "resetDescription": "Trajno ponastavite vse treninge, nastavitve, podatke časovnika in zgodovino sinhronizacije.",
+      "resetButton": "Ponastavi vse podatke"
+    },
+    "developer": {
+      "title": "Razvijalec",
+      "maintainer": "Vzdrževalec",
+      "openRepo": "Odpri repozitorij",
+      "donate": "Donirajte"
+    },
+    "appInfo": {
+      "title": "Info o aplikaciji",
+      "name": "Ime",
+      "version": "Različica",
+      "build": "Build",
+      "buildType": "Tip builda"
+    }
+  },
+  "backup": {
+    "title": "Varnostna kopija in sinhronizacija",
+    "deviceSync": {
+      "title": "Sinhronizacija naprav",
+      "comingSoon": "Sinhronizacija naprava-naprava prihaja kmalu.",
+      "enableSetup": "Omogočite v nastavitvah sinhronizacije"
+    },
+    "localJson": {
+      "title": "Lokalni JSON",
+      "description": "Izvozite podatke o treningu v datoteko JSON ali uvozite prejšnjo lokalno varnostno kopijo.",
+      "export": "Izvozi varnostno kopijo",
+      "import": "Uvozi varnostno kopijo"
+    }
+  },
+  "importPreview": {
+    "title": "Predogled uvoza",
+    "changesDetected": "Zaznanih {{count}} sprememb.",
+    "noChanges": "Nobene spremembe zaznane. Varnostna kopija je identična trenutnim podatkom.",
+    "sections": {
+      "workouts": "Treningi",
+      "settings": "Nastavitve",
+      "weeks": "Tedni",
+      "days": "Dnevi"
+    },
+    "cancel": "Prekliči",
+    "confirm": "Uvozi varnostno kopijo"
+  },
+  "donate": {
+    "title": "Donirajte",
+    "subtitle": "Podprite razvoj PearLift z Bitcoin ali Lightning.",
+    "placeholder": "Placeholder",
+    "openWallet": "Odpri denarnico",
+    "copy": "Kopiraj"
+  }
+}

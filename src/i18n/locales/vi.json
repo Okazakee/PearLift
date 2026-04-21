@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "back": "Quay lại",
+    "next": "Tiếp theo"
+  },
+  "app": {
+    "loading": "Đang chuẩn bị dữ liệu tập luyện của bạn"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Chào mừng đến với PearLift",
+        "description": "Theo dõi các bài tập của bạn với giao diện đơn giản. Ghi lại các set, số lần lặp và cân nặng - không phức tạp, chỉ có tiến bộ."
+      },
+      "units": {
+        "title": "Chọn đơn vị",
+        "description": "Chọn đơn vị cân nặng ưa thích của bạn. Bạn có thể thay đổi điều này sau."
+      },
+      "sync": {
+        "title": "Đồng bộ thiết bị",
+        "description": "Đồng bộ bài tập của bạn trực tiếp giữa các thiết bị. Thiết lập bất kỳ lúc nào trong Cài đặt. Hoạt động cục bộ mà không cần dịch vụ đám mây."
+      },
+      "notifications": {
+        "title": "Tiếp tục theo dõi",
+        "description": "Bật thông báo để không bao giờ quên đồng hồ nghỉ ngơi. Chúng tôi sẽ nhắc bạn khi đến lúc bắt đầu set tiếp theo."
+      }
+    },
+    "getStarted": "Bắt đầu",
+    "settingUp": "Đang thiết lập..."
+  },
+  "workout": {
+    "weekDay": "Tuần {{week}} - Ngày {{day}}",
+    "addExercise": "Thêm bài tập"
+  },
+  "restTimer": {
+    "title": "Đồng hồ nghỉ ngơi",
+    "complete": "NGHỈ NGƠI XONG!",
+    "duration": "Thời gian",
+    "notification": {
+      "title": "Nghỉ ngơi xong",
+      "body": "Đến lúc set tiếp theo của bạn."
+    }
+  },
+  "programSettings": {
+    "title": "Cài đặt chương trình",
+    "tabs": {
+      "weeks": "Tuần",
+      "days": "Ngày"
+    },
+    "week": {
+      "namePlaceholder": "Tên tuần",
+      "loadModifier": "Bộ điều chỉnh tải",
+      "rir": "RIR (Số lần lặp dự trữ)",
+      "baseline": "Cơ sở",
+      "addWeek": "Thêm tuần",
+      "deleteTitle": "Xóa tuần",
+      "deleteMessage": "Xóa \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Ngày {{number}}",
+      "icon": "Biểu tượng",
+      "iconMore": "Thêm",
+      "iconRefresh": "Làm mới",
+      "addDay": "Thêm ngày",
+      "deleteTitle": "Xóa ngày",
+      "deleteMessage": "Xóa \"{{name}}\"? Điều này sẽ xóa nó khỏi tất cả các tuần."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Thêm bài tập",
+    "titleEdit": "Sửa bài tập",
+    "name": "Tên",
+    "namePlaceholder": "Tên bài tập",
+    "muscleGroup": "Nhóm cơ",
+    "sets": "Số set",
+    "reps": "Số lần lặp",
+    "notes": "Ghi chú",
+    "notesPlaceholder": "Ghi chú tùy chọn...",
+    "submitAdd": "Thêm bài tập",
+    "submitEdit": "Lưu thay đổi",
+    "errors": {
+      "nameRequired": "Tên bài tập là bắt buộc.",
+      "setsInvalid": "Số set phải là số nguyên dương hợp lệ."
+    }
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "appearance": {
+      "title": "Giao diện",
+      "theme": "Chủ đề",
+      "themeSubtitle": "Sơ đồ màu ứng dụng",
+      "themeSystem": "Hệ thống",
+      "themeLight": "Sáng",
+      "themeDark": "Tối",
+      "weightUnit": "Đơn vị cân nặng",
+      "weightUnitSubtitle": "Chọn đơn vị cân nặng của bạn",
+      "language": "Ngôn ngữ",
+      "system": "Hệ thống",
+      "manual": "Thủ công"
+    },
+    "language": {
+      "title": "Ngôn ngữ",
+      "systemLanguage": "Ngôn ngữ hệ thống",
+      "appLanguage": "Ngôn ngữ ứng dụng",
+      "system": "Hệ thống"
+    },
+    "syncBackup": {
+      "title": "Đồng bộ và sao lưu",
+      "comingSoon": "Đồng bộ thiết bị sẽ sớm có.",
+      "openSyncSetup": "Mở cài đặt đồng bộ"
+    },
+    "data": {
+      "title": "Dữ liệu",
+      "resetDescription": "Đặt lại vĩnh viễn tất cả bài tập, cài đặt, dữ liệu đồng hồ và lịch sử đồng bộ.",
+      "resetButton": "Đặt lại tất cả dữ liệu"
+    },
+    "developer": {
+      "title": "Nhà phát triển",
+      "maintainer": "Người duy trì",
+      "openRepo": "Mở repo",
+      "donate": "Đóng góp"
+    },
+    "appInfo": {
+      "title": "Thông tin ứng dụng",
+      "name": "Tên",
+      "version": "Phiên bản",
+      "build": "Build",
+      "buildType": "Loại build"
+    }
+  },
+  "backup": {
+    "title": "Sao lưu và đồng bộ",
+    "deviceSync": {
+      "title": "Đồng bộ thiết bị",
+      "comingSoon": "Đồng bộ thiết bị sẽ sớm có.",
+      "enableSetup": "Bật trong cài đặt đồng bộ"
+    },
+    "localJson": {
+      "title": "JSON cục bộ",
+      "description": "Xuất dữ liệu tập luyện của bạn sang tệp JSON hoặc nhập bản sao lưu cục bộ trước đó.",
+      "export": "Xuất sao lưu",
+      "import": "Nhập sao lưu"
+    }
+  },
+  "importPreview": {
+    "title": "Xem trước nhập",
+    "changesDetected": "Phát hiện {{count}} thay đổi.",
+    "noChanges": "Không phát hiện thay đổi nào. Sao lưu giống với dữ liệu hiện tại.",
+    "sections": {
+      "workouts": "Bài tập",
+      "settings": "Cài đặt",
+      "weeks": "Tuần",
+      "days": "Ngày"
+    },
+    "cancel": "Hủy",
+    "confirm": "Nhập sao lưu"
+  },
+  "donate": {
+    "title": "Đóng góp",
+    "subtitle": "Hỗ trợ phát triển PearLift với Bitcoin hoặc Lightning.",
+    "placeholder": "Trình giữ chỗ",
+    "openWallet": "Mở ví",
+    "copy": "Sao chép"
+  }
+}

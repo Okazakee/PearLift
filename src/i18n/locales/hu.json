@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Mégse",
+    "delete": "Törlés",
+    "back": "Vissza",
+    "next": "Tovább"
+  },
+  "app": {
+    "loading": "Edzésadatok előkészítése"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Üdvözöl a PearLift",
+        "description": "Kövesd nyomon edzéseidet egyszerű felülettel. Jegyezd fel a szetteket, ismétléseket és súlyokat - nincs bonyodalom, csak fejlődés."
+      },
+      "units": {
+        "title": "Válassz mértékegységet",
+        "description": "Válaszd ki a preferált súlyegységet. Később megváltoztathatod."
+      },
+      "sync": {
+        "title": "Eszköz-eszköz szinkronizáció",
+        "description": "Szinkronizáld edzéseidet közvetlenül az eszközök között. Beállíthatod bármikor a Beállításokban. Felhőszolgáltatások nélkül működik helyileg."
+      },
+      "notifications": {
+        "title": "Maradj a pályán",
+        "description": "Engedélyezd az értesítéseket, hogy soha ne felejtsd el a pihenő időzítőt. Emlékeztetünk, amikor eljött az ideje a következő szettnek."
+      }
+    },
+    "getStarted": "Kezdjük",
+    "settingUp": "Beállítás..."
+  },
+  "workout": {
+    "weekDay": "{{week}}. hét - {{day}}. nap",
+    "addExercise": "Gyakorlat hozzáadása"
+  },
+  "restTimer": {
+    "title": "Pihenő időzítő",
+    "complete": "Pihenés VÉGE!",
+    "duration": "Időtartam",
+    "notification": {
+      "title": "Pihenés vége",
+      "body": "Ideje a következő szettnek."
+    }
+  },
+  "programSettings": {
+    "title": "Program beállításai",
+    "tabs": {
+      "weeks": "Hetek",
+      "days": "Napok"
+    },
+    "week": {
+      "namePlaceholder": "Hét neve",
+      "loadModifier": "Terhelés módosító",
+      "rir": "RIR (Tartalék ismétlés)",
+      "baseline": "Alap",
+      "addWeek": "Hét hozzáadása",
+      "deleteTitle": "Hét törlése",
+      "deleteMessage": "\"{{name}}\" törlése?"
+    },
+    "day": {
+      "namePlaceholder": "{{number}}. nap",
+      "icon": "Ikon",
+      "iconMore": "Több",
+      "iconRefresh": "Frissít",
+      "addDay": "Nap hozzáadása",
+      "deleteTitle": "Nap törlése",
+      "deleteMessage": "\"{{name}}\" törlése? Ez eltávolítja az összes hétből."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Gyakorlat hozzáadása",
+    "titleEdit": "Gyakorlat szerkesztése",
+    "name": "Név",
+    "namePlaceholder": "Gyakorlat neve",
+    "muscleGroup": "Izomcsoport",
+    "sets": "Szettek",
+    "reps": "Ismétlések",
+    "notes": "Megjegyzések",
+    "notesPlaceholder": "Opcionális megjegyzések...",
+    "submitAdd": "Gyakorlat hozzáadása",
+    "submitEdit": "Módosítások mentése",
+    "errors": {
+      "nameRequired": "A gyakorlat neve kötelező.",
+      "setsInvalid": "A szettek érvényes pozitív egész szám kell legyen."
+    }
+  },
+  "settings": {
+    "title": "Beállítások",
+    "appearance": {
+      "title": "Megjelenés",
+      "theme": "Téma",
+      "themeSubtitle": "Alkalmazás színösszeállítása",
+      "themeSystem": "Rendszer",
+      "themeLight": "Világos",
+      "themeDark": "Sötét",
+      "weightUnit": "Súlyegység",
+      "weightUnitSubtitle": "Válaszd ki a súlyegységet",
+      "language": "Nyelv",
+      "system": "Rendszer",
+      "manual": "Kézi"
+    },
+    "language": {
+      "title": "Nyelv",
+      "systemLanguage": "Rendszer nyelv",
+      "appLanguage": "Alkalmazás nyelve",
+      "system": "Rendszer"
+    },
+    "syncBackup": {
+      "title": "Szinkronizáció és biztonsági mentés",
+      "comingSoon": "Eszköz-eszköz szinkronizáció hamarosan.",
+      "openSyncSetup": "Szinkronizáció beállítása"
+    },
+    "data": {
+      "title": "Adatok",
+      "resetDescription": "Véglegesen visszaállítja az összes edzést, beállítást, időzítő adatot és szinkronizáció előzményeket.",
+      "resetButton": "Összes adat visszaállítása"
+    },
+    "developer": {
+      "title": "Fejlesztő",
+      "maintainer": "Karbantartó",
+      "openRepo": "Repo megnyitása",
+      "donate": "Adományozás"
+    },
+    "appInfo": {
+      "title": "Alkalmazás info",
+      "name": "Név",
+      "version": "Verzió",
+      "build": "Build",
+      "buildType": "Build típus"
+    }
+  },
+  "backup": {
+    "title": "Biztonsági mentés és szinkronizáció",
+    "deviceSync": {
+      "title": "Eszköz szinkronizáció",
+      "comingSoon": "Eszköz-eszköz szinkronizáció hamarosan.",
+      "enableSetup": "Engedélyezés a szinkronizáció beállításaiban"
+    },
+    "localJson": {
+      "title": "Helyi JSON",
+      "description": "Edzésadatok exportálása JSON fájlba vagy korábbi helyi biztonsági mentés importálása.",
+      "export": "Biztonsági mentés exportálása",
+      "import": "Biztonsági mentés importálása"
+    }
+  },
+  "importPreview": {
+    "title": "Import előnézet",
+    "changesDetected": "{{count}} változás észlelve.",
+    "noChanges": "Nincs változás észlelve. A biztonsági mentés azonos a jelenlegi adatokkal.",
+    "sections": {
+      "workouts": "Edzések",
+      "settings": "Beállítások",
+      "weeks": "Hetek",
+      "days": "Napok"
+    },
+    "cancel": "Mégse",
+    "confirm": "Biztonsági mentés importálása"
+  },
+  "donate": {
+    "title": "Adományozás",
+    "subtitle": "Támogasd a PearLift fejlesztését Bitcoin vagy Lightning használatával.",
+    "placeholder": "Helyőrző",
+    "openWallet": "Tárca megnyitása",
+    "copy": "Másolás"
+  }
+}

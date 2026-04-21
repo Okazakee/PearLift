@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "रद्द करें",
+    "delete": "हटाएं",
+    "back": "वापस",
+    "next": "अगला"
+  },
+  "app": {
+    "loading": "आपके प्रशिक्षण डेटा की तैयारी हो रही है"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "PearLift में आपका स्वागत है",
+        "description": "एक सरल इंटरफ़ेस के साथ अपने वर्कआउट को ट्रैक करें सेट्स, रेप्स और वेट लॉग करें - कोई जटिलता नहीं, बस प्रगति।"
+      },
+      "units": {
+        "title": "यूनिट्स चुनें",
+        "description": "अपना पसंदीदा वेट यूनिट चुनें। आप इसे बाद में बदल सकते हैं।"
+      },
+      "sync": {
+        "title": "डिवाइस-टू-डिवाइस सिंक",
+        "description": "अपने वर्कआउट को सीधे डिवाइस के बीच सिंक करें। सेटिंग्स में कभी भी सेटअप करें। क्लाउड सर्विस के बिना स्थानीय रूप से काम करता है।"
+      },
+      "notifications": {
+        "title": "ट्रैक पर रहें",
+        "description": "सूचनाएं सक्षम करें ताकि आप कभी रेस्ट टाइमर न भूलें। जब अगला सेट शुरू करने का समय हो तो हम आपको याद दिलाएंगे।"
+      }
+    },
+    "getStarted": "शुरू करें",
+    "settingUp": "सेटअप हो रहा है..."
+  },
+  "workout": {
+    "weekDay": "सप्ताह {{week}} - दिन {{day}}",
+    "addExercise": "व्यायाम जोड़ें"
+  },
+  "restTimer": {
+    "title": "रेस्ट टाइमर",
+    "complete": "रेस्ट पूर्ण!",
+    "duration": "अवधि",
+    "notification": {
+      "title": "रेस्ट पूर्ण",
+      "body": "आपके अगले सेट का समय।"
+    }
+  },
+  "programSettings": {
+    "title": "प्रोग्राम सेटिंग्स",
+    "tabs": {
+      "weeks": "सप्ताह",
+      "days": "दिन"
+    },
+    "week": {
+      "namePlaceholder": "सप्ताह का नाम",
+      "loadModifier": "लोड संशोधक",
+      "rir": "RIR (रिज़र्व में रेप्स)",
+      "baseline": "आधार रेखा",
+      "addWeek": "सप्ताह जोड़ें",
+      "deleteTitle": "सप्ताह हटाएं",
+      "deleteMessage": "\"{{name}}\" हटाएं?"
+    },
+    "day": {
+      "namePlaceholder": "दिन {{number}}",
+      "icon": "आइकन",
+      "iconMore": "अधिक",
+      "iconRefresh": "रीफ़्रेश",
+      "addDay": "दिन जोड़ें",
+      "deleteTitle": "दिन हटाएं",
+      "deleteMessage": "\"{{name}}\" हटाएं? यह इसे सभी सप्ताहों से हटा देता है।"
+    }
+  },
+  "addExercise": {
+    "titleAdd": "व्यायाम जोड़ें",
+    "titleEdit": "व्यायाम संपादित करें",
+    "name": "नाम",
+    "namePlaceholder": "व्यायाम का नाम",
+    "muscleGroup": "मांसपेशी समूह",
+    "sets": "सेट्स",
+    "reps": "रेप्स",
+    "notes": "नोट्स",
+    "notesPlaceholder": "वैकल्पिक नोट्स...",
+    "submitAdd": "व्यायाम जोड़ें",
+    "submitEdit": "परिवर्तन सहेजें",
+    "errors": {
+      "nameRequired": "व्यायाम का नाम आवश्यक है।",
+      "setsInvalid": "सेट्स एक मान्य सकारात्मक पूर्णांक होना चाहिए।"
+    }
+  },
+  "settings": {
+    "title": "सेटिंग्स",
+    "appearance": {
+      "title": "दिखावट",
+      "theme": "थीम",
+      "themeSubtitle": "ऐप का रंग योजना",
+      "themeSystem": "सिस्टम",
+      "themeLight": "लाइट",
+      "themeDark": "डार्क",
+      "weightUnit": "वेट यूनिट",
+      "weightUnitSubtitle": "अपना वेट यूनिट चुनें",
+      "language": "भाषा",
+      "system": "सिस्टम",
+      "manual": "मैनुअल"
+    },
+    "language": {
+      "title": "भाषा",
+      "systemLanguage": "सिस्टम भाषा",
+      "appLanguage": "ऐप भाषा",
+      "system": "सिस्टम"
+    },
+    "syncBackup": {
+      "title": "सिंक और बैकअप",
+      "comingSoon": "डिवाइस-टू-डिवाइस सिंक जल्द आ रहा है।",
+      "openSyncSetup": "सिंक सेटअप खोलें"
+    },
+    "data": {
+      "title": "डेटा",
+      "resetDescription": "सभी वर्कआउट, सेटिंग्स, टाइमर डेटा और सिंक इतिहास को स्थायी रूप से रीसेट करें।",
+      "resetButton": "सभी डेटा रीसेट करें"
+    },
+    "developer": {
+      "title": "डेवलपर",
+      "maintainer": "मेंटेनर",
+      "openRepo": "रेपो खोलें",
+      "donate": "दान करें"
+    },
+    "appInfo": {
+      "title": "ऐप जानकारी",
+      "name": "नाम",
+      "version": "संस्करण",
+      "build": "बिल्ड",
+      "buildType": "बिल्ड प्रकार"
+    }
+  },
+  "backup": {
+    "title": "बैकअप और सिंक",
+    "deviceSync": {
+      "title": "डिवाइस सिंक",
+      "comingSoon": "डिवाइस-टू-डिवाइस सिंक जल्द आ रहा है।",
+      "enableSetup": "सिंक सेटिंग्स में सक्षम करें"
+    },
+    "localJson": {
+      "title": "स्थानीय JSON",
+      "description": "अपने वर्कआउट डेटा को JSON फ़ाइल में एक्सपोर्ट करें या पिछला स्थानीय बैकअप इम्पोर्ट करें।",
+      "export": "बैकअप एक्सपोर्ट करें",
+      "import": "बैकअप इम्पोर्ट करें"
+    }
+  },
+  "importPreview": {
+    "title": "इम्पोर्ट पूर्वावलोकन",
+    "changesDetected": "{{count}} परिवर्तन मिले।",
+    "noChanges": "कोई परिवर्तन नहीं मिला। बैकअप वर्तमान डेटा के समान है।",
+    "sections": {
+      "workouts": "वर्कआउट्स",
+      "settings": "सेटिंग्स",
+      "weeks": "सप्ताह",
+      "days": "दिन"
+    },
+    "cancel": "रद्द करें",
+    "confirm": "बैकअप इम्पोर्ट करें"
+  },
+  "donate": {
+    "title": "दान करें",
+    "subtitle": "बिटकॉइन या लाइटनिंग से PearLift के विकास का समर्थन करें।",
+    "placeholder": "प्लेसहोल्डर",
+    "openWallet": "वॉलेट खोलें",
+    "copy": "कॉपी करें"
+  }
+}

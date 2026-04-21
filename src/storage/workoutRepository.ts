@@ -40,6 +40,7 @@ function buildDefaultRuntimeState(): PearLiftRuntimeState {
     restDuration: 150,
     themeMode: 'system',
     weightUnit: 'kg',
+    language: 'system',
   };
 }
 
@@ -72,6 +73,63 @@ function coerceThemeMode(
 function coerceWeightUnit(value: string | null | undefined): WeightUnit {
   return value === 'lb' ? 'lb' : 'kg';
 }
+
+export const SUPPORTED_LANGUAGES = [
+  { code: 'en', native: 'English' },
+  { code: 'de', native: 'Deutsch' },
+  { code: 'fr', native: 'Français' },
+  { code: 'es', native: 'Español' },
+  { code: 'it', native: 'Italiano' },
+  { code: 'pt', native: 'Português' },
+  { code: 'nl', native: 'Nederlands' },
+  { code: 'pl', native: 'Polski' },
+  { code: 'sv', native: 'Svenska' },
+  { code: 'da', native: 'Dansk' },
+  { code: 'fi', native: 'Suomi' },
+  { code: 'no', native: 'Norsk' },
+  { code: 'cs', native: 'Čeština' },
+  { code: 'hu', native: 'Magyar' },
+  { code: 'ro', native: 'Română' },
+  { code: 'el', native: 'Ελληνικά' },
+  { code: 'bg', native: 'Български' },
+  { code: 'hr', native: 'Hrvatski' },
+  { code: 'sk', native: 'Slovenčina' },
+  { code: 'sl', native: 'Slovenščina' },
+  { code: 'et', native: 'Eesti' },
+  { code: 'lv', native: 'Latviešu' },
+  { code: 'lt', native: 'Lietuvių' },
+  { code: 'zh', native: '中文' },
+  { code: 'ar', native: 'العربية' },
+  { code: 'hi', native: 'हिन्दी' },
+  { code: 'ru', native: 'Русский' },
+  { code: 'ja', native: '日本語' },
+  { code: 'ko', native: '한국어' },
+  { code: 'tr', native: 'Türkçe' },
+  { code: 'vi', native: 'Tiếng Việt' },
+  { code: 'th', native: 'ไทย' },
+  { code: 'id', native: 'Bahasa Indonesia' },
+];
+
+function coerceLanguage(value: string | null | undefined): string {
+  if (!value) return 'system';
+  if (value === 'system') return 'system';
+  const lang = SUPPORTED_LANGUAGES.find((l) => l.code === value);
+  return lang ? value : 'system';
+}
+
+function detectOsLanguage(): string {
+  return 'en';
+}
+
+export const getLanguageNativeName = (code: string): string => {
+  const lang = SUPPORTED_LANGUAGES.find((l) => l.code === code);
+  return lang?.native ?? code;
+};
+
+export const resolveLanguage = (stored: string | null | undefined): string => {
+  const coerced = coerceLanguage(stored);
+  return coerced === 'system' ? detectOsLanguage() : coerced;
+};
 
 function normalizeDayConfigs(
   workouts: WorkoutSession[],
@@ -270,6 +328,10 @@ export class WorkoutRepository {
           }
           case 'setWeightUnit': {
             await this.writeSetting(db, 'weightUnit', mutation.weightUnit);
+            break;
+          }
+          case 'setLanguage': {
+            await this.writeSetting(db, 'language', mutation.language);
             break;
           }
           case 'setExerciseWeight': {
@@ -735,6 +797,7 @@ export class WorkoutRepository {
       restDuration: parseNumber(settingsMap.get('restDuration'), 150),
       themeMode: coerceThemeMode(settingsMap.get('themeMode')),
       weightUnit: coerceWeightUnit(settingsMap.get('weightUnit')),
+      language: coerceLanguage(settingsMap.get('language')),
     };
   }
 

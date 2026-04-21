@@ -50,6 +50,7 @@ export interface PearLiftRuntimeState {
   restDuration: number;
   themeMode: ThemePreference;
   weightUnit: WeightUnit;
+  language: string;
 }
 
 export interface MigratedBackupResult {

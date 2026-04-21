@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "취소",
+    "delete": "삭제",
+    "back": "뒤로",
+    "next": "다음"
+  },
+  "app": {
+    "loading": "운동 데이터 준비 중"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "PearLift에 오신 것을 환영합니다",
+        "description": "단순한 인터페이스로 운동을 추적하세요. 세트, 반복, 중량 기록 - 복잡함 없이 진전만."
+      },
+      "units": {
+        "title": "단위 선택",
+        "description": "선호하는 중량 단위를 선택하세요. 나중에 변경할 수 있습니다."
+      },
+      "sync": {
+        "title": "기기 간 동기화",
+        "description": "기기 간에 직접 운동을 동기화하세요. 설정에서 언제든지 설정할 수 있습니다. 클라우드 서비스 없이 로컬에서 작동합니다."
+      },
+      "notifications": {
+        "title": "진행 상황을 유지하세요",
+        "description": "휴식 타이머를 잊지 않도록 알림을 활성화하세요. 다음 세트를 시작할 시간에 알려드리겠습니다."
+      }
+    },
+    "getStarted": "시작하기",
+    "settingUp": "설정 중..."
+  },
+  "workout": {
+    "weekDay": "주 {{week}} - 일 {{day}}",
+    "addExercise": "운동 추가"
+  },
+  "restTimer": {
+    "title": "휴식 타이머",
+    "complete": "휴식 완료!",
+    "duration": "지속 시간",
+    "notification": {
+      "title": "휴식 완료",
+      "body": "다음 세트 시간입니다."
+    }
+  },
+  "programSettings": {
+    "title": "프로그램 설정",
+    "tabs": {
+      "weeks": "주",
+      "days": "일"
+    },
+    "week": {
+      "namePlaceholder": "주 이름",
+      "loadModifier": "부하 수정자",
+      "rir": "RIR (예비 반복)",
+      "baseline": "기준선",
+      "addWeek": "주 추가",
+      "deleteTitle": "주 삭제",
+      "deleteMessage": "\"{{name}}\"을(를) 삭제하시겠습니까?"
+    },
+    "day": {
+      "namePlaceholder": "일 {{number}}",
+      "icon": "아이콘",
+      "iconMore": "더 보기",
+      "iconRefresh": "새로 고침",
+      "addDay": "일 추가",
+      "deleteTitle": "일 삭제",
+      "deleteMessage": "\"{{name}}\"을(를) 삭제하시겠습니까? 모든 주에서 제거됩니다."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "운동 추가",
+    "titleEdit": "운동 편집",
+    "name": "이름",
+    "namePlaceholder": "운동 이름",
+    "muscleGroup": " 근육 그룹",
+    "sets": "세트",
+    "reps": "반복",
+    "notes": "메모",
+    "notesPlaceholder": "선택적 메모...",
+    "submitAdd": "운동 추가",
+    "submitEdit": "변경 사항 저장",
+    "errors": {
+      "nameRequired": "운동 이름은 필수입니다.",
+      "setsInvalid": "세트는 유효한 양의 정수여야 합니다."
+    }
+  },
+  "settings": {
+    "title": "설정",
+    "appearance": {
+      "title": "외관",
+      "theme": "테마",
+      "themeSubtitle": "앱 색상 체계",
+      "themeSystem": "시스템",
+      "themeLight": "라이트",
+      "themeDark": "다크",
+      "weightUnit": "중량 단위",
+      "weightUnitSubtitle": "중량 단위 선택",
+      "language": "언어",
+      "system": "시스템",
+      "manual": "수동"
+    },
+    "language": {
+      "title": "언어",
+      "systemLanguage": "시스템 언어",
+      "appLanguage": "앱 언어",
+      "system": "시스템"
+    },
+    "syncBackup": {
+      "title": "동기화 및 백업",
+      "comingSoon": "기기 간 동기화가 곧 제공됩니다.",
+      "openSyncSetup": "동기화 설정 열기"
+    },
+    "data": {
+      "title": "데이터",
+      "resetDescription": "모든 운동, 설정, 타이머 데이터 및 동기화 기록을 영구적으로 재설정합니다.",
+      "resetButton": "모든 데이터 재설정"
+    },
+    "developer": {
+      "title": "개발자",
+      "maintainer": "유지관리자",
+      "openRepo": "저장소 열기",
+      "donate": "기부"
+    },
+    "appInfo": {
+      "title": "앱 정보",
+      "name": "이름",
+      "version": "버전",
+      "build": "빌드",
+      "buildType": "빌드 유형"
+    }
+  },
+  "backup": {
+    "title": "백업 및 동기화",
+    "deviceSync": {
+      "title": "기기 동기화",
+      "comingSoon": "기기 간 동기화가 곧 제공됩니다.",
+      "enableSetup": "동기화 설정에서 활성화"
+    },
+    "localJson": {
+      "title": "로컬 JSON",
+      "description": "운동 데이터를 JSON 파일로 내보내거나 이전 로컬 백업을 가져옵니다.",
+      "export": "백업 내보내기",
+      "import": "백업 가져오기"
+    }
+  },
+  "importPreview": {
+    "title": "가져오기 미리보기",
+    "changesDetected": "{{count}}개의 변경 사항이 감지되었습니다.",
+    "noChanges": "변경 사항이 감지되지 않았습니다. 백업이 현재 데이터와 동일합니다.",
+    "sections": {
+      "workouts": "운동",
+      "settings": "설정",
+      "weeks": "주",
+      "days": "일"
+    },
+    "cancel": "취소",
+    "confirm": "백업 가져오기"
+  },
+  "donate": {
+    "title": "기부",
+    "subtitle": "Bitcoin 또는 Lightning으로 PearLift 개발을 지지하세요.",
+    "placeholder": "플레이스홀더",
+    "openWallet": "지갑 열기",
+    "copy": "복사"
+  }
+}

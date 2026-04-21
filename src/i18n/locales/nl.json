@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Annuleren",
+    "delete": "Verwijderen",
+    "back": "Terug",
+    "next": "Volgende"
+  },
+  "app": {
+    "loading": "Je trainingsgegevens worden voorbereid"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Welkom bij PearLift",
+        "description": "Volg je trainingen met een eenvoudige interface. Log sets, herhalingen en gewichten - geen complexiteit, gewoon vooruitgang."
+      },
+      "units": {
+        "title": "Kies eenheden",
+        "description": "Kies je favoriete gewichtseenheid. Je kunt dit later veranderen."
+      },
+      "sync": {
+        "title": "Apparaat-naar-apparaat synchronisatie",
+        "description": "Synchroniseer je trainingen rechtstreeks tussen apparaten. Stel dit op elk moment in in Instellingen. Werkt lokaal zonder clouddiensten."
+      },
+      "notifications": {
+        "title": "Blijf op koers",
+        "description": "Schakel meldingen in zodat je nooit een rusttimer vergeet. We herinneren je eraan wanneer het tijd is om je volgende set te starten."
+      }
+    },
+    "getStarted": "Aan de slag",
+    "settingUp": "Instellen..."
+  },
+  "workout": {
+    "weekDay": "Week {{week}} - {{day}}",
+    "addExercise": "Oefening toevoegen"
+  },
+  "restTimer": {
+    "title": "Rusttimer",
+    "complete": "RUST VOLTOOID!",
+    "duration": "Duur",
+    "notification": {
+      "title": "Rust voltooid",
+      "body": "Tijd voor je volgende set."
+    }
+  },
+  "programSettings": {
+    "title": "Programma-instellingen",
+    "tabs": {
+      "weeks": "Weken",
+      "days": "Dagen"
+    },
+    "week": {
+      "namePlaceholder": "Weeknaam",
+      "loadModifier": "Belastingswijziging",
+      "rir": "RIR (Reserve herhalingen)",
+      "baseline": "Basis",
+      "addWeek": "Week toevoegen",
+      "deleteTitle": "Week verwijderen",
+      "deleteMessage": "\"{{name}}\" verwijderen?"
+    },
+    "day": {
+      "namePlaceholder": "Dag {{number}}",
+      "icon": "Pictogram",
+      "iconMore": "Meer",
+      "iconRefresh": "Vernieuwen",
+      "addDay": "Dag toevoegen",
+      "deleteTitle": "Dag verwijderen",
+      "deleteMessage": "\"{{name}}\" verwijderen? Dit verwijdert het uit alle weken."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Oefening toevoegen",
+    "titleEdit": "Oefening bewerken",
+    "name": "Naam",
+    "namePlaceholder": "Oefennaam",
+    "muscleGroup": "Spiergroep",
+    "sets": "Sets",
+    "reps": "Herhalingen",
+    "notes": "Notities",
+    "notesPlaceholder": "Optionele notities...",
+    "submitAdd": "Oefening toevoegen",
+    "submitEdit": "Wijzigingen opslaan",
+    "errors": {
+      "nameRequired": "Oefennaam is vereist.",
+      "setsInvalid": "Sets moeten een geldig positief geheel getal zijn."
+    }
+  },
+  "settings": {
+    "title": "Instellingen",
+    "appearance": {
+      "title": "Uiterlijk",
+      "theme": "Thema",
+      "themeSubtitle": "App kleurenschema",
+      "themeSystem": "Systeem",
+      "themeLight": "Licht",
+      "themeDark": "Donker",
+      "weightUnit": "Gewichtseenheid",
+      "weightUnitSubtitle": "Kies je gewichtseenheid",
+      "language": "Taal",
+      "system": "Systeem",
+      "manual": "Handmatig"
+    },
+    "language": {
+      "title": "Taal",
+      "systemLanguage": "Systeemtaal",
+      "appLanguage": "App-taal",
+      "system": "Systeem"
+    },
+    "syncBackup": {
+      "title": "Synchronisatie en back-up",
+      "comingSoon": "Apparaat-naar-apparaat synchronisatie binnenkort beschikbaar.",
+      "openSyncSetup": "Synchronisatie-instellingen openen"
+    },
+    "data": {
+      "title": "Gegevens",
+      "resetDescription": "Alle trainingen, instellingen, timergegevens en synchronisatiegeschiedenis permanent resetten.",
+      "resetButton": "Alle gegevens resetten"
+    },
+    "developer": {
+      "title": "Ontwikkelaar",
+      "maintainer": "Beheerder",
+      "openRepo": "Repo openen",
+      "donate": "Doneren"
+    },
+    "appInfo": {
+      "title": "App-info",
+      "name": "Naam",
+      "version": "Versie",
+      "build": "Build",
+      "buildType": "Build-type"
+    }
+  },
+  "backup": {
+    "title": "Back-up en synchronisatie",
+    "deviceSync": {
+      "title": "Apparaatsynchronisatie",
+      "comingSoon": "Apparaat-naar-apparaat synchronisatie binnenkort beschikbaar.",
+      "enableSetup": "Inschakelen in synchronisatie-instellingen"
+    },
+    "localJson": {
+      "title": "Lokaal JSON",
+      "description": "Exporteer je trainingsgegevens naar een JSON-bestand of importeer een eerdere lokale back-up.",
+      "export": "Back-up exporteren",
+      "import": "Back-up importeren"
+    }
+  },
+  "importPreview": {
+    "title": "Import voorbeeld",
+    "changesDetected": "{{count}} wijziging(en) gedetecteerd.",
+    "noChanges": "Geen wijzigingen gedetecteerd. Back-up is identiek aan huidige gegevens.",
+    "sections": {
+      "workouts": "Trainingen",
+      "settings": "Instellingen",
+      "weeks": "Weken",
+      "days": "Dagen"
+    },
+    "cancel": "Annuleren",
+    "confirm": "Back-up importeren"
+  },
+  "donate": {
+    "title": "Doneren",
+    "subtitle": "Ondersteun de PearLift-ontwikkeling met Bitcoin of Lightning.",
+    "placeholder": "Plaatshouder",
+    "openWallet": "Wallet openen",
+    "copy": "Kopiëren"
+  }
+}

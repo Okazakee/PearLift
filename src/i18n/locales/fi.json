@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Peruuta",
+    "delete": "Poista",
+    "back": "Takaisin",
+    "next": "Seuraava"
+  },
+  "app": {
+    "loading": "Valmistellaan harjoittelutietojasi"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Tervetuloa PearLifttiin",
+        "description": "Seuraa harjoittelujasi yksinkertaisella käyttöliittymällä. Kirjaa sarjat, toistot ja painot - ei monimutkaisuutta, vain edistymistä."
+      },
+      "units": {
+        "title": "Valitse yksiköt",
+        "description": "Valitse suosikki painoyksikkösi. Voit muuttaa tätä myöhemmin."
+      },
+      "sync": {
+        "title": "Laite-laite-synkronointi",
+        "description": "Synkronoi harjoittelusi suoraan laitteiden välillä. Aseta se milloin tahansa Asetuksissa. Toimii paikallisesti ilman pilvipalveluita."
+      },
+      "notifications": {
+        "title": "Pysy radalla",
+        "description": "Ota ilmoitukset käyttöön, ettet unohda lepoajastinta. Muistutamme sinua, kun on aika aloittaa seuraava sarjasi."
+      }
+    },
+    "getStarted": "Aloita",
+    "settingUp": "Asetetaan..."
+  },
+  "workout": {
+    "weekDay": "Viikko {{week}} - {{day}}",
+    "addExercise": "Lisää liike"
+  },
+  "restTimer": {
+    "title": "Lepoajastin",
+    "complete": "LEPO VALMIS!",
+    "duration": "Kesto",
+    "notification": {
+      "title": "Lepo valmis",
+      "body": "Aika seuraavalle sarjallesi."
+    }
+  },
+  "programSettings": {
+    "title": "Ohjelman asetukset",
+    "tabs": {
+      "weeks": "Viikot",
+      "days": "Päivät"
+    },
+    "week": {
+      "namePlaceholder": "Viikon nimi",
+      "loadModifier": "Kuorman muokkain",
+      "rir": "RIR (Varatoistot)",
+      "baseline": "Perustaso",
+      "addWeek": "Lisää viikko",
+      "deleteTitle": "Poista viikko",
+      "deleteMessage": "Poistetaanko \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Päivä {{number}}",
+      "icon": "Kuvake",
+      "iconMore": "Lisää",
+      "iconRefresh": "Päivitä",
+      "addDay": "Lisää päivä",
+      "deleteTitle": "Poista päivä",
+      "deleteMessage": "Poistetaanko \"{{name}}\"? Tämä poistaa sen kaikista viikoista."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Lisää liike",
+    "titleEdit": "Muokkaa liikettä",
+    "name": "Nimi",
+    "namePlaceholder": "Liikkeen nimi",
+    "muscleGroup": "Lihasryhmä",
+    "sets": "Sarjat",
+    "reps": "Toistot",
+    "notes": "Muistiinpanot",
+    "notesPlaceholder": "Valinnaiset muistiinpanot...",
+    "submitAdd": "Lisää liike",
+    "submitEdit": "Tallenna muutokset",
+    "errors": {
+      "nameRequired": "Liikkeen nimi vaaditaan.",
+      "setsInvalid": "Sarjat on oltava kelvollinen positiivinen kokonaisluku."
+    }
+  },
+  "settings": {
+    "title": "Asetukset",
+    "appearance": {
+      "title": "Ulkoasu",
+      "theme": "Teema",
+      "themeSubtitle": "Sovelluksen värijärjestelmä",
+      "themeSystem": "Järjestelmä",
+      "themeLight": "Vaalea",
+      "themeDark": "Tumma",
+      "weightUnit": "Painoyksikkö",
+      "weightUnitSubtitle": "Valitse painoyksikkösi",
+      "language": "Kieli",
+      "system": "Järjestelmä",
+      "manual": "Manuaalinen"
+    },
+    "language": {
+      "title": "Kieli",
+      "systemLanguage": "Järjestelmäkieli",
+      "appLanguage": "Sovelluskieli",
+      "system": "Järjestelmä"
+    },
+    "syncBackup": {
+      "title": "Synkronointi ja varmuuskopiointi",
+      "comingSoon": "Laite-laite-synkronointi tulee pian.",
+      "openSyncSetup": "Avaa synkronointiasetukset"
+    },
+    "data": {
+      "title": "Tiedot",
+      "resetDescription": "Palauta pysyvästi kaikki harjoittelut, asetukset, ajastintiedot ja synkronointihistoria.",
+      "resetButton": "Palauta kaikki tiedot"
+    },
+    "developer": {
+      "title": "Kehittäjä",
+      "maintainer": "Ylläpitäjä",
+      "openRepo": "Avaa repo",
+      "donate": "Lahjoita"
+    },
+    "appInfo": {
+      "title": "Sovellustiedot",
+      "name": "Nimi",
+      "version": "Versio",
+      "build": "Build",
+      "buildType": "Build-tyyppi"
+    }
+  },
+  "backup": {
+    "title": "Varmuuskopiointi ja synkronointi",
+    "deviceSync": {
+      "title": "Laitteiden synkronointi",
+      "comingSoon": "Laite-laite-synkronointi tulee pian.",
+      "enableSetup": "Ota käyttöön synkronointiasetuksissa"
+    },
+    "localJson": {
+      "title": "Paikallinen JSON",
+      "description": "Vie harjoittelutietosi JSON-tiedostoon tai tuo aiempi paikallinen varmuuskopio.",
+      "export": "Vie varmuuskopio",
+      "import": "Tuo varmuuskopio"
+    }
+  },
+  "importPreview": {
+    "title": "Tuontiesikatselu",
+    "changesDetected": "{{count}} muutos(tta) havaittu.",
+    "noChanges": "Muutoksia ei havaittu. Varmuuskopio on identtinen nykyisten tietojen kanssa.",
+    "sections": {
+      "workouts": "Harjoittelut",
+      "settings": "Asetukset",
+      "weeks": "Viikot",
+      "days": "Päivät"
+    },
+    "cancel": "Peruuta",
+    "confirm": "Tuo varmuuskopio"
+  },
+  "donate": {
+    "title": "Lahjoita",
+    "subtitle": "Tue PearLiftin kehitystä Bitcoinilla tai Lightningilla.",
+    "placeholder": "Paikkamerkki",
+    "openWallet": "Avaa lompakko",
+    "copy": "Kopioi"
+  }
+}

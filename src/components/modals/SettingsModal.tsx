@@ -3,7 +3,6 @@ import {
   ChevronLeft,
   Code,
   CodeXml,
-  Globe,
   Heart,
   Info,
   RefreshCw,
@@ -13,6 +12,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
+import { getLanguageNativeName } from '../../storage/workoutRepository';
 import type {
   ThemeMode,
   ThemePreference,
@@ -36,6 +36,9 @@ interface SettingsModalProps {
   onThemePreferenceChange: (next: ThemePreference) => void;
   weightUnit: WeightUnit;
   onWeightUnitChange: (next: WeightUnit) => void;
+  language: string;
+  onLanguageChange: (next: string) => void;
+  onLanguageListOpen: () => void;
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
@@ -55,6 +58,9 @@ export function SettingsModal({
   onThemePreferenceChange,
   weightUnit,
   onWeightUnitChange,
+  language,
+  onLanguageChange,
+  onLanguageListOpen,
   onClose,
   onResetData,
   onOpenGithub,
@@ -83,6 +89,20 @@ export function SettingsModal({
 
   const unitOptionTextStyle = (value: WeightUnit) => {
     const selected = weightUnit === value;
+    if (!selected) return styles.segmentText;
+    return [styles.segmentText, styles.segmentTextSelected];
+  };
+
+  const languageOptionStyle = (value: string) => {
+    const selected =
+      language === value || (value === 'manual' && language !== 'system');
+    if (!selected) return styles.segment;
+    return [styles.segment, styles.segmentSelected];
+  };
+
+  const languageOptionTextStyle = (value: string) => {
+    const selected =
+      language === value || (value === 'manual' && language !== 'system');
     if (!selected) return styles.segmentText;
     return [styles.segmentText, styles.segmentTextSelected];
   };
@@ -170,28 +190,38 @@ export function SettingsModal({
                 </AnimatedPressable>
               </View>
             </View>
-          </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Globe size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('settings.language.title')}
-              </Text>
-            </View>
             <View style={styles.row}>
               <View style={styles.rowText}>
                 <Text style={styles.rowTitle}>
-                  {t('settings.language.systemLanguage')}
-                </Text>
-                <Text style={styles.rowSubtitle}>
-                  {t('settings.language.appLanguage')}
+                  {t('settings.appearance.language')}
                 </Text>
               </View>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {t('settings.language.system')}
-                </Text>
+              <View style={styles.segmented}>
+                <AnimatedPressable
+                  style={languageOptionStyle('system')}
+                  onPress={() => onLanguageChange('system')}
+                >
+                  <Text style={languageOptionTextStyle('system')}>
+                    {t('settings.appearance.system')}
+                  </Text>
+                </AnimatedPressable>
+                <AnimatedPressable
+                  style={languageOptionStyle(
+                    language === 'system' ? 'manual' : language,
+                  )}
+                  onPress={onLanguageListOpen}
+                >
+                  <Text
+                    style={languageOptionTextStyle(
+                      language === 'system' ? 'manual' : language,
+                    )}
+                  >
+                    {language === 'system'
+                      ? t('settings.appearance.manual')
+                      : getLanguageNativeName(language)}
+                  </Text>
+                </AnimatedPressable>
               </View>
             </View>
           </View>
@@ -410,6 +440,20 @@ function createStyles(
     },
     segmentTextSelected: {
       color: tokens.colors.textPrimary,
+    },
+    languagePill: {
+      borderRadius: tokens.radius.pill,
+      paddingHorizontal: tokens.spacing.md,
+      paddingVertical: tokens.spacing.sm,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.15),
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.25),
+    },
+    languagePillText: {
+      color: tokens.colors.primary,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
+      textTransform: 'uppercase',
     },
     badge: {
       borderRadius: tokens.radius.pill,

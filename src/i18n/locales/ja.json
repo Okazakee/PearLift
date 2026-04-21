@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "キャンセル",
+    "delete": "削除",
+    "back": "戻る",
+    "next": "次へ"
+  },
+  "app": {
+    "loading": "トレーニングデータの準備中"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "PearLiftへようこそ",
+        "description": "シンプルなインターフェースでワークアウトを記録。セット、反復、重量を記録 - 複雑さなし、進捗のみ。"
+      },
+      "units": {
+        "title": "単位を選択",
+        "description": "お好みの重量単位を選択してください。後から変更できます。"
+      },
+      "sync": {
+        "title": "デバイス間同期",
+        "description": "デバイス間でワークアウトを直接同期します。設定でいつでも設定できます。クラウドサービスなしでローカル動作。"
+      },
+      "notifications": {
+        "title": "進捗を維持",
+        "description": "通知を有効にして、リタイマーを決して忘れないように 다음セットを開始する時にお知らせします。"
+      }
+    },
+    "getStarted": "始める",
+    "settingUp": "設定中..."
+  },
+  "workout": {
+    "weekDay": "週 {{week}} - 日 {{day}}",
+    "addExercise": "エクササイズを追加"
+  },
+  "restTimer": {
+    "title": "リタイマー",
+    "complete": "休憩終了！",
+    "duration": "時間",
+    "notification": {
+      "title": "休憩終了",
+      "body": "次のセットの時間です。"
+    }
+  },
+  "programSettings": {
+    "title": "プログラム設定",
+    "tabs": {
+      "weeks": "週",
+      "days": "日"
+    },
+    "week": {
+      "namePlaceholder": "週名",
+      "loadModifier": "負荷モディファイア",
+      "rir": "RIR（リバースレップ）",
+      "baseline": "ベースライン",
+      "addWeek": "週を追加",
+      "deleteTitle": "週を削除",
+      "deleteMessage": "\"{{name}}\"を削除しますか？"
+    },
+    "day": {
+      "namePlaceholder": "日 {{number}}",
+      "icon": "アイコン",
+      "iconMore": "更多",
+      "iconRefresh": "更新",
+      "addDay": "日を追加",
+      "deleteTitle": "日を削除",
+      "deleteMessage": "\"{{name}}\"を削除しますか？これは全ての週から削除します。"
+    }
+  },
+  "addExercise": {
+    "titleAdd": "エクササイズを追加",
+    "titleEdit": "エクササイズを編集",
+    "name": "名前",
+    "namePlaceholder": "エクササイズ名",
+    "muscleGroup": "筋肉グループ",
+    "sets": "セット",
+    "reps": "反復",
+    "notes": "メモ",
+    "notesPlaceholder": "任意メモ...",
+    "submitAdd": "エクササイズを追加",
+    "submitEdit": "変更を保存",
+    "errors": {
+      "nameRequired": "エクササイズ名は必須です。",
+      "setsInvalid": "セットは有効な正の整数である必要があります���"
+    }
+  },
+  "settings": {
+    "title": "設定",
+    "appearance": {
+      "title": "外観",
+      "theme": "テーマ",
+      "themeSubtitle": "アプリのカラースキーム",
+      "themeSystem": "システム",
+      "themeLight": "ライト",
+      "themeDark": "ダーク",
+      "weightUnit": "重量単位",
+      "weightUnitSubtitle": "重量単位を選択",
+      "language": "言語",
+      "system": "システム",
+      "manual": "手動"
+    },
+    "language": {
+      "title": "言語",
+      "systemLanguage": "システム言語",
+      "appLanguage": "アプリの言語",
+      "system": "システム"
+    },
+    "syncBackup": {
+      "title": "同期とバックアップ",
+      "comingSoon": "デバイス間同期は近日公開。",
+      "openSyncSetup": "同期設定を開く"
+    },
+    "data": {
+      "title": "データ",
+      "resetDescription": "すべてのワークアウト、設定、タイマーデータ、同期履歴を完全にリセットします。",
+      "resetButton": "すべてのデータをリセット"
+    },
+    "developer": {
+      "title": "開発者",
+      "maintainer": "メンテナー",
+      "openRepo": "リポジトリを開く",
+      "donate": "寄付"
+    },
+    "appInfo": {
+      "title": "アプリ情報",
+      "name": "名前",
+      "version": "バージョン",
+      "build": "ビルド",
+      "buildType": "ビルドタイプ"
+    }
+  },
+  "backup": {
+    "title": "バックアップと同期",
+    "deviceSync": {
+      "title": "デバイス同期",
+      "comingSoon": "デバイス間同期は近日公開。",
+      "enableSetup": "同期設定で有効にする"
+    },
+    "localJson": {
+      "title": "ローカルJSON",
+      "description": "ワークアウトデータをJSONファイルにエクスポートするか、以前のローカルバックアップをインポートします。",
+      "export": "バックアップをエクスポート",
+      "import": "バックアップをインポート"
+    }
+  },
+  "importPreview": {
+    "title": "インポートプレビュー",
+    "changesDetected": "{{count}}件の変更が検出されました。",
+    "noChanges": "変更は検出されませんでした。バックアップは現在のデータと同じです。",
+    "sections": {
+      "workouts": "ワークアウト",
+      "settings": "設定",
+      "weeks": "週",
+      "days": "日"
+    },
+    "cancel": "キャンセル",
+    "confirm": "バックアップをインポート"
+  },
+  "donate": {
+    "title": "寄付",
+    "subtitle": "BitcoinまたはLightningでPearLiftの開発，支持してください。",
+    "placeholder": "プレースホルダー",
+    "openWallet": "ウォレットを開く",
+    "copy": "コピー"
+  }
+}

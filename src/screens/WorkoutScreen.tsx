@@ -23,6 +23,7 @@ import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import { AppPromptModal } from '../components/modals/AppPromptModal';
 import { DonateModal } from '../components/modals/DonateModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
+import { LanguageListModal } from '../components/modals/LanguageListModal';
 import { LocalBackupModal } from '../components/modals/LocalBackupModal';
 import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
@@ -33,6 +34,7 @@ import { WorkoutView } from '../components/WorkoutView';
 import { APP_CONFIG } from '../config/app';
 import { type DonationTarget, getDonationTargets } from '../config/donation';
 import { defaultDayConfigs } from '../data/workouts';
+import i18n from '../i18n';
 import { useWorkoutStore } from '../store/workoutStore';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
@@ -72,6 +74,8 @@ export function WorkoutScreen() {
     setSettingsOpen,
     donateModalOpen,
     setDonateModalOpen,
+    languageListOpen,
+    setLanguageListOpen,
     localBackupOpen,
     setLocalBackupOpen,
     importPreviewOpen,
@@ -87,6 +91,13 @@ export function WorkoutScreen() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    const savedLanguage = snapshot?.language;
+    if (savedLanguage && savedLanguage !== i18n.language) {
+      i18n.changeLanguage(savedLanguage);
+    }
+  }, [snapshot?.language]);
 
   const systemThemeMode: ThemeMode | null =
     systemScheme === 'dark' || systemScheme === 'light' ? systemScheme : null;
@@ -107,6 +118,7 @@ export function WorkoutScreen() {
   const dayConfigs = snapshot?.dayConfigs ?? defaultDayConfigs;
   const restDuration = snapshot?.restDuration ?? 150;
   const weightUnit: WeightUnit = snapshot?.weightUnit ?? 'kg';
+  const currentLanguage = snapshot?.language ?? 'en';
 
   const exerciseBaseWeights = useMemo(() => {
     const map = new Map<string, number>();
@@ -417,6 +429,11 @@ export function WorkoutScreen() {
     void applyMutation({ type: 'setWeightUnit', weightUnit: nextUnit });
   };
 
+  const handleLanguageChange = (nextLanguage: string) => {
+    i18n.changeLanguage(nextLanguage);
+    void applyMutation({ type: 'setLanguage', language: nextLanguage });
+  };
+
   const handleAdjustWeight = (exerciseId: string, delta: number) => {
     void applyMutation({ type: 'adjustExerciseWeight', exerciseId, delta });
   };
@@ -602,10 +619,30 @@ export function WorkoutScreen() {
           onThemePreferenceChange={handleThemeModeChange}
           weightUnit={weightUnit}
           onWeightUnitChange={handleWeightUnitChange}
+          language={currentLanguage}
+          onLanguageChange={handleLanguageChange}
+          onLanguageListOpen={() => setLanguageListOpen(true)}
           onResetData={handleResetData}
           onClose={() => setSettingsOpen(false)}
           onOpenGithub={handleOpenGithub}
           onOpenDonate={() => setDonateModalOpen(true)}
+        />
+
+        <LanguageListModal
+          open={languageListOpen}
+          tokens={tokens}
+          selectedLanguage={currentLanguage}
+          onClose={() => {
+            setLanguageListOpen(false);
+            if (currentLanguage !== 'system') {
+              i18n.changeLanguage('system');
+              void applyMutation({ type: 'setLanguage', language: 'system' });
+            }
+          }}
+          onSelectLanguage={(code) => {
+            i18n.changeLanguage(code);
+            void applyMutation({ type: 'setLanguage', language: code });
+          }}
         />
 
         <DonateModal

@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Anulează",
+    "delete": "Șterge",
+    "back": "Înapoi",
+    "next": "Următorul"
+  },
+  "app": {
+    "loading": "Se pregătesc datele de antrenament"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Bine ai venit la PearLift",
+        "description": "Urmărește-ți antrenamentele cu o interfață simplă. Înregistrează serii, repetări și greutăți - fără complexitate, doar progres."
+      },
+      "units": {
+        "title": "Alege unitățile",
+        "description": "Alege unitatea de greutate preferată. Poți schimba asta mai târziu."
+      },
+      "sync": {
+        "title": "Sincronizare dispozitiv-dispozitiv",
+        "description": "Sincronizează-ți antrenamentele direct între dispozitive. Configurează oricând din Setări. Funcționează local fără servicii cloud."
+      },
+      "notifications": {
+        "title": "Rămâi pe drumul cel bun",
+        "description": "Activ notificările pentru a nu uita niciodată un cronometru de odihnă. Te vom aminti când este timpul pentru următoarea ta serie."
+      }
+    },
+    "getStarted": "Începe",
+    "settingUp": "Configurare..."
+  },
+  "workout": {
+    "weekDay": "Săptămâna {{week}} - {{day}}",
+    "addExercise": "Adaugă exercițiu"
+  },
+  "restTimer": {
+    "title": "Cronometru de odihnă",
+    "complete": "ODIHNĂ COMPLETĂ!",
+    "duration": "Durată",
+    "notification": {
+      "title": "Odihnă completă",
+      "body": "Timp pentru următoarea ta serie."
+    }
+  },
+  "programSettings": {
+    "title": "Setări program",
+    "tabs": {
+      "weeks": "Săptămâni",
+      "days": "Zile"
+    },
+    "week": {
+      "namePlaceholder": "Nume săptămână",
+      "loadModifier": "Modificator de sarcină",
+      "rir": "RIR (Repetări în rezervă)",
+      "baseline": "Linie de bază",
+      "addWeek": "Adaugă săptămână",
+      "deleteTitle": "Șterge săptămână",
+      "deleteMessage": "Ștergi \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Ziua {{number}}",
+      "icon": "Pictogramă",
+      "iconMore": "Mai multe",
+      "iconRefresh": "Actualizează",
+      "addDay": "Adaugă zi",
+      "deleteTitle": "Șterge zi",
+      "deleteMessage": "Ștergi \"{{name}}\"? Acest lucru o elimină din toate săptămânile."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Adaugă exercițiu",
+    "titleEdit": "Editează exercițiu",
+    "name": "Nume",
+    "namePlaceholder": "Nume exercițiu",
+    "muscleGroup": "Grup muscular",
+    "sets": "Serii",
+    "reps": "Repetări",
+    "notes": "Note",
+    "notesPlaceholder": "Note opționale...",
+    "submitAdd": "Adaugă exercițiu",
+    "submitEdit": "Salvează modificările",
+    "errors": {
+      "nameRequired": "Numele exercițiului este obligatoriu.",
+      "setsInvalid": "Seriile trebuie să fie un număr întreg pozitiv valid."
+    }
+  },
+  "settings": {
+    "title": "Setări",
+    "appearance": {
+      "title": "Aspect",
+      "theme": "Temă",
+      "themeSubtitle": "Schema de culori a aplicației",
+      "themeSystem": "Sistem",
+      "themeLight": "Deschis",
+      "themeDark": "Întunecat",
+      "weightUnit": "Unitate de greutate",
+      "weightUnitSubtitle": "Alege unitatea de greutate",
+      "language": "Limbă",
+      "system": "Sistem",
+      "manual": "Manual"
+    },
+    "language": {
+      "title": "Limbă",
+      "systemLanguage": "Limba sistemului",
+      "appLanguage": "Limba aplicației",
+      "system": "Sistem"
+    },
+    "syncBackup": {
+      "title": "Sincronizare și backup",
+      "comingSoon": "Sincronizarea dispozitiv-dispozitiv vine curând.",
+      "openSyncSetup": "Deschide configurarea sincronizării"
+    },
+    "data": {
+      "title": "Date",
+      "resetDescription": "Resetează permanent toate antrenamentele, setările, datele cronometrului și istoricul sincronizării.",
+      "resetButton": "Resetează toate datele"
+    },
+    "developer": {
+      "title": "Dezvoltator",
+      "maintainer": "Mentenanță",
+      "openRepo": "Deschide repo",
+      "donate": "Donează"
+    },
+    "appInfo": {
+      "title": "Informații aplicație",
+      "name": "Nume",
+      "version": "Versiune",
+      "build": "Build",
+      "buildType": "Tip build"
+    }
+  },
+  "backup": {
+    "title": "Backup și sincronizare",
+    "deviceSync": {
+      "title": "Sincronizare dispozitiv",
+      "comingSoon": "Sincronizarea dispozitiv-dispozitiv vine curând.",
+      "enableSetup": "Activează în setările de sincronizare"
+    },
+    "localJson": {
+      "title": "JSON local",
+      "description": "Exportă datele de antrenament într-un fișier JSON sau importă un backup local anterior.",
+      "export": "Exportă backup",
+      "import": "Importă backup"
+    }
+  },
+  "importPreview": {
+    "title": "Previzualizare import",
+    "changesDetected": "{{count}} modificare(i) detectată(e).",
+    "noChanges": "Nicio modificare detectată. Backup-ul este identic cu datele curente.",
+    "sections": {
+      "workouts": "Antrenamente",
+      "settings": "Setări",
+      "weeks": "Săptămâni",
+      "days": "Zile"
+    },
+    "cancel": "Anulează",
+    "confirm": "Importă backup"
+  },
+  "donate": {
+    "title": "Donează",
+    "subtitle": "Susține dezvoltarea PearLift cu Bitcoin sau Lightning.",
+    "placeholder": "Placeholder",
+    "openWallet": "Deschide portofelul",
+    "copy": "Copiază"
+  }
+}

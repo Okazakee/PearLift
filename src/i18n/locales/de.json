@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "back": "Zurück",
+    "next": "Weiter"
+  },
+  "app": {
+    "loading": "Trainingsdaten werden vorbereitet"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Willkommen bei PearLift",
+        "description": "Verfolge deine Workouts mit einer einfachen Oberfläche. Protokolliere Sätze, Wiederholungen und Gewichte – keine Komplexität, nur Fortschritt."
+      },
+      "units": {
+        "title": "Einheiten wählen",
+        "description": "Wähle deine bevorzugte Gewichtseinheit. Du kannst dies später ändern."
+      },
+      "sync": {
+        "title": "Geräte-zu-Gerät-Synchronisation",
+        "description": "Synchronisiere deine Workouts direkt zwischen Geräten. Richte es jederzeit in den Einstellungen ein. Funktioniert lokal ohne Cloud-Dienste."
+      },
+      "notifications": {
+        "title": "Bleib dran",
+        "description": "Aktiviere Benachrichtigungen, damit du nie einen Pausentimer vergisst. Wir erinnern dich, wenn es Zeit ist, deinen nächsten Satz zu starten."
+      }
+    },
+    "getStarted": "Loslegen",
+    "settingUp": "Einrichten..."
+  },
+  "workout": {
+    "weekDay": "Woche {{week}} - {{day}}",
+    "addExercise": "Übung hinzufügen"
+  },
+  "restTimer": {
+    "title": "Pausentimer",
+    "complete": "PAUSE BEENDET!",
+    "duration": "Dauer",
+    "notification": {
+      "title": "Pause beendet",
+      "body": "Zeit für deinen nächsten Satz."
+    }
+  },
+  "programSettings": {
+    "title": "Programmeinstellungen",
+    "tabs": {
+      "weeks": "Wochen",
+      "days": "Tage"
+    },
+    "week": {
+      "namePlaceholder": "Wochenname",
+      "loadModifier": "Laständerung",
+      "rir": "RIR (Reservewiederholungen)",
+      "baseline": "Basiswert",
+      "addWeek": "Woche hinzufügen",
+      "deleteTitle": "Woche löschen",
+      "deleteMessage": "\"{{name}}\" löschen?"
+    },
+    "day": {
+      "namePlaceholder": "Tag {{number}}",
+      "icon": "Symbol",
+      "iconMore": "Mehr",
+      "iconRefresh": "Aktualisieren",
+      "addDay": "Tag hinzufügen",
+      "deleteTitle": "Tag löschen",
+      "deleteMessage": "\"{{name}}\" löschen? Dies entfernt ihn aus allen Wochen."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Übung hinzufügen",
+    "titleEdit": "Übung bearbeiten",
+    "name": "Name",
+    "namePlaceholder": "Übungsname",
+    "muscleGroup": "Muskelgruppe",
+    "sets": "Sätze",
+    "reps": "Wiederholungen",
+    "notes": "Notizen",
+    "notesPlaceholder": "Optionale Notizen...",
+    "submitAdd": "Übung hinzufügen",
+    "submitEdit": "Änderungen speichern",
+    "errors": {
+      "nameRequired": "Übungsname ist erforderlich.",
+      "setsInvalid": "Sätze müssen eine gültige positive ganze Zahl sein."
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "appearance": {
+      "title": "Erscheinungsbild",
+      "theme": "Design",
+      "themeSubtitle": "App-Farbschema",
+      "themeSystem": "System",
+      "themeLight": "Hell",
+      "themeDark": "Dunkel",
+      "weightUnit": "Gewichtseinheit",
+      "weightUnitSubtitle": "Wähle deine Gewichtseinheit",
+      "language": "Sprache",
+      "system": "System",
+      "manual": "Manuell"
+    },
+    "language": {
+      "title": "Sprache",
+      "systemLanguage": "Systemsprache",
+      "appLanguage": "App-Sprache",
+      "system": "System"
+    },
+    "syncBackup": {
+      "title": "Synchronisation & Backup",
+      "comingSoon": "Geräte-zu-Gerät-Synchronisation kommt bald.",
+      "openSyncSetup": "Synchronisation einrichten"
+    },
+    "data": {
+      "title": "Daten",
+      "resetDescription": "Alle Workouts, Einstellungen, Timer-Daten und Synchronisationsverläufe dauerhaft zurücksetzen.",
+      "resetButton": "Alle Daten zurücksetzen"
+    },
+    "developer": {
+      "title": "Entwickler",
+      "maintainer": "Betreuer",
+      "openRepo": "Repository öffnen",
+      "donate": "Spenden"
+    },
+    "appInfo": {
+      "title": "App-Info",
+      "name": "Name",
+      "version": "Version",
+      "build": "Build",
+      "buildType": "Build-Typ"
+    }
+  },
+  "backup": {
+    "title": "Backup & Synchronisation",
+    "deviceSync": {
+      "title": "Gerätesynchronisation",
+      "comingSoon": "Geräte-zu-Gerät-Synchronisation kommt bald.",
+      "enableSetup": "In Synchronisationseinstellungen aktivieren"
+    },
+    "localJson": {
+      "title": "Lokales JSON",
+      "description": "Exportiere deine Trainingsdaten in eine JSON-Datei oder importiere ein früheres lokales Backup.",
+      "export": "Backup exportieren",
+      "import": "Backup importieren"
+    }
+  },
+  "importPreview": {
+    "title": "Importvorschau",
+    "changesDetected": "{{count}} Änderung(en) erkannt.",
+    "noChanges": "Keine Änderungen erkannt. Backup ist identisch mit aktuellen Daten.",
+    "sections": {
+      "workouts": "Workouts",
+      "settings": "Einstellungen",
+      "weeks": "Wochen",
+      "days": "Tage"
+    },
+    "cancel": "Abbrechen",
+    "confirm": "Backup importieren"
+  },
+  "donate": {
+    "title": "Spenden",
+    "subtitle": "Unterstütze die PearLift-Entwicklung mit Bitcoin oder Lightning.",
+    "placeholder": "Platzhalter",
+    "openWallet": "Wallet öffnen",
+    "copy": "Kopieren"
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Atšaukti",
+    "delete": "Ištrinti",
+    "back": "Atgal",
+    "next": "Kitas"
+  },
+  "app": {
+    "loading": "Rengiami treniruočių duomenys"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Sveiki atvykę į PearLift",
+        "description": "Stebėkite savo treniruotes naudodami paprastą sąsają. Registruokite setus, kartojimus ir svorius - jokio sudėtingumo, tik pažangą."
+      },
+      "units": {
+        "title": "Pasirinkite vienetus",
+        "description": "Pasirinkite pageidaujamą svorio vienetą. Tai galėsite pakeisti vėliau."
+      },
+      "sync": {
+        "title": "Įrenginys-įrenginys sinchronizavimas",
+        "description": "Sinchronizuokite treniruotes tiesiogiai tarp įrenginių. Nustatykite bet kada Nustatymuose. Veikia vietoje be debesies paslaugų."
+      },
+      "notifications": {
+        "title": "Laikykitės kurso",
+        "description": "Įjunkite pranešimus, kad niekada nepamirštumėte pertraukos laikmačio. Priminsime jums, kada bus laikas pradėti kitą setą."
+      }
+    },
+    "getStarted": "Pradėti",
+    "settingUp": "Nustatymas..."
+  },
+  "workout": {
+    "weekDay": "Savaita {{week}} - {{day}}",
+    "addExercise": "Pridėti pratimą"
+  },
+  "restTimer": {
+    "title": "Pertraukos laikmatis",
+    "complete": "PERTRAUKA BAIGTA!",
+    "duration": "Trukmė",
+    "notification": {
+      "title": "Pertrauka baigta",
+      "body": "Laikas kitam setui."
+    }
+  },
+  "programSettings": {
+    "title": "Programos nustatymai",
+    "tabs": {
+      "weeks": "Savaitės",
+      "days": "Dienos"
+    },
+    "week": {
+      "namePlaceholder": "Savaitės pavadinimas",
+      "loadModifier": "Apkrovos modifikatorius",
+      "rir": "RIR (Rezervo kartojimai)",
+      "baseline": "Pagrindas",
+      "addWeek": "Pridėti savaitę",
+      "deleteTitle": "Ištrinti savaitę",
+      "deleteMessage": "Ištrinti \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Diena {{number}}",
+      "icon": "Piktograma",
+      "iconMore": "Daugiau",
+      "iconRefresh": "Atnaujinti",
+      "addDay": "Pridėti dieną",
+      "deleteTitle": "Ištrinti dieną",
+      "deleteMessage": "Ištrinti \"{{name}}\"? Tai pašalins ją iš visų savaičių."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Pridėti pratimą",
+    "titleEdit": "Redaguoti pratimą",
+    "name": "Pavadinimas",
+    "namePlaceholder": "Pratimo pavadinimas",
+    "muscleGroup": "Raumenų grupė",
+    "sets": "Setai",
+    "reps": "Kartojimai",
+    "notes": "Pastabos",
+    "notesPlaceholder": "Neprivalomos pastabos...",
+    "submitAdd": "Pridėti pratimą",
+    "submitEdit": "Išsaugoti pakeitimus",
+    "errors": {
+      "nameRequired": "Pratimo pavadinimas yra būtinas.",
+      "setsInvalid": "Setai turi būti teigiamas sveikasis skaičius."
+    }
+  },
+  "settings": {
+    "title": "Nustatymai",
+    "appearance": {
+      "title": "Išvaizda",
+      "theme": "Tema",
+      "themeSubtitle": "Programos spalvų schema",
+      "themeSystem": "Sistema",
+      "themeLight": "Šviesi",
+      "themeDark": "Tamsi",
+      "weightUnit": "Svorio vienetas",
+      "weightUnitSubtitle": "Pasirinkite svorio vienetą",
+      "language": "Kalba",
+      "system": "Sistema",
+      "manual": "Neautomatinis"
+    },
+    "language": {
+      "title": "Kalba",
+      "systemLanguage": "Sistemos kalba",
+      "appLanguage": "Programos kalba",
+      "system": "Sistema"
+    },
+    "syncBackup": {
+      "title": "Sinchronizavimas ir atsarginė kopija",
+      "comingSoon": "Įrenginys-įrenginys sinchronizavimas greitai bus prieinamas.",
+      "openSyncSetup": "Atidaryti sinchronizavimo nustatymus"
+    },
+    "data": {
+      "title": "Duomenys",
+      "resetDescription": "Visam laikui iš naujo nustatyti visas treniruotes, nustatymus, laikmačio duomenis ir sinchronizavimo istoriją.",
+      "resetButton": "Iš naujo nustatyti visus duomenis"
+    },
+    "developer": {
+      "title": "Kūrėjas",
+      "maintainer": "Prižiūrėtojas",
+      "openRepo": "Atidaryti saugyklą",
+      "donate": "Duoti"
+    },
+    "appInfo": {
+      "title": "Programos informacija",
+      "name": "Pavadinimas",
+      "version": "Versija",
+      "build": "Build",
+      "buildType": "Build tipas"
+    }
+  },
+  "backup": {
+    "title": "Atsarginė kopija ir sinchronizavimas",
+    "deviceSync": {
+      "title": "Įrenginių sinchronizavimas",
+      "comingSoon": "Įrenginys-įrenginys sinchronizavimas greitai bus prieinamas.",
+      "enableSetup": "Įjungti sinchronizavimo nustatymuose"
+    },
+    "localJson": {
+      "title": "Vietinis JSON",
+      "description": "Eksportuokite treniruočių duomenis į JSON failą arba importuokite ankstesnę vietinę atsarginę kopiją.",
+      "export": "Eksportuoti atsarginę kopiją",
+      "import": "Importuoti atsarginę kopiją"
+    }
+  },
+  "importPreview": {
+    "title": "Importo peržiūra",
+    "changesDetected": "Nustatyta {{count}} pakeitimų(ų).",
+    "noChanges": "Nepastebėta jokių pakeitimų. Atsarginė kopija yra identi dabartiniams duomenims.",
+    "sections": {
+      "workouts": "Treniruotės",
+      "settings": "Nustatymai",
+      "weeks": "Savaitės",
+      "days": "Dienos"
+    },
+    "cancel": "Atšaukti",
+    "confirm": "Importuoti atsarginę kopiją"
+  },
+  "donate": {
+    "title": "Duoti",
+    "subtitle": "Palaikykite PearLift kūrimą naudodami Bitcoin ar Lightning.",
+    "placeholder": "Vieta",
+    "openWallet": "Atidaryti piniginę",
+    "copy": "Kopijuoti"
+  }
+}

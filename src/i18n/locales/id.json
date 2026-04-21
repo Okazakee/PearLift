@@ -1,0 +1,167 @@
+{
+  "common": {
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "back": "Kembali",
+    "next": "Berikutnya"
+  },
+  "app": {
+    "loading": "Mempersiapkan data latihan Anda"
+  },
+  "onboarding": {
+    "pages": {
+      "welcome": {
+        "title": "Selamat Datang di PearLift",
+        "description": "Lacak latihan Anda dengan antarmuka yang sederhana. Catat set, repetisi, dan berat - tanpa kekacauan, hanya kemajuan."
+      },
+      "units": {
+        "title": "Pilih satuan",
+        "description": "Pilih satuan berat yang Anda inginkan. Anda dapat mengubahnya nanti."
+      },
+      "sync": {
+        "title": "Sinkronisasi antar perangkat",
+        "description": "Sinkronkan latihan Anda langsung antar perangkat. Siapkan kapan saja di Pengaturan. Berfungsi secara lokal tanpa layanan cloud."
+      },
+      "notifications": {
+        "title": "Tetap di jalur",
+        "description": "Aktifkan notifikasi agar tidak pernah lupa timer istirahat. Kami akan mengingatkan Anda ketika sudah waktunya untuk set berikutnya."
+      }
+    },
+    "getStarted": "Mulai",
+    "settingUp": "Menyiapkan..."
+  },
+  "workout": {
+    "weekDay": "Minggu {{week}} - Hari {{day}}",
+    "addExercise": "Tambah latihan"
+  },
+  "restTimer": {
+    "title": "Timer istirahat",
+    "complete": "ISTIRAHAT SELESAI!",
+    "duration": "Durasi",
+    "notification": {
+      "title": "Istirahat selesai",
+      "body": "Waktunya untuk set berikutnya."
+    }
+  },
+  "programSettings": {
+    "title": "Pengaturan program",
+    "tabs": {
+      "weeks": "Minggu",
+      "days": "Hari"
+    },
+    "week": {
+      "namePlaceholder": "Nama minggu",
+      "loadModifier": "Modifikasi beban",
+      "rir": "RIR (Repetisi cadangan)",
+      "baseline": "Dasar",
+      "addWeek": "Tambah minggu",
+      "deleteTitle": "Hapus minggu",
+      "deleteMessage": "Hapus \"{{name}}\"?"
+    },
+    "day": {
+      "namePlaceholder": "Hari {{number}}",
+      "icon": "Ikon",
+      "iconMore": "Lagi",
+      "iconRefresh": "Segarkan",
+      "addDay": "Tambah hari",
+      "deleteTitle": "Hapus hari",
+      "deleteMessage": "Hapus \"{{name}}\"? Ini akan menghapusnya dari semua minggu."
+    }
+  },
+  "addExercise": {
+    "titleAdd": "Tambah latihan",
+    "titleEdit": "Edit latihan",
+    "name": "Nama",
+    "namePlaceholder": "Nama latihan",
+    "muscleGroup": "Grup otot",
+    "sets": "Set",
+    "reps": "Repetisi",
+    "notes": "Catatan",
+    "notesPlaceholder": "Catatan opsional...",
+    "submitAdd": "Tambah latihan",
+    "submitEdit": "Simpan perubahan",
+    "errors": {
+      "nameRequired": "Nama latihan diperlukan.",
+      "setsInvalid": "Set harus berupa bilangan bulat positif yang valid."
+    }
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "appearance": {
+      "title": "Tampilan",
+      "theme": "Tema",
+      "themeSubtitle": "Skema warna aplikasi",
+      "themeSystem": "Sistem",
+      "themeLight": "Terang",
+      "themeDark": "Gelap",
+      "weightUnit": "Satuan berat",
+      "weightUnitSubtitle": "Pilih satuan berat Anda",
+      "language": "Bahasa",
+      "system": "Sistem",
+      "manual": "Manual"
+    },
+    "language": {
+      "title": "Bahasa",
+      "systemLanguage": "Bahasa sistem",
+      "appLanguage": "Bahasa aplikasi",
+      "system": "Sistem"
+    },
+    "syncBackup": {
+      "title": "Sinkronisasi dan pencadangan",
+      "comingSoon": "Sinkronisasi antar perangkat akan segera hadir.",
+      "openSyncSetup": "Buka pengaturan sinkronisasi"
+    },
+    "data": {
+      "title": "Data",
+      "resetDescription": "Reset secara permanen semua latihan, pengaturan, data timer, dan riwayat sinkronisasi.",
+      "resetButton": "Reset semua data"
+    },
+    "developer": {
+      "title": "Pengembang",
+      "maintainer": "Pemeliharaan",
+      "openRepo": "Buka repo",
+      "donate": "Donasi"
+    },
+    "appInfo": {
+      "title": "Info aplikasi",
+      "name": "Nama",
+      "version": "Versi",
+      "build": "Build",
+      "buildType": "Jenis build"
+    }
+  },
+  "backup": {
+    "title": "Pencadangan dan sinkronisasi",
+    "deviceSync": {
+      "title": "Sinkronisasi perangkat",
+      "comingSoon": "Sinkronisasi antar perangkat akan segera hadir.",
+      "enableSetup": "Aktifkan di pengaturan sinkronisasi"
+    },
+    "localJson": {
+      "title": "JSON lokal",
+      "description": "Ekspor data latihan ke file JSON atau impor cadangan lokal sebelumnya.",
+      "export": "Ekspor cadangan",
+      "import": "Impor cadangan"
+    }
+  },
+  "importPreview": {
+    "title": "Pratinjau impor",
+    "changesDetected": "{{count}} perubahan terdeteksi.",
+    "noChanges": "Tidak ada perubahan terdeteksi. Cadangan identik dengan data saat ini.",
+    "sections": {
+      "workouts": "Latihan",
+      "settings": "Pengaturan",
+      "weeks": "Minggu",
+      "days": "Hari"
+    },
+    "cancel": "Batal",
+    "confirm": "Impor cadangan"
+  },
+  "donate": {
+    "title": "Donasi",
+    "subtitle": "Dukung pengembangan PearLift dengan Bitcoin atau Lightning.",
+    "placeholder": "Tempatholder",
+    "openWallet": "Buka dompet",
+    "copy": "Salin"
+  }
+}

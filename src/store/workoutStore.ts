@@ -29,6 +29,7 @@ interface WorkoutStore {
   programSettingsOpen: boolean;
   settingsOpen: boolean;
   donateModalOpen: boolean;
+  languageListOpen: boolean;
   localBackupOpen: boolean;
   importPreviewOpen: boolean;
   timerExpanded: boolean;
@@ -53,6 +54,7 @@ interface WorkoutStore {
   setProgramSettingsOpen: (open: boolean) => void;
   setSettingsOpen: (open: boolean) => void;
   setDonateModalOpen: (open: boolean) => void;
+  setLanguageListOpen: (open: boolean) => void;
   setLocalBackupOpen: (open: boolean) => void;
   setImportPreviewOpen: (open: boolean) => void;
   setTimerExpanded: (expanded: boolean) => void;
@@ -73,6 +75,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   programSettingsOpen: false,
   settingsOpen: false,
   donateModalOpen: false,
+  languageListOpen: false,
   localBackupOpen: false,
   importPreviewOpen: false,
   timerExpanded: false,
@@ -151,6 +154,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   setProgramSettingsOpen: (open) => set({ programSettingsOpen: open }),
   setSettingsOpen: (open) => set({ settingsOpen: open }),
   setDonateModalOpen: (open) => set({ donateModalOpen: open }),
+  setLanguageListOpen: (open) => set({ languageListOpen: open }),
   setLocalBackupOpen: (open) => set({ localBackupOpen: open }),
   setImportPreviewOpen: (open) => set({ importPreviewOpen: open }),
   setTimerExpanded: (expanded) => set({ timerExpanded: expanded }),
