@@ -11,6 +11,7 @@ import {
   defaultWeekConfigs,
   defaultWorkouts,
 } from '../data/workouts';
+import { getSystemLanguage } from '../i18n/systemLanguage';
 import type {
   DayConfig,
   Exercise,
@@ -118,7 +119,14 @@ function coerceLanguage(value: string | null | undefined): string {
 }
 
 function detectOsLanguage(): string {
-  return 'en';
+  try {
+    return getSystemLanguage(
+      SUPPORTED_LANGUAGES.map((lang) => lang.code),
+      'en',
+    );
+  } catch {
+    return 'en';
+  }
 }
 
 export const getLanguageNativeName = (code: string): string => {

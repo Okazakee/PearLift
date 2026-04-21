@@ -34,7 +34,8 @@ import { WorkoutView } from '../components/WorkoutView';
 import { APP_CONFIG } from '../config/app';
 import { type DonationTarget, getDonationTargets } from '../config/donation';
 import { defaultDayConfigs } from '../data/workouts';
-import i18n from '../i18n';
+import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
+import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
@@ -51,6 +52,7 @@ import { styles } from './styles';
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
   const systemScheme = useColorScheme();
+  const systemLanguage = useSystemLanguage(SUPPORTED_I18N_LANGUAGE_CODES, 'en');
 
   const {
     snapshot,
@@ -93,11 +95,12 @@ export function WorkoutScreen() {
   }, [initialize]);
 
   useEffect(() => {
-    const savedLanguage = snapshot?.language;
-    if (savedLanguage && savedLanguage !== i18n.language) {
-      i18n.changeLanguage(savedLanguage);
+    const preferred = snapshot?.language ?? 'system';
+    const effective = preferred === 'system' ? systemLanguage : preferred;
+    if (effective && effective !== i18n.language) {
+      i18n.changeLanguage(effective);
     }
-  }, [snapshot?.language]);
+  }, [snapshot?.language, systemLanguage]);
 
   const systemThemeMode: ThemeMode | null =
     systemScheme === 'dark' || systemScheme === 'light' ? systemScheme : null;
@@ -118,7 +121,7 @@ export function WorkoutScreen() {
   const dayConfigs = snapshot?.dayConfigs ?? defaultDayConfigs;
   const restDuration = snapshot?.restDuration ?? 150;
   const weightUnit: WeightUnit = snapshot?.weightUnit ?? 'kg';
-  const currentLanguage = snapshot?.language ?? 'en';
+  const currentLanguage = snapshot?.language ?? 'system';
 
   const exerciseBaseWeights = useMemo(() => {
     const map = new Map<string, number>();
@@ -430,6 +433,12 @@ export function WorkoutScreen() {
   };
 
   const handleLanguageChange = (nextLanguage: string) => {
+    if (nextLanguage === 'system') {
+      i18n.changeLanguage(systemLanguage);
+      void applyMutation({ type: 'setLanguage', language: 'system' });
+      return;
+    }
+
     i18n.changeLanguage(nextLanguage);
     void applyMutation({ type: 'setLanguage', language: nextLanguage });
   };
@@ -634,14 +643,9 @@ export function WorkoutScreen() {
           selectedLanguage={currentLanguage}
           onClose={() => {
             setLanguageListOpen(false);
-            if (currentLanguage !== 'system') {
-              i18n.changeLanguage('system');
-              void applyMutation({ type: 'setLanguage', language: 'system' });
-            }
           }}
           onSelectLanguage={(code) => {
-            i18n.changeLanguage(code);
-            void applyMutation({ type: 'setLanguage', language: code });
+            handleLanguageChange(code);
           }}
         />
 
