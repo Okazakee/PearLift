@@ -1,8 +1,12 @@
 import { Plus, Sliders } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedRef } from 'react-native-reanimated';
+import Animated, {
+  runOnUI,
+  scrollTo,
+  useAnimatedRef,
+} from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '../animation/primitives';
@@ -18,6 +22,7 @@ import type {
 import { ExerciseCard } from './ExerciseCard';
 
 interface WorkoutViewProps {
+  isActive: boolean;
   tokens: ThemeTokens;
   weightUnit: WeightUnit;
   contentBottomPadding: number;
@@ -38,6 +43,7 @@ interface WorkoutViewProps {
 }
 
 export function WorkoutView({
+  isActive,
   tokens,
   weightUnit,
   contentBottomPadding,
@@ -58,6 +64,32 @@ export function WorkoutView({
 }: WorkoutViewProps) {
   const { t } = useTranslation();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
+  const pendingScrollResetRef = useRef(false);
+
+  const resetScroll = useCallback(() => {
+    runOnUI(() => {
+      'worklet';
+      scrollTo(scrollRef, 0, 0, false);
+    })();
+  }, [scrollRef]);
+
+  useEffect(() => {
+    if (!isActive) {
+      pendingScrollResetRef.current = false;
+      resetScroll();
+      return;
+    }
+
+    pendingScrollResetRef.current = true;
+    resetScroll();
+
+    const t1 = setTimeout(resetScroll, 0);
+    const t2 = setTimeout(resetScroll, 50);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [isActive, resetScroll]);
 
   const styles = useMemo(
     () => createStyles(tokens, contentBottomPadding),
@@ -206,6 +238,16 @@ export function WorkoutView({
     <View style={styles.container}>
       <Animated.ScrollView
         ref={scrollRef}
+        onLayout={() => {
+          if (!pendingScrollResetRef.current) return;
+          resetScroll();
+          pendingScrollResetRef.current = false;
+        }}
+        onContentSizeChange={() => {
+          if (!pendingScrollResetRef.current) return;
+          resetScroll();
+          pendingScrollResetRef.current = false;
+        }}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"

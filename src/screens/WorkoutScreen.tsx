@@ -8,7 +8,7 @@ import {
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { startTransition, useEffect, useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Platform, useColorScheme, View } from 'react-native';
 import {
@@ -36,7 +36,7 @@ import { SettingsModal } from '../components/modals/SettingsModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
-import { WorkoutView } from '../components/WorkoutView';
+import { WorkoutDayStack } from '../components/WorkoutDayStack';
 import { APP_CONFIG } from '../config/app';
 import { type DonationTarget, getDonationTargets } from '../config/donation';
 import { defaultDayConfigs } from '../data/workouts';
@@ -119,13 +119,19 @@ export function WorkoutScreen() {
   );
 
   const currentWeek = snapshot?.currentWeek ?? 1;
-  const selectedDay =
-    snapshot?.currentDay ?? defaultDayConfigs[0]?.id ?? 'push';
-  const currentDay = selectedDay;
   const workouts = snapshot?.workouts ?? [];
   const userWeights = snapshot?.userWeights ?? {};
   const weekConfigs = snapshot?.weekConfigs ?? [];
   const dayConfigs = snapshot?.dayConfigs ?? defaultDayConfigs;
+  const rawSelectedDay =
+    snapshot?.currentDay ??
+    dayConfigs[0]?.id ??
+    defaultDayConfigs[0]?.id ??
+    'push';
+  const selectedDay = dayConfigs.some((day) => day.id === rawSelectedDay)
+    ? rawSelectedDay
+    : (dayConfigs[0]?.id ?? rawSelectedDay);
+  const currentDay = selectedDay;
   const restDuration = snapshot?.restDuration ?? 150;
   const weightUnit: WeightUnit = snapshot?.weightUnit ?? 'kg';
   const currentLanguage = snapshot?.language ?? 'system';
@@ -156,16 +162,17 @@ export function WorkoutScreen() {
   }, [insets.bottom, tokens.spacing.sm]);
 
   const currentWorkout = useMemo(() => {
-    return (
-      workouts.find((workout) => workout.id === currentDay) ??
-      workouts[0] ?? {
-        id: 'push',
-        name: 'Workout',
-        description: '',
-        exercises: [],
-      }
-    );
-  }, [workouts, currentDay]);
+    const match = workouts.find((workout) => workout.id === currentDay);
+    if (match) return match;
+    const fallbackName =
+      dayConfigs.find((day) => day.id === currentDay)?.name ?? 'Workout';
+    return {
+      id: currentDay,
+      name: fallbackName,
+      description: '',
+      exercises: [],
+    };
+  }, [workouts, currentDay, dayConfigs]);
 
   const getWeek = (weekId?: number) =>
     weekConfigs.find((week) => week.id === (weekId ?? currentWeek)) ??
@@ -487,9 +494,7 @@ export function WorkoutScreen() {
 
   const handleDayChange = (nextDay: WorkoutDay) => {
     if (nextDay === selectedDay) return;
-    startTransition(() => {
-      void applyMutation({ type: 'setCurrentDay', currentDay: nextDay });
-    });
+    void applyMutation({ type: 'setCurrentDay', currentDay: nextDay });
   };
 
   const handleRestDurationChange = (nextDuration: number) => {
@@ -594,10 +599,12 @@ export function WorkoutScreen() {
           onOpenSettings={() => setSettingsOpen(true)}
         />
 
-        <WorkoutView
+        <WorkoutDayStack
           tokens={tokens}
           weightUnit={weightUnit}
-          workout={currentWorkout}
+          dayConfigs={dayConfigs}
+          workouts={workouts}
+          selectedDay={selectedDay}
           currentWeek={currentWeek}
           weekConfigs={weekConfigs}
           userWeights={userWeights}
