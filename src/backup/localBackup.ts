@@ -631,5 +631,11 @@ export function computeImportDiff(
 
 export function getBackupFileName(date = new Date()) {
   const day = date.toISOString().split('T')[0];
-  return `gymtracker-backup-${day}.json`;
+  const hour = date
+    .toISOString()
+    .split('T')[1]
+    .split(':')
+    .slice(0, 2)
+    .join('-');
+  return `pearlift-backup-${day}-${hour}.json`;
 }
