@@ -1,5 +1,7 @@
 import * as Crypto from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
+import type { AppStateStatus, NativeEventSubscription } from 'react-native';
+import { AppState } from 'react-native';
 import type {
   WorkoutMutation,
   WorkoutRepository,
@@ -8,9 +10,16 @@ import type {
 import { logError } from '../utils/errors';
 import { createSyncBridge } from './bridge';
 import { canonicalizeMutationForSync } from './canonicalize';
-import { logSyncError, logSyncEvent } from './logger';
+import type { SyncLogEntry } from './logger';
+import {
+  combineLogs,
+  getRecentLogs,
+  logSyncError,
+  logSyncEvent,
+} from './logger';
 import type {
   SyncBridge,
+  SyncBridgeLogEntry,
   SyncHealth,
   SyncManager,
   SyncMutation,
@@ -73,6 +82,9 @@ class SyncManagerImpl implements SyncManager {
   private lastLoggedBackendError: string | null = null;
   private startTask: Promise<void> | null = null;
   private stopTask: Promise<void> | null = null;
+  private appStateSub: NativeEventSubscription | null = null;
+  private lastAppState: AppStateStatus = AppState.currentState;
+  private resuming = false;
 
   private health: SyncHealth = { ...INITIAL_SYNC_HEALTH };
 
@@ -93,7 +105,7 @@ class SyncManagerImpl implements SyncManager {
     };
   }
 
-  async start(pairingSecretHex?: string) {
+  async start(pairingSecretHex?: string, bootstrapKeyHex?: string) {
     if (this.active) {
       return;
     }
@@ -128,15 +140,27 @@ class SyncManagerImpl implements SyncManager {
         });
 
         const state = await this.repository.getSyncState();
+        logSyncEvent(
+          'info',
+          'manager',
+          'autostart_decision',
+          'Sync start decision resolved.',
+          {
+            syncEnabled: state.syncEnabled,
+            hasBootstrapKey: !!state.autobaseBootstrapKey,
+            hasPairingSecret: !!secret,
+            deviceId,
+          },
+        );
         const started = await this.bridge.start({
           pairingSecretHex: secret,
           deviceId,
-          bootstrapKeyHex: state.autobaseBootstrapKey,
+          bootstrapKeyHex: bootstrapKeyHex ?? state.autobaseBootstrapKey,
         });
 
         await this.repository.setSyncState({
           syncEnabled: true,
-          autobaseBootstrapKey: started.bootstrapKeyHex,
+          autobaseBootstrapKey: bootstrapKeyHex ?? started.bootstrapKeyHex,
           lastError: null,
         });
 
@@ -145,6 +169,7 @@ class SyncManagerImpl implements SyncManager {
           ...this.health,
           lastError: null,
         });
+        this.attachAppStateListener();
         logSyncEvent('info', 'manager', 'started', 'Sync started.');
       } catch (error) {
         logError('sync/start failed', error);
@@ -192,6 +217,7 @@ class SyncManagerImpl implements SyncManager {
         this.unsubscribeRemoteOp?.();
         this.unsubscribeStatus = null;
         this.unsubscribeRemoteOp = null;
+        this.detachAppStateListener();
         this.active = false;
         this.setHealth({
           ...INITIAL_SYNC_HEALTH,
@@ -314,6 +340,88 @@ class SyncManagerImpl implements SyncManager {
 
   getHealth() {
     return this.health;
+  }
+
+  async getAllLogs(): Promise<SyncLogEntry[]> {
+    const local = getRecentLogs();
+    let backend: SyncBridgeLogEntry[] = [];
+    if (this.bridge.pullLogs) {
+      try {
+        backend = await this.bridge.pullLogs();
+      } catch (error) {
+        logSyncError('manager', 'pull_logs_failed', error);
+      }
+    }
+    return combineLogs(local, backend as SyncLogEntry[]);
+  }
+
+  private attachAppStateListener() {
+    if (this.appStateSub) return;
+    this.lastAppState = AppState.currentState;
+    this.appStateSub = AppState.addEventListener(
+      'change',
+      this.handleAppStateChange,
+    );
+  }
+
+  private detachAppStateListener() {
+    this.appStateSub?.remove();
+    this.appStateSub = null;
+  }
+
+  private handleAppStateChange = (next: AppStateStatus) => {
+    const prev = this.lastAppState;
+    this.lastAppState = next;
+    if (prev === next) return;
+    logSyncEvent(
+      'info',
+      'manager',
+      'app_state',
+      `AppState ${prev} -> ${next}.`,
+    );
+    if (
+      next === 'active' &&
+      (prev === 'background' || prev === 'inactive' || prev === 'unknown')
+    ) {
+      void this.maybeReconnectOnResume();
+    }
+  };
+
+  private async maybeReconnectOnResume() {
+    if (!this.active || this.resuming) return;
+    this.resuming = true;
+    try {
+      logSyncEvent(
+        'info',
+        'manager',
+        'app_resumed',
+        'App resumed — probing sync health.',
+      );
+      const status = this.health.status;
+      const dhtReady = this.health.bootstrapped;
+      const stale = status === 'error' || status === 'connecting' || !dhtReady;
+      if (stale) {
+        logSyncEvent(
+          'info',
+          'manager',
+          'force_reconnect',
+          'Resume triggered reconnect.',
+          { status, dhtReady },
+        );
+        try {
+          await this.stop();
+        } catch (error) {
+          logSyncError('manager', 'resume_stop_failed', error);
+        }
+        try {
+          await this.start();
+        } catch (error) {
+          logSyncError('manager', 'resume_start_failed', error);
+        }
+      }
+    } finally {
+      this.resuming = false;
+    }
   }
 
   private setHealth(next: SyncHealth) {

@@ -6,6 +6,7 @@ export function canonicalizeMutationForSync(
   snapshot: WorkoutStoreSnapshot | null,
 ): SyncMutation | null {
   if (
+    mutation.type === 'resetWorkoutData' ||
     mutation.type === 'resetAllData' ||
     mutation.type === 'restoreRuntimeState'
   ) {

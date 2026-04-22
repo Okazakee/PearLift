@@ -23,8 +23,13 @@ interface OnboardingScreenProps {
   weightUnit: WeightUnit;
   onWeightUnitChange: (next: WeightUnit) => void;
   syncStatus: SyncStatus;
+  lastSyncedAt?: string | null;
   syncError: string | null;
-  onStartSync: (pairingSecretBase64?: string) => Promise<void>;
+  onStartSync: (
+    pairingSecretHex?: string,
+    bootstrapKeyHex?: string,
+    opts?: { replaceBeforeJoin?: boolean },
+  ) => Promise<void>;
   onStopSync: () => Promise<void>;
   onComplete: () => void;
 }
@@ -63,6 +68,7 @@ export function OnboardingScreen({
   weightUnit,
   onWeightUnitChange,
   syncStatus,
+  lastSyncedAt = null,
   syncError,
   onStartSync,
   onStopSync,
@@ -236,6 +242,7 @@ export function OnboardingScreen({
         topInset={topInset}
         bottomInset={bottomInset}
         syncStatus={syncStatus}
+        lastSyncedAt={lastSyncedAt}
         syncError={syncError}
         onStartSync={onStartSync}
         onStopSync={onStopSync}

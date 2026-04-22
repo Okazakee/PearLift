@@ -27,9 +27,15 @@ interface SyncSetupModalProps {
   topInset: number;
   bottomInset: number;
   syncStatus: SyncStatus;
+  lastSyncedAt?: string | null;
   syncPeers?: number;
   syncError: string | null;
-  onStartSync: (pairingSecretBase64?: string) => Promise<void>;
+  syncBootstrapKey?: string | null;
+  onStartSync: (
+    pairingSecretHex?: string,
+    bootstrapKeyHex?: string,
+    opts?: { replaceBeforeJoin?: boolean },
+  ) => Promise<void>;
   onStopSync: () => Promise<void>;
   onClose: () => void;
   onDone: () => void;
@@ -40,21 +46,27 @@ function normalizePairingCode(input: string) {
   return input.trim().toLowerCase().replace(/\s+/g, '');
 }
 
-function isValidPairingCode(code: string) {
+function isValidHex64(code: string) {
   return /^[0-9a-f]{64}$/.test(code);
 }
 
-function extractPairingCode(raw: string) {
+interface PairingPayload {
+  secret: string;
+  bootstrapKey: string | null;
+}
+
+function extractPairingPayload(raw: string): PairingPayload | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
   try {
     const parsed: unknown = JSON.parse(trimmed);
-    if (parsed && typeof parsed === 'object' && 's' in parsed) {
-      const s = (parsed as { s?: unknown }).s;
-      if (typeof s === 'string') {
-        const normalized = normalizePairingCode(s);
-        return isValidPairingCode(normalized) ? normalized : null;
+    if (parsed && typeof parsed === 'object') {
+      const p = parsed as Record<string, unknown>;
+      const s = typeof p.s === 'string' ? normalizePairingCode(p.s) : null;
+      if (s && isValidHex64(s)) {
+        const b = typeof p.b === 'string' && isValidHex64(p.b) ? p.b : null;
+        return { secret: s, bootstrapKey: b };
       }
     }
   } catch {
@@ -62,7 +74,9 @@ function extractPairingCode(raw: string) {
   }
 
   const normalized = normalizePairingCode(trimmed);
-  return isValidPairingCode(normalized) ? normalized : null;
+  return isValidHex64(normalized)
+    ? { secret: normalized, bootstrapKey: null }
+    : null;
 }
 
 export function SyncSetupModal({
@@ -71,8 +85,10 @@ export function SyncSetupModal({
   topInset,
   bottomInset,
   syncStatus,
+  lastSyncedAt = null,
   syncPeers,
   syncError,
+  syncBootstrapKey,
   onStartSync,
   onStopSync,
   onClose,
@@ -88,6 +104,8 @@ export function SyncSetupModal({
   const [mode, setMode] = useState<'create' | 'join'>('create');
   const [myCode, setMyCode] = useState<string | null>(null);
   const [joinCode, setJoinCode] = useState('');
+  const [joinBootstrapKey, setJoinBootstrapKey] = useState<string | null>(null);
+  const [replaceBeforeJoin, setReplaceBeforeJoin] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [qrSvg, setQrSvg] = useState<string | null>(null);
@@ -95,11 +113,22 @@ export function SyncSetupModal({
   const [scanned, setScanned] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
 
+  // QR encodes both pairing secret and bootstrap key once sync is active
+  const qrPayload = useMemo(() => {
+    if (!myCode) return null;
+    if (syncBootstrapKey) {
+      return JSON.stringify({ s: myCode, b: syncBootstrapKey });
+    }
+    return myCode;
+  }, [myCode, syncBootstrapKey]);
+
   useEffect(() => {
     if (!open) {
       setMode('create');
       setMyCode(null);
       setJoinCode('');
+      setJoinBootstrapKey(null);
+      setReplaceBeforeJoin(false);
       setLocalError(null);
       setBusy(false);
       setQrSvg(null);
@@ -120,12 +149,12 @@ export function SyncSetupModal({
 
   useEffect(() => {
     if (!open) return;
-    if (!myCode) return;
+    if (!qrPayload) return;
     let cancelled = false;
 
     void (async () => {
       try {
-        const svg = await QRCode.toString(myCode, {
+        const svg = await QRCode.toString(qrPayload, {
           type: 'svg',
           margin: 1,
           color: {
@@ -144,18 +173,19 @@ export function SyncSetupModal({
     return () => {
       cancelled = true;
     };
-  }, [open, myCode]);
+  }, [open, qrPayload]);
 
   const isConnecting = syncStatus === 'connecting';
   const isConnected = syncStatus === 'synced';
+  const isFirstSync = lastSyncedAt === null;
   const canStart =
     syncStatus === 'idle' || syncStatus === 'error' || syncStatus === 'synced';
 
   const handleCopy = async () => {
-    if (!myCode) return;
+    if (!qrPayload) return;
     setLocalError(null);
     try {
-      await Clipboard.setStringAsync(myCode);
+      await Clipboard.setStringAsync(qrPayload);
     } catch (error) {
       setLocalError(getErrorMessage(error));
     }
@@ -163,13 +193,14 @@ export function SyncSetupModal({
 
   const handleScan = (data: string) => {
     if (scanned) return;
-    const code = extractPairingCode(data);
-    if (!code) {
+    const payload = extractPairingPayload(data);
+    if (!payload) {
       setLocalError(t('sync.setup.invalidCode'));
       return;
     }
     setScanned(true);
-    setJoinCode(code);
+    setJoinCode(payload.secret);
+    setJoinBootstrapKey(payload.bootstrapKey);
     setLocalError(null);
   };
 
@@ -179,8 +210,8 @@ export function SyncSetupModal({
     setBusy(true);
     try {
       if (mode === 'join') {
-        const normalized = normalizePairingCode(joinCode);
-        if (!isValidPairingCode(normalized)) {
+        const payload = extractPairingPayload(joinCode);
+        if (!payload) {
           setLocalError(t('sync.setup.invalidCode'));
           return;
         }
@@ -190,7 +221,13 @@ export function SyncSetupModal({
           'pair_join_requested',
           'Join pairing requested.',
         );
-        await onStartSync(normalized);
+        await onStartSync(
+          payload.secret,
+          payload.bootstrapKey ?? joinBootstrapKey ?? undefined,
+          {
+            replaceBeforeJoin: isFirstSync && replaceBeforeJoin,
+          },
+        );
       } else {
         logSyncEvent(
           'info',
@@ -233,6 +270,7 @@ export function SyncSetupModal({
             style={[styles.segment, mode === 'create' && styles.segmentActive]}
             onPress={() => {
               setScanned(false);
+              setReplaceBeforeJoin(false);
               setMode('create');
             }}
           >
@@ -268,7 +306,7 @@ export function SyncSetupModal({
             <Text style={styles.label}>{t('sync.setup.yourCode')}</Text>
             {qrSvg ? (
               <View
-                style={styles.qrBox}
+                style={[styles.qrBox, !syncBootstrapKey && styles.qrBoxPending]}
                 onLayout={(event) => {
                   const next = Math.floor(event.nativeEvent.layout.width);
                   if (Number.isFinite(next) && next > 0 && next !== qrSize) {
@@ -284,7 +322,11 @@ export function SyncSetupModal({
             <View style={styles.codeBox}>
               <Text style={styles.codeText}>{myCode ?? '...'}</Text>
             </View>
-            <Text style={styles.hintText}>{t('sync.setup.shareHint')}</Text>
+            <Text style={styles.hintText}>
+              {syncBootstrapKey
+                ? t('sync.setup.shareHint')
+                : t('sync.setup.startSyncFirst')}
+            </Text>
           </View>
         ) : (
           <View style={styles.panel}>
@@ -337,6 +379,31 @@ export function SyncSetupModal({
               keyboardType="default"
               style={styles.input}
             />
+            {isFirstSync ? (
+              <AnimatedPressable
+                style={styles.replaceToggle}
+                onPress={() => setReplaceBeforeJoin((current) => !current)}
+              >
+                <View
+                  style={[
+                    styles.checkbox,
+                    replaceBeforeJoin && styles.checkboxActive,
+                  ]}
+                >
+                  {replaceBeforeJoin ? (
+                    <Text style={styles.checkboxMark}>✓</Text>
+                  ) : null}
+                </View>
+                <View style={styles.replaceTextWrap}>
+                  <Text style={styles.replaceLabel}>
+                    {t('sync.setup.replaceJoinLabel')}
+                  </Text>
+                  <Text style={styles.replaceHint}>
+                    {t('sync.setup.replaceJoinHint')}
+                  </Text>
+                </View>
+              </AnimatedPressable>
+            ) : null}
           </View>
         )}
 
@@ -505,6 +572,9 @@ function createStyles(
       overflow: 'hidden',
       alignSelf: 'center',
     },
+    qrBoxPending: {
+      opacity: 0.35,
+    },
     codeText: {
       color: tokens.colors.textPrimary,
       fontSize: 12,
@@ -578,6 +648,50 @@ function createStyles(
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.body,
       fontFamily: 'SpaceGrotesk_600SemiBold',
+    },
+    replaceToggle: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: tokens.spacing.sm,
+      padding: tokens.spacing.sm,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 1,
+    },
+    checkboxActive: {
+      backgroundColor: tokens.colors.primary,
+      borderColor: tokens.colors.primary,
+    },
+    checkboxMark: {
+      color: tokens.colors.onPrimary,
+      fontSize: 12,
+      fontWeight: '800',
+      lineHeight: 14,
+    },
+    replaceTextWrap: {
+      flex: 1,
+      gap: 2,
+    },
+    replaceLabel: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.label,
+      fontWeight: '800',
+    },
+    replaceHint: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      lineHeight: 18,
     },
     errorText: {
       color: tokens.colors.accentDanger,

@@ -43,6 +43,7 @@ import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
+import type { SyncLogEntry } from '../sync/logger';
 import { logSyncEvent } from '../sync/logger';
 import {
   clearPairingSecret,
@@ -70,6 +71,7 @@ export function WorkoutScreen() {
   const [pairedDevicesOpen, setPairedDevicesOpen] = useState(false);
   const [connectivityInfoOpen, setConnectivityInfoOpen] = useState(false);
   const [localDeviceId, setLocalDeviceId] = useState<string | null>(null);
+  const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
 
   const {
     snapshot,
@@ -108,6 +110,8 @@ export function WorkoutScreen() {
     syncAutobaseKey,
     syncTopicHex,
     syncBootstrapped,
+    syncReconnectAttempts,
+    syncManager,
     lastSyncedAt,
     syncError,
     startSync,
@@ -691,6 +695,7 @@ export function WorkoutScreen() {
           weightUnit={weightUnit}
           onWeightUnitChange={handleWeightUnitChange}
           syncStatus={syncStatus}
+          lastSyncedAt={lastSyncedAt}
           syncError={syncError}
           onStartSync={startSync}
           onStopSync={stopSync}
@@ -877,8 +882,16 @@ export function WorkoutScreen() {
           syncAutobaseKey={syncAutobaseKey}
           syncTopicHex={syncTopicHex}
           syncBootstrapped={syncBootstrapped}
+          syncReconnectAttempts={syncReconnectAttempts}
           lastSyncedAt={lastSyncedAt}
           deviceId={localDeviceId}
+          logs={syncLogs}
+          onRefreshLogs={() => {
+            if (!syncManager) return;
+            void syncManager
+              .getAllLogs()
+              .then((entries) => setSyncLogs(entries));
+          }}
           onClose={() => setConnectivityInfoOpen(false)}
         />
 
@@ -907,8 +920,10 @@ export function WorkoutScreen() {
           topInset={insets.top}
           bottomInset={insets.bottom}
           syncStatus={syncStatus}
+          lastSyncedAt={lastSyncedAt}
           syncPeers={syncPeers}
           syncError={syncError}
+          syncBootstrapKey={syncAutobaseKey}
           onStartSync={startSync}
           onStopSync={stopSync}
           onClose={() => setSyncSetupOpen(false)}

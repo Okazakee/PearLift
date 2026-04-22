@@ -13,6 +13,7 @@ import type {
 } from '../storage/types';
 import type { WorkoutRepository } from '../storage/workoutRepository';
 import { WorkoutRepository as WorkoutRepoClass } from '../storage/workoutRepository';
+import { logSyncEvent } from '../sync/logger';
 import { createSyncManager } from '../sync/syncManager';
 import type { SyncHealth, SyncManager, SyncStatus } from '../sync/types';
 import { INITIAL_SYNC_HEALTH } from '../sync/types';
@@ -22,6 +23,10 @@ interface PromptConfig {
   title: string;
   message: string;
   actions: AppPromptAction[];
+}
+
+interface StartSyncOptions {
+  replaceBeforeJoin?: boolean;
 }
 
 interface WorkoutStore {
@@ -37,6 +42,7 @@ interface WorkoutStore {
   syncAutobaseKey: string | null;
   syncTopicHex: string | null;
   syncBootstrapped: boolean;
+  syncReconnectAttempts: number;
   lastSyncedAt: string | null;
   syncError: string | null;
   pairedDevices: PairedDevice[];
@@ -64,7 +70,11 @@ interface WorkoutStore {
   initialize: () => Promise<void>;
   reload: () => Promise<void>;
   applyMutation: (mutation: WorkoutMutation) => Promise<void>;
-  startSync: (pairingSecretHex?: string) => Promise<void>;
+  startSync: (
+    pairingSecretHex?: string,
+    bootstrapKeyHex?: string,
+    opts?: StartSyncOptions,
+  ) => Promise<void>;
   stopSync: () => Promise<void>;
   setSyncHealth: (health: SyncHealth) => void;
   loadPairedDevices: () => Promise<void>;
@@ -106,6 +116,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   syncAutobaseKey: INITIAL_SYNC_HEALTH.autobaseKey,
   syncTopicHex: INITIAL_SYNC_HEALTH.topicHex,
   syncBootstrapped: INITIAL_SYNC_HEALTH.bootstrapped,
+  syncReconnectAttempts: INITIAL_SYNC_HEALTH.reconnectAttempts,
   lastSyncedAt: INITIAL_SYNC_HEALTH.lastSyncedAt,
   syncError: INITIAL_SYNC_HEALTH.lastError,
   pairedDevices: [],
@@ -167,6 +178,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
         syncAutobaseKey: health.autobaseKey,
         syncTopicHex: health.topicHex,
         syncBootstrapped: health.bootstrapped,
+        syncReconnectAttempts: health.reconnectAttempts,
         lastSyncedAt: health.lastSyncedAt,
         syncError: health.lastError,
         seenPeerKeys: mergedSeen,
@@ -190,14 +202,32 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       syncError: syncState.lastError,
     });
 
+    logSyncEvent('info', 'store', 'autostart_begin', 'Store boot sync check.', {
+      syncEnabled: syncState.syncEnabled,
+      hasBootstrapKey: !!syncState.autobaseBootstrapKey,
+    });
     if (syncState.syncEnabled) {
       try {
         await syncManager.start();
+        logSyncEvent(
+          'info',
+          'store',
+          'autostart_complete',
+          'Auto-start sync completed.',
+        );
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Sync start failed';
+        logSyncEvent('error', 'store', 'autostart_failed', message);
         set({ syncStatus: 'error', syncError: message });
       }
+    } else {
+      logSyncEvent(
+        'info',
+        'store',
+        'autostart_skipped',
+        'Sync not enabled; skipping auto-start.',
+      );
     }
   },
 
@@ -258,14 +288,24 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
   },
 
-  startSync: async (pairingSecretHex?: string) => {
-    const { syncManager } = get();
-    if (!syncManager) {
+  startSync: async (
+    pairingSecretHex?: string,
+    bootstrapKeyHex?: string,
+    opts?: StartSyncOptions,
+  ) => {
+    const { syncManager, repository } = get();
+    if (!syncManager || !repository) {
       return;
     }
-    set({ syncStatus: 'connecting', syncError: null });
     try {
-      await syncManager.start(pairingSecretHex);
+      if (opts?.replaceBeforeJoin) {
+        await repository.applyMutation({ type: 'resetWorkoutData' });
+        const snapshot = await repository.getSnapshot();
+        set({ snapshot });
+      }
+
+      set({ syncStatus: 'connecting', syncError: null });
+      await syncManager.start(pairingSecretHex, bootstrapKeyHex);
       void get().loadPairedDevices();
     } catch (error) {
       const message =
@@ -289,6 +329,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       syncAutobaseKey: null,
       syncTopicHex: null,
       syncBootstrapped: false,
+      syncReconnectAttempts: 0,
       syncError: null,
       pairedDevices: [],
       seenPeerKeys: new Set<string>(),
@@ -305,6 +346,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       syncAutobaseKey: health.autobaseKey,
       syncTopicHex: health.topicHex,
       syncBootstrapped: health.bootstrapped,
+      syncReconnectAttempts: health.reconnectAttempts,
       lastSyncedAt: health.lastSyncedAt,
       syncError: health.lastError,
     });

@@ -44,6 +44,7 @@ export type WorkoutMutation =
     }
   | { type: 'replaceWeekConfigs'; weekConfigs: WeekConfig[] }
   | { type: 'replaceDayConfigs'; dayConfigs: DayConfig[] }
+  | { type: 'resetWorkoutData' }
   | { type: 'resetAllData' }
   | {
       type: 'restoreRuntimeState';

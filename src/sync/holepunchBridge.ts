@@ -2,8 +2,10 @@ import b4a from 'b4a';
 import RPC from 'bare-rpc';
 import { documentDirectory } from 'expo-file-system/legacy';
 import { Worklet } from 'react-native-bare-kit';
+import type { SyncLogEntry } from './logger';
 import { logSyncError, logSyncEvent } from './logger';
 import {
+  RPC_SYNC_GET_LOGS,
   RPC_SYNC_LOG_EVENT,
   RPC_SYNC_PUBLISH,
   RPC_SYNC_REMOTE_OP_EVENT,
@@ -211,6 +213,19 @@ export class HolepunchWorkletBridge implements SyncBridge {
     return () => {
       this.statusListeners.delete(cb);
     };
+  }
+
+  async pullLogs(): Promise<SyncLogEntry[]> {
+    if (!this.rpc) return [];
+    try {
+      const raw = await requestJson<
+        Record<string, never>,
+        { entries?: SyncLogEntry[] }
+      >(this.rpc, RPC_SYNC_GET_LOGS, {});
+      return Array.isArray(raw.entries) ? raw.entries : [];
+    } catch {
+      return [];
+    }
   }
 
   private async pullStatus() {

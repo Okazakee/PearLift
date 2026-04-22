@@ -41,11 +41,14 @@
       "join": "Join",
       "yourCode": "Your Sync Code",
       "shareHint": "Share this Sync Code (or QR) with your other device. That device must enter the same code to join your sync group.",
+      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
       "enterCode": "Enter Sync Code",
       "scanQr": "Scan QR code",
       "scanEnableCamera": "Enable camera",
       "scanHelp": "Point your camera at the QR code on your other device.",
       "codePlaceholder": "Enter your share code",
+      "replaceJoinLabel": "Replace my data with their data",
+      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
       "copy": "Copy code",
       "start": "Start sync",
       "stop": "Stop sync",
@@ -83,7 +86,13 @@
       "storagePath": "Storage",
       "copy": "Copy",
       "copied": "Copied",
-      "refresh": "Refresh"
+      "refresh": "Refresh",
+      "reconnectAttempts": "Reconnect attempts",
+      "debugLog": {
+        "title": "Debug log",
+        "refresh": "Refresh",
+        "empty": "No log entries yet."
+      }
     },
     "toast": {
       "newPeerTitle": "New device connected",

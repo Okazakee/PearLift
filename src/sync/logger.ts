@@ -4,6 +4,25 @@ export type SyncLogLevel = 'info' | 'warn' | 'error';
 
 type SyncLogDetails = Record<string, unknown> | undefined;
 
+export interface SyncLogEntry {
+  ts: number;
+  level: SyncLogLevel;
+  scope: string;
+  key: string;
+  message: string;
+  data?: Record<string, unknown>;
+}
+
+const MAX_LOG_ENTRIES = 200;
+const logRing: SyncLogEntry[] = [];
+
+function appendToRing(entry: SyncLogEntry) {
+  logRing.push(entry);
+  if (logRing.length > MAX_LOG_ENTRIES) {
+    logRing.splice(0, logRing.length - MAX_LOG_ENTRIES);
+  }
+}
+
 function logWithLevel(
   level: SyncLogLevel,
   prefix: string,
@@ -36,6 +55,14 @@ export function logSyncEvent(
   details?: SyncLogDetails,
 ) {
   logWithLevel(level, `[pearlift-sync/${scope}:${event}]`, message, details);
+  appendToRing({
+    ts: Date.now(),
+    level,
+    scope,
+    key: event,
+    message,
+    data: details,
+  });
 }
 
 export function logSyncError(
@@ -44,10 +71,32 @@ export function logSyncError(
   error: unknown,
   details?: SyncLogDetails,
 ) {
-  logWithLevel(
-    'error',
-    `[pearlift-sync/${scope}:${event}]`,
-    getErrorMessage(error),
-    details,
-  );
+  const message = getErrorMessage(error);
+  logWithLevel('error', `[pearlift-sync/${scope}:${event}]`, message, details);
+  appendToRing({
+    ts: Date.now(),
+    level: 'error',
+    scope,
+    key: event,
+    message,
+    data: details,
+  });
+}
+
+export function getRecentLogs(): SyncLogEntry[] {
+  return logRing.slice();
+}
+
+export function clearRecentLogs() {
+  logRing.length = 0;
+}
+
+export function combineLogs(
+  a: SyncLogEntry[],
+  b: SyncLogEntry[],
+  cap = 400,
+): SyncLogEntry[] {
+  const merged = [...a, ...b];
+  merged.sort((x, y) => y.ts - x.ts);
+  return merged.slice(0, cap);
 }

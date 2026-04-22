@@ -9,6 +9,7 @@ export const SYNC_OP_SCHEMA_VERSION = 1 as const;
 export type SyncMutation = Exclude<
   WorkoutMutation,
   | { type: 'adjustExerciseWeight' }
+  | { type: 'resetWorkoutData' }
   | { type: 'resetAllData' }
   | { type: 'restoreRuntimeState' }
 >;
@@ -44,6 +45,7 @@ export interface SyncHealth {
   autobaseKey: string | null;
   topicHex: string | null;
   bootstrapped: boolean;
+  reconnectAttempts: number;
   lastSyncedAt: string | null;
   lastError: string | null;
 }
@@ -56,6 +58,7 @@ export const INITIAL_SYNC_HEALTH: SyncHealth = {
   autobaseKey: null,
   topicHex: null,
   bootstrapped: false,
+  reconnectAttempts: 0,
   lastSyncedAt: null,
   lastError: null,
 };
@@ -72,10 +75,20 @@ export interface SyncBridge {
   publish(op: SyncOpEnvelope): Promise<void>;
   onRemoteOp(cb: (op: SyncOpEnvelope) => void): () => void;
   onStatus(cb: (health: SyncHealth) => void): () => void;
+  pullLogs?(): Promise<SyncBridgeLogEntry[]>;
+}
+
+export interface SyncBridgeLogEntry {
+  ts: number;
+  level: 'info' | 'warn' | 'error';
+  scope: string;
+  key: string;
+  message: string;
+  data?: Record<string, unknown>;
 }
 
 export interface SyncManager {
-  start(pairingSecretHex?: string): Promise<void>;
+  start(pairingSecretHex?: string, bootstrapKeyHex?: string): Promise<void>;
   stop(): Promise<void>;
   publishLocalMutation(
     mutation: WorkoutMutation,
@@ -85,6 +98,7 @@ export interface SyncManager {
   getHealth(): SyncHealth;
   onHealth(cb: (health: SyncHealth) => void): () => void;
   isActive(): boolean;
+  getAllLogs(): Promise<SyncBridgeLogEntry[]>;
 }
 
 export const REMOTE_MUTATION_CONTEXT_BASE: Omit<
@@ -101,6 +115,8 @@ export function isSyncableMutation(
   | SyncMutation
   | { type: 'adjustExerciseWeight'; exerciseId: string; delta: number } {
   return (
-    mutation.type !== 'resetAllData' && mutation.type !== 'restoreRuntimeState'
+    mutation.type !== 'resetWorkoutData' &&
+    mutation.type !== 'resetAllData' &&
+    mutation.type !== 'restoreRuntimeState'
   );
 }

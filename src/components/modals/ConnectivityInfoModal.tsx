@@ -1,9 +1,16 @@
 import * as Clipboard from 'expo-clipboard';
-import { ChevronLeft, Copy, Users } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import {
+  ChevronLeft,
+  Copy,
+  RefreshCw,
+  ScrollText,
+  Users,
+} from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
+import type { SyncLogEntry } from '../../sync/logger';
 import type { SyncStatus } from '../../sync/types';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
@@ -21,8 +28,11 @@ interface ConnectivityInfoModalProps {
   syncAutobaseKey: string | null;
   syncTopicHex: string | null;
   syncBootstrapped: boolean;
+  syncReconnectAttempts: number;
   lastSyncedAt: string | null;
   deviceId: string | null;
+  logs: SyncLogEntry[];
+  onRefreshLogs: () => void;
   onClose: () => void;
 }
 
@@ -44,8 +54,11 @@ export function ConnectivityInfoModal({
   syncAutobaseKey,
   syncTopicHex,
   syncBootstrapped,
+  syncReconnectAttempts,
   lastSyncedAt,
   deviceId,
+  logs,
+  onRefreshLogs,
   onClose,
 }: ConnectivityInfoModalProps) {
   const { t } = useTranslation();
@@ -55,6 +68,13 @@ export function ConnectivityInfoModal({
   );
 
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    onRefreshLogs();
+    const interval = setInterval(onRefreshLogs, 5000);
+    return () => clearInterval(interval);
+  }, [open, onRefreshLogs]);
 
   const copy = async (key: string, value: string | null) => {
     if (!value) return;
@@ -144,6 +164,12 @@ export function ConnectivityInfoModal({
               </Text>
             </View>
             <View style={styles.statRow}>
+              <Text style={styles.statLabel}>
+                {t('sync.info.reconnectAttempts')}
+              </Text>
+              <Text style={styles.statValue}>{syncReconnectAttempts}</Text>
+            </View>
+            <View style={styles.statRow}>
               <Text style={styles.statLabel}>{t('sync.info.lastSync')}</Text>
               <Text style={styles.statValue}>
                 {lastSyncedAt
@@ -219,6 +245,40 @@ export function ConnectivityInfoModal({
               ))
             )}
           </View>
+
+          <View style={styles.sectionHeader}>
+            <ScrollText size={14} color={tokens.colors.textSecondary} />
+            <Text style={styles.sectionTitle}>
+              {t('sync.info.debugLog.title')}
+            </Text>
+            <AnimatedPressable
+              style={styles.refreshButton}
+              onPress={onRefreshLogs}
+            >
+              <RefreshCw size={12} color={tokens.colors.textSecondary} />
+              <Text style={styles.refreshButtonText}>
+                {t('sync.info.debugLog.refresh')}
+              </Text>
+            </AnimatedPressable>
+          </View>
+          <View style={styles.panel}>
+            {logs.length === 0 ? (
+              <Text style={styles.emptyText}>
+                {t('sync.info.debugLog.empty')}
+              </Text>
+            ) : (
+              logs
+                .slice(0, 200)
+                .map((entry) => (
+                  <LogRow
+                    key={`${entry.ts}-${entry.scope}-${entry.key}-${entry.message}`}
+                    entry={entry}
+                    styles={styles}
+                    tokens={tokens}
+                  />
+                ))
+            )}
+          </View>
         </ScrollView>
       </View>
     </AnimatedScreenModal>
@@ -264,6 +324,47 @@ function KeyRow({
           {copied ? copiedLabel : copyLabel}
         </Text>
       </AnimatedPressable>
+    </View>
+  );
+}
+
+interface LogRowProps {
+  entry: SyncLogEntry;
+  styles: ReturnType<typeof createStyles>;
+  tokens: ThemeTokens;
+}
+
+function formatTime(ts: number) {
+  try {
+    const d = new Date(ts);
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${hh}:${mm}:${ss}`;
+  } catch {
+    return '--:--:--';
+  }
+}
+
+function LogRow({ entry, styles, tokens }: LogRowProps) {
+  const levelColor =
+    entry.level === 'error'
+      ? tokens.colors.accentDanger
+      : entry.level === 'warn'
+        ? tokens.colors.accentWarning
+        : tokens.colors.textSecondary;
+  return (
+    <View style={styles.logRow}>
+      <View style={styles.logHeaderRow}>
+        <Text style={styles.logTime}>{formatTime(entry.ts)}</Text>
+        <Text style={[styles.logLevel, { color: levelColor }]}>
+          {entry.level.toUpperCase()}
+        </Text>
+        <Text style={styles.logScope}>
+          {entry.scope}/{entry.key}
+        </Text>
+      </View>
+      <Text style={styles.logMessage}>{entry.message}</Text>
     </View>
   );
 }
@@ -390,6 +491,55 @@ function createStyles(
     emptyText: {
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.label,
+    },
+    refreshButton: {
+      marginLeft: 'auto',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: tokens.spacing.sm,
+      paddingVertical: 4,
+      borderRadius: tokens.radius.sm,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+    },
+    refreshButtonText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
+    },
+    logRow: {
+      paddingVertical: 4,
+      gap: 2,
+      borderBottomWidth: 0.5,
+      borderBottomColor: withAlpha(tokens.colors.outline, 0.12),
+    },
+    logHeaderRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    logTime: {
+      color: tokens.colors.textSecondary,
+      fontSize: 11,
+      fontFamily: 'SpaceGrotesk_600SemiBold',
+    },
+    logLevel: {
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 0.4,
+    },
+    logScope: {
+      color: tokens.colors.textSecondary,
+      fontSize: 11,
+      fontFamily: 'SpaceGrotesk_600SemiBold',
+      flexShrink: 1,
+    },
+    logMessage: {
+      color: tokens.colors.textPrimary,
+      fontSize: 11,
+      fontFamily: 'SpaceGrotesk_600SemiBold',
     },
   });
 }

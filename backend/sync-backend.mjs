@@ -9,6 +9,7 @@ import Corestore from 'corestore';
 import goodbye from 'graceful-goodbye';
 import Hyperswarm from 'hyperswarm';
 import {
+  RPC_SYNC_GET_LOGS,
   RPC_SYNC_LOG_EVENT,
   RPC_SYNC_PUBLISH,
   RPC_SYNC_REMOTE_OP_EVENT,
@@ -23,6 +24,8 @@ const { IPC } = BareKit;
 let store = null;
 let base = null;
 let swarm = null;
+let discovery = null;
+let currentTopic = null;
 const peerKeys = new Set();
 let rpc = null;
 let sentViewLength = 0;
@@ -35,7 +38,18 @@ let topicHex = null;
 let storageRoot = null;
 let cursorPersistTimer = null;
 let cursorDirty = false;
-let connectionsReady = false;
+let lastDhtBootstrapped = false;
+let reconnectAttempts = 0;
+let stuckSince = null;
+let heartbeatTimer = null;
+let startedAt = null;
+let rpcHandshakeLogged = false;
+
+const MAX_LOG_ENTRIES = 200;
+const MAX_RECONNECT_ATTEMPTS = 10;
+const HEARTBEAT_INTERVAL_MS = 5000;
+const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
+const logRing = [];
 
 function getErrorMessage(error) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
@@ -49,11 +63,26 @@ function getErrorMessage(error) {
   }
 }
 
+function appendLogRing(level, scope, eventName, message, details) {
+  logRing.push({
+    ts: Date.now(),
+    level: level || 'info',
+    scope: scope || 'unknown',
+    key: eventName || 'event',
+    message: message ?? '',
+    data: details ?? undefined,
+  });
+  if (logRing.length > MAX_LOG_ENTRIES) {
+    logRing.splice(0, logRing.length - MAX_LOG_ENTRIES);
+  }
+}
+
 function emitLog(level, scope, eventName, payload, details = null) {
+  const message =
+    typeof payload === 'string' ? payload : getErrorMessage(payload);
+  appendLogRing(level, scope, eventName, message, details);
   if (!rpc) return;
   try {
-    const message =
-      typeof payload === 'string' ? payload : getErrorMessage(payload);
     const rpcEvent = rpc.event(RPC_SYNC_LOG_EVENT);
     rpcEvent.send(
       JSON.stringify({
@@ -100,6 +129,14 @@ function safeReply(req, payload) {
   req.reply(JSON.stringify(payload ?? {}));
 }
 
+function isDhtBootstrapped() {
+  try {
+    return !!swarm?.dht?.bootstrapped;
+  } catch {
+    return false;
+  }
+}
+
 function buildStatus(status = runtimeStatus, lastError = lastBackendError) {
   return {
     status,
@@ -110,7 +147,8 @@ function buildStatus(status = runtimeStatus, lastError = lastBackendError) {
       : null,
     autobaseKey: base?.key ? b4a.toString(base.key, 'hex') : null,
     topicHex,
-    bootstrapped: connectionsReady || peerKeys.size > 0,
+    bootstrapped: isDhtBootstrapped(),
+    reconnectAttempts,
     lastSyncedAt,
     lastError,
   };
@@ -248,6 +286,104 @@ async function publishBackendPresence() {
   }
 }
 
+function stopHeartbeat() {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer);
+    heartbeatTimer = null;
+  }
+}
+
+function updateStuckState() {
+  if (runtimeStatus === 'connecting' && peerKeys.size === 0) {
+    if (stuckSince === null) stuckSince = Date.now();
+  } else {
+    stuckSince = null;
+  }
+}
+
+async function rejoinTopic() {
+  if (!swarm || !currentTopic) return;
+  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    logBackendError(
+      'watchdog',
+      new Error(
+        `Reconnect cap reached after ${MAX_RECONNECT_ATTEMPTS} attempts.`,
+      ),
+    );
+    emitStatus('error', lastBackendError);
+    return;
+  }
+  reconnectAttempts += 1;
+  logMajorEvent('watchdog', 'rejoin', 'Forcing topic rejoin.', {
+    attempt: reconnectAttempts,
+    peers: peerKeys.size,
+  });
+  try {
+    if (discovery) {
+      try {
+        await discovery.destroy();
+      } catch {
+        // ignore
+      }
+      discovery = null;
+    }
+    discovery = swarm.join(currentTopic, { server: true, client: true });
+    void discovery
+      .flushed()
+      .then(() => {
+        logMajorEvent(
+          'swarm',
+          'topic_reannounced',
+          'Swarm topic re-announced after watchdog rejoin.',
+        );
+      })
+      .catch((error) => {
+        logMajorWarning('swarm', 'flush_failed', getErrorMessage(error));
+      });
+    stuckSince = Date.now();
+  } catch (error) {
+    logBackendError('watchdog', error);
+  }
+}
+
+function startHeartbeat() {
+  stopHeartbeat();
+  heartbeatTimer = setInterval(() => {
+    if (runtimeStatus === 'idle') {
+      stopHeartbeat();
+      return;
+    }
+    const dhtReady = isDhtBootstrapped();
+    if (dhtReady !== lastDhtBootstrapped) {
+      lastDhtBootstrapped = dhtReady;
+      logMajorEvent(
+        'dht',
+        'ready_transition',
+        dhtReady ? 'DHT became bootstrapped.' : 'DHT lost bootstrap.',
+        { dhtReady },
+      );
+      emitStatus(runtimeStatus, lastBackendError);
+    }
+    const elapsed = startedAt ? Date.now() - startedAt : 0;
+    logMajorEvent('heartbeat', 'tick', 'Sync heartbeat.', {
+      peers: peerKeys.size,
+      dhtReady,
+      elapsedMs: elapsed,
+      status: runtimeStatus,
+      reconnectAttempts,
+    });
+    updateStuckState();
+    if (
+      stuckSince !== null &&
+      Date.now() - stuckSince > WATCHDOG_STUCK_THRESHOLD_MS
+    ) {
+      void rejoinTopic();
+    }
+    // Emit status so UI sees fresh peer count / DHT / stuck state.
+    emitStatus(runtimeStatus, lastBackendError);
+  }, HEARTBEAT_INTERVAL_MS);
+}
+
 async function ensureStopped() {
   if (cursorPersistTimer) {
     clearTimeout(cursorPersistTimer);
@@ -298,7 +434,14 @@ async function ensureStopped() {
   localDeviceId = null;
   topicHex = null;
   storageRoot = null;
-  connectionsReady = false;
+  discovery = null;
+  currentTopic = null;
+  lastDhtBootstrapped = false;
+  reconnectAttempts = 0;
+  stuckSince = null;
+  startedAt = null;
+  rpcHandshakeLogged = false;
+  stopHeartbeat();
 }
 
 async function startSync(config) {
@@ -343,6 +486,15 @@ async function startSync(config) {
 
   const storedCursor = await loadCursor();
   sentViewLength = Math.min(storedCursor, base.view.length);
+  logMajorEvent('cursor', 'restored', 'Cursor restored from disk.', {
+    stored: storedCursor,
+    applied: sentViewLength,
+    viewLength: base.view.length,
+  });
+  logMajorEvent('autobase', 'ready', 'Autobase ready.', {
+    viewLength: base.view.length,
+    writable: !!base.writable,
+  });
 
   base.on('update', () => {
     void flushRemoteOps().catch((error) => {
@@ -378,7 +530,7 @@ async function startSync(config) {
     }
     if (remoteKey) peerKeys.add(remoteKey);
 
-    connectionsReady = true;
+    stuckSince = null;
     const nextStatus = runtimeStatus === 'error' ? 'error' : 'connecting';
     emitStatus(nextStatus, runtimeStatus === 'error' ? lastBackendError : null);
     logMajorEvent('peer', 'connected', 'Peer connected.', {
@@ -426,7 +578,11 @@ async function startSync(config) {
     void publishBackendPresence();
   });
 
-  const discovery = swarm.join(topic, { server: true, client: true });
+  currentTopic = topic;
+  logMajorEvent('swarm', 'join_requested', 'Joining swarm topic.', {
+    topicHex,
+  });
+  discovery = swarm.join(topic, { server: true, client: true });
 
   // Don't block start on DHT flush. Log in the background.
   void discovery
@@ -438,8 +594,14 @@ async function startSync(config) {
       logMajorWarning('swarm', 'flush_failed', getErrorMessage(error));
     });
 
+  startedAt = Date.now();
+  stuckSince = Date.now();
+  lastDhtBootstrapped = isDhtBootstrapped();
   emitStatus('connecting', null);
-  logMajorEvent('backend', 'started', 'Sync backend started.');
+  logMajorEvent('backend', 'started', 'Sync backend started.', {
+    dhtReady: lastDhtBootstrapped,
+  });
+  startHeartbeat();
 
   return {
     bootstrapKeyHex: b4a.toString(base.key, 'hex'),
@@ -448,6 +610,13 @@ async function startSync(config) {
 
 rpc = new RPC(IPC, async (req) => {
   try {
+    if (!rpcHandshakeLogged) {
+      rpcHandshakeLogged = true;
+      logMajorEvent('rpc', 'handshake', 'First RPC request received.', {
+        command: req.command,
+      });
+    }
+
     if (req.command === RPC_SYNC_START) {
       const config = parseData(req.data);
       const result = await startSync(config);
@@ -465,6 +634,11 @@ rpc = new RPC(IPC, async (req) => {
 
     if (req.command === RPC_SYNC_STATUS) {
       safeReply(req, buildStatus());
+      return;
+    }
+
+    if (req.command === RPC_SYNC_GET_LOGS) {
+      safeReply(req, { entries: logRing.slice() });
       return;
     }
 
@@ -500,6 +674,20 @@ try {
       emitStatus('error', getErrorMessage(error));
     });
   }
+} catch {
+  // ignore
+}
+
+try {
+  const p = typeof process !== 'undefined' ? process : null;
+  const bareVersion =
+    typeof globalThis !== 'undefined' && globalThis.Bare?.version
+      ? globalThis.Bare.version
+      : null;
+  logMajorEvent('worklet', 'boot', 'Sync worklet booted.', {
+    argv: p?.argv ?? null,
+    bareVersion,
+  });
 } catch {
   // ignore
 }

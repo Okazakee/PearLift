@@ -52,6 +52,19 @@ function buildDefaultRuntimeState(): PearLiftRuntimeState {
   };
 }
 
+function buildResetWorkoutDataState(
+  current: PearLiftRuntimeState,
+): PearLiftRuntimeState {
+  const defaults = buildDefaultRuntimeState();
+  return {
+    ...defaults,
+    restDuration: current.restDuration,
+    themeMode: current.themeMode,
+    weightUnit: current.weightUnit,
+    language: current.language,
+  };
+}
+
 function nowIso() {
   return new Date().toISOString();
 }
@@ -596,6 +609,11 @@ export class WorkoutRepository {
               'currentDay',
               currentDayStillExists ? runtime.currentDay : nextCurrentDay,
             );
+            break;
+          }
+          case 'resetWorkoutData': {
+            const runtime = await this.readRuntimeState(db);
+            await this.replaceAllState(db, buildResetWorkoutDataState(runtime));
             break;
           }
           case 'resetAllData': {
