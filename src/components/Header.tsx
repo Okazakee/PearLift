@@ -1,15 +1,82 @@
-import { Settings } from 'lucide-react-native';
+import {
+  Activity,
+  AlertTriangle,
+  RefreshCw,
+  Settings,
+} from 'lucide-react-native';
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import type { SyncStatus } from '../sync/types';
 import type { ThemeTokens } from '../theme/tokens';
+import { withAlpha } from '../theme/tokens';
 
 interface HeaderProps {
   tokens: ThemeTokens;
   topInset: number;
+  syncStatus: SyncStatus;
+  syncPeers: number;
+  onOpenSyncQuickStatus: () => void;
   onOpenSettings: () => void;
 }
 
-export function Header({ tokens, topInset, onOpenSettings }: HeaderProps) {
+type HeaderSyncState = 'issue' | 'connected' | 'connecting' | 'off';
+
+function getHeaderSyncState(
+  syncStatus: SyncStatus,
+  syncPeers: number,
+): HeaderSyncState {
+  if (syncStatus === 'error') return 'issue';
+  if (syncStatus === 'synced' && syncPeers > 0) return 'connected';
+  if (syncStatus === 'connecting') return 'connecting';
+  return 'off';
+}
+
+export function Header({
+  tokens,
+  topInset,
+  syncStatus,
+  syncPeers,
+  onOpenSyncQuickStatus,
+  onOpenSettings,
+}: HeaderProps) {
+  const { t } = useTranslation();
   const styles = createStyles(tokens, topInset);
+  const syncState = getHeaderSyncState(syncStatus, syncPeers);
+
+  const syncVisual = useMemo(() => {
+    if (syncState === 'issue') {
+      return {
+        label: t('sync.quick.button.issue'),
+        icon: AlertTriangle,
+        color: tokens.colors.accentDanger,
+        backgroundColor: withAlpha(tokens.colors.accentDanger, 0.16),
+      };
+    }
+    if (syncState === 'connected') {
+      return {
+        label: t('sync.quick.button.connected'),
+        icon: Activity,
+        color: tokens.colors.primary,
+        backgroundColor: withAlpha(tokens.colors.primary, 0.14),
+      };
+    }
+    if (syncState === 'connecting') {
+      return {
+        label: t('sync.quick.button.connecting'),
+        icon: RefreshCw,
+        color: tokens.colors.textSecondary,
+        backgroundColor: withAlpha(tokens.colors.textSecondary, 0.12),
+      };
+    }
+    return {
+      label: t('sync.quick.button.off'),
+      icon: RefreshCw,
+      color: tokens.colors.textSecondary,
+      backgroundColor: tokens.colors.bgSurface,
+    };
+  }, [syncState, t, tokens]);
+  const SyncIcon = syncVisual.icon;
 
   return (
     <View style={styles.container}>
@@ -27,6 +94,18 @@ export function Header({ tokens, topInset, onOpenSettings }: HeaderProps) {
       </View>
 
       <View style={styles.actionsRow}>
+        <Pressable
+          onPress={onOpenSyncQuickStatus}
+          style={[
+            styles.syncButton,
+            { backgroundColor: syncVisual.backgroundColor },
+          ]}
+        >
+          <SyncIcon size={14} color={syncVisual.color} />
+          <Text style={[styles.syncButtonText, { color: syncVisual.color }]}>
+            {syncVisual.label}
+          </Text>
+        </Pressable>
         <Pressable onPress={onOpenSettings} style={styles.iconButton}>
           <Settings size={18} color={tokens.colors.textSecondary} />
         </Pressable>
@@ -75,6 +154,21 @@ function createStyles(tokens: ThemeTokens, topInset: number) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: tokens.spacing.xs,
+    },
+    syncButton: {
+      minHeight: 36,
+      borderRadius: tokens.radius.pill,
+      paddingHorizontal: tokens.spacing.sm + 2,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 6,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.outline, 0.2),
+    },
+    syncButtonText: {
+      fontSize: tokens.type.label,
+      fontWeight: '700',
     },
     iconButton: {
       width: 36,

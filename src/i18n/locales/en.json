@@ -97,6 +97,37 @@
     "toast": {
       "newPeerTitle": "New device connected",
       "newPeerMessage": "A paired device joined the sync group."
+    },
+    "quick": {
+      "title": "Sync Status",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Issue",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync"
+      },
+      "state": {
+        "issue": "Issue detected",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync off"
+      },
+      "description": {
+        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
+        "connected": "Your device is syncing with the group.",
+        "connecting": "Searching for your sync group.",
+        "off": "Sync is currently disabled on this device."
+      },
+      "lastSyncAt": "Last sync: {{at}}",
+      "lastSyncNever": "Last sync: never",
+      "actions": {
+        "setup": "Set up sync",
+        "pair": "Pair new device",
+        "manage": "Manage devices",
+        "openHub": "Open Sync Hub",
+        "stop": "Stop sync"
+      }
     }
   },
   "workout": {
@@ -192,7 +223,16 @@
       "peers_one": "{{count}} peer connected",
       "peers_other": "{{count}} peers connected",
       "stopSync": "Stop Sync",
-      "connectionInfo": "Connection info"
+      "connectionInfo": "Connection info",
+      "openSyncHub": "Open Sync Hub"
+    },
+    "syncHub": {
+      "title": "Sync Hub",
+      "overview": "Overview",
+      "ids": "Device & Group IDs",
+      "connections": "Connections",
+      "localWriterKey": "Local writer key",
+      "management": "Management"
     },
     "data": {
       "title": "Data",

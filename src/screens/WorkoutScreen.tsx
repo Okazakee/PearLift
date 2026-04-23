@@ -26,13 +26,13 @@ import { BootstrapScreen } from '../components/BootstrapScreen';
 import { Header } from '../components/Header';
 import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import { AppPromptModal } from '../components/modals/AppPromptModal';
-import { ConnectivityInfoModal } from '../components/modals/ConnectivityInfoModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LanguageListModal } from '../components/modals/LanguageListModal';
 import { PairedDevicesModal } from '../components/modals/PairedDevicesModal';
 import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
 import { SyncPairNewDeviceModal } from '../components/modals/SyncPairNewDeviceModal';
+import { SyncQuickStatusModal } from '../components/modals/SyncQuickStatusModal';
 import { SyncSetupModal } from '../components/modals/SyncSetupModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
@@ -69,7 +69,8 @@ export function WorkoutScreen() {
 
   const [pairNewDeviceOpen, setPairNewDeviceOpen] = useState(false);
   const [pairedDevicesOpen, setPairedDevicesOpen] = useState(false);
-  const [connectivityInfoOpen, setConnectivityInfoOpen] = useState(false);
+  const [syncQuickStatusOpen, setSyncQuickStatusOpen] = useState(false);
+  const [settingsSyncHubOpen, setSettingsSyncHubOpen] = useState(false);
   const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
 
   const {
@@ -104,8 +105,9 @@ export function WorkoutScreen() {
     setTimerExpanded,
     syncStatus,
     syncPeers,
+    syncConnections,
     syncPeerKeys,
-    syncLocalPublicKey,
+    syncLocalWriterKey,
     syncAutobaseKey,
     syncTopicHex,
     syncBootstrapped,
@@ -648,7 +650,21 @@ export function WorkoutScreen() {
 
   const handleOpenSyncSetup = () => {
     setSettingsOpen(false);
+    setSettingsSyncHubOpen(false);
+    setSyncQuickStatusOpen(false);
     setSyncSetupOpen(true);
+  };
+
+  const refreshSyncLogs = () => {
+    if (!syncManager) return;
+    void syncManager.getAllLogs().then((entries) => setSyncLogs(entries));
+  };
+
+  const openSettingsSyncHub = () => {
+    setSyncQuickStatusOpen(false);
+    setSettingsOpen(true);
+    setSettingsSyncHubOpen(true);
+    refreshSyncLogs();
   };
 
   const handleToggleSync = () => {
@@ -731,7 +747,13 @@ export function WorkoutScreen() {
         <Header
           tokens={tokens}
           topInset={insets.top}
-          onOpenSettings={() => setSettingsOpen(true)}
+          syncStatus={syncStatus}
+          syncPeers={syncPeers}
+          onOpenSyncQuickStatus={() => setSyncQuickStatusOpen(true)}
+          onOpenSettings={() => {
+            setSettingsSyncHubOpen(false);
+            setSettingsOpen(true);
+          }}
         />
 
         <WorkoutDayStack
@@ -839,6 +861,16 @@ export function WorkoutScreen() {
           onLanguageListOpen={() => setLanguageListOpen(true)}
           syncStatus={syncStatus}
           syncPeers={syncPeers}
+          syncConnections={syncConnections}
+          syncPeerKeys={syncPeerKeys}
+          syncLocalWriterKey={syncLocalWriterKey}
+          syncAutobaseKey={syncAutobaseKey}
+          syncTopicHex={syncTopicHex}
+          syncBootstrapped={syncBootstrapped}
+          syncReconnectAttempts={syncReconnectAttempts}
+          localDeviceId={localDeviceId}
+          syncLogs={syncLogs}
+          onRefreshSyncLogs={refreshSyncLogs}
           lastSyncedAt={lastSyncedAt}
           syncError={syncError}
           pairedDevices={pairedDevices}
@@ -846,37 +878,33 @@ export function WorkoutScreen() {
           onOpenSyncSetup={handleOpenSyncSetup}
           onOpenPairNewDevice={handleOpenPairNewDevice}
           onOpenPairedDevices={handleOpenPairedDevices}
+          syncHubOpen={settingsSyncHubOpen}
+          onSyncHubOpenChange={setSettingsSyncHubOpen}
           onExportLocalBackup={handleExportBackup}
           onImportLocalBackup={() => void handleImportBackup()}
           onResetData={handleResetData}
-          onClose={() => setSettingsOpen(false)}
+          onClose={() => {
+            setSettingsSyncHubOpen(false);
+            setSettingsOpen(false);
+          }}
           onOpenGithub={handleOpenGithub}
-          onOpenConnectivityInfo={() => setConnectivityInfoOpen(true)}
         />
 
-        <ConnectivityInfoModal
-          open={connectivityInfoOpen}
+        <SyncQuickStatusModal
+          open={syncQuickStatusOpen}
           tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
           syncStatus={syncStatus}
           syncPeers={syncPeers}
-          syncPeerKeys={syncPeerKeys}
-          syncLocalPublicKey={syncLocalPublicKey}
-          syncAutobaseKey={syncAutobaseKey}
-          syncTopicHex={syncTopicHex}
-          syncBootstrapped={syncBootstrapped}
-          syncReconnectAttempts={syncReconnectAttempts}
           lastSyncedAt={lastSyncedAt}
-          deviceId={localDeviceId}
-          logs={syncLogs}
-          onRefreshLogs={() => {
-            if (!syncManager) return;
-            void syncManager
-              .getAllLogs()
-              .then((entries) => setSyncLogs(entries));
+          syncError={syncError}
+          onOpenSyncSetup={handleOpenSyncSetup}
+          onOpenPairNewDevice={handleOpenPairNewDevice}
+          onOpenPairedDevices={handleOpenPairedDevices}
+          onOpenSyncHub={openSettingsSyncHub}
+          onStopSync={() => {
+            void stopSync();
           }}
-          onClose={() => setConnectivityInfoOpen(false)}
+          onClose={() => setSyncQuickStatusOpen(false)}
         />
 
         <SyncPairNewDeviceModal
@@ -914,7 +942,7 @@ export function WorkoutScreen() {
           onDone={() => setSyncSetupOpen(false)}
           onViewInfo={() => {
             setSyncSetupOpen(false);
-            setConnectivityInfoOpen(true);
+            openSettingsSyncHub();
           }}
         />
 
