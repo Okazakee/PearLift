@@ -40,7 +40,10 @@ export type SyncStatus = 'idle' | 'connecting' | 'synced' | 'error';
 export interface SyncHealth {
   status: SyncStatus;
   peers: number;
+  connections: number;
   peerKeys: string[];
+  localWriterKey: string | null;
+  // Compatibility alias while consumers migrate to localWriterKey.
   localPublicKey: string | null;
   autobaseKey: string | null;
   topicHex: string | null;
@@ -53,7 +56,9 @@ export interface SyncHealth {
 export const INITIAL_SYNC_HEALTH: SyncHealth = {
   status: 'idle',
   peers: 0,
+  connections: 0,
   peerKeys: [],
+  localWriterKey: null,
   localPublicKey: null,
   autobaseKey: null,
   topicHex: null,

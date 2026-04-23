@@ -1,4 +1,3 @@
-import b4a from 'b4a';
 import RPC from 'bare-rpc';
 import { documentDirectory } from 'expo-file-system/legacy';
 import { Worklet } from 'react-native-bare-kit';
@@ -14,6 +13,7 @@ import {
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
 } from './rpcCommands';
+import { decodeRpcPayload, encodeRpcPayload } from './rpcEncoding';
 import syncBundle from './sync.bundle.mjs';
 import type {
   StartSyncInput,
@@ -34,22 +34,6 @@ type RuntimeRpcMessage = {
   command: number;
   data: Uint8Array | null;
 };
-type RuntimeLogMessage = {
-  level?: 'error' | 'warn' | 'info' | 'debug';
-  scope?: string;
-  event?: string;
-  message?: string;
-  details?: Record<string, unknown>;
-};
-
-function encodeJson(value: unknown) {
-  return b4a.from(JSON.stringify(value));
-}
-
-function decodeJson<T>(value: Uint8Array | string): T {
-  const asString = typeof value === 'string' ? value : b4a.toString(value);
-  return JSON.parse(asString) as T;
-}
 
 async function requestJson<TReq, TRes>(
   rpc: RpcLike,
@@ -57,9 +41,9 @@ async function requestJson<TReq, TRes>(
   payload: TReq,
 ) {
   const req = rpc.request(command);
-  req.send(encodeJson(payload));
+  req.send(encodeRpcPayload(command, 'request', payload));
   const raw = await req.reply();
-  return decodeJson<TRes>(raw);
+  return decodeRpcPayload(command, 'response', raw) as TRes;
 }
 
 export class HolepunchWorkletBridge implements SyncBridge {
@@ -100,39 +84,62 @@ export class HolepunchWorkletBridge implements SyncBridge {
 
     const rpc = new RPC(worklet.IPC as never, (req: unknown) => {
       const message = req as RuntimeRpcMessage;
-
-      if (message.command === RPC_SYNC_REMOTE_OP_EVENT && message.data) {
-        const op = decodeJson<SyncOpEnvelope>(message.data);
-        for (const listener of this.remoteListeners) {
-          listener(op);
+      try {
+        if (message.command === RPC_SYNC_REMOTE_OP_EVENT && message.data) {
+          const op = decodeRpcPayload(
+            message.command,
+            'event',
+            message.data,
+          ) as SyncOpEnvelope;
+          for (const listener of this.remoteListeners) {
+            listener(op);
+          }
+          return;
         }
-        return;
-      }
 
-      if (message.command === RPC_SYNC_STATUS_EVENT && message.data) {
-        const raw = decodeJson<Partial<SyncHealth>>(message.data);
-        const health: SyncHealth = { ...INITIAL_SYNC_HEALTH, ...raw };
-        for (const listener of this.statusListeners) {
-          listener(health);
+        if (message.command === RPC_SYNC_STATUS_EVENT && message.data) {
+          const raw = decodeRpcPayload(
+            message.command,
+            'event',
+            message.data,
+          ) as Partial<SyncHealth>;
+          const health: SyncHealth = { ...INITIAL_SYNC_HEALTH, ...raw };
+          for (const listener of this.statusListeners) {
+            listener(health);
+          }
+          return;
         }
-        return;
-      }
 
-      if (message.command === RPC_SYNC_LOG_EVENT && message.data) {
-        const payload = decodeJson<RuntimeLogMessage>(message.data);
-        const level =
-          payload.level === 'warn'
-            ? 'warn'
-            : payload.level === 'error'
-              ? 'error'
-              : 'info';
-        logSyncEvent(
-          level,
-          payload.scope ?? 'backend',
-          payload.event ?? 'event',
-          payload.message ?? '',
-          payload.details,
-        );
+        if (message.command === RPC_SYNC_LOG_EVENT && message.data) {
+          const payload = decodeRpcPayload(
+            message.command,
+            'event',
+            message.data,
+          ) as {
+            level?: 'error' | 'warn' | 'info' | 'debug';
+            scope?: string;
+            event?: string;
+            message?: string;
+            details?: Record<string, unknown>;
+          };
+          const level =
+            payload.level === 'warn'
+              ? 'warn'
+              : payload.level === 'error'
+                ? 'error'
+                : 'info';
+          logSyncEvent(
+            level,
+            payload.scope ?? 'backend',
+            payload.event ?? 'event',
+            payload.message ?? '',
+            payload.details,
+          );
+        }
+      } catch (error) {
+        logSyncError('bridge', 'event_decode_failed', error, {
+          command: message.command,
+        });
       }
     });
 

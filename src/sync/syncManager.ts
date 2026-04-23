@@ -82,6 +82,7 @@ class SyncManagerImpl implements SyncManager {
   private lastLoggedBackendError: string | null = null;
   private startTask: Promise<void> | null = null;
   private stopTask: Promise<void> | null = null;
+  private lifecycleEpoch = 0;
   private appStateSub: NativeEventSubscription | null = null;
   private lastAppState: AppStateStatus = AppState.currentState;
   private resuming = false;
@@ -112,8 +113,12 @@ class SyncManagerImpl implements SyncManager {
     if (this.startTask) {
       return this.startTask;
     }
+    if (this.stopTask) {
+      await this.stopTask;
+    }
 
     this.startTask = (async () => {
+      const epoch = ++this.lifecycleEpoch;
       this.setHealth({ ...this.health, status: 'connecting', lastError: null });
       logSyncEvent(
         'info',
@@ -127,7 +132,9 @@ class SyncManagerImpl implements SyncManager {
         const deviceId = await this.repository.getOrCreateDeviceId();
         this.deviceId = deviceId;
 
+        this.clearBridgeSubscriptions();
         this.unsubscribeStatus = this.bridge.onStatus((health) => {
+          if (epoch !== this.lifecycleEpoch) return;
           this.setHealth({
             ...this.health,
             ...health,
@@ -136,6 +143,7 @@ class SyncManagerImpl implements SyncManager {
         });
 
         this.unsubscribeRemoteOp = this.bridge.onRemoteOp((op) => {
+          if (epoch !== this.lifecycleEpoch) return;
           void this.handleRemoteOp(op);
         });
 
@@ -158,6 +166,15 @@ class SyncManagerImpl implements SyncManager {
           bootstrapKeyHex: bootstrapKeyHex ?? state.autobaseBootstrapKey,
         });
 
+        if (epoch !== this.lifecycleEpoch) {
+          try {
+            await this.bridge.stop();
+          } catch (error) {
+            logSyncError('manager', 'stale_start_stop_failed', error);
+          }
+          return;
+        }
+
         await this.repository.setSyncState({
           syncEnabled: true,
           autobaseBootstrapKey: bootstrapKeyHex ?? started.bootstrapKeyHex,
@@ -174,6 +191,9 @@ class SyncManagerImpl implements SyncManager {
       } catch (error) {
         logError('sync/start failed', error);
         logSyncError('manager', 'start_failed', error);
+        this.clearBridgeSubscriptions();
+        this.detachAppStateListener();
+        this.active = false;
         const message =
           error instanceof Error ? error.message : 'Sync start failed';
         await this.repository.setSyncState({
@@ -200,6 +220,10 @@ class SyncManagerImpl implements SyncManager {
     }
 
     this.stopTask = (async () => {
+      this.lifecycleEpoch += 1;
+      const hadActiveSync = this.active || !!this.startTask;
+      let stopError: unknown = null;
+
       try {
         if (this.startTask) {
           try {
@@ -209,14 +233,16 @@ class SyncManagerImpl implements SyncManager {
           }
         }
         await this.bridge.stop();
-        logSyncEvent('info', 'manager', 'stopped', 'Sync stopped.');
+        if (hadActiveSync) {
+          logSyncEvent('info', 'manager', 'stopped', 'Sync stopped.');
+        }
+      } catch (error) {
+        stopError = error;
+        logSyncError('manager', 'stop_failed', error);
       } finally {
         // stop should never crash the app; surface failures in logs.
         // (bridge.stop errors will be thrown before finally runs)
-        this.unsubscribeStatus?.();
-        this.unsubscribeRemoteOp?.();
-        this.unsubscribeStatus = null;
-        this.unsubscribeRemoteOp = null;
+        this.clearBridgeSubscriptions();
         this.detachAppStateListener();
         this.active = false;
         this.setHealth({
@@ -225,6 +251,10 @@ class SyncManagerImpl implements SyncManager {
         });
         await this.repository.setSyncState({ syncEnabled: false });
         this.stopTask = null;
+      }
+
+      if (stopError) {
+        throw stopError;
       }
     })();
 
@@ -288,10 +318,6 @@ class SyncManagerImpl implements SyncManager {
         lamport: op.lamport,
       });
       const syncedAt = nowIso();
-      await this.repository.setSyncState({
-        lastSyncedAt: syncedAt,
-        lastError: null,
-      });
       this.setHealth({
         ...this.health,
         status: 'synced',
@@ -326,10 +352,6 @@ class SyncManagerImpl implements SyncManager {
     }
 
     const syncedAt = nowIso();
-    await this.repository.setSyncState({
-      lastSyncedAt: syncedAt,
-      lastError: null,
-    });
     this.setHealth({
       ...this.health,
       status: 'synced',
@@ -436,6 +458,13 @@ class SyncManagerImpl implements SyncManager {
     for (const listener of this.healthListeners) {
       listener(next);
     }
+  }
+
+  private clearBridgeSubscriptions() {
+    this.unsubscribeStatus?.();
+    this.unsubscribeRemoteOp?.();
+    this.unsubscribeStatus = null;
+    this.unsubscribeRemoteOp = null;
   }
 }
 

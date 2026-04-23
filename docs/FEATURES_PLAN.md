@@ -14,11 +14,6 @@
 - Show notification when new device requests sync access
 
 ### Friends Workouts
-- Share workout programs with friends via Nostr
+- Share workout programs with friends
 - View friends' public workout programs
 - Follow/unfollow friends
-
-## Implementation Notes
-
-- Device auth will require sync coordinator updates
-- Friends features depend on Nostr relay integration

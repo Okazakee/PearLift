@@ -70,7 +70,6 @@ export function WorkoutScreen() {
   const [pairNewDeviceOpen, setPairNewDeviceOpen] = useState(false);
   const [pairedDevicesOpen, setPairedDevicesOpen] = useState(false);
   const [connectivityInfoOpen, setConnectivityInfoOpen] = useState(false);
-  const [localDeviceId, setLocalDeviceId] = useState<string | null>(null);
   const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
 
   const {
@@ -112,6 +111,7 @@ export function WorkoutScreen() {
     syncBootstrapped,
     syncReconnectAttempts,
     syncManager,
+    localDeviceId,
     lastSyncedAt,
     syncError,
     startSync,
@@ -544,26 +544,10 @@ export function WorkoutScreen() {
   };
 
   useEffect(() => {
-    if (!isReady) return;
-    void getPairingSecretPayload().then(setSyncSecret);
-  }, [isReady, setSyncSecret]);
-
-  useEffect(() => {
-    if (!repository) return;
-    void repository.getOrCreateDeviceId().then(setLocalDeviceId);
-  }, [repository]);
-
-  useEffect(() => {
     if (!newPeerSignal) return;
     showPrompt(t('sync.toast.newPeerTitle'), t('sync.toast.newPeerMessage'));
     acknowledgeNewPeerSignal();
   }, [newPeerSignal, showPrompt, t, acknowledgeNewPeerSignal]);
-
-  useEffect(() => {
-    if (syncStatus === 'synced') {
-      void loadPairedDevices();
-    }
-  }, [syncStatus, loadPairedDevices]);
 
   const authenticateIfAvailable = async (promptMessage: string) => {
     const enrolledLevel = await LocalAuthentication.getEnrolledLevelAsync();

@@ -15,11 +15,54 @@ export interface SyncLogEntry {
 
 const MAX_LOG_ENTRIES = 200;
 const logRing: SyncLogEntry[] = [];
+let diagnosticsSink: ((entry: SyncLogEntry) => void) | null = null;
 
 function appendToRing(entry: SyncLogEntry) {
   logRing.push(entry);
   if (logRing.length > MAX_LOG_ENTRIES) {
     logRing.splice(0, logRing.length - MAX_LOG_ENTRIES);
+  }
+  emitDiagnostics(entry);
+}
+
+function emitDiagnostics(entry: SyncLogEntry) {
+  try {
+    diagnosticsSink?.(entry);
+  } catch {
+    // ignore diagnostics sink failures
+  }
+
+  try {
+    const hook = (globalThis as Record<string, unknown>)
+      .__PEARLIFT_SYNC_DIAGNOSTICS__;
+    if (Array.isArray(hook)) {
+      hook.push(entry);
+    }
+  } catch {
+    // ignore diagnostics hook failures
+  }
+
+  try {
+    const inspect = (globalThis as Record<string, unknown>).PearInspect as
+      | { emit?: (topic: string, payload: unknown) => void }
+      | undefined;
+    inspect?.emit?.('pearlift-sync-log', entry);
+  } catch {
+    // ignore pear-inspect integration errors
+  }
+
+  if (entry.level !== 'error') {
+    return;
+  }
+
+  try {
+    const errorHook = (globalThis as Record<string, unknown>)
+      .__PEARLIFT_SYNC_ERROR_HOOK__ as
+      | ((payload: SyncLogEntry) => void)
+      | undefined;
+    errorHook?.(entry);
+  } catch {
+    // ignore crash hook failures
   }
 }
 
@@ -89,6 +132,12 @@ export function getRecentLogs(): SyncLogEntry[] {
 
 export function clearRecentLogs() {
   logRing.length = 0;
+}
+
+export function setSyncDiagnosticsSink(
+  sink: ((entry: SyncLogEntry) => void) | null,
+) {
+  diagnosticsSink = sink;
 }
 
 export function combineLogs(

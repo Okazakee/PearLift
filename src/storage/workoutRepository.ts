@@ -639,6 +639,10 @@ export class WorkoutRepository {
             deviceId: ctx.deviceId,
             lamport: ctx.lamport ?? 0,
           });
+          await this.writeSyncStatePatch(db, {
+            lastSyncedAt: nowIso(),
+            lastError: null,
+          });
         }
       });
     });
@@ -680,10 +684,22 @@ export class WorkoutRepository {
     deviceId: string;
     lamport: number;
   }): Promise<void> {
+    if (!meta.opId || !meta.deviceId) {
+      throw new Error('markSyncOpApplied requires opId and deviceId.');
+    }
+    if (!Number.isFinite(meta.lamport) || meta.lamport < 0) {
+      throw new Error('markSyncOpApplied requires non-negative lamport.');
+    }
     await this.initialize();
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
-      await this.markSyncOpAppliedInDb(db, meta);
+      await db.withTransactionAsync(async () => {
+        await this.markSyncOpAppliedInDb(db, meta);
+        await this.writeSyncStatePatch(db, {
+          lastSyncedAt: nowIso(),
+          lastError: null,
+        });
+      });
     });
   }
 

@@ -18,6 +18,7 @@ import {
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
 } from './sync-rpc-commands.mjs';
+import { decodeRpcPayload, encodeRpcPayload } from './sync-rpc-encoding.mjs';
 
 const { IPC } = BareKit;
 
@@ -26,7 +27,8 @@ let base = null;
 let swarm = null;
 let discovery = null;
 let currentTopic = null;
-const peerKeys = new Set();
+const peerConnectionCounts = new Map();
+let activeConnections = 0;
 let rpc = null;
 let sentViewLength = 0;
 let isFlushing = false;
@@ -44,6 +46,7 @@ let stuckSince = null;
 let heartbeatTimer = null;
 let startedAt = null;
 let rpcHandshakeLogged = false;
+let rejoinInFlight = false;
 
 const MAX_LOG_ENTRIES = 200;
 const MAX_RECONNECT_ATTEMPTS = 10;
@@ -84,15 +87,19 @@ function emitLog(level, scope, eventName, payload, details = null) {
   if (!rpc) return;
   try {
     const rpcEvent = rpc.event(RPC_SYNC_LOG_EVENT);
-    rpcEvent.send(
-      JSON.stringify({
-        level: level || 'error',
-        scope: scope || 'unknown',
-        event: eventName || 'event',
-        message,
-        details,
-      }),
-    );
+    const payload = {
+      level: level || 'error',
+      scope: scope || 'unknown',
+      event: eventName || 'event',
+      message,
+      details,
+    };
+    rpcEvent.send(encodeRpcPayload(RPC_SYNC_LOG_EVENT, 'event', payload));
+    try {
+      globalThis?.PearInspect?.emit?.('pearlift-sync-log', payload);
+    } catch {
+      // ignore
+    }
   } catch {
     // ignore
   }
@@ -118,15 +125,42 @@ function logMajorWarning(scope, eventName, message, details = null) {
   emitLog('warn', scope, eventName, message, details);
 }
 
-function parseData(data) {
-  if (!data) return null;
-  if (typeof data === 'string') return JSON.parse(data);
-  return JSON.parse(b4a.toString(data));
+function decodeRequest(req) {
+  return decodeRpcPayload(req.command, 'request', req.data);
 }
 
 function safeReply(req, payload) {
   if (req?.sent) return;
-  req.reply(JSON.stringify(payload ?? {}));
+  req.reply(encodeRpcPayload(req.command, 'response', payload ?? {}));
+}
+
+function getPeerKeys() {
+  return Array.from(peerConnectionCounts.entries())
+    .filter(([, count]) => count > 0)
+    .map(([key]) => key);
+}
+
+function getPeerCount() {
+  return getPeerKeys().length;
+}
+
+function trackConnectionOpen(remoteKey) {
+  activeConnections += 1;
+  if (!remoteKey) return;
+  const prev = peerConnectionCounts.get(remoteKey) ?? 0;
+  peerConnectionCounts.set(remoteKey, prev + 1);
+}
+
+function trackConnectionClose(remoteKey) {
+  activeConnections = Math.max(0, activeConnections - 1);
+  if (!remoteKey) return;
+  const prev = peerConnectionCounts.get(remoteKey) ?? 0;
+  const next = prev - 1;
+  if (next <= 0) {
+    peerConnectionCounts.delete(remoteKey);
+    return;
+  }
+  peerConnectionCounts.set(remoteKey, next);
 }
 
 function isDhtBootstrapped() {
@@ -138,10 +172,15 @@ function isDhtBootstrapped() {
 }
 
 function buildStatus(status = runtimeStatus, lastError = lastBackendError) {
+  const peerKeys = getPeerKeys();
   return {
     status,
-    peers: peerKeys.size,
-    peerKeys: Array.from(peerKeys),
+    peers: peerKeys.length,
+    connections: activeConnections,
+    peerKeys,
+    localWriterKey: base?.local?.key
+      ? b4a.toString(base.local.key, 'hex')
+      : null,
     localPublicKey: base?.local?.key
       ? b4a.toString(base.local.key, 'hex')
       : null,
@@ -159,7 +198,13 @@ function emitStatus(status = 'synced', lastError = null) {
   runtimeStatus = status;
   lastBackendError = lastError;
   const rpcEvent = rpc.event(RPC_SYNC_STATUS_EVENT);
-  rpcEvent.send(JSON.stringify(buildStatus(status, lastError)));
+  rpcEvent.send(
+    encodeRpcPayload(
+      RPC_SYNC_STATUS_EVENT,
+      'event',
+      buildStatus(status, lastError),
+    ),
+  );
 }
 
 function isTransientSocketError(error) {
@@ -234,7 +279,7 @@ async function flushRemoteOps() {
         continue;
       }
       const rpcEvent = rpc.event(RPC_SYNC_REMOTE_OP_EVENT);
-      rpcEvent.send(JSON.stringify(op));
+      rpcEvent.send(encodeRpcPayload(RPC_SYNC_REMOTE_OP_EVENT, 'event', op));
       flushed += 1;
     }
     if (flushed > 0) {
@@ -294,7 +339,7 @@ function stopHeartbeat() {
 }
 
 function updateStuckState() {
-  if (runtimeStatus === 'connecting' && peerKeys.size === 0) {
+  if (runtimeStatus === 'connecting' && activeConnections === 0) {
     if (stuckSince === null) stuckSince = Date.now();
   } else {
     stuckSince = null;
@@ -303,6 +348,19 @@ function updateStuckState() {
 
 async function rejoinTopic() {
   if (!swarm || !currentTopic) return;
+  if (rejoinInFlight) {
+    logMajorEvent(
+      'watchdog',
+      'rejoin_skipped',
+      'Topic rejoin already in progress.',
+      {
+        reconnectAttempts,
+        peers: getPeerCount(),
+        connections: activeConnections,
+      },
+    );
+    return;
+  }
   if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
     logBackendError(
       'watchdog',
@@ -314,9 +372,11 @@ async function rejoinTopic() {
     return;
   }
   reconnectAttempts += 1;
+  rejoinInFlight = true;
   logMajorEvent('watchdog', 'rejoin', 'Forcing topic rejoin.', {
     attempt: reconnectAttempts,
-    peers: peerKeys.size,
+    peers: getPeerCount(),
+    connections: activeConnections,
   });
   try {
     if (discovery) {
@@ -343,6 +403,8 @@ async function rejoinTopic() {
     stuckSince = Date.now();
   } catch (error) {
     logBackendError('watchdog', error);
+  } finally {
+    rejoinInFlight = false;
   }
 }
 
@@ -366,7 +428,8 @@ function startHeartbeat() {
     }
     const elapsed = startedAt ? Date.now() - startedAt : 0;
     logMajorEvent('heartbeat', 'tick', 'Sync heartbeat.', {
-      peers: peerKeys.size,
+      peers: getPeerCount(),
+      connections: activeConnections,
       dhtReady,
       elapsedMs: elapsed,
       status: runtimeStatus,
@@ -425,7 +488,8 @@ async function ensureStopped() {
     store = null;
   }
 
-  peerKeys.clear();
+  peerConnectionCounts.clear();
+  activeConnections = 0;
   sentViewLength = 0;
   isFlushing = false;
   runtimeStatus = 'idle';
@@ -441,6 +505,7 @@ async function ensureStopped() {
   stuckSince = null;
   startedAt = null;
   rpcHandshakeLogged = false;
+  rejoinInFlight = false;
   stopHeartbeat();
 }
 
@@ -512,47 +577,46 @@ async function startSync(config) {
 
   swarm.on('update', () => {
     logMajorEvent('swarm', 'update', 'Swarm peer discovery updated.', {
-      peers: peerKeys.size,
+      peers: getPeerCount(),
+      connections: activeConnections,
     });
   });
 
   swarm.on('connection', (socket, peerInfo) => {
     const remoteKeyBuf = peerInfo?.publicKey ?? socket.remotePublicKey;
     const remoteKey = remoteKeyBuf ? b4a.toString(remoteKeyBuf, 'hex') : null;
-    if (remoteKey && peerKeys.has(remoteKey)) {
-      // Duplicate connection event — treat as noop.
-      try {
-        store.replicate(socket);
-      } catch (error) {
-        logBackendError('replicate', error);
-      }
-      return;
-    }
-    if (remoteKey) peerKeys.add(remoteKey);
+    let closed = false;
+    trackConnectionOpen(remoteKey);
+    reconnectAttempts = 0;
+    rejoinInFlight = false;
 
     stuckSince = null;
-    const nextStatus = runtimeStatus === 'error' ? 'error' : 'connecting';
-    emitStatus(nextStatus, runtimeStatus === 'error' ? lastBackendError : null);
+    if (runtimeStatus !== 'error') {
+      emitStatus('connecting', null);
+    } else {
+      emitStatus('error', lastBackendError);
+    }
     logMajorEvent('peer', 'connected', 'Peer connected.', {
-      peers: peerKeys.size,
+      peers: getPeerCount(),
+      connections: activeConnections,
       remoteKey,
     });
 
     socket.once('close', () => {
-      if (remoteKey) peerKeys.delete(remoteKey);
+      if (closed) return;
+      closed = true;
+      trackConnectionClose(remoteKey);
       if (runtimeStatus !== 'error') {
         const statusAfterClose =
-          peerKeys.size > 0 && runtimeStatus === 'synced'
-            ? 'synced'
-            : peerKeys.size > 0
-              ? 'synced'
-              : 'connecting';
+          activeConnections > 0 ? 'synced' : 'connecting';
         emitStatus(statusAfterClose, lastBackendError);
       } else {
         emitStatus('error', lastBackendError);
       }
       logMajorEvent('peer', 'disconnected', 'Peer disconnected.', {
-        peers: peerKeys.size,
+        peers: getPeerCount(),
+        connections: activeConnections,
+        remoteKey,
       });
     });
 
@@ -566,8 +630,14 @@ async function startSync(config) {
     socket.on?.('error', (error) => {
       if (isTransientSocketError(error)) {
         const message = getErrorMessage(error);
-        logMajorWarning('socket', 'timeout', message, { peers: peerKeys.size });
-        emitStatus(peerKeys.size > 0 ? 'synced' : 'connecting', null);
+        logMajorWarning('socket', 'timeout', message, {
+          peers: getPeerCount(),
+          connections: activeConnections,
+          remoteKey,
+        });
+        if (runtimeStatus !== 'error') {
+          emitStatus(activeConnections > 0 ? 'synced' : 'connecting', null);
+        }
         return;
       }
       logBackendError('socket', error);
@@ -618,7 +688,7 @@ rpc = new RPC(IPC, async (req) => {
     }
 
     if (req.command === RPC_SYNC_START) {
-      const config = parseData(req.data);
+      const config = decodeRequest(req);
       const result = await startSync(config);
       safeReply(req, result);
       return;
@@ -643,7 +713,7 @@ rpc = new RPC(IPC, async (req) => {
     }
 
     if (req.command === RPC_SYNC_PUBLISH) {
-      const op = parseData(req.data);
+      const op = decodeRequest(req);
       if (!base) {
         throw new Error('Sync base not started.');
       }

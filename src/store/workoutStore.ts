@@ -14,7 +14,10 @@ import type {
 import type { WorkoutRepository } from '../storage/workoutRepository';
 import { WorkoutRepository as WorkoutRepoClass } from '../storage/workoutRepository';
 import { logSyncEvent } from '../sync/logger';
-import { createSyncManager } from '../sync/syncManager';
+import {
+  createSyncManager,
+  getPairingSecretPayload,
+} from '../sync/syncManager';
 import type { SyncHealth, SyncManager, SyncStatus } from '../sync/types';
 import { INITIAL_SYNC_HEALTH } from '../sync/types';
 import type { PersistedRestTimerStateV1 } from '../types/timer';
@@ -38,6 +41,8 @@ interface WorkoutStore {
   syncStatus: SyncStatus;
   syncPeers: number;
   syncPeerKeys: string[];
+  syncConnections: number;
+  syncLocalWriterKey: string | null;
   syncLocalPublicKey: string | null;
   syncAutobaseKey: string | null;
   syncTopicHex: string | null;
@@ -47,6 +52,7 @@ interface WorkoutStore {
   syncError: string | null;
   pairedDevices: PairedDevice[];
   syncSecret: string | null;
+  localDeviceId: string | null;
   syncSetupOpen: boolean;
   newPeerSignal: string | null;
 
@@ -112,6 +118,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   syncStatus: INITIAL_SYNC_HEALTH.status,
   syncPeers: INITIAL_SYNC_HEALTH.peers,
   syncPeerKeys: INITIAL_SYNC_HEALTH.peerKeys,
+  syncConnections: INITIAL_SYNC_HEALTH.connections,
+  syncLocalWriterKey: INITIAL_SYNC_HEALTH.localWriterKey,
   syncLocalPublicKey: INITIAL_SYNC_HEALTH.localPublicKey,
   syncAutobaseKey: INITIAL_SYNC_HEALTH.autobaseKey,
   syncTopicHex: INITIAL_SYNC_HEALTH.topicHex,
@@ -121,6 +129,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   syncError: INITIAL_SYNC_HEALTH.lastError,
   pairedDevices: [],
   syncSecret: null,
+  localDeviceId: null,
   syncSetupOpen: false,
   newPeerSignal: null,
   seenPeerKeys: new Set<string>(),
@@ -152,6 +161,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     const snapshot = await repo.getSnapshot();
     const syncManager = createSyncManager(repo);
     const syncState = await repo.getSyncState();
+    const localDeviceId = await repo.getOrCreateDeviceId();
+    const syncSecret = await getPairingSecretPayload().catch(() => null);
 
     syncManager.onHealth((health) => {
       const current = get().syncManager;
@@ -173,7 +184,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       set({
         syncStatus: health.status,
         syncPeers: health.peers,
+        syncConnections: health.connections,
         syncPeerKeys: nextKeys,
+        syncLocalWriterKey: health.localWriterKey,
         syncLocalPublicKey: health.localPublicKey,
         syncAutobaseKey: health.autobaseKey,
         syncTopicHex: health.topicHex,
@@ -198,6 +211,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       syncManager,
       snapshot,
       isReady: true,
+      localDeviceId,
+      syncSecret,
       lastSyncedAt: syncState.lastSyncedAt,
       syncError: syncState.lastError,
     });
@@ -325,6 +340,8 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       syncStatus: 'idle',
       syncPeers: 0,
       syncPeerKeys: [],
+      syncConnections: 0,
+      syncLocalWriterKey: null,
       syncLocalPublicKey: null,
       syncAutobaseKey: null,
       syncTopicHex: null,
@@ -341,7 +358,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set({
       syncStatus: health.status,
       syncPeers: health.peers,
+      syncConnections: health.connections,
       syncPeerKeys: health.peerKeys,
+      syncLocalWriterKey: health.localWriterKey,
       syncLocalPublicKey: health.localPublicKey,
       syncAutobaseKey: health.autobaseKey,
       syncTopicHex: health.topicHex,
