@@ -30,8 +30,13 @@
     },
     "getStarted": "Kezdjük",
     "notNow": "Most nem",
+    "skipSync": "Kihagyás",
     "setupSync": "Szinkronizáció beállítása",
-    "settingUp": "Beállítás..."
+    "settingUp": "Beállítás...",
+    "syncPrompt": {
+      "title": "Szinkronizálás az eszközök között",
+      "description": "Az adataid soha nem hagyják el az eszközeidet. Bármikor beállíthatod a Beállításokban."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Csatlakozz",
       "yourCode": "Az Ön szinkronizálási kódja",
       "shareHint": "Ossza meg ezt a szinkronizálási kódot (vagy QR-kódot) másik eszközével. Az eszköznek ugyanazt a kódot kell megadnia a szinkronizálási csoporthoz való csatlakozáshoz.",
+      "startSyncFirst": "Először nyomd meg a Szinkronizálás indítása gombot, majd oszd meg ezt a QR-kódot a másik eszközöddel.",
       "enterCode": "Írja be a szinkronizálási kódot",
       "scanQr": "QR-kód beolvasása",
       "scanEnableCamera": "Kamera engedélyezése",
       "scanHelp": "Irányítsa a kamerát a másik eszközén lévő QR-kódra.",
+      "waitForConnection": "Csatlakozás folyamatban. A szkenner stabilitás érdekében szünetel.",
       "codePlaceholder": "Adja meg megosztási kódját",
+      "replaceJoinLabel": "Saját adatok cseréje az ő adataikra",
+      "replaceJoinHint": "Az első szinkronizálás előtt ez visszaállítja a helyi edzéseket, gyakorlati súlyokat és programkonfigurációkat csak ezen az eszközön.",
       "copy": "Kód másolása",
+      "copied": "Copied!",
+      "paste": "Beillesztés",
       "start": "Indítsa el a szinkronizálást",
       "stop": "Szinkronizálás leállítása",
-      "invalidCode": "Érvénytelen kód. 64 hexadecimális karakterből kell állnia."
+      "invalidCode": "Érvénytelen kód. 64 hexadecimális karakterből kell állnia.",
+      "connecting": "Társak keresése…",
+      "connectedTitle": "Csatlakoztatva",
+      "connectedSubtitle_one": "{{count}} eszköz a szinkronizálási csoportban.",
+      "connectedSubtitle_other": "{{count}} eszköz a szinkronizálási csoportban.",
+      "viewInfo": "Kapcsolati információk megtekintése",
+      "done": "Kész"
+    },
+    "info": {
+      "title": "Kapcsolati információk",
+      "statusLabel": "Állapot",
+      "status": {
+        "idle": "Tétlen",
+        "connecting": "Keresés",
+        "synced": "Csatlakoztatva",
+        "error": "Hiba"
+      },
+      "peers": "Társak",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Elérhető",
+      "bootstrappedNo": "Várakozás",
+      "lastSync": "Utolsó társ szinkronizálás",
+      "never": "Soha",
+      "thisDevice": "Ez az eszköz",
+      "deviceId": "Eszköz azonosító",
+      "localKey": "Helyi kulcs",
+      "syncGroup": "Szinkronizálási csoport",
+      "autobaseKey": "Autobase kulcs",
+      "topic": "Téma",
+      "connectedPeers": "Csatlakoztatott társak",
+      "noPeers": "Nincs csatlakoztatott társ.",
+      "storagePath": "Tárolás",
+      "copy": "Másolás",
+      "copied": "Másolva",
+      "refresh": "Frissítés",
+      "reconnectAttempts": "Újracsatlakozási kísérletek",
+      "debugLog": {
+        "title": "Hibakeresési napló",
+        "refresh": "Frissítés",
+        "empty": "Még nincs napló bejegyzés."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Új eszköz csatlakozott",
+      "newPeerMessage": "Egy párosított eszköz csatlakozott a szinkronizálási csoporthoz."
+    },
+    "quick": {
+      "title": "Szinkronizálási állapot",
+      "statusLabel": "Állapot",
+      "button": {
+        "issue": "Probléma",
+        "connected": "Csatlakoztatva",
+        "connecting": "Csatlakozás",
+        "off": "Szinkronizálás"
+      },
+      "state": {
+        "issue": "Probléma észlelve",
+        "connected": "Csatlakoztatva",
+        "connecting": "Csatlakozás",
+        "off": "Szinkronizálás ki"
+      },
+      "summary": {
+        "issue": "A szinkronizálás figyelmet igényel",
+        "connected_one": "{{count}} eszközhöz csatlakoztatva",
+        "connected_other": "{{count}} eszközhöz csatlakoztatva",
+        "connecting": "Eszközök keresése",
+        "off": "Szinkronizálás ki"
+      },
+      "description": {
+        "issue": "A szinkronizálás figyelmet igényel. Nyisd meg a beállításokat vagy a hibaelhárítást a megoldáshoz.",
+        "connected": "Az eszközöd szinkronizál a csoporttal.",
+        "connecting": "A szinkronizálási csoportodat keresi.",
+        "off": "A szinkronizálás jelenleg le van tiltva ezen az eszközön."
+      },
+      "lastSyncAt": "Utolsó szinkronizálás: {{at}}",
+      "lastSyncNever": "Utolsó szinkronizálás: soha",
+      "actions": {
+        "setup": "Szinkronizálás beállítása",
+        "pair": "Új eszköz párosítása",
+        "manage": "Eszközök kezelése",
+        "openHub": "Szinkronizálási központ megnyitása",
+        "troubleshoot": "Hibaelhárítás",
+        "stop": "Szinkronizálás leállítása"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Ez helyileg eltávolítja a párosítási rekordot. Az eszköz továbbra is képes újra csatlakozni, ha ugyanaz a szinkronizálási kód.",
       "peers_one": "{{count}} társ csatlakoztatva",
       "peers_other": "{{count}} társ csatlakoztatva",
-      "stopSync": "Szinkronizálás leállítása"
+      "stopSync": "Szinkronizálás leállítása",
+      "connectionInfo": "Kapcsolati információk",
+      "openSyncHub": "Szinkronizálási központ megnyitása"
+    },
+    "syncStatus": {
+      "title": "Szinkronizálási állapot",
+      "status": "Állapot",
+      "syncingWith_one": "Szinkronizál {{count}} eszközzel",
+      "syncingWith_other": "Szinkronizál {{count}} eszközzel",
+      "off": "A szinkronizálás ki van kapcsolva",
+      "lastSuccessfulSync": "Utolsó sikeres szinkronizálás",
+      "manage": "Szinkronizálás kezelése"
+    },
+    "localBackup": {
+      "title": "Biztonsági mentés",
+      "export": "Mentés eszközre",
+      "import": "Visszaállítás mentésből",
+      "shareToDevice": "Megosztás másik eszközre",
+      "scanFromDevice": "Beolvasás másik eszközről"
+    },
+    "pairingDevices": {
+      "title": "Párosítás és eszközök",
+      "count_one": "{{count}} párosított eszköz",
+      "count_other": "{{count}} párosított eszköz"
+    },
+    "syncAdvanced": {
+      "title": "Szinkronizálási központ",
+      "description": "Hibakeresési naplók és eszközazonosítók a hibaelhárításhoz."
+    },
+    "syncHub": {
+      "title": "Szinkronizálási központ",
+      "overview": "Áttekintés",
+      "ids": "Eszköz és csoport azonosítók",
+      "connections": "Kapcsolatok",
+      "localWriterKey": "Helyi író kulcs",
+      "management": "Kezelés"
     },
     "data": {
       "title": "Adatok",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Helyi JSON",
-      "description": "Edzésadatok exportálása JSON fájlba vagy korábbi helyi biztonsági mentés importálása.",
+      "description": "Exportáld az adataidat JSON fájlba, vagy importálj egy korábbi biztonsági mentést.",
       "export": "Biztonsági mentés exportálása",
       "import": "Biztonsági mentés importálása"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Mégse",
     "confirm": "Biztonsági mentés importálása"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Megosztás másik eszközre",
+    "shareDescription": "A másik eszközön: Beállítások → Biztonsági mentés → Beolvasás másik eszközről.",
+    "scanTitle": "Beolvasás másik eszközről",
+    "scanDescription": "Irányítsd a kamerát a PearLift mentés QR-kódjára.",
+    "cameraPermissionTitle": "Kameraengedély szükséges",
+    "cameraPermissionMessage": "Engedélyezd a kamerát a mentés QR-kódjának beolvasásához.",
+    "cameraPermissionButton": "Kamera engedélyezése",
+    "invalidQr": "Ez a QR-kód nem tűnik PearLift mentésnek.",
+    "tooLarge": "A mentés túl nagy egyetlen QR-kódhoz. Használd inkább a „Mentés eszközre” lehetőséget."
   },
   "prompts": {
     "deleteExercise": {

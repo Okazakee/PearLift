@@ -30,8 +30,13 @@
     },
     "getStarted": "Kom igång",
     "notNow": "Not now",
+    "skipSync": "Skip",
     "setupSync": "Set up sync",
-    "settingUp": "Konfigurerar..."
+    "settingUp": "Konfigurerar...",
+    "syncPrompt": {
+      "title": "Sync across your devices",
+      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Gå med",
       "yourCode": "Din synkroniseringskod",
       "shareHint": "Dela denna synkroniseringskod (eller QR) med din andra enhet. Den enheten måste ange samma kod för att gå med i din synkgrupp.",
+      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
       "enterCode": "Ange synkroniseringskod",
       "scanQr": "Skanna QR-koden",
       "scanEnableCamera": "Aktivera kamera",
       "scanHelp": "Rikta kameran mot QR-koden på din andra enhet.",
+      "waitForConnection": "Connection in progress. Scanner paused for stability.",
       "codePlaceholder": "Ange din delningskod",
+      "replaceJoinLabel": "Replace my data with their data",
+      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
       "copy": "Kopiera kod",
+      "copied": "Copied!",
+      "paste": "Paste",
       "start": "Starta synkronisering",
       "stop": "Stoppa synkronisering",
-      "invalidCode": "Ogiltig kod. Det måste vara 64 hexadecken."
+      "invalidCode": "Ogiltig kod. Det måste vara 64 hexadecken.",
+      "connecting": "Searching for peers…",
+      "connectedTitle": "Connected",
+      "connectedSubtitle_one": "{{count}} device in sync group.",
+      "connectedSubtitle_other": "{{count}} devices in sync group.",
+      "viewInfo": "View connection info",
+      "done": "Done"
+    },
+    "info": {
+      "title": "Connection info",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Idle",
+        "connecting": "Searching",
+        "synced": "Connected",
+        "error": "Error"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Reachable",
+      "bootstrappedNo": "Waiting",
+      "lastSync": "Last peer sync",
+      "never": "Never",
+      "thisDevice": "This device",
+      "deviceId": "Device ID",
+      "localKey": "Local key",
+      "syncGroup": "Sync group",
+      "autobaseKey": "Autobase key",
+      "topic": "Topic",
+      "connectedPeers": "Connected peers",
+      "noPeers": "No peers connected.",
+      "storagePath": "Storage",
+      "copy": "Copy",
+      "copied": "Copied",
+      "refresh": "Refresh",
+      "reconnectAttempts": "Reconnect attempts",
+      "debugLog": {
+        "title": "Debug log",
+        "refresh": "Refresh",
+        "empty": "No log entries yet."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "New device connected",
+      "newPeerMessage": "A paired device joined the sync group."
+    },
+    "quick": {
+      "title": "Sync Status",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Issue",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync"
+      },
+      "state": {
+        "issue": "Issue detected",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync off"
+      },
+      "summary": {
+        "issue": "Sync needs attention",
+        "connected_one": "Connected to {{count}} device",
+        "connected_other": "Connected to {{count}} devices",
+        "connecting": "Looking for devices",
+        "off": "Sync is off"
+      },
+      "description": {
+        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
+        "connected": "Your device is syncing with the group.",
+        "connecting": "Searching for your sync group.",
+        "off": "Sync is currently disabled on this device."
+      },
+      "lastSyncAt": "Last sync: {{at}}",
+      "lastSyncNever": "Last sync: never",
+      "actions": {
+        "setup": "Set up sync",
+        "pair": "Pair new device",
+        "manage": "Manage devices",
+        "openHub": "Open Sync Hub",
+        "troubleshoot": "Troubleshoot",
+        "stop": "Stop sync"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Detta tar bort parningsposten lokalt. Enheten kan fortfarande återansluta om den har samma synkroniseringskod.",
       "peers_one": "{{count}} peer connected",
       "peers_other": "{{count}} peers connected",
-      "stopSync": "Stoppa synkronisering"
+      "stopSync": "Stoppa synkronisering",
+      "connectionInfo": "Connection info",
+      "openSyncHub": "Open Sync Hub"
+    },
+    "syncStatus": {
+      "title": "Sync Status",
+      "status": "Status",
+      "syncingWith_one": "Syncing with {{count}} device",
+      "syncingWith_other": "Syncing with {{count}} devices",
+      "off": "Sync is off",
+      "lastSuccessfulSync": "Last successful sync",
+      "manage": "Manage Sync"
+    },
+    "localBackup": {
+      "title": "Säkerhetskopia",
+      "export": "Spara säkerhetskopia på enheten",
+      "import": "Återställ från säkerhetskopia",
+      "shareToDevice": "Dela till en annan enhet",
+      "scanFromDevice": "Skanna från en annan enhet"
+    },
+    "pairingDevices": {
+      "title": "Pairing & Devices",
+      "count_one": "{{count}} paired device",
+      "count_other": "{{count}} paired devices"
+    },
+    "syncAdvanced": {
+      "title": "Sync Hub",
+      "description": "Debug logs and device identifiers for troubleshooting."
+    },
+    "syncHub": {
+      "title": "Sync Hub",
+      "overview": "Overview",
+      "ids": "Device & Group IDs",
+      "connections": "Connections",
+      "localWriterKey": "Local writer key",
+      "management": "Management"
     },
     "data": {
       "title": "Data",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokal JSON",
-      "description": "Exportera dina träningsdata till en JSON-fil eller importera en tidigare lokal säkerhetskopia.",
+      "description": "Exportera dina data till en JSON-fil eller importera en tidigare säkerhetskopia.",
       "export": "Exportera säkerhetskopia",
       "import": "Importera säkerhetskopia"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Avbryt",
     "confirm": "Importera säkerhetskopia"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Dela till en annan enhet",
+    "shareDescription": "På den andra enheten: Inställningar → Säkerhetskopia → Skanna från en annan enhet.",
+    "scanTitle": "Skanna från en annan enhet",
+    "scanDescription": "Rikta kameran mot PearLifts säkerhetskopie-QR-kod.",
+    "cameraPermissionTitle": "Kamerabehörighet krävs",
+    "cameraPermissionMessage": "Tillåt kameraåtkomst för att skanna en säkerhetskopie-QR-kod.",
+    "cameraPermissionButton": "Tillåt kamera",
+    "invalidQr": "Den QR-koden ser inte ut som en PearLift-säkerhetskopia.",
+    "tooLarge": "Säkerhetskopian är för stor för en enda QR-kod. Använd “Spara säkerhetskopia på enheten” istället."
   },
   "prompts": {
     "deleteExercise": {

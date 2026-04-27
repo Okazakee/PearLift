@@ -30,8 +30,13 @@
     },
     "getStarted": "Začnite",
     "notNow": "Ne zdaj",
+    "skipSync": "Skip",
     "setupSync": "Nastavi sinhronizacijo",
-    "settingUp": "Nastavljanje..."
+    "settingUp": "Nastavljanje...",
+    "syncPrompt": {
+      "title": "Sync across your devices",
+      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Pridruži se",
       "yourCode": "Vaša sinhronizacijska koda",
       "shareHint": "Delite to sinhronizacijsko kodo (ali QR) z drugo napravo. Ta naprava mora vnesti isto kodo, da se pridruži vaši sinhronizacijski skupini.",
+      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
       "enterCode": "Vnesite kodo za sinhronizacijo",
       "scanQr": "Skenirajte kodo QR",
       "scanEnableCamera": "Omogoči kamero",
       "scanHelp": "Usmerite fotoaparat proti kodi QR na drugi napravi.",
+      "waitForConnection": "Connection in progress. Scanner paused for stability.",
       "codePlaceholder": "Vnesite kodo za skupno rabo",
+      "replaceJoinLabel": "Replace my data with their data",
+      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
       "copy": "Kopiraj kodo",
+      "copied": "Copied!",
+      "paste": "Paste",
       "start": "Začni sinhronizacijo",
       "stop": "Ustavi sinhronizacijo",
-      "invalidCode": "Neveljavna koda. Vsebovati mora 64 šestnajstiških znakov."
+      "invalidCode": "Neveljavna koda. Vsebovati mora 64 šestnajstiških znakov.",
+      "connecting": "Searching for peers…",
+      "connectedTitle": "Connected",
+      "connectedSubtitle_one": "{{count}} device in sync group.",
+      "connectedSubtitle_other": "{{count}} devices in sync group.",
+      "viewInfo": "View connection info",
+      "done": "Done"
+    },
+    "info": {
+      "title": "Connection info",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Idle",
+        "connecting": "Searching",
+        "synced": "Connected",
+        "error": "Error"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Reachable",
+      "bootstrappedNo": "Waiting",
+      "lastSync": "Last peer sync",
+      "never": "Never",
+      "thisDevice": "This device",
+      "deviceId": "Device ID",
+      "localKey": "Local key",
+      "syncGroup": "Sync group",
+      "autobaseKey": "Autobase key",
+      "topic": "Topic",
+      "connectedPeers": "Connected peers",
+      "noPeers": "No peers connected.",
+      "storagePath": "Storage",
+      "copy": "Copy",
+      "copied": "Copied",
+      "refresh": "Refresh",
+      "reconnectAttempts": "Reconnect attempts",
+      "debugLog": {
+        "title": "Debug log",
+        "refresh": "Refresh",
+        "empty": "No log entries yet."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "New device connected",
+      "newPeerMessage": "A paired device joined the sync group."
+    },
+    "quick": {
+      "title": "Sync Status",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Issue",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync"
+      },
+      "state": {
+        "issue": "Issue detected",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync off"
+      },
+      "summary": {
+        "issue": "Sync needs attention",
+        "connected_one": "Connected to {{count}} device",
+        "connected_other": "Connected to {{count}} devices",
+        "connecting": "Looking for devices",
+        "off": "Sync is off"
+      },
+      "description": {
+        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
+        "connected": "Your device is syncing with the group.",
+        "connecting": "Searching for your sync group.",
+        "off": "Sync is currently disabled on this device."
+      },
+      "lastSyncAt": "Last sync: {{at}}",
+      "lastSyncNever": "Last sync: never",
+      "actions": {
+        "setup": "Set up sync",
+        "pair": "Pair new device",
+        "manage": "Manage devices",
+        "openHub": "Open Sync Hub",
+        "troubleshoot": "Troubleshoot",
+        "stop": "Stop sync"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "To odstrani zapis sezanjanja lokalno. Naprava se lahko znova poveže, če ima enako kodo za sinhronizacijo.",
       "peers_one": "{{count}} enakovredna naprava povezana",
       "peers_other": "{{count}} enakovrednih naprav povezanih",
-      "stopSync": "Ustavi sinhronizacijo"
+      "stopSync": "Ustavi sinhronizacijo",
+      "connectionInfo": "Connection info",
+      "openSyncHub": "Open Sync Hub"
+    },
+    "syncStatus": {
+      "title": "Sync Status",
+      "status": "Status",
+      "syncingWith_one": "Syncing with {{count}} device",
+      "syncingWith_other": "Syncing with {{count}} devices",
+      "off": "Sync is off",
+      "lastSuccessfulSync": "Last successful sync",
+      "manage": "Manage Sync"
+    },
+    "localBackup": {
+      "title": "Varnostna kopija",
+      "export": "Shrani varnostno kopijo v napravo",
+      "import": "Obnovi iz varnostne kopije",
+      "shareToDevice": "Deli z drugo napravo",
+      "scanFromDevice": "Skeniraj iz druge naprave"
+    },
+    "pairingDevices": {
+      "title": "Pairing & Devices",
+      "count_one": "{{count}} paired device",
+      "count_other": "{{count}} paired devices"
+    },
+    "syncAdvanced": {
+      "title": "Sync Hub",
+      "description": "Debug logs and device identifiers for troubleshooting."
+    },
+    "syncHub": {
+      "title": "Sync Hub",
+      "overview": "Overview",
+      "ids": "Device & Group IDs",
+      "connections": "Connections",
+      "localWriterKey": "Local writer key",
+      "management": "Management"
     },
     "data": {
       "title": "Podatki",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokalni JSON",
-      "description": "Izvozite podatke o treningu v datoteko JSON ali uvozite prejšnjo lokalno varnostno kopijo.",
+      "description": "Izvozi podatke v datoteko JSON ali uvozi prejšnjo varnostno kopijo.",
       "export": "Izvozi varnostno kopijo",
       "import": "Uvozi varnostno kopijo"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Prekliči",
     "confirm": "Uvozi varnostno kopijo"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Deli z drugo napravo",
+    "shareDescription": "Na drugi napravi: Nastavitve → Varnostna kopija → Skeniraj iz druge naprave.",
+    "scanTitle": "Skeniraj iz druge naprave",
+    "scanDescription": "Usmeri kamero v QR kodo varnostne kopije PearLift.",
+    "cameraPermissionTitle": "Potrebno je dovoljenje za kamero",
+    "cameraPermissionMessage": "Dovoli dostop do kamere za skeniranje QR kode varnostne kopije.",
+    "cameraPermissionButton": "Dovoli kamero",
+    "invalidQr": "Ta QR koda ne izgleda kot varnostna kopija PearLift.",
+    "tooLarge": "Varnostna kopija je prevelika za eno QR kodo. Namesto tega uporabi “Shrani varnostno kopijo v napravo”."
   },
   "prompts": {
     "deleteExercise": {

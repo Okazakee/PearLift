@@ -29,9 +29,14 @@
       }
     },
     "getStarted": "Începe",
-    "notNow": "Not now",
-    "setupSync": "Set up sync",
-    "settingUp": "Configurare..."
+    "notNow": "Nu acum",
+    "skipSync": "Salt",
+    "setupSync": "Configurare sincronizare",
+    "settingUp": "Configurare...",
+    "syncPrompt": {
+      "title": "Sincronizare pe dispozitive",
+      "description": "Datele tale nu părăsesc niciodată dispozitivele. Poți configura oricând din Setări."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Alăturați-vă",
       "yourCode": "Codul dvs. de sincronizare",
       "shareHint": "Partajați acest cod de sincronizare (sau QR) cu celălalt dispozitiv. Dispozitivul respectiv trebuie să introducă același cod pentru a se alătura grupului de sincronizare.",
+      "startSyncFirst": "Apasă Mai întâi Sincronizare, apoi partajează acest QR cu celălalt dispozitiv.",
       "enterCode": "Introdu codul de sincronizare",
       "scanQr": "Scanați codul QR",
       "scanEnableCamera": "Activați camera",
       "scanHelp": "Îndreptați camera către codul QR de pe celălalt dispozitiv.",
+      "waitForConnection": "Conexiune în curs. Scanerul este în pauză pentru stabilitate.",
       "codePlaceholder": "Introdu codul de partajare",
+      "replaceJoinLabel": "Înlocuiește datele mele cu ale lor",
+      "replaceJoinHint": "Înainte de prima sincronizare, aceasta resetează antrenamentele locale, greutățile exercițiilor și configurațiile programului doar pe acest dispozitiv.",
       "copy": "Copiați codul",
+      "copied": "Copiat!",
+      "paste": "Lipire",
       "start": "Începeți sincronizarea",
       "stop": "Opriți sincronizarea",
-      "invalidCode": "Cod nevalid. Trebuie să aibă 64 de caractere hexadecimale."
+      "invalidCode": "Cod nevalid. Trebuie să aibă 64 de caractere hexadecimale.",
+      "connecting": "Se caută perechi…",
+      "connectedTitle": "Conectat",
+      "connectedSubtitle_one": "{{count}} dispozitiv în grupul de sincronizare.",
+      "connectedSubtitle_other": "{{count}} dispozitive în grupul de sincronizare.",
+      "viewInfo": "Vedeți informații despre conexiune",
+      "done": "Terminat"
+    },
+    "info": {
+      "title": "Informații despre conexiune",
+      "statusLabel": "Stare",
+      "status": {
+        "idle": "Inactiv",
+        "connecting": "Se caută",
+        "synced": "Conectat",
+        "error": "Eroare"
+      },
+      "peers": "Perechi",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Accesibil",
+      "bootstrappedNo": "Se așteaptă",
+      "lastSync": "Ultima sincronizare cu perechea",
+      "never": "Niciodată",
+      "thisDevice": "Acest dispozitiv",
+      "deviceId": "ID dispozitiv",
+      "localKey": "Cheie locală",
+      "syncGroup": "Grup de sincronizare",
+      "autobaseKey": "Cheie autobază",
+      "topic": "Subiect",
+      "connectedPeers": "Perechi conectate",
+      "noPeers": "Nicio pereche conectată.",
+      "storagePath": "Stocare",
+      "copy": "Copiază",
+      "copied": "Copiat",
+      "refresh": "Reîmprospătează",
+      "reconnectAttempts": "Încercări de reconectare",
+      "debugLog": {
+        "title": "Jurnal de depanare",
+        "refresh": "Reîmprospătează",
+        "empty": "Nu există încă intrări în jurnal."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Dispozitiv nou conectat",
+      "newPeerMessage": "Un dispozitiv asociat s-a alăturat grupului de sincronizare."
+    },
+    "quick": {
+      "title": "Stare sincronizare",
+      "statusLabel": "Stare",
+      "button": {
+        "issue": "Problemă",
+        "connected": "Conectat",
+        "connecting": "Se conectează",
+        "off": "Sincronizare"
+      },
+      "state": {
+        "issue": "Problemă detectată",
+        "connected": "Conectat",
+        "connecting": "Se conectează",
+        "off": "Sincronizare oprită"
+      },
+      "summary": {
+        "issue": "Sincronizarea necesită atenție",
+        "connected_one": "Conectat la {{count}} dispozitiv",
+        "connected_other": "Conectat la {{count}} dispozitive",
+        "connecting": "Se caută dispozitive",
+        "off": "Sincronizare oprită"
+      },
+      "description": {
+        "issue": "Sincronizarea necesită atenție. Deschide configurarea sau diagnosticele pentru a rezolva.",
+        "connected": "Dispozitivul tău se sincronizează cu grupul.",
+        "connecting": "Se caută grupul tău de sincronizare.",
+        "off": "Sincronizarea este dezactivată pe acest dispozitiv."
+      },
+      "lastSyncAt": "Ultima sincronizare: {{at}}",
+      "lastSyncNever": "Ultima sincronizare: niciodată",
+      "actions": {
+        "setup": "Configurează sincronizarea",
+        "pair": "Asociază dispozitiv nou",
+        "manage": "Gestionare dispozitive",
+        "openHub": "Deschide Hub Sincronizare",
+        "troubleshoot": "Depanare",
+        "stop": "Oprire sincronizare"
+      }
     }
   },
   "workout": {
@@ -142,9 +236,44 @@
       "forgetDevice": "Uita",
       "forgetConfirmTitle": "Ați uitat acest dispozitiv?",
       "forgetConfirmMessage": "Aceasta elimină înregistrarea de asociere la nivel local. Dispozitivul se poate reconecta dacă are același cod de sincronizare.",
-      "peers_one": "{{count}} peer connected",
-      "peers_other": "{{count}} peers connected",
-      "stopSync": "Opriți sincronizarea"
+      "peers_one": "{{count}} pereche conectată",
+      "peers_other": "{{count}} perechi conectate",
+      "stopSync": "Opriți sincronizarea",
+      "connectionInfo": "Informații despre conexiune",
+      "openSyncHub": "Deschide Hub Sincronizare"
+    },
+    "syncStatus": {
+      "title": "Stare sincronizare",
+      "status": "Stare",
+      "syncingWith_one": "Se sincronizează cu {{count}} dispozitiv",
+      "syncingWith_other": "Se sincronizează cu {{count}} dispozitive",
+      "off": "Sincronizare oprită",
+      "lastSuccessfulSync": "Ultima sincronizare reușită",
+      "manage": "Gestionare sincronizare"
+    },
+    "localBackup": {
+      "title": "Backup",
+      "export": "Salvează backup pe dispozitiv",
+      "import": "Restaurează din backup",
+      "shareToDevice": "Distribuie către alt dispozitiv",
+      "scanFromDevice": "Scanează de pe alt dispozitiv"
+    },
+    "pairingDevices": {
+      "title": "Asociere și dispozitive",
+      "count_one": "{{count}} dispozitiv asociat",
+      "count_other": "{{count}} dispozitive asociate"
+    },
+    "syncAdvanced": {
+      "title": "Hub Sincronizare",
+      "description": "Jurnale de depanare și identificatori de dispozitive pentru depanare."
+    },
+    "syncHub": {
+      "title": "Hub Sincronizare",
+      "overview": "Prezentare generală",
+      "ids": "ID-uri dispozitiv și grup",
+      "connections": "Conexiuni",
+      "localWriterKey": "Cheie writer locală",
+      "management": "Gestionare"
     },
     "data": {
       "title": "Date",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "JSON local",
-      "description": "Exportă datele de antrenament într-un fișier JSON sau importă un backup local anterior.",
+      "description": "Exportă datele într-un fișier JSON sau importă un backup anterior.",
       "export": "Exportă backup",
       "import": "Importă backup"
     }
@@ -191,10 +320,21 @@
     "cancel": "Anulează",
     "confirm": "Importă backup"
   },
+  "deviceTransfer": {
+    "shareTitle": "Distribuie către alt dispozitiv",
+    "shareDescription": "Pe celălalt dispozitiv: Setări → Backup → Scanează de pe alt dispozitiv.",
+    "scanTitle": "Scanează de pe alt dispozitiv",
+    "scanDescription": "Îndreaptă camera către codul QR al backup-ului PearLift.",
+    "cameraPermissionTitle": "Este necesară permisiunea pentru cameră",
+    "cameraPermissionMessage": "Permite accesul la cameră pentru a scana un cod QR de backup.",
+    "cameraPermissionButton": "Permite camera",
+    "invalidQr": "Acest cod QR nu pare a fi un backup PearLift.",
+    "tooLarge": "Backup-ul este prea mare pentru un singur cod QR. Folosește „Salvează backup pe dispozitiv” în schimb."
+  },
   "prompts": {
     "deleteExercise": {
       "title": "Șterge exercițiul",
-      "message": "Ștergeți „{{exercise}}” din {{workout}}?"
+      "message": "Ștergeți \"{{exercise}}\" din {{workout}}?"
     },
     "resetAllData": {
       "title": "Resetați toate datele?",

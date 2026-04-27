@@ -30,8 +30,13 @@
     },
     "getStarted": "Kom i gang",
     "notNow": "Ikke nu",
+    "skipSync": "Spring over",
     "setupSync": "Opsæt synkronisering",
-    "settingUp": "Konfigurerer..."
+    "settingUp": "Konfigurerer...",
+    "syncPrompt": {
+      "title": "Synkroniser på tværs af dine enheder",
+      "description": "Dine data forlader aldrig dine enheder. Du kan konfigurere det når som helst i Indstillinger."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Deltag",
       "yourCode": "Din synkroniseringskode",
       "shareHint": "Del denne synkroniseringskode (eller QR) med din anden enhed. Denne enhed skal indtaste den samme kode for at deltage i din synkroniseringsgruppe.",
+      "startSyncFirst": "Tryk Start synkronisering først, derefter del denne QR med din anden enhed.",
       "enterCode": "Indtast synkroniseringskode",
       "scanQr": "Scan QR-kode",
       "scanEnableCamera": "Aktiver kamera",
       "scanHelp": "Ret dit kamera mod QR-koden på din anden enhed.",
+      "waitForConnection": "Forbindelse i gang. Scanner pauset for stabilitet.",
       "codePlaceholder": "Indtast din delingskode",
+      "replaceJoinLabel": "Erstat mine data med deres data",
+      "replaceJoinHint": "Før første synkronisering nulstiller dette lokale træninger, øvelsesvægte og programkonfigurationer kun på denne enhed.",
       "copy": "Kopiér kode",
+      "copied": "Kopieret!",
+      "paste": "Indsæt",
       "start": "Start synkronisering",
       "stop": "Stop synkronisering",
-      "invalidCode": "Ugyldig kode. Det skal være på 64 hex-tegn."
+      "invalidCode": "Ugyldig kode. Det skal være på 64 hex-tegn.",
+      "connecting": "Søger efter peers…",
+      "connectedTitle": "Forbundet",
+      "connectedSubtitle_one": "{{count}} enhed i synkroniseringsgruppe.",
+      "connectedSubtitle_other": "{{count}} enheder i synkroniseringsgruppe.",
+      "viewInfo": "Se forbindelsesinfo",
+      "done": "Færdig"
+    },
+    "info": {
+      "title": "Forbindelsesinfo",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Inaktiv",
+        "connecting": "Søger",
+        "synced": "Forbundet",
+        "error": "Fejl"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Tilgængelig",
+      "bootstrappedNo": "Venter",
+      "lastSync": "Sidste peer-synkronisering",
+      "never": "Aldrig",
+      "thisDevice": "Denne enhed",
+      "deviceId": "Enheds-ID",
+      "localKey": "Lokal nøgle",
+      "syncGroup": "Synkroniseringsgruppe",
+      "autobaseKey": "Autobase-nøgle",
+      "topic": "Emne",
+      "connectedPeers": "Forbundne peers",
+      "noPeers": "Ingen peers forbundet.",
+      "storagePath": "Lagring",
+      "copy": "Kopiér",
+      "copied": "Kopieret",
+      "refresh": "Opdater",
+      "reconnectAttempts": "Genforbindelsesforsøg",
+      "debugLog": {
+        "title": "Fejllog",
+        "refresh": "Opdater",
+        "empty": "Ingen logopførsler endnu."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Ny enhed forbundet",
+      "newPeerMessage": "En paret enhed tilsluttede sig synkroniseringsgruppen."
+    },
+    "quick": {
+      "title": "Synkroniseringsstatus",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Problem",
+        "connected": "Forbundet",
+        "connecting": "Forbinder",
+        "off": "Synkronisering"
+      },
+      "state": {
+        "issue": "Problem registreret",
+        "connected": "Forbundet",
+        "connecting": "Forbinder",
+        "off": "Synkronisering fra"
+      },
+      "summary": {
+        "issue": "Synkronisering kræver opmærksomhed",
+        "connected_one": "Forbundet til {{count}} enhed",
+        "connected_other": "Forbundet til {{count}} enheder",
+        "connecting": "Leder efter enheder",
+        "off": "Synkronisering er deaktiveret"
+      },
+      "description": {
+        "issue": "Synkronisering kræver opmærksomhed. Åbn opsætning eller diagnostik for at løse det.",
+        "connected": "Din enhed synkroniserer med gruppen.",
+        "connecting": "Søger efter din synkroniseringsgruppe.",
+        "off": "Synkronisering er aktuelt deaktiveret på denne enhed."
+      },
+      "lastSyncAt": "Sidste synkronisering: {{at}}",
+      "lastSyncNever": "Sidste synkronisering: aldrig",
+      "actions": {
+        "setup": "Opsæt synkronisering",
+        "pair": "Par ny enhed",
+        "manage": "Administrer enheder",
+        "openHub": "Åbn Synkroniseringshub",
+        "troubleshoot": "Fejlfind",
+        "stop": "Stop synkronisering"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Dette fjerner parringsrecorden lokalt. Enheden kan stadig oprette forbindelse igen, hvis den har den samme synkroniseringskode.",
       "peers_one": "{{count}} peer forbundet",
       "peers_other": "{{count}} peers forbundet",
-      "stopSync": "Stop synkronisering"
+      "stopSync": "Stop synkronisering",
+      "connectionInfo": "Forbindelsesinfo",
+      "openSyncHub": "Åbn Synkroniseringshub"
+    },
+    "syncStatus": {
+      "title": "Synkroniseringsstatus",
+      "status": "Status",
+      "syncingWith_one": "Synkroniserer med {{count}} enhed",
+      "syncingWith_other": "Synkroniserer med {{count}} enheder",
+      "off": "Synkronisering er deaktiveret",
+      "lastSuccessfulSync": "Sidste vellykkede synkronisering",
+      "manage": "Administrer synkronisering"
+    },
+    "localBackup": {
+      "title": "Backup",
+      "export": "Gem backup på enhed",
+      "import": "Gendan fra backup",
+      "shareToDevice": "Del til en anden enhed",
+      "scanFromDevice": "Scan fra en anden enhed"
+    },
+    "pairingDevices": {
+      "title": "Parring og enheder",
+      "count_one": "{{count}} paret enhed",
+      "count_other": "{{count}} parrede enheder"
+    },
+    "syncAdvanced": {
+      "title": "Synkroniseringshub",
+      "description": "Fejllog og enhedsidentifikatorer til fejlfind."
+    },
+    "syncHub": {
+      "title": "Synkroniseringshub",
+      "overview": "Oversigt",
+      "ids": "Enhed- og gruppe-ID'er",
+      "connections": "Forbindelser",
+      "localWriterKey": "Lokal skrivernøgle",
+      "management": "Administration"
     },
     "data": {
       "title": "Data",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokal JSON",
-      "description": "Eksporter dine träningsdata til en JSON-fil eller importer en tidligere lokal backup.",
+      "description": "Eksportér dine data til en JSON-fil eller importér en tidligere backup.",
       "export": "Eksporter backup",
       "import": "Importer backup"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Annuller",
     "confirm": "Importer backup"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Del til en anden enhed",
+    "shareDescription": "På den anden enhed: Åbn Indstillinger → Backup → Scan fra en anden enhed.",
+    "scanTitle": "Scan fra en anden enhed",
+    "scanDescription": "Ret kameraet mod PearLift-backuppens QR-kode.",
+    "cameraPermissionTitle": "Kameratilladelse kræves",
+    "cameraPermissionMessage": "Tillad adgang til kameraet for at scanne en backup-QR-kode.",
+    "cameraPermissionButton": "Tillad kamera",
+    "invalidQr": "Den QR-kode ligner ikke en PearLift-backup.",
+    "tooLarge": "Backupen er for stor til én QR-kode. Brug “Gem backup på enhed” i stedet."
   },
   "prompts": {
     "deleteExercise": {

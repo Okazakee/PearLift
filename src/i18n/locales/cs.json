@@ -30,8 +30,13 @@
     },
     "getStarted": "Začít",
     "notNow": "Teď ne",
+    "skipSync": "Přeskočit",
     "setupSync": "Nastavit synchronizaci",
-    "settingUp": "Nastavení..."
+    "settingUp": "Nastavení...",
+    "syncPrompt": {
+      "title": "Synchronizace mezi zařízeními",
+      "description": "Vaše data nikdy neopustí vaše zařízení. Můžete to nastavit kdykoli v Nastavení."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Připojte se",
       "yourCode": "Váš synchronizační kód",
       "shareHint": "Sdílejte tento synchronizační kód (nebo QR) se svým druhým zařízením. Toto zařízení musí zadat stejný kód, aby se mohlo připojit k vaší synchronizační skupině.",
+      "startSyncFirst": "Nejprve stiskněte Spustit synchronizaci, pak sdílejte tento QR kód s druhým zařízením.",
       "enterCode": "Zadejte synchronizační kód",
       "scanQr": "Naskenujte QR kód",
       "scanEnableCamera": "Povolit kameru",
       "scanHelp": "Namiřte fotoaparát na QR kód na druhém zařízení.",
+      "waitForConnection": "Připojování probíhá. Skener pozastaven pro stabilitu.",
       "codePlaceholder": "Zadejte kód sdílení",
+      "replaceJoinLabel": "Nahradit má data jejich daty",
+      "replaceJoinHint": "Před první synchronizací toto resetuje lokální tréninky, váhy cviků a konfigurace programů pouze na tomto zařízení.",
       "copy": "Kopírovat kód",
+      "copied": "Zkopírováno!",
+      "paste": "Vložit",
       "start": "Spusťte synchronizaci",
       "stop": "Zastavit synchronizaci",
-      "invalidCode": "Neplatný kód. Musí mít 64 hexadecimálních znaků."
+      "invalidCode": "Neplatný kód. Musí mít 64 hexadecimálních znaků.",
+      "connecting": "Hledám partnery…",
+      "connectedTitle": "Připojeno",
+      "connectedSubtitle_one": "{{count}} zařízení ve skupině synchronizace.",
+      "connectedSubtitle_other": "{{count}} zařízení ve skupině synchronizace.",
+      "viewInfo": "Zobrazit informace o připojení",
+      "done": "Hotovo"
+    },
+    "info": {
+      "title": "Informace o připojení",
+      "statusLabel": "Stav",
+      "status": {
+        "idle": "Nečinný",
+        "connecting": "Hledání",
+        "synced": "Připojeno",
+        "error": "Chyba"
+      },
+      "peers": "Partneři",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Dosažitelný",
+      "bootstrappedNo": "Čeká",
+      "lastSync": "Poslední synchronizace s partnerem",
+      "never": "Nikdy",
+      "thisDevice": "Toto zařízení",
+      "deviceId": "ID zařízení",
+      "localKey": "Lokální klíč",
+      "syncGroup": "Synchronizační skupina",
+      "autobaseKey": "Klíč autobáze",
+      "topic": "Téma",
+      "connectedPeers": "Připojení partneři",
+      "noPeers": "Žádní partneři nejsou připojeni.",
+      "storagePath": "Úložiště",
+      "copy": "Kopírovat",
+      "copied": "Zkopírováno",
+      "refresh": "Obnovit",
+      "reconnectAttempts": "Pokusy o znovupřipojení",
+      "debugLog": {
+        "title": "Ladící protokol",
+        "refresh": "Obnovit",
+        "empty": "Zatím žádné záznamy v protokolu."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Nové zařízení připojeno",
+      "newPeerMessage": "Spárované zařízení se připojilo ke skupině synchronizace."
+    },
+    "quick": {
+      "title": "Stav synchronizace",
+      "statusLabel": "Stav",
+      "button": {
+        "issue": "Problém",
+        "connected": "Připojeno",
+        "connecting": "Připojování",
+        "off": "Synchronizace"
+      },
+      "state": {
+        "issue": "Zjištěn problém",
+        "connected": "Připojeno",
+        "connecting": "Připojování",
+        "off": "Synchronizace vypnuta"
+      },
+      "summary": {
+        "issue": "Synchronizace vyžaduje pozornost",
+        "connected_one": "Připojeno k {{count}} zařízení",
+        "connected_other": "Připojeno k {{count}} zařízením",
+        "connecting": "Hledám zařízení",
+        "off": "Synchronizace je vypnuta"
+      },
+      "description": {
+        "issue": "Synchronizace vyžaduje pozornost. Otevřete nastavení nebo diagnostiku k vyřešení.",
+        "connected": "Vaše zařízení synchronizuje se skupinou.",
+        "connecting": "Hledám vaši synchronizační skupinu.",
+        "off": "Synchronizace je na tomto zařízení aktuálně zakázána."
+      },
+      "lastSyncAt": "Poslední synchronizace: {{at}}",
+      "lastSyncNever": "Poslední synchronizace: nikdy",
+      "actions": {
+        "setup": "Nastavit synchronizaci",
+        "pair": "Spárovat nové zařízení",
+        "manage": "Spravovat zařízení",
+        "openHub": "Otevřít centrum synchronizace",
+        "troubleshoot": "Odstranit problémy",
+        "stop": "Zastavit synchronizaci"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Tím se lokálně odstraní záznam o párování. Zařízení se může znovu připojit, pokud má stejný synchronizační kód.",
       "peers_one": "{{count}} připojený peer",
       "peers_other": "{{count}} připojených peerů",
-      "stopSync": "Zastavit synchronizaci"
+      "stopSync": "Zastavit synchronizaci",
+      "connectionInfo": "Informace o připojení",
+      "openSyncHub": "Otevřít centrum synchronizace"
+    },
+    "syncStatus": {
+      "title": "Stav synchronizace",
+      "status": "Stav",
+      "syncingWith_one": "Synchronizace s {{count}} zařízením",
+      "syncingWith_other": "Synchronizace s {{count}} zařízeními",
+      "off": "Synchronizace je vypnuta",
+      "lastSuccessfulSync": "Poslední úspěšná synchronizace",
+      "manage": "Spravovat synchronizaci"
+    },
+    "localBackup": {
+      "title": "Záloha",
+      "export": "Uložit zálohu do zařízení",
+      "import": "Obnovit ze zálohy",
+      "shareToDevice": "Sdílet do jiného zařízení",
+      "scanFromDevice": "Naskenovat z jiného zařízení"
+    },
+    "pairingDevices": {
+      "title": "Párování a zařízení",
+      "count_one": "{{count}} spárované zařízení",
+      "count_other": "{{count}} spárovaných zařízení"
+    },
+    "syncAdvanced": {
+      "title": "Centrum synchronizace",
+      "description": "Ladící protokoly a identifikátory zařízení pro odstraňování problémů."
+    },
+    "syncHub": {
+      "title": "Centrum synchronizace",
+      "overview": "Přehled",
+      "ids": "ID zařízení a skupiny",
+      "connections": "Připojení",
+      "localWriterKey": "Lokální klíč pro zápis",
+      "management": "Správa"
     },
     "data": {
       "title": "Data",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokální JSON",
-      "description": "Exportujte data tréninku do souboru JSON nebo importujte předchozí lokální zálohu.",
+      "description": "Exportujte svá data do JSON souboru nebo importujte předchozí zálohu.",
       "export": "Exportovat zálohu",
       "import": "Importovat zálohu"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Zrušit",
     "confirm": "Importovat zálohu"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Sdílet do jiného zařízení",
+    "shareDescription": "Na druhém zařízení otevřete Nastavení → Záloha → Naskenovat z jiného zařízení.",
+    "scanTitle": "Naskenovat z jiného zařízení",
+    "scanDescription": "Namiřte kameru na QR kód zálohy PearLift.",
+    "cameraPermissionTitle": "Je potřeba povolení pro kameru",
+    "cameraPermissionMessage": "Povolte přístup ke kameře pro skenování QR kódu zálohy.",
+    "cameraPermissionButton": "Povolit kameru",
+    "invalidQr": "Tento QR kód nevypadá jako záloha PearLift.",
+    "tooLarge": "Záloha je příliš velká pro jeden QR kód. Použijte místo toho „Uložit zálohu do zařízení“."
   },
   "prompts": {
     "deleteExercise": {

@@ -30,8 +30,13 @@
     },
     "getStarted": "Mulai",
     "notNow": "Nanti saja",
+    "skipSync": "Lewati",
     "setupSync": "Siapkan sinkronisasi",
-    "settingUp": "Menyiapkan..."
+    "settingUp": "Menyiapkan...",
+    "syncPrompt": {
+      "title": "Sinkronkan di seluruh perangkat Anda",
+      "description": "Data Anda tidak pernah meninggalkan perangkat Anda. Anda dapat menyiapkannya kapan saja di Pengaturan."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Bergabunglah",
       "yourCode": "Kode Sinkronisasi Anda",
       "shareHint": "Bagikan Kode Sinkronisasi (atau QR) ini dengan perangkat Anda yang lain. Perangkat tersebut harus memasukkan kode yang sama untuk bergabung dengan grup sinkronisasi Anda.",
+      "startSyncFirst": "Tekan Mulai Sinkronisasi terlebih dahulu, lalu bagikan QR ini dengan perangkat lain Anda.",
       "enterCode": "Masukkan Kode Sinkronisasi",
       "scanQr": "Pindai kode QR",
       "scanEnableCamera": "Aktifkan kamera",
       "scanHelp": "Arahkan kamera Anda ke kode QR di perangkat Anda yang lain.",
+      "waitForConnection": "Koneksi sedang berlangsung. Pemindai dijeda untuk stabilitas.",
       "codePlaceholder": "Masukkan kode berbagi Anda",
+      "replaceJoinLabel": "Ganti data saya dengan data mereka",
+      "replaceJoinHint": "Sebelum sinkronisasi pertama, ini hanya mengatur ulang latihan lokal, berat latihan, dan konfigurasi program di perangkat ini.",
       "copy": "Salin kode",
+      "copied": "Disalin!",
+      "paste": "Tempel",
       "start": "Mulai sinkronisasi",
       "stop": "Hentikan sinkronisasi",
-      "invalidCode": "Kode tidak valid. Itu harus 64 karakter hex."
+      "invalidCode": "Kode tidak valid. Itu harus 64 karakter hex.",
+      "connecting": "Mencari peer…",
+      "connectedTitle": "Terhubung",
+      "connectedSubtitle_one": "{{count}} perangkat dalam grup sinkronisasi.",
+      "connectedSubtitle_other": "{{count}} perangkat dalam grup sinkronisasi.",
+      "viewInfo": "Lihat info koneksi",
+      "done": "Selesai"
+    },
+    "info": {
+      "title": "Info koneksi",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Menganggur",
+        "connecting": "Mencari",
+        "synced": "Terhubung",
+        "error": "Kesalahan"
+      },
+      "peers": "Peer",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Dapat dijangkau",
+      "bootstrappedNo": "Menunggu",
+      "lastSync": "Sinkronisasi peer terakhir",
+      "never": "Tidak pernah",
+      "thisDevice": "Perangkat ini",
+      "deviceId": "ID Perangkat",
+      "localKey": "Kunci lokal",
+      "syncGroup": "Grup sinkronisasi",
+      "autobaseKey": "Kunci Autobase",
+      "topic": "Topik",
+      "connectedPeers": "Peer terhubung",
+      "noPeers": "Tidak ada peer terhubung.",
+      "storagePath": "Penyimpanan",
+      "copy": "Salin",
+      "copied": "Disalin",
+      "refresh": "Segarkan",
+      "reconnectAttempts": "Upaya sambung ulang",
+      "debugLog": {
+        "title": "Log debug",
+        "refresh": "Segarkan",
+        "empty": "Belum ada entri log."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Perangkat baru terhubung",
+      "newPeerMessage": "Perangkat yang dipasangkan bergabung dengan grup sinkronisasi."
+    },
+    "quick": {
+      "title": "Status Sinkronisasi",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Masalah",
+        "connected": "Terhubung",
+        "connecting": "Menghubungkan",
+        "off": "Sinkronkan"
+      },
+      "state": {
+        "issue": "Masalah terdeteksi",
+        "connected": "Terhubung",
+        "connecting": "Menghubungkan",
+        "off": "Sinkronisasi mati"
+      },
+      "summary": {
+        "issue": "Sinkronisasi perlu perhatian",
+        "connected_one": "Terhubung ke {{count}} perangkat",
+        "connected_other": "Terhubung ke {{count}} perangkat",
+        "connecting": "Mencari perangkat",
+        "off": "Sinkronisasi mati"
+      },
+      "description": {
+        "issue": "Sinkronisasi perlu perhatian. Buka pengaturan atau diagnostik untuk memperbaikinya.",
+        "connected": "Perangkat Anda sedang menyinkronkan dengan grup.",
+        "connecting": "Mencari grup sinkronisasi Anda.",
+        "off": "Sinkronisasi saat ini dinonaktifkan di perangkat ini."
+      },
+      "lastSyncAt": "Sinkronisasi terakhir: {{at}}",
+      "lastSyncNever": "Sinkronisasi terakhir: tidak pernah",
+      "actions": {
+        "setup": "Siapkan sinkronisasi",
+        "pair": "Pasangkan perangkat baru",
+        "manage": "Kelola perangkat",
+        "openHub": "Buka Hub Sinkronisasi",
+        "troubleshoot": "Perbaiki masalah",
+        "stop": "Hentikan sinkronisasi"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Ini menghapus catatan pemasangan secara lokal. Perangkat masih dapat terhubung kembali jika memiliki kode sinkronisasi yang sama.",
       "peers_one": "{{count}} peer terhubung",
       "peers_other": "{{count}} peer terhubung",
-      "stopSync": "Hentikan Sinkronisasi"
+      "stopSync": "Hentikan Sinkronisasi",
+      "connectionInfo": "Info koneksi",
+      "openSyncHub": "Buka Hub Sinkronisasi"
+    },
+    "syncStatus": {
+      "title": "Status Sinkronisasi",
+      "status": "Status",
+      "syncingWith_one": "Menyinkronkan dengan {{count}} perangkat",
+      "syncingWith_other": "Menyinkronkan dengan {{count}} perangkat",
+      "off": "Sinkronisasi mati",
+      "lastSuccessfulSync": "Sinkronisasi terakhir yang berhasil",
+      "manage": "Kelola Sinkronisasi"
+    },
+    "localBackup": {
+      "title": "Cadangan",
+      "export": "Simpan cadangan ke perangkat",
+      "import": "Pulihkan dari cadangan",
+      "shareToDevice": "Bagikan ke perangkat lain",
+      "scanFromDevice": "Pindai dari perangkat lain"
+    },
+    "pairingDevices": {
+      "title": "Pemasangan & Perangkat",
+      "count_one": "{{count}} perangkat yang dipasangkan",
+      "count_other": "{{count}} perangkat yang dipasangkan"
+    },
+    "syncAdvanced": {
+      "title": "Hub Sinkronisasi",
+      "description": "Log debug dan pengenal perangkat untuk pemecahan masalah."
+    },
+    "syncHub": {
+      "title": "Hub Sinkronisasi",
+      "overview": "Ringkasan",
+      "ids": "ID Perangkat & Grup",
+      "connections": "Koneksi",
+      "localWriterKey": "Kunci penulis lokal",
+      "management": "Pengelolaan"
     },
     "data": {
       "title": "Data",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "JSON lokal",
-      "description": "Ekspor data latihan ke file JSON atau impor cadangan lokal sebelumnya.",
+      "description": "Ekspor data Anda ke file JSON atau impor cadangan sebelumnya.",
       "export": "Ekspor cadangan",
       "import": "Impor cadangan"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Batal",
     "confirm": "Impor cadangan"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Bagikan ke perangkat lain",
+    "shareDescription": "Di perangkat lain: Pengaturan → Cadangan → Pindai dari perangkat lain.",
+    "scanTitle": "Pindai dari perangkat lain",
+    "scanDescription": "Arahkan kamera ke QR cadangan PearLift.",
+    "cameraPermissionTitle": "Izin kamera diperlukan",
+    "cameraPermissionMessage": "Izinkan akses kamera untuk memindai QR cadangan.",
+    "cameraPermissionButton": "Izinkan Kamera",
+    "invalidQr": "QR tersebut tidak terlihat seperti cadangan PearLift.",
+    "tooLarge": "Cadangan terlalu besar untuk satu QR. Gunakan “Simpan cadangan ke perangkat” sebagai gantinya."
   },
   "prompts": {
     "deleteExercise": {

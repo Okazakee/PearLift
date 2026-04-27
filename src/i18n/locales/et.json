@@ -30,8 +30,13 @@
     },
     "getStarted": "Alusta",
     "notNow": "Mitte praegu",
+    "skipSync": "Jäta vahele",
     "setupSync": "Seadista sünkroonimine",
-    "settingUp": "Seadistamine..."
+    "settingUp": "Seadistamine...",
+    "syncPrompt": {
+      "title": "Sünkroonige oma seadmetes",
+      "description": "Teie andmed ei lahku teie seadmetest. Saate selle igal ajal Seadetes seadistada."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Liitu",
       "yourCode": "Teie sünkroonimiskood",
       "shareHint": "Jagage seda sünkroonimiskoodi (või QR-koodi) oma teise seadmega. See seade peab teie sünkroonimisrühmaga liitumiseks sisestama sama koodi.",
+      "startSyncFirst": "Vajutage esmalt Start Sync ja jagage see QR teise seadmega.",
       "enterCode": "Sisestage sünkroonimiskood",
       "scanQr": "Skaneeri QR-kood",
       "scanEnableCamera": "Luba kaamera",
       "scanHelp": "Suunake kaamera teises seadmes olevale QR-koodile.",
+      "waitForConnection": "Ühendus käib. Skanner on stabiilsuse jaoks pausile pandud.",
       "codePlaceholder": "Sisesta oma jagamise kood",
+      "replaceJoinLabel": "Asenda mu andmed nende andmetega",
+      "replaceJoinHint": "Enne esimest sünkroonimist lähtestab see ainult selle seadme kohalised treeningud, harjutuste kaalud ja programmikonfiguratsioonid.",
       "copy": "Kopeeri kood",
+      "copied": "Kopeeritud!",
+      "paste": "Kleepi",
       "start": "Alusta sünkroonimist",
       "stop": "Peata sünkroonimine",
-      "invalidCode": "Vale kood. See peab sisaldama 64 kuueteistkümnendmärki."
+      "invalidCode": "Vale kood. See peab sisaldama 64 kuueteistkümnendmärki.",
+      "connecting": "Otsin tuge…",
+      "connectedTitle": "Ühendatud",
+      "connectedSubtitle_one": "{{count}} seade sünkroonimisrühmas.",
+      "connectedSubtitle_other": "{{count}} seadet sünkroonimisrühmas.",
+      "viewInfo": "Vaata ühenduse teavet",
+      "done": "Valmis"
+    },
+    "info": {
+      "title": "Ühenduse teave",
+      "statusLabel": "Staatus",
+      "status": {
+        "idle": "Ootel",
+        "connecting": "Otsimine",
+        "synced": "Ühendatud",
+        "error": "Viga"
+      },
+      "peers": "Pead",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Kättesaadav",
+      "bootstrappedNo": "Ootel",
+      "lastSync": "Viimane põrsa sünkroonimine",
+      "never": "Kunagi",
+      "thisDevice": "See seade",
+      "deviceId": "Seadme ID",
+      "localKey": "Kohalik võti",
+      "syncGroup": "Sünkroonimisrühm",
+      "autobaseKey": "Autobase võti",
+      "topic": "Teema",
+      "connectedPeers": "Ühendatud pead",
+      "noPeers": "Ühtegi päka pole ühendatud.",
+      "storagePath": "Salvestus",
+      "copy": "Kopeeri",
+      "copied": "Kopeeritud",
+      "refresh": "Värskenda",
+      "reconnectAttempts": "Uuesti ühenduse katse",
+      "debugLog": {
+        "title": "Silumise logi",
+        "refresh": "Värskenda",
+        "empty": "Logikirjeid veel pole."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Uus seade ühendatud",
+      "newPeerMessage": "Paaris seade liitus sünkroonimisrühmaga."
+    },
+    "quick": {
+      "title": "Sünkroonimise staatus",
+      "statusLabel": "Staatus",
+      "button": {
+        "issue": "Probleem",
+        "connected": "Ühendatud",
+        "connecting": "Ühendamine",
+        "off": "Sünkrooni"
+      },
+      "state": {
+        "issue": "Tuvastatud probleem",
+        "connected": "Ühendatud",
+        "connecting": "Ühendamine",
+        "off": "Sünkroonimine väljas"
+      },
+      "summary": {
+        "issue": "Sünkroonimine vajab tähelepanu",
+        "connected_one": "Ühendatud {{count}} seadmega",
+        "connected_other": "Ühendatud {{count}} seadmega",
+        "connecting": "Otsin seadmeid",
+        "off": "Sünkroonimine on väljas"
+      },
+      "description": {
+        "issue": "Sünkroonimine vajab tähelepanu. Avage seadistus või diagnostika probleemi lahendamiseks.",
+        "connected": "Teie seade sünkroonib rühmaga.",
+        "connecting": "Otsin teie sünkroonimisrühma.",
+        "off": "Sünkroonimine on sel seadmel hetkel keelatud."
+      },
+      "lastSyncAt": "Viimane sünkroonimine: {{at}}",
+      "lastSyncNever": "Viimane sünkroonimine: kunagi",
+      "actions": {
+        "setup": "Seadista sünkroonimine",
+        "pair": "Paari uus seade",
+        "manage": "Halda seadmeid",
+        "openHub": "Ava sünkroonimise keskus",
+        "troubleshoot": "Tõrkeotsing",
+        "stop": "Peata sünkroonimine"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "See eemaldab sidumiskirje kohapeal. Seade saab siiski uuesti ühenduse luua, kui sellel on sama sünkroonimiskood.",
       "peers_one": "{{count}} ühendatud võrdõiguslik",
       "peers_other": "{{count}} ühendatud võrdõiguslikku",
-      "stopSync": "Peata sünkroonimine"
+      "stopSync": "Peata sünkroonimine",
+      "connectionInfo": "Ühenduse teave",
+      "openSyncHub": "Ava sünkroonimise keskus"
+    },
+    "syncStatus": {
+      "title": "Sünkroonimise staatus",
+      "status": "Staatus",
+      "syncingWith_one": "Sünkroonimine {{count}} seadmega",
+      "syncingWith_other": "Sünkroonimine {{count}} seadmega",
+      "off": "Sünkroonimine on väljas",
+      "lastSuccessfulSync": "Viimane edukas sünkroonimine",
+      "manage": "Halda sünkroonimist"
+    },
+    "localBackup": {
+      "title": "Varukoopia",
+      "export": "Salvesta varukoopia seadmesse",
+      "import": "Taasta varukoopiast",
+      "shareToDevice": "Jaga teise seadmega",
+      "scanFromDevice": "Skanni teisest seadmest"
+    },
+    "pairingDevices": {
+      "title": "Sidumine ja seadmed",
+      "count_one": "{{count}} seotud seade",
+      "count_other": "{{count}} seotud seadet"
+    },
+    "syncAdvanced": {
+      "title": "Sünkroonimise keskus",
+      "description": "Silumise logid ja seadme identifikaatorid tõrkeotsinguks."
+    },
+    "syncHub": {
+      "title": "Sünkroonimise keskus",
+      "overview": "Ülevaade",
+      "ids": "Seadme ja rühma ID-d",
+      "connections": "Ühendused",
+      "localWriterKey": "Kohaliku kirjutaja võti",
+      "management": "Haldus"
     },
     "data": {
       "title": "Andmed",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Kohalik JSON",
-      "description": "Ekspordi oma treeninguandmed JSON-faili või impordi eelmine kohalik varukoopia.",
+      "description": "Ekspordi andmed JSON-faili või impordi eelmine varukoopia.",
       "export": "Ekspordi varukoopia",
       "import": "Impordi varukoopia"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Tühista",
     "confirm": "Impordi varukoopia"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Jaga teise seadmega",
+    "shareDescription": "Teises seadmes ava Seaded → Varukoopia → Skanni teisest seadmest.",
+    "scanTitle": "Skanni teisest seadmest",
+    "scanDescription": "Suuna kaamera PearLift varukoopia QR-koodile.",
+    "cameraPermissionTitle": "Kaamera luba on vajalik",
+    "cameraPermissionMessage": "Luba kaamerale ligipääs varukoopia QR-koodi skannimiseks.",
+    "cameraPermissionButton": "Luba kaamera",
+    "invalidQr": "See QR-kood ei näi olevat PearLift varukoopia.",
+    "tooLarge": "Varukoopia on ühe QR-koodi jaoks liiga suur. Kasuta selle asemel „Salvesta varukoopia seadmesse“."
   },
   "prompts": {
     "deleteExercise": {

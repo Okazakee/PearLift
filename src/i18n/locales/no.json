@@ -29,9 +29,14 @@
       }
     },
     "getStarted": "Kom i gang",
-    "notNow": "Not now",
-    "setupSync": "Set up sync",
-    "settingUp": "Konfigurerer..."
+    "notNow": "Ikke nå",
+    "skipSync": "Hopp over",
+    "setupSync": "Konfigurer synkronisering",
+    "settingUp": "Konfigurerer...",
+    "syncPrompt": {
+      "title": "Synkroniser på tvers av enhetene dine",
+      "description": "Dataene dine forlater aldri enhetene dine. Du kan konfigurere det når som helst i Innstillinger."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Bli med",
       "yourCode": "Din synkroniseringskode",
       "shareHint": "Del denne synkroniseringskoden (eller QR-koden) med den andre enheten din. Den enheten må angi den samme koden for å bli med i synkroniseringsgruppen din.",
+      "startSyncFirst": "Trykk Start synkronisering først, del deretter denne QR-koden med den andre enheten din.",
       "enterCode": "Skriv inn synkroniseringskode",
       "scanQr": "Skann QR-koden",
       "scanEnableCamera": "Aktiver kamera",
       "scanHelp": "Pek kameraet mot QR-koden på den andre enheten.",
+      "waitForConnection": "Tilkobling pågår. Skanner pauset for stabilitet.",
       "codePlaceholder": "Skriv inn delekoden din",
+      "replaceJoinLabel": "Erstatt mine data med deres data",
+      "replaceJoinHint": "Før første synkronisering tilbakestiller dette lokale treningsøkter, øvelsesvekter og programkonfigurasjoner bare på denne enheten.",
       "copy": "Kopier koden",
+      "copied": "Kopiert!",
+      "paste": "Lim inn",
       "start": "Start synkronisering",
       "stop": "Stopp synkronisering",
-      "invalidCode": "Ugyldig kode. Det må bestå av 64 heksadesimale tegn."
+      "invalidCode": "Ugyldig kode. Det må bestå av 64 heksadesimale tegn.",
+      "connecting": "Søker etter medenheter…",
+      "connectedTitle": "Tilkoblet",
+      "connectedSubtitle_one": "{{count}} enhet i synkroniseringsgruppe.",
+      "connectedSubtitle_other": "{{count}} enheter i synkroniseringsgruppe.",
+      "viewInfo": "Vis tilkoblingsinformasjon",
+      "done": "Ferdig"
+    },
+    "info": {
+      "title": "Tilkoblingsinformasjon",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Inaktiv",
+        "connecting": "Søker",
+        "synced": "Tilkoblet",
+        "error": "Feil"
+      },
+      "peers": "Medenheter",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Tilgjengelig",
+      "bootstrappedNo": "Venter",
+      "lastSync": "Sist synkronisering",
+      "never": "Aldri",
+      "thisDevice": "Denne enheten",
+      "deviceId": "Enhets-ID",
+      "localKey": "Lokal nøkkel",
+      "syncGroup": "Synkroniseringsgruppe",
+      "autobaseKey": "Autobase-nøkkel",
+      "topic": "Emne",
+      "connectedPeers": "Tilkoblede medenheter",
+      "noPeers": "Ingen medenheter tilkoblet.",
+      "storagePath": "Lagring",
+      "copy": "Kopier",
+      "copied": "Kopiert",
+      "refresh": "Oppdater",
+      "reconnectAttempts": "Nye tilkoblingsforsøk",
+      "debugLog": {
+        "title": "Feilsøkingslogg",
+        "refresh": "Oppdater",
+        "empty": "Ingen loggoppføringer ennå."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Ny enhet tilkoblet",
+      "newPeerMessage": "En paret enhet ble med i synkroniseringsgruppen."
+    },
+    "quick": {
+      "title": "Synkroniseringsstatus",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Problem",
+        "connected": "Tilkoblet",
+        "connecting": "Kobler til",
+        "off": "Synkroniser"
+      },
+      "state": {
+        "issue": "Problem oppdaget",
+        "connected": "Tilkoblet",
+        "connecting": "Kobler til",
+        "off": "Synkronisering av"
+      },
+      "summary": {
+        "issue": "Synkronisering trenger oppmerksomhet",
+        "connected_one": "Tilkoblet {{count}} enhet",
+        "connected_other": "Tilkoblet {{count}} enheter",
+        "connecting": "Søker etter enheter",
+        "off": "Synkronisering er av"
+      },
+      "description": {
+        "issue": "Synkronisering trenger oppmerksomhet. Åpne oppsett eller diagnostikk for å løse det.",
+        "connected": "Enheten din synkroniserer med gruppen.",
+        "connecting": "Søker etter synkroniseringsgruppen din.",
+        "off": "Synkronisering er for øyeblikket deaktivert på denne enheten."
+      },
+      "lastSyncAt": "Sist synkronisert: {{at}}",
+      "lastSyncNever": "Sist synkronisert: aldri",
+      "actions": {
+        "setup": "Konfigurer synkronisering",
+        "pair": "Par ny enhet",
+        "manage": "Administrer enheter",
+        "openHub": "Åpne synkroniseringshub",
+        "troubleshoot": "Feilsøk",
+        "stop": "Stopp synkronisering"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Dette fjerner sammenkoblingsposten lokalt. Enheten kan fortsatt koble til på nytt hvis den har samme synkroniseringskode.",
       "peers_one": "{{count}} peer connected",
       "peers_other": "{{count}} peers connected",
-      "stopSync": "Stopp synkronisering"
+      "stopSync": "Stopp synkronisering",
+      "connectionInfo": "Tilkoblingsinformasjon",
+      "openSyncHub": "Åpne synkroniseringshub"
+    },
+    "syncStatus": {
+      "title": "Synkroniseringsstatus",
+      "status": "Status",
+      "syncingWith_one": "Synkroniserer med {{count}} enhet",
+      "syncingWith_other": "Synkroniserer med {{count}} enheter",
+      "off": "Synkronisering er av",
+      "lastSuccessfulSync": "Sist vellykkede synkronisering",
+      "manage": "Administrer synkronisering"
+    },
+    "localBackup": {
+      "title": "Sikkerhetskopi",
+      "export": "Lagre sikkerhetskopi på enheten",
+      "import": "Gjenopprett fra sikkerhetskopi",
+      "shareToDevice": "Del til en annen enhet",
+      "scanFromDevice": "Skann fra en annen enhet"
+    },
+    "pairingDevices": {
+      "title": "Sammenkobling og enheter",
+      "count_one": "{{count}} sammenkoblet enhet",
+      "count_other": "{{count}} sammenkoblede enheter"
+    },
+    "syncAdvanced": {
+      "title": "Synkroniseringshub",
+      "description": "Feilsøkingslogger og enhetsidentifikatorer for feilsøking."
+    },
+    "syncHub": {
+      "title": "Synkroniseringshub",
+      "overview": "Oversikt",
+      "ids": "Enhets- og gruppe-IDer",
+      "connections": "Tilkoblinger",
+      "localWriterKey": "Lokal skrive-nøkkel",
+      "management": "Administrasjon"
     },
     "data": {
       "title": "Data",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokal JSON",
-      "description": "Eksporter treningsdataene dine til en JSON-fil eller importer en tidligere lokal sikkerhetskopi.",
+      "description": "Eksporter dataene dine til en JSON-fil eller importer en tidligere sikkerhetskopi.",
       "export": "Eksporter sikkerhetskopi",
       "import": "Importer sikkerhetskopi"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Avbryt",
     "confirm": "Importer sikkerhetskopi"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Del til en annen enhet",
+    "shareDescription": "På den andre enheten: Innstillinger → Sikkerhetskopi → Skann fra en annen enhet.",
+    "scanTitle": "Skann fra en annen enhet",
+    "scanDescription": "Rett kameraet mot PearLift-sikkerhetskopiens QR-kode.",
+    "cameraPermissionTitle": "Kameratilgang kreves",
+    "cameraPermissionMessage": "Tillat kameratilgang for å skanne en sikkerhetskopi-QR-kode.",
+    "cameraPermissionButton": "Tillat kamera",
+    "invalidQr": "Denne QR-koden ser ikke ut som en PearLift-sikkerhetskopi.",
+    "tooLarge": "Sikkerhetskopien er for stor for én QR-kode. Bruk “Lagre sikkerhetskopi på enheten” i stedet."
   },
   "prompts": {
     "deleteExercise": {

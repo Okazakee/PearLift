@@ -30,8 +30,13 @@
     },
     "getStarted": "Bắt đầu",
     "notNow": "Để sau",
+    "skipSync": "Skip",
     "setupSync": "Thiết lập đồng bộ",
-    "settingUp": "Đang thiết lập..."
+    "settingUp": "Đang thiết lập...",
+    "syncPrompt": {
+      "title": "Sync across your devices",
+      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Tham gia",
       "yourCode": "Mã đồng bộ hóa của bạn",
       "shareHint": "Chia sẻ Mã đồng bộ hóa (hoặc QR) này với thiết bị khác của bạn. Thiết bị đó phải nhập cùng một mã để tham gia nhóm đồng bộ hóa của bạn.",
+      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
       "enterCode": "Nhập mã đồng bộ",
       "scanQr": "Quét mã QR",
       "scanEnableCamera": "Bật máy ảnh",
       "scanHelp": "Hướng máy ảnh của bạn vào mã QR trên thiết bị khác của bạn.",
+      "waitForConnection": "Connection in progress. Scanner paused for stability.",
       "codePlaceholder": "Nhập mã chia sẻ của bạn",
+      "replaceJoinLabel": "Replace my data with their data",
+      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
       "copy": "Sao chép mã",
+      "copied": "Copied!",
+      "paste": "Paste",
       "start": "Bắt đầu đồng bộ hóa",
       "stop": "Dừng đồng bộ hóa",
-      "invalidCode": "Mã không hợp lệ. Nó phải có 64 ký tự hex."
+      "invalidCode": "Mã không hợp lệ. Nó phải có 64 ký tự hex.",
+      "connecting": "Searching for peers…",
+      "connectedTitle": "Connected",
+      "connectedSubtitle_one": "{{count}} device in sync group.",
+      "connectedSubtitle_other": "{{count}} devices in sync group.",
+      "viewInfo": "View connection info",
+      "done": "Done"
+    },
+    "info": {
+      "title": "Connection info",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Idle",
+        "connecting": "Searching",
+        "synced": "Connected",
+        "error": "Error"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Reachable",
+      "bootstrappedNo": "Waiting",
+      "lastSync": "Last peer sync",
+      "never": "Never",
+      "thisDevice": "This device",
+      "deviceId": "Device ID",
+      "localKey": "Local key",
+      "syncGroup": "Sync group",
+      "autobaseKey": "Autobase key",
+      "topic": "Topic",
+      "connectedPeers": "Connected peers",
+      "noPeers": "No peers connected.",
+      "storagePath": "Storage",
+      "copy": "Copy",
+      "copied": "Copied",
+      "refresh": "Refresh",
+      "reconnectAttempts": "Reconnect attempts",
+      "debugLog": {
+        "title": "Debug log",
+        "refresh": "Refresh",
+        "empty": "No log entries yet."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "New device connected",
+      "newPeerMessage": "A paired device joined the sync group."
+    },
+    "quick": {
+      "title": "Sync Status",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Issue",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync"
+      },
+      "state": {
+        "issue": "Issue detected",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync off"
+      },
+      "summary": {
+        "issue": "Sync needs attention",
+        "connected_one": "Connected to {{count}} device",
+        "connected_other": "Connected to {{count}} devices",
+        "connecting": "Looking for devices",
+        "off": "Sync is off"
+      },
+      "description": {
+        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
+        "connected": "Your device is syncing with the group.",
+        "connecting": "Searching for your sync group.",
+        "off": "Sync is currently disabled on this device."
+      },
+      "lastSyncAt": "Last sync: {{at}}",
+      "lastSyncNever": "Last sync: never",
+      "actions": {
+        "setup": "Set up sync",
+        "pair": "Pair new device",
+        "manage": "Manage devices",
+        "openHub": "Open Sync Hub",
+        "troubleshoot": "Troubleshoot",
+        "stop": "Stop sync"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Xóa bản ghi ghép nối trên máy. Thiết bị vẫn có thể kết nối lại nếu có cùng mã đồng bộ.",
       "peers_one": "{{count}} thiết bị ngang hàng đã kết nối",
       "peers_other": "{{count}} thiết bị ngang hàng đã kết nối",
-      "stopSync": "Dừng đồng bộ"
+      "stopSync": "Dừng đồng bộ",
+      "connectionInfo": "Connection info",
+      "openSyncHub": "Open Sync Hub"
+    },
+    "syncStatus": {
+      "title": "Sync Status",
+      "status": "Status",
+      "syncingWith_one": "Syncing with {{count}} device",
+      "syncingWith_other": "Syncing with {{count}} devices",
+      "off": "Sync is off",
+      "lastSuccessfulSync": "Last successful sync",
+      "manage": "Manage Sync"
+    },
+    "localBackup": {
+      "title": "Sao lưu",
+      "export": "Lưu bản sao lưu vào thiết bị",
+      "import": "Khôi phục từ bản sao lưu",
+      "shareToDevice": "Chia sẻ sang thiết bị khác",
+      "scanFromDevice": "Quét từ thiết bị khác"
+    },
+    "pairingDevices": {
+      "title": "Pairing & Devices",
+      "count_one": "{{count}} paired device",
+      "count_other": "{{count}} paired devices"
+    },
+    "syncAdvanced": {
+      "title": "Sync Hub",
+      "description": "Debug logs and device identifiers for troubleshooting."
+    },
+    "syncHub": {
+      "title": "Sync Hub",
+      "overview": "Overview",
+      "ids": "Device & Group IDs",
+      "connections": "Connections",
+      "localWriterKey": "Local writer key",
+      "management": "Management"
     },
     "data": {
       "title": "Dữ liệu",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "JSON cục bộ",
-      "description": "Xuất dữ liệu tập luyện của bạn sang tệp JSON hoặc nhập bản sao lưu cục bộ trước đó.",
+      "description": "Xuất dữ liệu ra tệp JSON hoặc nhập bản sao lưu trước đó.",
       "export": "Xuất sao lưu",
       "import": "Nhập sao lưu"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Hủy",
     "confirm": "Nhập sao lưu"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Chia sẻ sang thiết bị khác",
+    "shareDescription": "Trên thiết bị kia: Cài đặt → Sao lưu → Quét từ thiết bị khác.",
+    "scanTitle": "Quét từ thiết bị khác",
+    "scanDescription": "Hướng camera vào mã QR sao lưu của PearLift.",
+    "cameraPermissionTitle": "Cần quyền camera",
+    "cameraPermissionMessage": "Cho phép truy cập camera để quét mã QR sao lưu.",
+    "cameraPermissionButton": "Cho phép Camera",
+    "invalidQr": "Mã QR này không giống bản sao lưu của PearLift.",
+    "tooLarge": "Bản sao lưu quá lớn để chứa trong một mã QR. Hãy dùng “Lưu bản sao lưu vào thiết bị” thay thế."
   },
   "prompts": {
     "deleteExercise": {

@@ -30,8 +30,13 @@
     },
     "getStarted": "开始使用",
     "notNow": "暂时不要",
+    "skipSync": "跳过",
     "setupSync": "设置同步",
-    "settingUp": "设置中..."
+    "settingUp": "设置中...",
+    "syncPrompt": {
+      "title": "在您的设备间同步",
+      "description": "您的数据永远不会离开您的设备。您可以在设置中随时进行设置。"
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "加入",
       "yourCode": "您的同步代码",
       "shareHint": "与您的其他设备共享此同步代码（或 QR）。该设备必须输入相同的代码才能加入您的同步组。",
+      "startSyncFirst": "首先按「开始同步」，然后与您的其他设备分享此二维码。",
       "enterCode": "输入同步代码",
       "scanQr": "扫描二维码",
       "scanEnableCamera": "启用相机",
       "scanHelp": "将相机对准其他设备上的二维码。",
+      "waitForConnection": "正在连接。扫描仪已暂停以保持稳定性。",
       "codePlaceholder": "输入您的分享代码",
+      "replaceJoinLabel": "用他们的数据替换我的数据",
+      "replaceJoinHint": "在首次同步之前，这只会重置此设备上的本地训练、动作重量和程序配置。",
       "copy": "复制代码",
+      "copied": "已复制！",
+      "paste": "粘贴",
       "start": "开始同步",
       "stop": "停止同步",
-      "invalidCode": "代码无效。它必须是 64 个十六进制字符。"
+      "invalidCode": "代码无效。它必须是 64 个十六进制字符。",
+      "connecting": "正在搜索对等设备…",
+      "connectedTitle": "已连接",
+      "connectedSubtitle_one": "{{count}} 个设备在同步组中。",
+      "connectedSubtitle_other": "{{count}} 个设备在同步组中。",
+      "viewInfo": "查看连接信息",
+      "done": "完成"
+    },
+    "info": {
+      "title": "连接信息",
+      "statusLabel": "状态",
+      "status": {
+        "idle": "空闲",
+        "connecting": "搜索中",
+        "synced": "已连接",
+        "error": "错误"
+      },
+      "peers": "对等设备",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "可访问",
+      "bootstrappedNo": "等待中",
+      "lastSync": "上次对等同步",
+      "never": "从未",
+      "thisDevice": "此设备",
+      "deviceId": "设备ID",
+      "localKey": "本地密钥",
+      "syncGroup": "同步组",
+      "autobaseKey": "Autobase密钥",
+      "topic": "主题",
+      "connectedPeers": "已连接的对等设备",
+      "noPeers": "没有对等设备连接。",
+      "storagePath": "存储",
+      "copy": "复制",
+      "copied": "已复制",
+      "refresh": "刷新",
+      "reconnectAttempts": "重新连接尝试",
+      "debugLog": {
+        "title": "调试日志",
+        "refresh": "刷新",
+        "empty": "暂无日志条目。"
+      }
+    },
+    "toast": {
+      "newPeerTitle": "新设备已连接",
+      "newPeerMessage": "配对设备已加入同步组。"
+    },
+    "quick": {
+      "title": "同步状态",
+      "statusLabel": "状态",
+      "button": {
+        "issue": "问题",
+        "connected": "已连接",
+        "connecting": "连接中",
+        "off": "同步"
+      },
+      "state": {
+        "issue": "检测到问题",
+        "connected": "已连接",
+        "connecting": "连接中",
+        "off": "同步关闭"
+      },
+      "summary": {
+        "issue": "同步需要关注",
+        "connected_one": "已连接到 {{count}} 个设备",
+        "connected_other": "已连接到 {{count}} 个设备",
+        "connecting": "正在搜索设备",
+        "off": "同步已关闭"
+      },
+      "description": {
+        "issue": "同步需要关注。打开设置或诊断来解决。",
+        "connected": "您的设备正在与组同步。",
+        "connecting": "正在搜索您的同步组。",
+        "off": "同步目前在此设备上被禁用。"
+      },
+      "lastSyncAt": "上次同步: {{at}}",
+      "lastSyncNever": "上次同步: 从未",
+      "actions": {
+        "setup": "设置同步",
+        "pair": "配对新设备",
+        "manage": "管理设备",
+        "openHub": "打开同步中心",
+        "troubleshoot": "故障排除",
+        "stop": "停止同步"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "这将本地删除配对记录。设备仍可使用相同的同步码重新连接。",
       "peers_one": "{{count}} 个对等设备已连接",
       "peers_other": "{{count}} 个对等设备已连接",
-      "stopSync": "停止同步"
+      "stopSync": "停止同步",
+      "connectionInfo": "连接信息",
+      "openSyncHub": "打开同步中心"
+    },
+    "syncStatus": {
+      "title": "同步状态",
+      "status": "状态",
+      "syncingWith_one": "正在与 {{count}} 个设备同步",
+      "syncingWith_other": "正在与 {{count}} 个设备同步",
+      "off": "同步已关闭",
+      "lastSuccessfulSync": "上次成功同步",
+      "manage": "管理同步"
+    },
+    "localBackup": {
+      "title": "备份",
+      "export": "保存备份到设备",
+      "import": "从备份恢复",
+      "shareToDevice": "分享至另一台设备",
+      "scanFromDevice": "从另一台设备扫描"
+    },
+    "pairingDevices": {
+      "title": "配对与设备",
+      "count_one": "{{count}} 个配对设备",
+      "count_other": "{{count}} 个配对设备"
+    },
+    "syncAdvanced": {
+      "title": "同步中心",
+      "description": "用于故障排除的调试日志和设备标识符。"
+    },
+    "syncHub": {
+      "title": "同步中心",
+      "overview": "概述",
+      "ids": "设备和组ID",
+      "connections": "连接",
+      "localWriterKey": "本地写入密钥",
+      "management": "管理"
     },
     "data": {
       "title": "数据",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "本地 JSON",
-      "description": "将您的训练数据导出为 JSON 文件或导入之前的本地备份。",
+      "description": "将数据导出为 JSON 文件，或导入之前的备份。",
       "export": "导出备份",
       "import": "导入备份"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "取消",
     "confirm": "导入备份"
+  },
+  "deviceTransfer": {
+    "shareTitle": "分享至另一台设备",
+    "shareDescription": "在另一台设备上：设置 → 备份 → 从另一台设备扫描。",
+    "scanTitle": "从另一台设备扫描",
+    "scanDescription": "将相机对准 PearLift 备份二维码。",
+    "cameraPermissionTitle": "需要相机权限",
+    "cameraPermissionMessage": "允许使用相机以扫描备份二维码。",
+    "cameraPermissionButton": "允许相机",
+    "invalidQr": "该二维码看起来不像 PearLift 的备份。",
+    "tooLarge": "备份内容过大，无法放入单个二维码。请改用“保存备份到设备”。"
   },
   "prompts": {
     "deleteExercise": {

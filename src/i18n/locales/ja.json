@@ -30,8 +30,13 @@
     },
     "getStarted": "始める",
     "notNow": "後で",
+    "skipSync": "スキップ",
     "setupSync": "同期を設定",
-    "settingUp": "設定中..."
+    "settingUp": "設定中...",
+    "syncPrompt": {
+      "title": "デバイス間で同期",
+      "description": "あなたのデータがデバイスから離れることはありません。設定でいつでも設定できます。"
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "参加する",
       "yourCode": "あなたの同期コード",
       "shareHint": "この同期コード (または QR) を他のデバイスと共有します。同期グループに参加するには、そのデバイスが同じコードを入力する必要があります。",
+      "startSyncFirst": "最初に「同期を開始」を押し、別のデバイスでこのQRを共有してください。",
       "enterCode": "同期コードを入力してください",
       "scanQr": "QRコードをスキャンします",
       "scanEnableCamera": "カメラを有効にする",
       "scanHelp": "カメラを他のデバイスの QR コードに向けます。",
+      "waitForConnection": "接続中。安定性のためにスキャナーが一時停止しています。",
       "codePlaceholder": "シェアコードを入力してください",
+      "replaceJoinLabel": "自分のデータを相手のデータに置き換える",
+      "replaceJoinHint": "最初の同期の前は、このデバイスのローカルワークアウト、运动重量、プログラム設定のみがリセットされます。",
       "copy": "コードをコピーする",
+      "copied": "コピーしました！",
+      "paste": "貼り付け",
       "start": "同期を開始する",
       "stop": "同期を停止する",
-      "invalidCode": "無効なコードです。 64 の 16 進文字である必要があります。"
+      "invalidCode": "無効なコードです。 64 の 16 進文字である必要があります。",
+      "connecting": "ピアを検索中…",
+      "connectedTitle": "接続済み",
+      "connectedSubtitle_one": "{{count}} 台のデバイスが同期グループにあります。",
+      "connectedSubtitle_other": "{{count}} 台のデバイスが同期グループにあります。",
+      "viewInfo": "接続情報を表示",
+      "done": "完了"
+    },
+    "info": {
+      "title": "接続情報",
+      "statusLabel": "ステータス",
+      "status": {
+        "idle": "アイドル",
+        "connecting": "検索中",
+        "synced": "接続済み",
+        "error": "エラー"
+      },
+      "peers": "ピア",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "到達可能",
+      "bootstrappedNo": "待機中",
+      "lastSync": "最後のピア同期",
+      "never": "なし",
+      "thisDevice": "このデバイス",
+      "deviceId": "デバイスID",
+      "localKey": "ローカルキー",
+      "syncGroup": "同期グループ",
+      "autobaseKey": "Autobaseキー",
+      "topic": "トピック",
+      "connectedPeers": "接続されたピア",
+      "noPeers": "ピアが接続されていません。",
+      "storagePath": "ストレージ",
+      "copy": "コピー",
+      "copied": "コピーしました",
+      "refresh": "更新",
+      "reconnectAttempts": "再接続試行",
+      "debugLog": {
+        "title": "デバッグログ",
+        "refresh": "更新",
+        "empty": "ログエントリはまだありません。"
+      }
+    },
+    "toast": {
+      "newPeerTitle": "新しいデバイスが接続されました",
+      "newPeerMessage": "ペアリングされたデバイスが同期グループに参加しました。"
+    },
+    "quick": {
+      "title": "同期ステータス",
+      "statusLabel": "ステータス",
+      "button": {
+        "issue": "問題",
+        "connected": "接続済み",
+        "connecting": "接続中",
+        "off": "同期"
+      },
+      "state": {
+        "issue": "問題が検出されました",
+        "connected": "接続済み",
+        "connecting": "接続中",
+        "off": "同期オフ"
+      },
+      "summary": {
+        "issue": "同期には注意が必要です",
+        "connected_one": "{{count}} 台のデバイスに接続済み",
+        "connected_other": "{{count}} 台のデバイスに接続済み",
+        "connecting": "デバイスを検索中",
+        "off": "同期がオフです"
+      },
+      "description": {
+        "issue": "同期には注意が必要です。解決するにはセットアップまたは診断を開いてください。",
+        "connected": "あなたのデバイスはグループと同期しています。",
+        "connecting": "同期グループを検索中。",
+        "off": "同期は現在このデバイスで無効です。"
+      },
+      "lastSyncAt": "最後の同期: {{at}}",
+      "lastSyncNever": "最後の同期: なし",
+      "actions": {
+        "setup": "同期を設定",
+        "pair": "新しいデバイスをペアリング",
+        "manage": "デバイスを管理",
+        "openHub": "同期ハブを開く",
+        "troubleshoot": "トラブルシューティング",
+        "stop": "同期を停止"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "これにより、ペアリング レコードがローカルで削除されます。同じ同期コードがある場合、デバイスは再接続できます。",
       "peers_one": "{{count}} ピア接続",
       "peers_other": "{{count}} ピア接続",
-      "stopSync": "同期の停止"
+      "stopSync": "同期の停止",
+      "connectionInfo": "接続情報",
+      "openSyncHub": "同期ハブを開く"
+    },
+    "syncStatus": {
+      "title": "同期ステータス",
+      "status": "ステータス",
+      "syncingWith_one": "{{count}} 台のデバイスと同期中",
+      "syncingWith_other": "{{count}} 台のデバイスと同期中",
+      "off": "同期がオフです",
+      "lastSuccessfulSync": "最後の成功した同期",
+      "manage": "同期を管理"
+    },
+    "localBackup": {
+      "title": "バックアップ",
+      "export": "端末にバックアップを保存",
+      "import": "バックアップから復元",
+      "shareToDevice": "別の端末に共有",
+      "scanFromDevice": "別の端末からスキャン"
+    },
+    "pairingDevices": {
+      "title": "ペアリングとデバイス",
+      "count_one": "{{count}} 台のペアリングされたデバイス",
+      "count_other": "{{count}} 台のペアリングされたデバイス"
+    },
+    "syncAdvanced": {
+      "title": "同期ハブ",
+      "description": "トラブルシューティング用のデバッグログとデバイス識別子。"
+    },
+    "syncHub": {
+      "title": "同期ハブ",
+      "overview": "概要",
+      "ids": "デバイスとグループID",
+      "connections": "接続",
+      "localWriterKey": "ローカルライターキー",
+      "management": "管理"
     },
     "data": {
       "title": "データ",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "ローカルJSON",
-      "description": "ワークアウトデータをJSONファイルにエクスポートするか、以前のローカルバックアップをインポートします。",
+      "description": "データをJSONファイルとして書き出すか、以前のバックアップを読み込みます。",
       "export": "バックアップをエクスポート",
       "import": "バックアップをインポート"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "キャンセル",
     "confirm": "バックアップをインポート"
+  },
+  "deviceTransfer": {
+    "shareTitle": "別の端末に共有",
+    "shareDescription": "別の端末で「設定 → バックアップ → 別の端末からスキャン」を開いてください。",
+    "scanTitle": "別の端末からスキャン",
+    "scanDescription": "PearLiftのバックアップQRコードにカメラを向けてください。",
+    "cameraPermissionTitle": "カメラの許可が必要です",
+    "cameraPermissionMessage": "バックアップQRコードを読み取るためにカメラへのアクセスを許可してください。",
+    "cameraPermissionButton": "カメラを許可",
+    "invalidQr": "このQRコードはPearLiftのバックアップではないようです。",
+    "tooLarge": "バックアップが1つのQRコードに収まりません。代わりに「端末にバックアップを保存」を使用してください。"
   },
   "prompts": {
     "deleteExercise": {

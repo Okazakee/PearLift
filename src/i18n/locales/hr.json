@@ -30,8 +30,13 @@
     },
     "getStarted": "Počnite",
     "notNow": "Ne sada",
+    "skipSync": "Preskoči",
     "setupSync": "Postavi sinkronizaciju",
-    "settingUp": "Postavljanje..."
+    "settingUp": "Postavljanje...",
+    "syncPrompt": {
+      "title": "Sinkronizirajte svoje uređaje",
+      "description": "Vaši podaci nikad ne napuštaju vaše uređaje. Možete ga postaviti bilo kada u Postavkama."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Pridruži se",
       "yourCode": "Vaš kod za sinkronizaciju",
       "shareHint": "Podijelite ovaj kod za sinkronizaciju (ili QR) sa svojim drugim uređajem. Taj uređaj mora unijeti isti kod da bi se pridružio vašoj grupi za sinkronizaciju.",
+      "startSyncFirst": "Najprije pritisnite Pokreni sinkronizaciju, a zatim podijelite ovaj QR s drugim uređajem.",
       "enterCode": "Unesite sinkronizacijski kod",
       "scanQr": "Skenirajte QR kod",
       "scanEnableCamera": "Omogući kameru",
       "scanHelp": "Usmjerite kameru prema QR kodu na drugom uređaju.",
+      "waitForConnection": "Povezivanje u tijeku. Skener je pauziran radi stabilnosti.",
       "codePlaceholder": "Unesite svoj kod za dijeljenje",
+      "replaceJoinLabel": "Zamijeni moje podatke njihovim podacima",
+      "replaceJoinHint": "Prije prve sinkronizacije, ovo resetira lokalne treninge, težine vježbi i konfiguracije programa samo na ovom uređaju.",
       "copy": "Kopiraj kod",
+      "copied": "Kopirano!",
+      "paste": "Zalijepi",
       "start": "Započni sinkronizaciju",
       "stop": "Zaustavi sinkronizaciju",
-      "invalidCode": "Neispravan kod. Mora imati 64 heksadecimalna znaka."
+      "invalidCode": "Neispravan kod. Mora imati 64 heksadecimalna znaka.",
+      "connecting": "Traženje ravnopravnih uređaja…",
+      "connectedTitle": "Povezano",
+      "connectedSubtitle_one": "{{count}} device in sync group.",
+      "connectedSubtitle_other": "{{count}} devices in sync group.",
+      "viewInfo": "Prikaži informacije o povezivanju",
+      "done": "Gotovo"
+    },
+    "info": {
+      "title": "Informacije o povezivanju",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Nenamješteno",
+        "connecting": "Traženje",
+        "synced": "Povezano",
+        "error": "Greška"
+      },
+      "peers": "Ravnopravni uređaji",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Dostupno",
+      "bootstrappedNo": "Čekanje",
+      "lastSync": "Zadnja sinkronizacija s ravnopravnim uređajem",
+      "never": "Nikada",
+      "thisDevice": "Ovaj uređaj",
+      "deviceId": "ID uređaja",
+      "localKey": "Lokalni ključ",
+      "syncGroup": "Grupa za sinkronizaciju",
+      "autobaseKey": "Autobase ključ",
+      "topic": "Tema",
+      "connectedPeers": "Povezani ravnopravni uređaji",
+      "noPeers": "Nema povezanih ravnopravnih uređaja.",
+      "storagePath": "Pohrana",
+      "copy": "Kopiraj",
+      "copied": "Kopirano",
+      "refresh": "Refresh",
+      "reconnectAttempts": "Reconnect attempts",
+      "debugLog": {
+        "title": "Debug log",
+        "refresh": "Refresh",
+        "empty": "Još nema unosa u zapisnik."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Novi uređaj povezan",
+      "newPeerMessage": "Upareni uređaj pridružio se grupi za sinkronizaciju."
+    },
+    "quick": {
+      "title": "Status sinkronizacije",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Problem",
+        "connected": "Povezano",
+        "connecting": "Povezivanje",
+        "off": "Sinkronizacija"
+      },
+      "state": {
+        "issue": "Otkriven problem",
+        "connected": "Povezano",
+        "connecting": "Povezivanje",
+        "off": "Sinkronizacija isključena"
+      },
+      "summary": {
+        "issue": "Sinkronizacija zahtijeva pozornost",
+        "connected_one": "Povezano s {{count}} uređajem",
+        "connected_other": "Povezano s {{count}} uređajima",
+        "connecting": "Traženje uređaja",
+        "off": "Sinkronizacija je isključena"
+      },
+      "description": {
+        "issue": "Sinkronizacija zahtijeva pozornost. Otvorite postavke ili dijagnostiku za rješavanje.",
+        "connected": "Vaš uređaj se sinkronizira s grupom.",
+        "connecting": "Traženje vaše grupe za sinkronizaciju.",
+        "off": "Sinkronizacija je trenutno onemogućena na ovom uređaju."
+      },
+      "lastSyncAt": "Zadnja sinkronizacija: {{at}}",
+      "lastSyncNever": "Zadnja sinkronizacija: nikada",
+      "actions": {
+        "setup": "Postavi sinkronizaciju",
+        "pair": "Uredi novi uređaj",
+        "manage": "Upravljaj uređajima",
+        "openHub": "Otvori centar za sinkronizaciju",
+        "troubleshoot": "Rješavanje problema",
+        "stop": "Zaustavi sinkronizaciju"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Time se lokalno uklanja zapis o uparivanju. Uređaj se i dalje može ponovno povezati ako ima isti kod za sinkronizaciju.",
       "peers_one": "{{count}} ravnopravni uređaj povezan",
       "peers_other": "{{count}} ravnopravnih uređaja povezano",
-      "stopSync": "Zaustavi sinkronizaciju"
+      "stopSync": "Zaustavi sinkronizaciju",
+      "connectionInfo": "Informacije o povezivanju",
+      "openSyncHub": "Otvori centar za sinkronizaciju"
+    },
+    "syncStatus": {
+      "title": "Status sinkronizacije",
+      "status": "Status",
+      "syncingWith_one": "Sinkronizacija s {{count}} uređajem",
+      "syncingWith_other": "Sinkronizacija s {{count}} uređajima",
+      "off": "Sinkronizacija je isključena",
+      "lastSuccessfulSync": "Zadnja uspješna sinkronizacija",
+      "manage": "Upravljaj sinkronizacijom"
+    },
+    "localBackup": {
+      "title": "Sigurnosna kopija",
+      "export": "Spremi sigurnosnu kopiju na uređaj",
+      "import": "Vrati iz sigurnosne kopije",
+      "shareToDevice": "Podijeli na drugi uređaj",
+      "scanFromDevice": "Skeniraj s drugog uređaja"
+    },
+    "pairingDevices": {
+      "title": "Uparivanje i uređaji",
+      "count_one": "{{count}} upareni uređaj",
+      "count_other": "{{count}} uparenih uređaja"
+    },
+    "syncAdvanced": {
+      "title": "Centar za sinkronizaciju",
+      "description": "Zapisnici za otklanjanje grešaka i identifikatori uređaja."
+    },
+    "syncHub": {
+      "title": "Centar za sinkronizaciju",
+      "overview": "Pregled",
+      "ids": "ID-ovi uređaja i grupe",
+      "connections": "Povezivanja",
+      "localWriterKey": "Lokalni ključ za pisanje",
+      "management": "Upravljanje"
     },
     "data": {
       "title": "Podaci",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokalni JSON",
-      "description": "Izvezite podatke o treningu u JSON datoteku ili uvezite prethodnu lokalnu sigurnosnu kopiju.",
+      "description": "Izvezite podatke u JSON datoteku ili uvezite prethodnu sigurnosnu kopiju.",
       "export": "Izvezi sigurnosnu kopiju",
       "import": "Uvezi sigurnosnu kopiju"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Odustani",
     "confirm": "Uvezi sigurnosnu kopiju"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Podijeli na drugi uređaj",
+    "shareDescription": "Na drugom uređaju: Postavke → Sigurnosna kopija → Skeniraj s drugog uređaja.",
+    "scanTitle": "Skeniraj s drugog uređaja",
+    "scanDescription": "Usmjerite kameru na QR kod sigurnosne kopije PearLift.",
+    "cameraPermissionTitle": "Potrebno je dopuštenje za kameru",
+    "cameraPermissionMessage": "Dopustite pristup kameri za skeniranje QR koda sigurnosne kopije.",
+    "cameraPermissionButton": "Dopusti kameru",
+    "invalidQr": "Ovaj QR kod ne izgleda kao sigurnosna kopija PearLift.",
+    "tooLarge": "Sigurnosna kopija je prevelika za jedan QR kod. Umjesto toga koristite „Spremi sigurnosnu kopiju na uređaj“."
   },
   "prompts": {
     "deleteExercise": {

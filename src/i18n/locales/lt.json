@@ -30,8 +30,13 @@
     },
     "getStarted": "Pradėti",
     "notNow": "Ne dabar",
+    "skipSync": "Praleisti",
     "setupSync": "Nustatyti sinchronizavimą",
-    "settingUp": "Nustatymas..."
+"settingUp": "Nustatymas...",
+    "syncPrompt": {
+      "title": "Sinchronizuokite savo įrenginius",
+      "description": "Jūsų duomenys niekada neišgalvoja iš jūsų įrenginių. Galite tai nustatyti bet kada Nustatymuose."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Prisijunk",
       "yourCode": "Jūsų sinchronizavimo kodas",
       "shareHint": "Bendrinkite šį sinchronizavimo kodą (arba QR kodą) su kitu įrenginiu. Šis įrenginys turi įvesti tą patį kodą, kad prisijungtų prie sinchronizavimo grupės.",
+      "startSyncFirst": "Pirma paspauskite Pradėti sinchronizavimą, tada bendrinkite šį QR su kitu įrenginiu.",
       "enterCode": "Įveskite sinchronizavimo kodą",
       "scanQr": "Nuskaitykite QR kodą",
       "scanEnableCamera": "Įjungti kamerą",
       "scanHelp": "Nukreipkite fotoaparatą į QR kodą kitame įrenginyje.",
+      "waitForConnection": "Jungiamasi. Scannerius pristabdytas stabilumui.",
       "codePlaceholder": "Įveskite savo bendrinimo kodą",
+      "replaceJoinLabel": "Pakeisti mano duomenis jų duomenimis",
+      "replaceJoinHint": "Prieš pirmą sinchronizavimą, tai iš naujo nustato vietines treniruotes, pratimų svorius ir programos konfigūracijas tik šiame įrenginyje.",
       "copy": "Nukopijuokite kodą",
+      "copied": "Nukopijuota!",
+      "paste": "Įklijuoti",
       "start": "Pradėti sinchronizavimą",
       "stop": "Sustabdyti sinchronizavimą",
-      "invalidCode": "Neteisingas kodas. Jį turi sudaryti 64 šešioliktainiai simboliai."
+      "invalidCode": "Neteisingas kodas. Jį turi sudaryti 64 šešioliktainiai simboliai.",
+      "connecting": "Ieškoma lygiųjų…",
+      "connectedTitle": "Prisijungta",
+      "connectedSubtitle_one": "{{count}} įrenginys sinchronizavimo grupėje.",
+      "connectedSubtitle_other": "{{count}} įrenginiai sinchronizavimo grupėje.",
+      "viewInfo": "Peržiūrėti ryšio informaciją",
+      "done": "Atlikta"
+    },
+    "info": {
+      "title": "Ryšio informacija",
+      "statusLabel": "Būsena",
+      "status": {
+        "idle": "Nebeltas",
+        "connecting": "Jungiama",
+        "synced": "Prisijungta",
+        "error": "Klaida"
+      },
+      "peers": "Lygiūs",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Pasiekiamas",
+      "bootstrappedNo": "Laukiama",
+      "lastSync": "Paskutinis sinchronizavimas su lygiuoju",
+      "never": "Niekada",
+      "thisDevice": "Šis įrenginys",
+      "deviceId": "Įrenginio ID",
+      "localKey": "Vietinis raktas",
+      "syncGroup": "Sinchronizavimo grupė",
+      "autobaseKey": "Autobase raktas",
+      "topic": "Tema",
+      "connectedPeers": "Prisijungę lygūs",
+      "noPeers": "Nėra prisijungusių lygų.",
+      "storagePath": "Saugojimas",
+      "copy": "Kopijuoti",
+      "copied": "Nukopijuota",
+      "refresh": "Atnaujinti",
+      "reconnectAttempts": "Pakartotinio prisijungimo bandymai",
+      "debugLog": {
+        "title": "Derinimo žurnalas",
+        "refresh": "Atnaujinti",
+        "empty": "Dar nėra žurnalo įrašų."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Naujas įrenginys prisijungė",
+      "newPeerMessage": "Suporuotas įrenginys prisijungė prie sinchronizavimo grupės."
+    },
+    "quick": {
+      "title": "Sinchronizavimo būsena",
+      "statusLabel": "Būsena",
+      "button": {
+        "issue": "Problema",
+        "connected": "Prisijungta",
+        "connecting": "Jungiamasi",
+        "off": "Sinchronizuoti"
+      },
+      "state": {
+        "issue": "Nustatyta problema",
+        "connected": "Prisijungta",
+        "connecting": "Jungiamasi",
+        "off": "Sinchronizavimas išjungtas"
+      },
+      "summary": {
+        "issue": "Sinchronizavimui reikia dėmesio",
+        "connected_one": "Prisijungta prie {{count}} įrenginio",
+        "connected_other": "Prisijungta prie {{count}} įrenginių",
+        "connecting": "Ieškoma įrenginių",
+        "off": "Sinchronizavimas išjungtas"
+      },
+      "description": {
+        "issue": "Sinchronizavimui reikia dėmesio. Atidarykite nustatymus arba diagnostiką, kad išspręstumėte.",
+        "connected": "Jūsų įrenginys sinchronizuojasi su grupe.",
+        "connecting": "Ieškoma sinchronizavimo grupės.",
+        "off": "Sinchronizavimas šiuo metu išjungtas šiame įrenginyje."
+      },
+      "lastSyncAt": "Paskutinis sinchronizavimas: {{at}}",
+      "lastSyncNever": "Paskutinis sinchronizavimas: niekada",
+      "actions": {
+        "setup": "Nustatyti sinchronizavimą",
+        "pair": "Susieti naują įrenginį",
+        "manage": "Valdyti įrenginius",
+        "openHub": "Atidaryti Sinchronizavimo centrą",
+        "troubleshoot": "Šalinti triktis",
+        "stop": "Sustabdyti sinchronizavimą"
+      }
     }
   },
   "workout": {
@@ -128,23 +222,58 @@
       "appLanguage": "Programos kalba",
       "system": "Sistema"
     },
-    "syncBackup": {
+"syncBackup": {
       "title": "Sinchronizavimas ir atsarginė kopija",
       "comingSoon": "Įrenginys-įrenginys sinchronizavimas greitai bus prieinamas.",
       "openSyncSetup": "Atidaryti sinchronizavimo nustatymus",
       "enableSync": "Įgalinti sinchronizavimą",
-      "pairNewDevice": "Susiekite naują įrenginį",
+      "pairNewDevice": "Susieti naują įrenginį",
       "copyCode": "Kopijuoti kodą",
-      "shareCode": "Bendrinkite kodą",
+      "shareCode": "Bendrinti kodą",
       "pairedDevices": "Suporuoti įrenginiai",
       "noDevices": "Dar nėra susietų įrenginių",
       "lastSeen": "Paskutinį kartą matytas",
-      "forgetDevice": "Pamiršk",
+      "forgetDevice": "Pamiršti",
       "forgetConfirmTitle": "Pamiršote šį įrenginį?",
       "forgetConfirmMessage": "Tai pašalina susiejimo įrašą vietoje. Įrenginys vis tiek gali prisijungti iš naujo, jei turi tą patį sinchronizavimo kodą.",
       "peers_one": "{{count}} lygiarangiškas prijungtas",
       "peers_other": "{{count}} lygiarangiški prijungta",
-      "stopSync": "Sustabdyti sinchronizavimą"
+      "stopSync": "Sustabdyti sinchronizavimą",
+      "connectionInfo": "Ryšio informacija",
+      "openSyncHub": "Atidaryti Sinchronizavimo centrą"
+    },
+    "syncStatus": {
+      "title": "Sinchronizavimo būsena",
+      "status": "Būsena",
+      "syncingWith_one": "Sinchronizuojama su {{count}} įrenginiu",
+      "syncingWith_other": "Sinchronizuojama su {{count}} įrenginiais",
+      "off": "Sinchronizavimas išjungtas",
+      "lastSuccessfulSync": "Paskutinis sėkmingas sinchronizavimas",
+      "manage": "Valdyti sinchronizavimą"
+    },
+    "localBackup": {
+      "title": "Atsarginė kopija",
+      "export": "Išsaugoti atsarginę kopiją įrenginyje",
+      "import": "Atkurti iš atsarginės kopijos",
+      "shareToDevice": "Bendrinti su kitu įrenginiu",
+      "scanFromDevice": "Nuskaityti iš kito įrenginio"
+    },
+    "pairingDevices": {
+      "title": "Susiejimas ir įrenginiai",
+      "count_one": "{{count}} suporuotas įrenginys",
+      "count_other": "{{count}} suporuoti įrenginiai"
+    },
+    "syncAdvanced": {
+      "title": "Sinchronizavimo centras",
+      "description": "Derinimo žurnalai ir įrenginių identifikatoriai trikių šalinimui."
+    },
+    "syncHub": {
+      "title": "Sinchronizavimo centras",
+      "overview": "Apžvalga",
+      "ids": "Įrenginio ir grupės ID",
+      "connections": "Jungtys",
+      "localWriterKey": "Vietinį rašytojo raktas",
+      "management": "Valdymas"
     },
     "data": {
       "title": "Duomenys",
@@ -160,7 +289,7 @@
       "title": "Programos informacija",
       "name": "Pavadinimas",
       "version": "Versija",
-      "build": "Build",
+      "build": "Buildas",
       "buildType": "Build tipas"
     }
   },
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Vietinis JSON",
-      "description": "Eksportuokite treniruočių duomenis į JSON failą arba importuokite ankstesnę vietinę atsarginę kopiją.",
+      "description": "Eksportuokite duomenis į JSON failą arba importuokite ankstesnę atsarginę kopiją.",
       "export": "Eksportuoti atsarginę kopiją",
       "import": "Importuoti atsarginę kopiją"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Atšaukti",
     "confirm": "Importuoti atsarginę kopiją"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Bendrinti su kitu įrenginiu",
+    "shareDescription": "Kitame įrenginyje: Nustatymai → Atsarginė kopija → Nuskaityti iš kito įrenginio.",
+    "scanTitle": "Nuskaityti iš kito įrenginio",
+    "scanDescription": "Nukreipkite kamerą į PearLift atsarginės kopijos QR kodą.",
+    "cameraPermissionTitle": "Reikalingas kameros leidimas",
+    "cameraPermissionMessage": "Leiskite naudoti kamerą atsarginės kopijos QR kodui nuskaityti.",
+    "cameraPermissionButton": "Leisti kamerą",
+    "invalidQr": "Šis QR kodas nepanašus į PearLift atsarginę kopiją.",
+    "tooLarge": "Atsarginė kopija per didelė vienam QR kodui. Vietoje to naudokite „Išsaugoti atsarginę kopiją įrenginyje“."
   },
   "prompts": {
     "deleteExercise": {

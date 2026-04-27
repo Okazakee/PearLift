@@ -30,8 +30,13 @@
     },
     "getStarted": "Başla",
     "notNow": "Şimdi değil",
+    "skipSync": "Atla",
     "setupSync": "Senkronizasyonu kur",
-    "settingUp": "Ayarlanıyor..."
+    "settingUp": "Ayarlanıyor...",
+    "syncPrompt": {
+      "title": "Cihazlarınızda senkronize edin",
+      "description": "Verileriniz cihazlarınızdan asla ayrılmaz. Bunu istediğiniz zaman Ayarlardan ayarlayabilirsiniz."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Katıl",
       "yourCode": "Senkronizasyon Kodunuz",
       "shareHint": "Bu Senkronizasyon Kodunu (veya QR'yi) diğer cihazınızla paylaşın. Senkronizasyon grubunuza katılmak için bu cihazın aynı kodu girmesi gerekir.",
+      "startSyncFirst": "Önce Senkronizasyonu Başlat'a basın, ardından bu QR'yi diğer cihazınızla paylaşın.",
       "enterCode": "Senkronizasyon Kodunu Girin",
       "scanQr": "QR kodunu tarayın",
       "scanEnableCamera": "Kamerayı etkinleştir",
       "scanHelp": "Kameranızı diğer cihazınızdaki QR koduna doğrultun.",
+      "waitForConnection": "Bağlantı devam ediyor. Kararlılık için tarayıcı duraklatıldı.",
       "codePlaceholder": "Paylaşım kodunuzu girin",
+      "replaceJoinLabel": "Verilerimi onların verileriyle değiştir",
+      "replaceJoinHint": "İlk senkronizasyondan önce, bu yalnızca bu cihazdaki yerel antrenmanları, egzersiz ağırlıklarını ve program yapılandırmalarını sıfırlar.",
       "copy": "Kodu kopyala",
+      "copied": "Kopyalandı!",
+      "paste": "Yapıştır",
       "start": "Senkronizasyonu başlat",
       "stop": "Senkronizasyonu durdur",
-      "invalidCode": "Geçersiz kod. 64 hex karakterden oluşmalıdır."
+      "invalidCode": "Geçersiz kod. 64 hex karakterden oluşmalıdır.",
+      "connecting": "Eş aranıyor…",
+      "connectedTitle": "Bağlandı",
+      "connectedSubtitle_one": "{{count}} cihaz senkronizasyon grubunda.",
+      "connectedSubtitle_other": "{{count}} cihaz senkronizasyon grubunda.",
+      "viewInfo": "Bağlantı bilgilerini görüntüle",
+      "done": "Tamamlandı"
+    },
+    "info": {
+      "title": "Bağlantı bilgileri",
+      "statusLabel": "Durum",
+      "status": {
+        "idle": "Boşta",
+        "connecting": "Aranıyor",
+        "synced": "Bağlandı",
+        "error": "Hata"
+      },
+      "peers": "Eşler",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Erişilebilir",
+      "bootstrappedNo": "Bekliyor",
+      "lastSync": "Son eş senkronizasyonu",
+      "never": "Hiçbir zaman",
+      "thisDevice": "Bu cihaz",
+      "deviceId": "Cihaz Kimliği",
+      "localKey": "Yerel anahtar",
+      "syncGroup": "Senkronizasyon grubu",
+      "autobaseKey": "Autobase anahtarı",
+      "topic": "Konu",
+      "connectedPeers": "Bağlı eşler",
+      "noPeers": "Bağlı eş yok.",
+      "storagePath": "Depolama",
+      "copy": "Kopyala",
+      "copied": "Kopyalandı",
+      "refresh": "Yenile",
+      "reconnectAttempts": "Yeniden bağlantı girişimleri",
+      "debugLog": {
+        "title": "Hata ayıklama günlüğü",
+        "refresh": "Yenile",
+        "empty": "Henüz günlük girişi yok."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Yeni cihaz bağlandı",
+      "newPeerMessage": "Eşleşmiş bir cihaz senkronizasyon grubuna katıldı."
+    },
+    "quick": {
+      "title": "Senkronizasyon Durumu",
+      "statusLabel": "Durum",
+      "button": {
+        "issue": "Sorun",
+        "connected": "Bağlandı",
+        "connecting": "Bağlanıyor",
+        "off": "Senkronize et"
+      },
+      "state": {
+        "issue": "Sorun algılandı",
+        "connected": "Bağlandı",
+        "connecting": "Bağlanıyor",
+        "off": "Senkronizasyon kapalı"
+      },
+      "summary": {
+        "issue": "Senkronizasyon dikkat gerektiriyor",
+        "connected_one": "{{count}} cihaza bağlandı",
+        "connected_other": "{{count}} cihaza bağlandı",
+        "connecting": "Cihazlar aranıyor",
+        "off": "Senkronizasyon kapalı"
+      },
+      "description": {
+        "issue": "Senkronizasyon dikkat gerektiriyor. Çözmek için kurulumu veya tanılamayı açın.",
+        "connected": "Cihazınız grupla senkronize oluyor.",
+        "connecting": "Senkronizasyon grubunuz aranıyor.",
+        "off": "Senkronizasyon şu anda bu cihazda devre dışı."
+      },
+      "lastSyncAt": "Son senkronizasyon: {{at}}",
+      "lastSyncNever": "Son senkronizasyon: hiç",
+      "actions": {
+        "setup": "Senkronizasyonu kur",
+        "pair": "Yeni cihaz eşleştir",
+        "manage": "Cihazları yönet",
+        "openHub": "Senkronizasyon Merkezini aç",
+        "troubleshoot": "Sorun giderme",
+        "stop": "Senkronizasyonu durdur"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Bu, eşleştirme kaydını yerel olarak kaldırır. Cihaz aynı senkronizasyon koduna sahip yeniden bağlanabilir.",
       "peers_one": "{{count}} eş bağlı",
       "peers_other": "{{count}} eş bağlı",
-      "stopSync": "Senkronizasyonu durdur"
+      "stopSync": "Senkronizasyonu durdur",
+      "connectionInfo": "Bağlantı bilgileri",
+      "openSyncHub": "Senkronizasyon Merkezini aç"
+    },
+    "syncStatus": {
+      "title": "Senkronizasyon Durumu",
+      "status": "Durum",
+      "syncingWith_one": "{{count}} cihazla senkronize ediliyor",
+      "syncingWith_other": "{{count}} cihazla senkronize ediliyor",
+      "off": "Senkronizasyon kapalı",
+      "lastSuccessfulSync": "Son başarılı senkronizasyon",
+      "manage": "Senkronizasyonu yönet"
+    },
+    "localBackup": {
+      "title": "Yedek",
+      "export": "Yedeği cihaza kaydet",
+      "import": "Yedekten geri yükle",
+      "shareToDevice": "Başka cihaza paylaş",
+      "scanFromDevice": "Başka cihazdan tara"
+    },
+    "pairingDevices": {
+      "title": "Eşleştirme ve Cihazlar",
+      "count_one": "{{count}} eşleşmiş cihaz",
+      "count_other": "{{count}} eşleşmiş cihaz"
+    },
+    "syncAdvanced": {
+      "title": "Senkronizasyon Merkezi",
+      "description": "Sorun giderme için hata ayıklama günlükleri ve cihaz tanımlayıcıları."
+    },
+    "syncHub": {
+      "title": "Senkronizasyon Merkezi",
+      "overview": "Genel bakış",
+      "ids": "Cihaz ve Grup ID'leri",
+      "connections": "Bağlantılar",
+      "localWriterKey": "Yerel yazma anahtarı",
+      "management": "Yönetim"
     },
     "data": {
       "title": "Veriler",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Yerel JSON",
-      "description": "Antrenman verilerinizi bir JSON dosyasına aktarın veya önceki yerel yedeğinizi içe aktarın.",
+      "description": "Verilerinizi bir JSON dosyasına dışa aktarın veya önceki bir yedeği içe aktarın.",
       "export": "Yedeği aktar",
       "import": "Yedeği içe aktar"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "İptal",
     "confirm": "Yedeği içe aktar"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Başka cihaza paylaş",
+    "shareDescription": "Diğer cihazda: Ayarlar → Yedek → Başka cihazdan tara.",
+    "scanTitle": "Başka cihazdan tara",
+    "scanDescription": "Kameranızı PearLift yedek QR koduna doğrultun.",
+    "cameraPermissionTitle": "Kamera izni gerekli",
+    "cameraPermissionMessage": "Yedek QR kodunu taramak için kamera erişimine izin verin.",
+    "cameraPermissionButton": "Kameraya izin ver",
+    "invalidQr": "Bu QR kodu PearLift yedeği gibi görünmüyor.",
+    "tooLarge": "Yedek tek bir QR koda sığmayacak kadar büyük. Bunun yerine “Yedeği cihaza kaydet” seçeneğini kullanın."
   },
   "prompts": {
     "deleteExercise": {

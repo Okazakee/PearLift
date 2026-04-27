@@ -29,9 +29,14 @@
       }
     },
     "getStarted": "Aan de slag",
-    "notNow": "Not now",
-    "setupSync": "Set up sync",
-    "settingUp": "Instellen..."
+    "notNow": "Nu niet",
+    "skipSync": "Overslaan",
+    "setupSync": "Synchronisatie instellen",
+    "settingUp": "Instellen...",
+    "syncPrompt": {
+      "title": "Synchroniseer uw apparaten",
+      "description": "Uw gegevens verlaten nooit uw apparaten. U kunt dit op elk moment instellen in Instellingen."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Doe mee",
       "yourCode": "Uw synchronisatiecode",
       "shareHint": "Deel deze synchronisatiecode (of QR) met uw andere apparaat. Dat apparaat moet dezelfde code invoeren om lid te worden van uw synchronisatiegroep.",
+      "startSyncFirst": "Druk eerst op Start synchronisatie, deel dan deze QR met uw andere apparaat.",
       "enterCode": "Voer de synchronisatiecode in",
       "scanQr": "QR-code scannen",
       "scanEnableCamera": "Camera inschakelen",
       "scanHelp": "Richt uw camera op de QR-code op uw andere apparaat.",
+      "waitForConnection": "Verbinding wordt tot stand gebracht. Scanner gepauzeerd voor stabiliteit.",
       "codePlaceholder": "Voer uw deelcode in",
+      "replaceJoinLabel": "Mijn gegevens vervangen door hun gegevens",
+      "replaceJoinHint": "Voor de eerste synchronisatie reset dit alleen op dit apparaat lokale trainingen, oefengewichten en programmaconfiguraties.",
       "copy": "Kopieer code",
+      "copied": "Gekopieerd!",
+      "paste": "Plakken",
       "start": "Synchronisatie starten",
       "stop": "Synchronisatie stoppen",
-      "invalidCode": "Ongeldige code. Het moeten 64 hexadecimale tekens bevatten."
+      "invalidCode": "Ongeldige code. Het moeten 64 hexadecimale tekens bevatten.",
+      "connecting": "Zoeken naar peers…",
+      "connectedTitle": "Verbonden",
+      "connectedSubtitle_one": "{{count}} apparaat in synchronisatiegroep.",
+      "connectedSubtitle_other": "{{count}} apparaten in synchronisatiegroep.",
+      "viewInfo": "Verbindingsinfo bekijken",
+      "done": "Gereed"
+    },
+    "info": {
+      "title": "Verbindingsinfo",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Inactief",
+        "connecting": "Zoeken",
+        "synced": "Verbonden",
+        "error": "Fout"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Bereikbaar",
+      "bootstrappedNo": "Wachtend",
+      "lastSync": "Laatste peer-synchronisatie",
+      "never": "Nooit",
+      "thisDevice": "Dit apparaat",
+      "deviceId": "Apparaat-ID",
+      "localKey": "Lokale sleutel",
+      "syncGroup": "Synchronisatiegroep",
+      "autobaseKey": "Autobase-sleutel",
+      "topic": "Onderwerp",
+      "connectedPeers": "Verbonden peers",
+      "noPeers": "Geen peers verbonden.",
+      "storagePath": "Opslag",
+      "copy": "Kopiëren",
+      "copied": "Gekopieerd",
+      "refresh": "Vernieuwen",
+      "reconnectAttempts": "Hernieuwingspogingen",
+      "debugLog": {
+        "title": "Debuglogboek",
+        "refresh": "Vernieuwen",
+        "empty": "Nog geen logboekitems."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Nieuw apparaat verbonden",
+      "newPeerMessage": "Een gekoppeld apparaat is lid geworden van de synchronisatiegroep."
+    },
+    "quick": {
+      "title": "Synchronisatiestatus",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Probleem",
+        "connected": "Verbonden",
+        "connecting": "Verbinden",
+        "off": "Synchroniseren"
+      },
+      "state": {
+        "issue": "Probleem gedetecteerd",
+        "connected": "Verbonden",
+        "connecting": "Verbinden",
+        "off": "Sync uit"
+      },
+      "summary": {
+        "issue": "Synchronisatie heeft aandacht nodig",
+        "connected_one": "Verbonden met {{count}} apparaat",
+        "connected_other": "Verbonden met {{count}} apparaten",
+        "connecting": "Apparaten zoeken",
+        "off": "Sync is uit"
+      },
+      "description": {
+        "issue": "Synchronisatie heeft aandacht nodig. Open de installatie of diagnose om dit op te lossen.",
+        "connected": "Uw apparaat synchroniseert met de groep.",
+        "connecting": "Zoeken naar uw synchronisatiegroep.",
+        "off": "Synchronisatie is momenteel uitgeschakeld op dit apparaat."
+      },
+      "lastSyncAt": "Laatste synchronisatie: {{at}}",
+      "lastSyncNever": "Laatste synchronisatie: nooit",
+      "actions": {
+        "setup": "Synchronisatie instellen",
+        "pair": "Nieuw apparaat koppelen",
+        "manage": "Apparaten beheren",
+        "openHub": "Sync Hub openen",
+        "troubleshoot": "Probleemoplossing",
+        "stop": "Synchronisatie stoppen"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Hierdoor wordt het koppelingsrecord lokaal verwijderd. Het apparaat kan nog steeds opnieuw verbinding maken als het dezelfde synchronisatiecode heeft.",
       "peers_one": "{{count}} peer connected",
       "peers_other": "{{count}} peers connected",
-      "stopSync": "Synchronisatie stoppen"
+      "stopSync": "Synchronisatie stoppen",
+      "connectionInfo": "Verbindingsinfo",
+      "openSyncHub": "Sync Hub openen"
+    },
+    "syncStatus": {
+      "title": "Synchronisatiestatus",
+      "status": "Status",
+      "syncingWith_one": "Synchroniseren met {{count}} apparaat",
+      "syncingWith_other": "Synchroniseren met {{count}} apparaten",
+      "off": "Sync is uit",
+      "lastSuccessfulSync": "Laatste succesvolle synchronisatie",
+      "manage": "Synchronisatie beheren"
+    },
+    "localBackup": {
+      "title": "Back-up",
+      "export": "Back-up opslaan op apparaat",
+      "import": "Herstellen vanuit back-up",
+      "shareToDevice": "Delen met ander apparaat",
+      "scanFromDevice": "Scannen vanaf ander apparaat"
+    },
+    "pairingDevices": {
+      "title": "Koppelen en apparaten",
+      "count_one": "{{count}} gekoppeld apparaat",
+      "count_other": "{{count}} gekoppelde apparaten"
+    },
+    "syncAdvanced": {
+      "title": "Sync Hub",
+      "description": "Debuglogboeken en apparaat-ID's voor probleemoplossing."
+    },
+    "syncHub": {
+      "title": "Sync Hub",
+      "overview": "Overzicht",
+      "ids": "Apparaat- en groeps-ID's",
+      "connections": "Verbindingen",
+      "localWriterKey": "Lokale schrijfsleutel",
+      "management": "Beheer"
     },
     "data": {
       "title": "Gegevens",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokaal JSON",
-      "description": "Exporteer je trainingsgegevens naar een JSON-bestand of importeer een eerdere lokale back-up.",
+      "description": "Exporteer je gegevens naar een JSON-bestand of importeer een eerdere back-up.",
       "export": "Back-up exporteren",
       "import": "Back-up importeren"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Annuleren",
     "confirm": "Back-up importeren"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Delen met ander apparaat",
+    "shareDescription": "Op het andere apparaat: Instellingen → Back-up → Scannen vanaf ander apparaat.",
+    "scanTitle": "Scannen vanaf ander apparaat",
+    "scanDescription": "Richt je camera op de PearLift-back-up QR-code.",
+    "cameraPermissionTitle": "Cameratoestemming vereist",
+    "cameraPermissionMessage": "Sta cameratoegang toe om een back-up QR-code te scannen.",
+    "cameraPermissionButton": "Camera toestaan",
+    "invalidQr": "Die QR-code lijkt geen PearLift-back-up te zijn.",
+    "tooLarge": "De back-up is te groot voor één QR-code. Gebruik in plaats daarvan “Back-up opslaan op apparaat”."
   },
   "prompts": {
     "deleteExercise": {

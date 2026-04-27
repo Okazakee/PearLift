@@ -30,8 +30,13 @@
     },
     "getStarted": "เริ่มต้น",
     "notNow": "ไม่ตอนนี้",
+    "skipSync": "Skip",
     "setupSync": "ตั้งค่าซิงค์",
-    "settingUp": "กำลังตั้งค่า..."
+    "settingUp": "กำลังตั้งค่า...",
+    "syncPrompt": {
+      "title": "Sync across your devices",
+      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "เข้าร่วม",
       "yourCode": "รหัสการซิงค์ของคุณ",
       "shareHint": "แบ่งปันรหัสซิงค์นี้ (หรือ QR) กับอุปกรณ์อื่นของคุณ อุปกรณ์นั้นจะต้องป้อนรหัสเดียวกันเพื่อเข้าร่วมกลุ่มการซิงค์ของคุณ",
+      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
       "enterCode": "ป้อนรหัสซิงค์",
       "scanQr": "สแกนรหัส QR",
       "scanEnableCamera": "เปิดใช้งานกล้อง",
       "scanHelp": "เล็งกล้องไปที่โค้ด QR บนอุปกรณ์อีกเครื่องของคุณ",
+      "waitForConnection": "Connection in progress. Scanner paused for stability.",
       "codePlaceholder": "กรอกรหัสแบ่งปันของคุณ",
+      "replaceJoinLabel": "Replace my data with their data",
+      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
       "copy": "คัดลอกรหัส",
+      "copied": "Copied!",
+      "paste": "Paste",
       "start": "เริ่มการซิงค์",
       "stop": "หยุดการซิงค์",
-      "invalidCode": "รหัสไม่ถูกต้อง ต้องเป็นอักขระฐานสิบหก 64 ตัว"
+      "invalidCode": "รหัสไม่ถูกต้อง ต้องเป็นอักขระฐานสิบหก 64 ตัว",
+      "connecting": "Searching for peers…",
+      "connectedTitle": "Connected",
+      "connectedSubtitle_one": "{{count}} device in sync group.",
+      "connectedSubtitle_other": "{{count}} devices in sync group.",
+      "viewInfo": "View connection info",
+      "done": "Done"
+    },
+    "info": {
+      "title": "Connection info",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Idle",
+        "connecting": "Searching",
+        "synced": "Connected",
+        "error": "Error"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Reachable",
+      "bootstrappedNo": "Waiting",
+      "lastSync": "Last peer sync",
+      "never": "Never",
+      "thisDevice": "This device",
+      "deviceId": "Device ID",
+      "localKey": "Local key",
+      "syncGroup": "Sync group",
+      "autobaseKey": "Autobase key",
+      "topic": "Topic",
+      "connectedPeers": "Connected peers",
+      "noPeers": "No peers connected.",
+      "storagePath": "Storage",
+      "copy": "Copy",
+      "copied": "Copied",
+      "refresh": "Refresh",
+      "reconnectAttempts": "Reconnect attempts",
+      "debugLog": {
+        "title": "Debug log",
+        "refresh": "Refresh",
+        "empty": "No log entries yet."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "New device connected",
+      "newPeerMessage": "A paired device joined the sync group."
+    },
+    "quick": {
+      "title": "Sync Status",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Issue",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync"
+      },
+      "state": {
+        "issue": "Issue detected",
+        "connected": "Connected",
+        "connecting": "Connecting",
+        "off": "Sync off"
+      },
+      "summary": {
+        "issue": "Sync needs attention",
+        "connected_one": "Connected to {{count}} device",
+        "connected_other": "Connected to {{count}} devices",
+        "connecting": "Looking for devices",
+        "off": "Sync is off"
+      },
+      "description": {
+        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
+        "connected": "Your device is syncing with the group.",
+        "connecting": "Searching for your sync group.",
+        "off": "Sync is currently disabled on this device."
+      },
+      "lastSyncAt": "Last sync: {{at}}",
+      "lastSyncNever": "Last sync: never",
+      "actions": {
+        "setup": "Set up sync",
+        "pair": "Pair new device",
+        "manage": "Manage devices",
+        "openHub": "Open Sync Hub",
+        "troubleshoot": "Troubleshoot",
+        "stop": "Stop sync"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "จะลบรายการจับคู่ในเครื่อง อุปกรณ์สามารถเชื่อมต่อใหม่ได้หากมีรหัสซิงค์เดียวกัน",
       "peers_one": "{{count}} เพียร์เชื่อมต่อแล้ว",
       "peers_other": "{{count}} เพียร์เชื่อมต่อแล้ว",
-      "stopSync": "หยุดซิงค์"
+      "stopSync": "หยุดซิงค์",
+      "connectionInfo": "Connection info",
+      "openSyncHub": "Open Sync Hub"
+    },
+    "syncStatus": {
+      "title": "Sync Status",
+      "status": "Status",
+      "syncingWith_one": "Syncing with {{count}} device",
+      "syncingWith_other": "Syncing with {{count}} devices",
+      "off": "Sync is off",
+      "lastSuccessfulSync": "Last successful sync",
+      "manage": "Manage Sync"
+    },
+    "localBackup": {
+      "title": "สำรองข้อมูล",
+      "export": "บันทึกข้อมูลสำรองลงเครื่อง",
+      "import": "กู้คืนจากข้อมูลสำรอง",
+      "shareToDevice": "แชร์ไปยังอุปกรณ์อื่น",
+      "scanFromDevice": "สแกนจากอุปกรณ์อื่น"
+    },
+    "pairingDevices": {
+      "title": "Pairing & Devices",
+      "count_one": "{{count}} paired device",
+      "count_other": "{{count}} paired devices"
+    },
+    "syncAdvanced": {
+      "title": "Sync Hub",
+      "description": "Debug logs and device identifiers for troubleshooting."
+    },
+    "syncHub": {
+      "title": "Sync Hub",
+      "overview": "Overview",
+      "ids": "Device & Group IDs",
+      "connections": "Connections",
+      "localWriterKey": "Local writer key",
+      "management": "Management"
     },
     "data": {
       "title": "ข้อมูล",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "JSON ในเครื่อง",
-      "description": "ส่งออกข้อมูลการฝึกซ้อมเป็นไฟล์ JSON หรือนำเข้าสำรองข้อมูลในเครื่องก่อนหน้า",
+      "description": "ส่งออกข้อมูลเป็นไฟล์ JSON หรือกู้คืนจากข้อมูลสำรองก่อนหน้า",
       "export": "ส่งออกข้อมูลสำรอง",
       "import": "นำเข้าข้อมูลสำรอง"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "ยกเลิก",
     "confirm": "นำเข้าข้อมูลสำรอง"
+  },
+  "deviceTransfer": {
+    "shareTitle": "แชร์ไปยังอุปกรณ์อื่น",
+    "shareDescription": "บนอีกอุปกรณ์: การตั้งค่า → สำรองข้อมูล → สแกนจากอุปกรณ์อื่น",
+    "scanTitle": "สแกนจากอุปกรณ์อื่น",
+    "scanDescription": "เล็งกล้องไปที่ QR ของข้อมูลสำรอง PearLift",
+    "cameraPermissionTitle": "ต้องขออนุญาตใช้กล้อง",
+    "cameraPermissionMessage": "อนุญาตให้ใช้กล้องเพื่อสแกน QR ของข้อมูลสำรอง",
+    "cameraPermissionButton": "อนุญาตกล้อง",
+    "invalidQr": "QR นี้ไม่เหมือนข้อมูลสำรองของ PearLift",
+    "tooLarge": "ข้อมูลสำรองใหญ่เกินกว่าจะใส่ใน QR เดียวได้ ให้ใช้ “บันทึกข้อมูลสำรองลงเครื่อง” แทน"
   },
   "prompts": {
     "deleteExercise": {

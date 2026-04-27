@@ -29,9 +29,14 @@
       }
     },
     "getStarted": "Sākt",
-    "notNow": "Not now",
-    "setupSync": "Set up sync",
-    "settingUp": "Iestatīšana..."
+    "notNow": "Tagad ne",
+    "skipSync": "Izlaist",
+    "setupSync": "Iestatīt sinhronizāciju",
+    "settingUp": "Iestatīšana...",
+    "syncPrompt": {
+      "title": "Sinhronizējiet savās ierīcēs",
+      "description": "Jūsu dati nekad neatstāj jūsu ierīces. Varat to iestatīt jebkurā laikā Iestatījumos."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Pievienojieties",
       "yourCode": "Jūsu sinhronizācijas kods",
       "shareHint": "Kopīgojiet šo sinhronizācijas kodu (vai QR kodu) ar citu ierīci. Šai ierīcei ir jāievada tas pats kods, lai pievienotos jūsu sinhronizācijas grupai.",
+      "startSyncFirst": "Vispirms nospiediet Sākt sinhronizāciju, pēc tam kopīgojiet šo QR ar otru ierīci.",
       "enterCode": "Ievadiet sinhronizācijas kodu",
       "scanQr": "Skenējiet QR kodu",
       "scanEnableCamera": "Iespējot kameru",
       "scanHelp": "Pavērsiet kameru pret QR kodu citā ierīcē.",
+      "waitForConnection": "Savienojums tiek veidots. Skenēšana ir pauzēta stabilitātes nolūkos.",
       "codePlaceholder": "Ievadiet savu koplietošanas kodu",
+      "replaceJoinLabel": "Aizvietot manus datus ar viņu datiem",
+      "replaceJoinHint": "Pirms pirmās sinhronizācijas, šis norāda vietējos treniņus, vingrinājumu svarus un programmas konfigurāciju tikai šajā ierīcē.",
       "copy": "Kopēt kodu",
+      "copied": "Kopēts!",
+      "paste": "Ielīmēt",
       "start": "Sākt sinhronizāciju",
       "stop": "Apturēt sinhronizāciju",
-      "invalidCode": "Nederīgs kods. Tam jābūt 64 heksa rakstzīmēm."
+      "invalidCode": "Nederīgs kods. Tam jābūt 64 heksa rakstzīmēm.",
+      "connecting": "Meklē partnerus…",
+      "connectedTitle": "Savienots",
+      "connectedSubtitle_one": "{{count}} ierīce sinhronizācijas grupā.",
+      "connectedSubtitle_other": "{{count}} ierīces sinhronizācijas grupā.",
+      "viewInfo": "Skatīt savienojuma informāciju",
+      "done": "Gatavs"
+    },
+    "info": {
+      "title": "Savienojuma informācija",
+      "statusLabel": "Statuss",
+      "status": {
+        "idle": "Gaidīšana",
+        "connecting": "Meklēšana",
+        "synced": "Savienots",
+        "error": "Kļūda"
+      },
+      "peers": "Partneri",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Pieejams",
+      "bootstrappedNo": "Gaida",
+      "lastSync": "Pēdējā sinhronizācija",
+      "never": "Nekad",
+      "thisDevice": "Šī ierīce",
+      "deviceId": "Ierīces ID",
+      "localKey": "Lokālais atslēgas",
+      "syncGroup": "Sinhronizācijas grupa",
+      "autobaseKey": "Autobāzes atslēgas",
+      "topic": "Tēma",
+      "connectedPeers": "Savienotie partneri",
+      "noPeers": "Nav savienotu partneru.",
+      "storagePath": "Krātuve",
+      "copy": "Kopēt",
+      "copied": "Kopēts",
+      "refresh": "Atjaunot",
+      "reconnectAttempts": "Atkārtoti mēģinājumi",
+      "debugLog": {
+        "title": "Kļūdu žurnāls",
+        "refresh": "Atjaunot",
+        "empty": "Vēl nav ierakstu."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Jauna ierīce savienota",
+      "newPeerMessage": "Savienota ierīce pievienojās sinhronizācijas grupai."
+    },
+    "quick": {
+      "title": "Sinhronizācijas statuss",
+      "statusLabel": "Statuss",
+      "button": {
+        "issue": "Problēma",
+        "connected": "Savienots",
+        "connecting": "Savieno",
+        "off": "Sinhronizācija"
+      },
+      "state": {
+        "issue": "Konstatēta problēma",
+        "connected": "Savienots",
+        "connecting": "Savieno",
+        "off": "Sinhronizācija izslēgta"
+      },
+      "summary": {
+        "issue": "Sinhronizācijai nepieciešama uzmanība",
+        "connected_one": "Savienots ar {{count}} ierīci",
+        "connected_other": "Savienots ar {{count}} ierīcēm",
+        "connecting": "Meklē ierīces",
+        "off": "Sinhronizācija izslēgta"
+      },
+      "description": {
+        "issue": "Sinhronizācijai nepieciešama uzmanība. Atveriet iestatīšanu vai diagnostiku, lai to atrisinātu.",
+        "connected": "Jūsu ierīce sinhronizējas ar grupu.",
+        "connecting": "Meklē jūsu sinhronizācijas grupu.",
+        "off": "Sinhronizācija pašlaik ir atspējota šajā ierīcē."
+      },
+      "lastSyncAt": "Pēdējā sinhronizācija: {{at}}",
+      "lastSyncNever": "Pēdējā sinhronizācija: nekad",
+      "actions": {
+        "setup": "Iestatīt sinhronizāciju",
+        "pair": "Savienot pārī jaunu ierīci",
+        "manage": "Pārvaldīt ierīces",
+        "openHub": "Atvērt sinhronizācijas centru",
+        "troubleshoot": "Novērst problēmas",
+        "stop": "Apturēt sinhronizāciju"
+      }
     }
   },
   "workout": {
@@ -142,9 +236,44 @@
       "forgetDevice": "Aizmirsti",
       "forgetConfirmTitle": "Vai aizmirsāt šo ierīci?",
       "forgetConfirmMessage": "Tas lokāli noņem ierakstu savienošanai pārī. Ierīce joprojām var atkārtoti izveidot savienojumu, ja tai ir tāds pats sinhronizācijas kods.",
-      "peers_one": "{{count}} peer connected",
-      "peers_other": "{{count}} peers connected",
-      "stopSync": "Apturēt sinhronizāciju"
+      "peers_one": "{{count}} partners savienots",
+      "peers_other": "{{count}} partneri savienoti",
+      "stopSync": "Apturēt sinhronizāciju",
+      "connectionInfo": "Savienojuma informācija",
+      "openSyncHub": "Atvērt sinhronizācijas centru"
+    },
+    "syncStatus": {
+      "title": "Sinhronizācijas statuss",
+      "status": "Statuss",
+      "syncingWith_one": "Sinhronizē ar {{count}} ierīci",
+      "syncingWith_other": "Sinhronizē ar {{count}} ierīcēm",
+      "off": "Sinhronizācija ir izslēgta",
+      "lastSuccessfulSync": "Pēdējā veiksmīgā sinhronizācija",
+      "manage": "Pārvaldīt sinhronizāciju"
+    },
+    "localBackup": {
+      "title": "Dublējums",
+      "export": "Saglabāt dublējumu ierīcē",
+      "import": "Atjaunot no dublējuma",
+      "shareToDevice": "Kopīgot uz citu ierīci",
+      "scanFromDevice": "Skenēt no citas ierīces"
+    },
+    "pairingDevices": {
+      "title": "Savienošana un ierīces",
+      "count_one": "{{count}} savienota ierīce",
+      "count_other": "{{count}} savienotas ierīces"
+    },
+    "syncAdvanced": {
+      "title": "Sinhronizācijas centrs",
+      "description": "Kļūdu žurnāli un ierīču identifikatori problēmu novēršanai."
+    },
+    "syncHub": {
+      "title": "Sinhronizācijas centrs",
+      "overview": "Pārskats",
+      "ids": "Ierīces un grupas ID",
+      "connections": "Savienojumi",
+      "localWriterKey": "Lokālais rakstītāja atslēgas",
+      "management": "Pārvaldība"
     },
     "data": {
       "title": "Dati",
@@ -160,8 +289,8 @@
       "title": "Lietotnes info",
       "name": "Nosaukums",
       "version": "Versija",
-      "build": "Build",
-      "buildType": "Build veids"
+      "build": "Būve",
+      "buildType": "Būves veids"
     }
   },
   "backup": {
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokāls JSON",
-      "description": "Eksportējiet treniņu datus uz JSON failu vai importējiet iepriekšēju lokālo dublējumu.",
+      "description": "Eksportējiet datus uz JSON failu vai importējiet iepriekšēju dublējumu.",
       "export": "Eksportēt dublējumu",
       "import": "Importēt dublējumu"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Atcelt",
     "confirm": "Importēt dublējumu"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Kopīgot uz citu ierīci",
+    "shareDescription": "Citā ierīcē: Iestatījumi → Dublējums → Skenēt no citas ierīces.",
+    "scanTitle": "Skenēt no citas ierīces",
+    "scanDescription": "Vērst kameru uz PearLift dublējuma QR kodu.",
+    "cameraPermissionTitle": "Nepieciešama kameras atļauja",
+    "cameraPermissionMessage": "Atļaujiet kamerai skenēt dublējuma QR kodu.",
+    "cameraPermissionButton": "Atļaut kameru",
+    "invalidQr": "Šis QR kods neizskatās pēc PearLift dublējuma.",
+    "tooLarge": "Dublējums ir pārāk liels vienam QR kodam. Izmantojiet “Saglabāt dublējumu ierīcē”."
   },
   "prompts": {
     "deleteExercise": {

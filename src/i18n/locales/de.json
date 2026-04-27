@@ -30,8 +30,13 @@
     },
     "getStarted": "Loslegen",
     "notNow": "Nicht jetzt",
+    "skipSync": "Überspringen",
     "setupSync": "Synchronisation einrichten",
-    "settingUp": "Einrichten..."
+    "settingUp": "Einrichten...",
+    "syncPrompt": {
+      "title": "Synchronisieren Sie Ihre Geräte",
+      "description": "Ihre Daten verlassen niemals Ihre Geräte. Sie können es jederzeit in den Einstellungen einrichten."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Machen Sie mit",
       "yourCode": "Ihr Synchronisierungscode",
       "shareHint": "Teilen Sie diesen Synchronisierungscode (oder QR) mit Ihrem anderen Gerät. Dieses Gerät muss denselben Code eingeben, um Ihrer Synchronisierungsgruppe beizutreten.",
+      "startSyncFirst": "Drücken Sie zuerst Synchronisierung starten, dann teilen Sie diesen QR mit Ihrem anderen Gerät.",
       "enterCode": "Geben Sie den Synchronisierungscode ein",
       "scanQr": "QR-Code scannen",
       "scanEnableCamera": "Kamera aktivieren",
       "scanHelp": "Richten Sie Ihre Kamera auf den QR-Code auf Ihrem anderen Gerät.",
+      "waitForConnection": "Verbindung wird hergestellt. Scanner zur Stabilisierung pausiert.",
       "codePlaceholder": "Geben Sie Ihren Freigabecode ein",
+      "replaceJoinLabel": "Meine Daten durch ihre Daten ersetzen",
+      "replaceJoinHint": "Vor der ersten Synchronisierung werden auf diesem Gerät nur lokale Workouts, Übungsgewichte und Programmkonsfigurationen zurückgesetzt.",
       "copy": "Code kopieren",
+      "copied": "Kopiert!",
+      "paste": "Einfügen",
       "start": "Starten Sie die Synchronisierung",
       "stop": "Stoppen Sie die Synchronisierung",
-      "invalidCode": "Ungültiger Code. Es muss 64 Hexadezimalzeichen lang sein."
+      "invalidCode": "Ungültiger Code. Es muss 64 Hexadezimalzeichen lang sein.",
+      "connecting": "Suche nach Peers…",
+      "connectedTitle": "Verbunden",
+      "connectedSubtitle_one": "{{count}} Gerät in der Sync-Gruppe.",
+      "connectedSubtitle_other": "{{count}} Geräte in der Sync-Gruppe.",
+      "viewInfo": "Verbindungsinfo anzeigen",
+      "done": "Fertig"
+    },
+    "info": {
+      "title": "Verbindungsinfo",
+      "statusLabel": "Status",
+      "status": {
+        "idle": "Inaktiv",
+        "connecting": "Suche",
+        "synced": "Verbunden",
+        "error": "Fehler"
+      },
+      "peers": "Peers",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Erreichbar",
+      "bootstrappedNo": "Wartend",
+      "lastSync": "Letzte Peer-Synchronisierung",
+      "never": "Nie",
+      "thisDevice": "Dieses Gerät",
+      "deviceId": "Geräte-ID",
+      "localKey": "Lokaler Schlüssel",
+      "syncGroup": "Sync-Gruppe",
+      "autobaseKey": "Autobase-Schlüssel",
+      "topic": "Thema",
+      "connectedPeers": "Verbundene Peers",
+      "noPeers": "Keine Peers verbunden.",
+      "storagePath": "Speicher",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "refresh": "Aktualisieren",
+      "reconnectAttempts": "Wiederverbindungsversuche",
+      "debugLog": {
+        "title": "Debug-Protokoll",
+        "refresh": "Aktualisieren",
+        "empty": "Noch keine Protokolleinträge."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Neues Gerät verbunden",
+      "newPeerMessage": "Ein gepaartes Gerät ist der Sync-Gruppe beigetreten."
+    },
+    "quick": {
+      "title": "Sync-Status",
+      "statusLabel": "Status",
+      "button": {
+        "issue": "Problem",
+        "connected": "Verbunden",
+        "connecting": "Verbindung",
+        "off": "Synchronisieren"
+      },
+      "state": {
+        "issue": "Problem erkannt",
+        "connected": "Verbunden",
+        "connecting": "Verbindung",
+        "off": "Sync aus"
+      },
+      "summary": {
+        "issue": "Synchronisierung erfordert Aufmerksamkeit",
+        "connected_one": "Verbunden mit {{count}} Gerät",
+        "connected_other": "Verbunden mit {{count}} Geräten",
+        "connecting": "Suche nach Geräten",
+        "off": "Sync ist aus"
+      },
+      "description": {
+        "issue": "Synchronisierung erfordert Aufmerksamkeit. Öffnen Sie die Einrichtung oder Diagnose, um das Problem zu lösen.",
+        "connected": "Ihr Gerät synchronisiert mit der Gruppe.",
+        "connecting": "Suche nach Ihrer Sync-Gruppe.",
+        "off": "Synchronisierung ist auf diesem Gerät derzeit deaktiviert."
+      },
+      "lastSyncAt": "Letzte Synchronisierung: {{at}}",
+      "lastSyncNever": "Letzte Synchronisierung: nie",
+      "actions": {
+        "setup": "Synchronisierung einrichten",
+        "pair": "Neues Gerät koppeln",
+        "manage": "Geräte verwalten",
+        "openHub": "Sync-Hub öffnen",
+        "troubleshoot": "Fehlerbehebung",
+        "stop": "Synchronisierung stoppen"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Dadurch wird der Pairing-Datensatz lokal entfernt. Das Gerät kann die Verbindung immer noch wiederherstellen, wenn es denselben Synchronisierungscode hat.",
       "peers_one": "{{count}} Peer verbunden",
       "peers_other": "{{count}} Peers verbunden",
-      "stopSync": "Stoppen Sie die Synchronisierung"
+      "stopSync": "Stoppen Sie die Synchronisierung",
+      "connectionInfo": "Verbindungsinfo",
+      "openSyncHub": "Sync-Hub öffnen"
+    },
+    "syncStatus": {
+      "title": "Sync-Status",
+      "status": "Status",
+      "syncingWith_one": "Synchronisiere mit {{count}} Gerät",
+      "syncingWith_other": "Synchronisiere mit {{count}} Geräten",
+      "off": "Sync ist aus",
+      "lastSuccessfulSync": "Letzte erfolgreiche Synchronisierung",
+      "manage": "Sync verwalten"
+    },
+    "localBackup": {
+      "title": "Backup",
+      "export": "Backup auf Gerät speichern",
+      "import": "Aus Backup wiederherstellen",
+      "shareToDevice": "Mit anderem Gerät teilen",
+      "scanFromDevice": "Von anderem Gerät scannen"
+    },
+    "pairingDevices": {
+      "title": "Koppeln & Geräte",
+      "count_one": "{{count}} gekoppeltes Gerät",
+      "count_other": "{{count}} gekoppelte Geräte"
+    },
+    "syncAdvanced": {
+      "title": "Sync-Hub",
+      "description": "Debug-Protokolle und Gerätekennungen zur Fehlerbehebung."
+    },
+    "syncHub": {
+      "title": "Sync-Hub",
+      "overview": "Übersicht",
+      "ids": "Geräte- & Gruppen-IDs",
+      "connections": "Verbindungen",
+      "localWriterKey": "Lokaler Schreibschlüssel",
+      "management": "Verwaltung"
     },
     "data": {
       "title": "Daten",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokales JSON",
-      "description": "Exportiere deine Trainingsdaten in eine JSON-Datei oder importiere ein früheres lokales Backup.",
+      "description": "Exportiere deine Trainingsdaten als JSON-Datei oder importiere ein früheres Backup.",
       "export": "Backup exportieren",
       "import": "Backup importieren"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Abbrechen",
     "confirm": "Backup importieren"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Mit anderem Gerät teilen",
+    "shareDescription": "Auf dem anderen Gerät: Einstellungen → Backup → Von anderem Gerät scannen.",
+    "scanTitle": "Von anderem Gerät scannen",
+    "scanDescription": "Richte die Kamera auf den PearLift-Backup-QR-Code.",
+    "cameraPermissionTitle": "Kameraberechtigung erforderlich",
+    "cameraPermissionMessage": "Erlaube Kamerazugriff, um einen Backup-QR-Code zu scannen.",
+    "cameraPermissionButton": "Kamera erlauben",
+    "invalidQr": "Dieser QR-Code sieht nicht wie ein PearLift-Backup aus.",
+    "tooLarge": "Das Backup ist zu groß für einen einzelnen QR-Code. Nutze stattdessen „Backup auf Gerät speichern“."
   },
   "prompts": {
     "deleteExercise": {

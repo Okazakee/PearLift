@@ -30,8 +30,13 @@
     },
     "getStarted": "Aloita",
     "notNow": "Ei nyt",
+    "skipSync": "Ohita",
     "setupSync": "Määritä synkronointi",
-    "settingUp": "Asetetaan..."
+    "settingUp": "Asetetaan...",
+    "syncPrompt": {
+      "title": "Synkronoi laitteidesi välillä",
+      "description": "Tietosi eivät koskaan poistu laitteiltasi. Voit määrittää tämän milloin tahansa Asetuksissa."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Liity",
       "yourCode": "Synkronointikoodisi",
       "shareHint": "Jaa tämä synkronointikoodi (tai QR) toisen laitteesi kanssa. Laitteen on syötettävä sama koodi liittyäkseen synkronointiryhmään.",
+      "startSyncFirst": "Paina ensin Aloita synkronointi, jaa sitten tämä QR-koodi toiselle laitteellesi.",
       "enterCode": "Anna synkronointikoodi",
       "scanQr": "Skannaa QR-koodi",
       "scanEnableCamera": "Ota kamera käyttöön",
       "scanHelp": "Osoita kamerasi toisen laitteen QR-koodiin.",
+      "waitForConnection": "Yhteys käynnissä. Skanneria on tauotettu vakauden vuoksi.",
       "codePlaceholder": "Syötä jakokoodisi",
+      "replaceJoinLabel": "Korvaa omat tietoni heidän tiedoillaan",
+      "replaceJoinHint": "Ennen ensimmäistä synkronointia tämä nollaa paikalliset harjoittelut, liikkeiden painot ja ohjelman asetukset vain tällä laitteella.",
       "copy": "Kopioi koodi",
+      "copied": "Kopioitu!",
+      "paste": "Liitä",
       "start": "Aloita synkronointi",
       "stop": "Pysäytä synkronointi",
-      "invalidCode": "Virheellinen koodi. Siinä on oltava 64 heksadesimaalimerkkiä."
+      "invalidCode": "Virheellinen koodi. Siinä on oltava 64 heksadesimaalimerkkiä.",
+      "connecting": "Haetaan vertaislaitteita…",
+      "connectedTitle": "Yhdistetty",
+      "connectedSubtitle_one": "{{count}} laite synkronointiryhmässä.",
+      "connectedSubtitle_other": "{{count}} laitetta synkronointiryhmässä.",
+      "viewInfo": "Näytä yhteys tiedot",
+      "done": "Valmis"
+    },
+    "info": {
+      "title": "Yhteys tiedot",
+      "statusLabel": "Tila",
+      "status": {
+        "idle": "Valmis",
+        "connecting": "Haetaan",
+        "synced": "Yhdistetty",
+        "error": "Virhe"
+      },
+      "peers": "Vertaislaitteet",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Tavoitettavissa",
+      "bootstrappedNo": "Odottaa",
+      "lastSync": "Viimeisin vertais-synkronointi",
+      "never": "Ei koskaan",
+      "thisDevice": "Tämä laite",
+      "deviceId": "Laitteen tunnus",
+      "localKey": "Paikallinen avain",
+      "syncGroup": "Synkronointiryhmä",
+      "autobaseKey": "Autobase-avain",
+      "topic": "Aihe",
+      "connectedPeers": "Yhdistetyt vertaislaitteet",
+      "noPeers": "Yhtään vertaislaitetta ei ole yhdistetty.",
+      "storagePath": "Tallennustila",
+      "copy": "Kopioi",
+      "copied": "Kopioitu",
+      "refresh": "Päivitä",
+      "reconnectAttempts": "Uudelleenyhteys yritykset",
+      "debugLog": {
+        "title": "Vianetsintäloki",
+        "refresh": "Päivitä",
+        "empty": "Lokimerkintöjä ei vielä ole."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Uusi laite yhdistetty",
+      "newPeerMessage": "Paritettu laite liittyi synkronointiryhmään."
+    },
+    "quick": {
+      "title": "Synkronoinnin tila",
+      "statusLabel": "Tila",
+      "button": {
+        "issue": "Ongelma",
+        "connected": "Yhdistetty",
+        "connecting": "Yhdistetään",
+        "off": "Synkronointi"
+      },
+      "state": {
+        "issue": "Ongelma havaittu",
+        "connected": "Yhdistetty",
+        "connecting": "Yhdistetään",
+        "off": "Synkronointi pois käytöstä"
+      },
+      "summary": {
+        "issue": "Synkronointi tarvitsee huomiota",
+        "connected_one": "Yhdistetty {{count}} laitteeseen",
+        "connected_other": "Yhdistetty {{count}} laitteeseen",
+        "connecting": "Haetaan laitteita",
+        "off": "Synkronointi on pois käytöstä"
+      },
+      "description": {
+        "issue": "Synkronointi tarvitsee huomiota. Avaa asetus tai diagnostiikka ongelman ratkaisemiseksi.",
+        "connected": "Laitteesi synkronoi ryhmän kanssa.",
+        "connecting": "Haetaan synkronointiryhmääsi.",
+        "off": "Synkronointi on tällä hetkellä pois käytöstä tällä laitteella."
+      },
+      "lastSyncAt": "Viimeksi synkronoitu: {{at}}",
+      "lastSyncNever": "Viimeksi synkronoitu: ei koskaan",
+      "actions": {
+        "setup": "Määritä synkronointi",
+        "pair": "Parita uusi laite",
+        "manage": "Hallitse laitteita",
+        "openHub": "Avaa synkronointikeskus",
+        "troubleshoot": "Vianetsi",
+        "stop": "Pysäytä synkronointi"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Tämä poistaa pariliitostietueen paikallisesti. Laite voi silti muodostaa yhteyden uudelleen, jos sillä on sama synkronointikoodi.",
       "peers_one": "{{count}} vertaislaite yhdistetty",
       "peers_other": "{{count}} vertaislaitetta yhdistetty",
-      "stopSync": "Pysäytä synkronointi"
+      "stopSync": "Pysäytä synkronointi",
+      "connectionInfo": "Yhteys tiedot",
+      "openSyncHub": "Avaa synkronointikeskus"
+    },
+    "syncStatus": {
+      "title": "Synkronoinnin tila",
+      "status": "Tila",
+      "syncingWith_one": "Synkronoidaan {{count}} laitteen kanssa",
+      "syncingWith_other": "Synkronoidaan {{count}} laitteiden kanssa",
+      "off": "Synkronointi on pois käytöstä",
+      "lastSuccessfulSync": "Viimeisin onnistunut synkronointi",
+      "manage": "Hallitse synkronointia"
+    },
+    "localBackup": {
+      "title": "Varmuuskopio",
+      "export": "Tallenna varmuuskopio laitteelle",
+      "import": "Palauta varmuuskopiosta",
+      "shareToDevice": "Jaa toiselle laitteelle",
+      "scanFromDevice": "Skannaa toiselta laitteelta"
+    },
+    "pairingDevices": {
+      "title": "Paritus ja laitteet",
+      "count_one": "{{count}} paritettu laite",
+      "count_other": "{{count}} paritettua laitetta"
+    },
+    "syncAdvanced": {
+      "title": "Synkronointikeskus",
+      "description": "Vianetsintälokit ja laite tunnisteet vianetsintää varten."
+    },
+    "syncHub": {
+      "title": "Synkronointikeskus",
+      "overview": "Yleiskatsaus",
+      "ids": "Laitteen ja ryhmän tunnisteet",
+      "connections": "Yhteydet",
+      "localWriterKey": "Paikallinen kirjoitusavain",
+      "management": "Hallinta"
     },
     "data": {
       "title": "Tiedot",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Paikallinen JSON",
-      "description": "Vie harjoittelutietosi JSON-tiedostoon tai tuo aiempi paikallinen varmuuskopio.",
+      "description": "Vie tietosi JSON-tiedostoon tai tuo aiempi varmuuskopio.",
       "export": "Vie varmuuskopio",
       "import": "Tuo varmuuskopio"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Peruuta",
     "confirm": "Tuo varmuuskopio"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Jaa toiselle laitteelle",
+    "shareDescription": "Toisessa laitteessa: Asetukset → Varmuuskopio → Skannaa toiselta laitteelta.",
+    "scanTitle": "Skannaa toiselta laitteelta",
+    "scanDescription": "Kohdista kamera PearLift-varmuuskopion QR-koodiin.",
+    "cameraPermissionTitle": "Kameran käyttöoikeus tarvitaan",
+    "cameraPermissionMessage": "Salli kameran käyttö varmuuskopion QR-koodin skannaamiseksi.",
+    "cameraPermissionButton": "Salli kamera",
+    "invalidQr": "Tuo QR-koodi ei näytä PearLift-varmuuskopiolta.",
+    "tooLarge": "Varmuuskopio on liian suuri yhteen QR-koodiin. Käytä sen sijaan “Tallenna varmuuskopio laitteelle”."
   },
   "prompts": {
     "deleteExercise": {

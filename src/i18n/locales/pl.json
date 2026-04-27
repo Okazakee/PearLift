@@ -29,9 +29,14 @@
       }
     },
     "getStarted": "Zacznij",
-    "notNow": "Not now",
-    "setupSync": "Set up sync",
-    "settingUp": "Konfigurowanie..."
+    "notNow": "Teraz nie",
+    "skipSync": "Pomiń",
+    "setupSync": "Skonfiguruj synchronizację",
+    "settingUp": "Konfigurowanie...",
+    "syncPrompt": {
+      "title": "Synchronizuj na swoich urządzeniach",
+      "description": "Twoje dane nigdy nie opuszczają Twoich urządzeń. Możesz to skonfigurować w dowolnym momencie w Ustawieniach."
+    }
   },
   "sync": {
     "setup": {
@@ -41,15 +46,104 @@
       "join": "Dołącz",
       "yourCode": "Twój kod synchronizacji",
       "shareHint": "Udostępnij ten kod synchronizacji (lub kod QR) swojemu innemu urządzeniu. Aby dołączyć do grupy synchronizacji, na tym urządzeniu należy wprowadzić ten sam kod.",
+      "startSyncFirst": "Najpierw naciśnij Uruchom synchronizację, a następnie udostępnij ten QR swojemu innemu urządzeniem.",
       "enterCode": "Wprowadź kod synchronizacji",
       "scanQr": "Zeskanuj kod QR",
       "scanEnableCamera": "Włącz kamerę",
       "scanHelp": "Skieruj aparat na kod QR na drugim urządzeniu.",
+      "waitForConnection": "Trwa połączenie. Skaner wstrzymany dla stabilności.",
       "codePlaceholder": "Wpisz swój kod udostępniania",
+      "replaceJoinLabel": "Zastąp moje dane ich danymi",
+      "replaceJoinHint": "Przed pierwszą synchronizacją spowoduje to zresetowanie tylko na tym urządzeniu lokalnych treningów, wag ćwiczeń i konfiguracji programu.",
       "copy": "Skopiuj kod",
+      "copied": "Skopiowano!",
+      "paste": "Wklej",
       "start": "Rozpocznij synchronizację",
       "stop": "Zatrzymaj synchronizację",
-      "invalidCode": "Nieprawidłowy kod. Musi mieć 64 znaki szesnastkowe."
+      "invalidCode": "Nieprawidłowy kod. Musi mieć 64 znaki szesnastkowe.",
+      "connecting": "Szukanie peerów…",
+      "connectedTitle": "Połączono",
+      "connectedSubtitle_one": "{{count}} urządzenie w grupie synchronizacji.",
+      "connectedSubtitle_other": "{{count}} urządzenia w grupie synchronizacji.",
+      "viewInfo": "Zobacz informacje o połączeniu",
+      "done": "Gotowe"
+    },
+    "info": {
+      "title": "Informacje o połączeniu",
+      "statusLabel": "Stan",
+      "status": {
+        "idle": "Bezczynny",
+        "connecting": "Szukanie",
+        "synced": "Połączono",
+        "error": "Błąd"
+      },
+      "peers": "Peery",
+      "bootstrapped": "DHT",
+      "bootstrappedYes": "Dostępny",
+      "bootstrappedNo": "Oczekiwanie",
+      "lastSync": "Ostatnia synchronizacja peera",
+      "never": "Nigdy",
+      "thisDevice": "To urządzenie",
+      "deviceId": "ID urządzenia",
+      "localKey": "Klucz lokalny",
+      "syncGroup": "Grupa synchronizacji",
+      "autobaseKey": "Klucz Autobase",
+      "topic": "Temat",
+      "connectedPeers": "Połączone peery",
+      "noPeers": "Żadne peery nie są połączone.",
+      "storagePath": "Magazyn",
+      "copy": "Kopiuj",
+      "copied": "Skopiowano",
+      "refresh": "Odśwież",
+      "reconnectAttempts": "Próby ponownego połączenia",
+      "debugLog": {
+        "title": "Dziennik debugowania",
+        "refresh": "Odśwież",
+        "empty": "Jeszcze brak wpisów w dzienniku."
+      }
+    },
+    "toast": {
+      "newPeerTitle": "Nowe urządzenie połączone",
+      "newPeerMessage": "Sparowane urządzenie dołączyło do grupy synchronizacji."
+    },
+    "quick": {
+      "title": "Stan synchronizacji",
+      "statusLabel": "Stan",
+      "button": {
+        "issue": "Problem",
+        "connected": "Połączono",
+        "connecting": "Łączenie",
+        "off": "Synchronizuj"
+      },
+      "state": {
+        "issue": "Wykryto problem",
+        "connected": "Połączono",
+        "connecting": "Łączenie",
+        "off": "Sync wyłączony"
+      },
+      "summary": {
+        "issue": "Synchronizacja wymaga uwagi",
+        "connected_one": "Połączono z {{count}} urządzeniem",
+        "connected_other": "Połączono z {{count}} urządzeniami",
+        "connecting": "Szukanie urządzeń",
+        "off": "Sync wyłączony"
+      },
+      "description": {
+        "issue": "Synchronizacja wymaga uwagi. Otwórz konfigurację lub diagnostykę, aby rozwiązać.",
+        "connected": "Twoje urządzenie synchronizuje się z grupą.",
+        "connecting": "Szukanie grupy synchronizacji.",
+        "off": "Synchronizacja jest obecnie wyłączona na tym urządzeniu."
+      },
+      "lastSyncAt": "Ostatnia synchronizacja: {{at}}",
+      "lastSyncNever": "Ostatnia synchronizacja: nigdy",
+      "actions": {
+        "setup": "Skonfiguruj synchronizację",
+        "pair": "Sparuj nowe urządzenie",
+        "manage": "Zarządzaj urządzeniami",
+        "openHub": "Otwórz Centrum synchronizacji",
+        "troubleshoot": "Rozwiązywanie problemów",
+        "stop": "Zatrzymaj synchronizację"
+      }
     }
   },
   "workout": {
@@ -144,7 +238,42 @@
       "forgetConfirmMessage": "Spowoduje to usunięcie lokalnego rekordu parowania. Urządzenie może nadal łączyć się ponownie, jeśli ma ten sam kod synchronizacji.",
       "peers_one": "{{count}} peer connected",
       "peers_other": "{{count}} peers connected",
-      "stopSync": "Zatrzymaj synchronizację"
+      "stopSync": "Zatrzymaj synchronizację",
+      "connectionInfo": "Informacje o połączeniu",
+      "openSyncHub": "Otwórz Centrum synchronizacji"
+    },
+    "syncStatus": {
+      "title": "Stan synchronizacji",
+      "status": "Stan",
+      "syncingWith_one": "Synchronizacja z {{count}} urządzeniem",
+      "syncingWith_other": "Synchronizacja z {{count}} urządzeniami",
+      "off": "Sync wyłączony",
+      "lastSuccessfulSync": "Ostatnia udana synchronizacja",
+      "manage": "Zarządzaj synchronizacją"
+    },
+    "localBackup": {
+      "title": "Kopia zapasowa",
+      "export": "Zapisz kopię na urządzeniu",
+      "import": "Przywróć z kopii zapasowej",
+      "shareToDevice": "Udostępnij na inne urządzenie",
+      "scanFromDevice": "Skanuj z innego urządzenia"
+    },
+    "pairingDevices": {
+      "title": "Parowanie i urządzenia",
+      "count_one": "{{count}} sparowane urządzenie",
+      "count_other": "{{count}} sparowanych urządzeń"
+    },
+    "syncAdvanced": {
+      "title": "Centrum synchronizacji",
+      "description": "Dzienniki debugowania i identyfikatory urządzeń do rozwiązywania problemów."
+    },
+    "syncHub": {
+      "title": "Centrum synchronizacji",
+      "overview": "Przegląd",
+      "ids": "ID urządzenia i grupy",
+      "connections": "Połączenia",
+      "localWriterKey": "Lokalny klucz zapisu",
+      "management": "Zarządzanie"
     },
     "data": {
       "title": "Dane",
@@ -173,7 +302,7 @@
     },
     "localJson": {
       "title": "Lokalny JSON",
-      "description": "Eksportuj dane treningowe do pliku JSON lub zaimportuj poprzednią lokalną kopię zapasową.",
+      "description": "Wyeksportuj dane do pliku JSON lub zaimportuj poprzednią kopię zapasową.",
       "export": "Eksportuj kopię zapasową",
       "import": "Importuj kopię zapasową"
     }
@@ -190,6 +319,17 @@
     },
     "cancel": "Anuluj",
     "confirm": "Importuj kopię zapasową"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Udostępnij na inne urządzenie",
+    "shareDescription": "Na drugim urządzeniu: Ustawienia → Kopia zapasowa → Skanuj z innego urządzenia.",
+    "scanTitle": "Skanuj z innego urządzenia",
+    "scanDescription": "Skieruj aparat na kod QR kopii zapasowej PearLift.",
+    "cameraPermissionTitle": "Wymagane pozwolenie na aparat",
+    "cameraPermissionMessage": "Zezwól na dostęp do aparatu, aby skanować kod QR kopii zapasowej.",
+    "cameraPermissionButton": "Zezwól na aparat",
+    "invalidQr": "Ten kod QR nie wygląda jak kopia zapasowa PearLift.",
+    "tooLarge": "Kopia zapasowa jest zbyt duża, aby zmieścić się w jednym kodzie QR. Użyj „Zapisz kopię na urządzeniu” zamiast tego."
   },
   "prompts": {
     "deleteExercise": {
