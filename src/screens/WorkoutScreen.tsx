@@ -7,7 +7,7 @@ import {
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Platform, useColorScheme, View } from 'react-native';
 import {
@@ -22,6 +22,10 @@ import {
   serializePwaBackupV2,
   toPwaBackupV2,
 } from '../backup/localBackup';
+import {
+  assembleChunkedPackets,
+  decodeQrPayload,
+} from '../backup/qrBackupCodec';
 import { BootstrapScreen } from '../components/BootstrapScreen';
 import { Header } from '../components/Header';
 import { AddExerciseModal } from '../components/modals/AddExerciseModal';
@@ -29,7 +33,9 @@ import { AppPromptModal } from '../components/modals/AppPromptModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LanguageListModal } from '../components/modals/LanguageListModal';
 import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
+import { ScanFromDeviceModal } from '../components/modals/ScanFromDeviceModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
+import { ShareToDeviceModal } from '../components/modals/ShareToDeviceModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
@@ -56,6 +62,9 @@ export function WorkoutScreen() {
   const systemScheme = useColorScheme();
   const systemLanguage = useSystemLanguage(SUPPORTED_I18N_LANGUAGE_CODES, 'en');
   const { t } = useTranslation();
+
+  const [shareToDeviceOpen, setShareToDeviceOpen] = useState(false);
+  const [scanFromDeviceOpen, setScanFromDeviceOpen] = useState(false);
 
   const {
     snapshot,
@@ -297,6 +306,9 @@ export function WorkoutScreen() {
         const permissions =
           await StorageAccessFramework.requestDirectoryPermissionsAsync();
         if (!permissions.granted) {
+          logError('backup/export save canceled', {
+            reason: 'directory-permission-denied',
+          });
           return;
         }
 
@@ -329,10 +341,23 @@ export function WorkoutScreen() {
           } catch (error) {
             const message = getErrorMessage(error).toLowerCase();
             if (!message.includes('cancel')) {
+              logError('backup/export share failed', {
+                mode,
+                fileName,
+                error: getErrorMessage(error),
+              });
               throw error;
             }
+            logError('backup/export share canceled', {
+              mode,
+              fileName,
+            });
           }
         } else {
+          logError('backup/export share unavailable', {
+            mode,
+            platform: Platform.OS,
+          });
           showPrompt(
             t('prompts.exportBackup.sharingUnavailableTitle'),
             t('prompts.exportBackup.sharingUnavailableMessage'),
@@ -378,7 +403,37 @@ export function WorkoutScreen() {
       if (!pickedFile) return;
 
       const fileText = await pickedFile.text();
-      const migrated = parseAndMigrateBackup(fileText);
+      void beginImportFromPayload(fileText);
+    } catch (error) {
+      const message = getErrorMessage(error).toLowerCase();
+      if (message.includes('cancel')) return;
+      logError('backup/import failed', error);
+      showPrompt(t('prompts.importBackup.failedTitle'), getErrorMessage(error));
+    }
+  };
+
+  const beginImportFromPayload = async (payload: string) => {
+    if (!snapshot) return false;
+    try {
+      let decodedPayload = payload;
+      const qrDecoded = decodeQrPayload(payload);
+      if (qrDecoded.kind === 'single') {
+        decodedPayload = assembleChunkedPackets(
+          new Map([[0, qrDecoded.payload]]),
+          1,
+          qrDecoded.checksum,
+        );
+      } else if (qrDecoded.kind === 'chunk') {
+        decodedPayload = assembleChunkedPackets(
+          new Map([[qrDecoded.index, qrDecoded.payload]]),
+          qrDecoded.total,
+          qrDecoded.checksum,
+        );
+      } else {
+        decodedPayload = qrDecoded.payload;
+      }
+
+      const migrated = parseAndMigrateBackup(decodedPayload);
       const summary = computeImportDiff(
         toPwaBackupV2(snapshot),
         migrated.backup,
@@ -387,12 +442,16 @@ export function WorkoutScreen() {
       setPendingImport(migrated);
       setImportSummary(summary);
       setImportPreviewOpen(true);
+      return true;
     } catch (error) {
-      const message = getErrorMessage(error).toLowerCase();
-      if (message.includes('cancel')) return;
-      logError('backup/import failed', error);
+      logError('backup/import from payload failed', error);
       showPrompt(t('prompts.importBackup.failedTitle'), getErrorMessage(error));
+      return false;
     }
+  };
+
+  const handleScanPayload = async (payload: string) => {
+    return beginImportFromPayload(payload);
   };
 
   const handleConfirmImport = async () => {
@@ -663,6 +722,8 @@ export function WorkoutScreen() {
           language={currentLanguage}
           onLanguageChange={handleLanguageChange}
           onLanguageListOpen={() => setLanguageListOpen(true)}
+          onShareToDevice={() => setShareToDeviceOpen(true)}
+          onScanFromDevice={() => setScanFromDeviceOpen(true)}
           onExportLocalBackup={handleExportBackup}
           onImportLocalBackup={() => void handleImportBackup()}
           onResetData={handleResetData}
@@ -670,6 +731,24 @@ export function WorkoutScreen() {
             setSettingsOpen(false);
           }}
           onOpenGithub={handleOpenGithub}
+        />
+
+        <ShareToDeviceModal
+          open={shareToDeviceOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          runtimeState={snapshot}
+          onClose={() => setShareToDeviceOpen(false)}
+        />
+
+        <ScanFromDeviceModal
+          open={scanFromDeviceOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          onScanPayload={handleScanPayload}
+          onClose={() => setScanFromDeviceOpen(false)}
         />
 
         <LanguageListModal

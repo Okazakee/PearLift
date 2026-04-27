@@ -252,9 +252,11 @@
       "manage": "Manage Sync"
     },
     "localBackup": {
-      "title": "Local Backup",
+      "title": "Backup",
       "export": "Save backup to device",
-      "import": "Restore from backup"
+      "import": "Restore from backup",
+      "shareToDevice": "Share to another device",
+      "scanFromDevice": "Scan from another device"
     },
     "pairingDevices": {
       "title": "Pairing & Devices",
@@ -300,7 +302,7 @@
     },
     "localJson": {
       "title": "Local JSON",
-      "description": "Export your workout data to a JSON file or import a previous local backup.",
+      "description": "Export your workout data to a JSON file or import a previous backup.",
       "export": "Export Backup",
       "import": "Import Backup"
     }
@@ -317,6 +319,23 @@
     },
     "cancel": "Cancel",
     "confirm": "Import Backup"
+  },
+  "deviceTransfer": {
+    "shareTitle": "Share to another device",
+    "shareDescription": "On the other device, open Settings → Local Backup → Scan from another device.",
+    "shareChunkCounter": "Chunk {{current}}/{{total}}",
+    "shareChunkHint": "Keep both devices steady. QR rotates automatically.",
+    "pauseRotation": "Pause rotation",
+    "resumeRotation": "Resume rotation",
+    "scanTitle": "Scan from another device",
+    "scanDescription": "Point your camera at the PearLift backup QR code.",
+    "chunkProgress": "Scan progress: {{received}}/{{total}}",
+    "transferCorrupted": "QR transfer failed integrity check. Please scan from the first chunk again.",
+    "cameraPermissionTitle": "Camera permission required",
+    "cameraPermissionMessage": "Allow camera access to scan a backup QR code.",
+    "cameraPermissionButton": "Allow Camera",
+    "invalidQr": "That QR code doesn't look like a PearLift backup.",
+    "tooLarge": "Backup is too large to fit in a single QR code. Use “Save backup to device” instead."
   },
   "prompts": {
     "deleteExercise": {

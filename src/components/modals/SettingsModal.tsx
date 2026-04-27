@@ -6,6 +6,8 @@ import {
   Download,
   Info,
   RefreshCw,
+  ScanLine,
+  Share2,
   Sun,
   Upload,
 } from 'lucide-react-native';
@@ -40,6 +42,8 @@ interface SettingsModalProps {
   language: string;
   onLanguageChange: (next: string) => void;
   onLanguageListOpen: () => void;
+  onShareToDevice: () => void;
+  onScanFromDevice: () => void;
   onExportLocalBackup: () => void;
   onImportLocalBackup: () => void;
   onClose: () => void;
@@ -63,6 +67,8 @@ export function SettingsModal({
   language,
   onLanguageChange,
   onLanguageListOpen,
+  onShareToDevice,
+  onScanFromDevice,
   onExportLocalBackup,
   onImportLocalBackup,
   onClose,
@@ -244,7 +250,7 @@ export function SettingsModal({
             </Text>
             <View style={styles.actionRow}>
               <AnimatedPressable
-                style={styles.outlineButton}
+                style={[styles.outlineButton, styles.fullWidthButton]}
                 onPress={onExportLocalBackup}
               >
                 <Download size={15} color={tokens.colors.textSecondary} />
@@ -253,12 +259,32 @@ export function SettingsModal({
                 </Text>
               </AnimatedPressable>
               <AnimatedPressable
-                style={styles.outlineButton}
+                style={[styles.outlineButton, styles.fullWidthButton]}
                 onPress={onImportLocalBackup}
               >
                 <Upload size={15} color={tokens.colors.textSecondary} />
                 <Text style={styles.outlineButtonText}>
                   {t('settings.localBackup.import')}
+                </Text>
+              </AnimatedPressable>
+            </View>
+            <View style={styles.actionRow}>
+              <AnimatedPressable
+                style={[styles.outlineButton, styles.fullWidthButton]}
+                onPress={onShareToDevice}
+              >
+                <Share2 size={15} color={tokens.colors.textSecondary} />
+                <Text style={styles.outlineButtonText}>
+                  {t('settings.localBackup.shareToDevice')}
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={[styles.outlineButton, styles.fullWidthButton]}
+                onPress={onScanFromDevice}
+              >
+                <ScanLine size={15} color={tokens.colors.textSecondary} />
+                <Text style={styles.outlineButtonText}>
+                  {t('settings.localBackup.scanFromDevice')}
                 </Text>
               </AnimatedPressable>
             </View>
@@ -472,6 +498,9 @@ function createStyles(
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.label,
       fontWeight: '800',
+    },
+    fullWidthButton: {
+      width: '100%',
     },
     resetButton: {
       marginTop: tokens.spacing.sm,
