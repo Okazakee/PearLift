@@ -111,6 +111,7 @@ export function SyncSetupModal({
   const [qrSvg, setQrSvg] = useState<string | null>(null);
   const [qrSize, setQrSize] = useState(0);
   const [scanned, setScanned] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
 
   // QR encodes both pairing secret and bootstrap key once sync is active
@@ -134,6 +135,7 @@ export function SyncSetupModal({
       setQrSvg(null);
       setQrSize(0);
       setScanned(false);
+      setCopied(false);
       return;
     }
 
@@ -177,6 +179,7 @@ export function SyncSetupModal({
 
   const isConnecting = syncStatus === 'connecting';
   const isConnected = syncStatus === 'synced';
+  const shouldRenderScanner = mode === 'join' && !isConnecting && !isConnected;
   const isFirstSync = lastSyncedAt === null;
   const canStart =
     syncStatus === 'idle' || syncStatus === 'error' || syncStatus === 'synced';
@@ -186,6 +189,24 @@ export function SyncSetupModal({
     setLocalError(null);
     try {
       await Clipboard.setStringAsync(qrPayload);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch (error) {
+      setLocalError(getErrorMessage(error));
+    }
+  };
+
+  const handlePaste = async () => {
+    setLocalError(null);
+    try {
+      const value = await Clipboard.getStringAsync();
+      const payload = extractPairingPayload(value);
+      if (!payload) {
+        setLocalError(t('sync.setup.invalidCode'));
+        return;
+      }
+      setJoinCode(payload.secret);
+      setJoinBootstrapKey(payload.bootstrapKey);
     } catch (error) {
       setLocalError(getErrorMessage(error));
     }
@@ -332,7 +353,7 @@ export function SyncSetupModal({
           <View style={styles.panel}>
             <Text style={styles.label}>{t('sync.setup.enterCode')}</Text>
             <View style={styles.scanBox}>
-              {permission?.granted ? (
+              {permission?.granted && shouldRenderScanner ? (
                 <>
                   <CameraView
                     style={styles.camera}
@@ -355,23 +376,34 @@ export function SyncSetupModal({
               ) : (
                 <AnimatedPressable
                   style={styles.scanPlaceholder}
-                  onPress={() => void requestPermission()}
+                  onPress={
+                    shouldRenderScanner
+                      ? () => void requestPermission()
+                      : undefined
+                  }
                 >
                   <View style={styles.scanBoxInner}>
                     <Camera size={34} color={tokens.colors.textSecondary} />
                   </View>
                   <Text style={styles.scanText}>
-                    {t('sync.setup.scanEnableCamera')}
+                    {shouldRenderScanner
+                      ? t('sync.setup.scanEnableCamera')
+                      : t('sync.setup.connecting')}
                   </Text>
                   <Text style={styles.scanHelp}>
-                    {t('sync.setup.scanHelp')}
+                    {shouldRenderScanner
+                      ? t('sync.setup.scanHelp')
+                      : t('sync.setup.waitForConnection')}
                   </Text>
                 </AnimatedPressable>
               )}
             </View>
             <TextInput
               value={joinCode}
-              onChangeText={setJoinCode}
+              onChangeText={(value) => {
+                setJoinCode(value);
+                setJoinBootstrapKey(null);
+              }}
               placeholder={t('sync.setup.codePlaceholder')}
               placeholderTextColor={tokens.colors.textMuted}
               autoCapitalize="none"
@@ -379,6 +411,11 @@ export function SyncSetupModal({
               keyboardType="default"
               style={styles.input}
             />
+            <AnimatedPressable style={styles.pasteButton} onPress={handlePaste}>
+              <Text style={styles.pasteButtonText}>
+                {t('sync.setup.paste')}
+              </Text>
+            </AnimatedPressable>
             {isFirstSync ? (
               <AnimatedPressable
                 style={styles.replaceToggle}
@@ -441,7 +478,7 @@ export function SyncSetupModal({
               onPress={handleCopy}
             >
               <Text style={styles.outlineButtonText}>
-                {t('sync.setup.copy')}
+                {copied ? t('sync.setup.copied') : t('sync.setup.copy')}
               </Text>
             </AnimatedPressable>
           ) : null}
@@ -648,6 +685,21 @@ function createStyles(
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.body,
       fontFamily: 'SpaceGrotesk_600SemiBold',
+    },
+    pasteButton: {
+      minHeight: 40,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: tokens.spacing.md,
+    },
+    pasteButtonText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '800',
     },
     replaceToggle: {
       flexDirection: 'row',

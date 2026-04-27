@@ -31,6 +31,7 @@ const peerConnectionCounts = new Map();
 let activeConnections = 0;
 let rpc = null;
 let sentViewLength = 0;
+let sentRemoteOpIds = new Set();
 let isFlushing = false;
 let runtimeStatus = 'idle';
 let lastBackendError = null;
@@ -47,12 +48,32 @@ let heartbeatTimer = null;
 let startedAt = null;
 let rpcHandshakeLogged = false;
 let rejoinInFlight = false;
+let discoveryOnlyMode = false;
+let disableCursorOptimization = false;
 
 const MAX_LOG_ENTRIES = 200;
 const MAX_RECONNECT_ATTEMPTS = 10;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
 const logRing = [];
+const WORKLET_BOOT_AT = new Date().toISOString();
+const SOCKET_NO_DATA_TIMEOUT_MS = 10000;
+const SOCKET_PONG_TIMEOUT_MS = 8000;
+const REPLICATION_START_TIMEOUT_MS = 6000;
+const PING_INTERVAL_MS = 7000;
+const PING_FRAME = 'PL_SYNC_PING';
+const PONG_FRAME = 'PL_SYNC_PONG';
+const socketStates = new Set();
+let socketSeq = 0;
+
+function hashSecretHex(secretHex) {
+  let hash = 2166136261;
+  for (let i = 0; i < secretHex.length; i += 1) {
+    hash ^= secretHex.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
 
 function getErrorMessage(error) {
   if (error && typeof error === 'object' && typeof error.message === 'string') {
@@ -163,6 +184,72 @@ function trackConnectionClose(remoteKey) {
   peerConnectionCounts.set(remoteKey, next);
 }
 
+function createSocketState(socket, remoteKey) {
+  socketSeq += 1;
+  return {
+    socketId: socketSeq,
+    socket,
+    remoteKey: remoteKey ?? null,
+    openedAt: Date.now(),
+    firstByteAt: null,
+    lastDataAt: null,
+    lastPingAt: null,
+    lastPongAt: null,
+    pingOutstanding: false,
+    pingTimer: null,
+    handshakeOk: false,
+    replicationStarted: false,
+    closed: false,
+    timeoutReportedNoData: false,
+    timeoutReportedNoPong: false,
+    timeoutReportedReplication: false,
+  };
+}
+
+function clearSocketPingTimer(state) {
+  if (!state?.pingTimer) return;
+  clearInterval(state.pingTimer);
+  state.pingTimer = null;
+}
+
+function emitSocketStatus(status, state) {
+  emitStatus(status, null);
+  logMajorEvent('status', status, `Status -> ${status}`, {
+    socketId: state?.socketId ?? null,
+    remoteKey: state?.remoteKey ?? null,
+    peers: getPeerCount(),
+    connections: activeConnections,
+  });
+}
+
+function logSocketTimeout(state, reason, extra = null) {
+  logMajorWarning('socket', 'timeout_reason', 'Socket timeout reason.', {
+    reason,
+    socketId: state.socketId,
+    remoteKey: state.remoteKey,
+    ...extra,
+  });
+}
+
+function sendSocketFrame(socket, state, frame, eventName) {
+  try {
+    socket.write(`${frame}\n`);
+    if (frame === PING_FRAME) {
+      state.lastPingAt = Date.now();
+      state.pingOutstanding = true;
+    }
+    logMajorEvent('socket', eventName, `Socket frame sent: ${eventName}.`, {
+      socketId: state.socketId,
+      remoteKey: state.remoteKey,
+    });
+  } catch (error) {
+    logMajorWarning('socket', 'write_failed', getErrorMessage(error), {
+      socketId: state.socketId,
+      remoteKey: state.remoteKey,
+    });
+  }
+}
+
 function isDhtBootstrapped() {
   try {
     return !!swarm?.dht?.bootstrapped;
@@ -224,6 +311,7 @@ function cursorPath() {
 }
 
 async function loadCursor() {
+  if (disableCursorOptimization) return 0;
   const path = cursorPath();
   if (!path || !base?.key) return 0;
   try {
@@ -251,6 +339,7 @@ function scheduleCursorPersist() {
 }
 
 async function persistCursor() {
+  if (disableCursorOptimization) return;
   const path = cursorPath();
   if (!path || !base?.key) return;
   try {
@@ -265,6 +354,7 @@ async function persistCursor() {
 }
 
 async function flushRemoteOps() {
+  if (discoveryOnlyMode) return;
   if (!rpc || !base?.view) return;
   if (isFlushing) return;
 
@@ -272,16 +362,23 @@ async function flushRemoteOps() {
   try {
     const total = base.view.length;
     let flushed = 0;
-    while (sentViewLength < total) {
-      const op = await base.view.get(sentViewLength++);
+    for (let i = 0; i < total; i += 1) {
+      const op = await base.view.get(i);
       // Don't ship our own ops back to the UI.
       if (op?.deviceId && localDeviceId && op.deviceId === localDeviceId) {
         continue;
       }
+      const opKey =
+        typeof op?.opId === 'string' ? op.opId : `${i}:${JSON.stringify(op)}`;
+      if (sentRemoteOpIds.has(opKey)) {
+        continue;
+      }
+      sentRemoteOpIds.add(opKey);
       const rpcEvent = rpc.event(RPC_SYNC_REMOTE_OP_EVENT);
       rpcEvent.send(encodeRpcPayload(RPC_SYNC_REMOTE_OP_EVENT, 'event', op));
       flushed += 1;
     }
+    sentViewLength = Math.max(sentViewLength, total);
     if (flushed > 0) {
       lastSyncedAt = new Date().toISOString();
       emitStatus('synced', null);
@@ -388,20 +485,17 @@ async function rejoinTopic() {
       discovery = null;
     }
     discovery = swarm.join(currentTopic, { server: true, client: true });
-    void discovery
-      .flushed()
-      .then(() => {
-        logMajorEvent(
-          'swarm',
-          'topic_reannounced',
-          'Swarm topic re-announced after watchdog rejoin.',
-        );
-      })
-      .catch((error) => {
-        logMajorWarning('swarm', 'flush_failed', getErrorMessage(error));
-      });
+    await discovery.flushed();
+    emitStatus('dht_ready', null);
+    logMajorEvent(
+      'swarm',
+      'topic_reannounced',
+      'Swarm topic re-announced after watchdog rejoin.',
+    );
+    emitStatus('connecting', null);
     stuckSince = Date.now();
   } catch (error) {
+    logMajorWarning('swarm', 'flush_failed', getErrorMessage(error));
     logBackendError('watchdog', error);
   } finally {
     rejoinInFlight = false;
@@ -435,6 +529,58 @@ function startHeartbeat() {
       status: runtimeStatus,
       reconnectAttempts,
     });
+
+    const now = Date.now();
+    for (const state of socketStates) {
+      if (state.closed) continue;
+
+      if (
+        !state.firstByteAt &&
+        now - state.openedAt > SOCKET_NO_DATA_TIMEOUT_MS
+      ) {
+        if (!state.timeoutReportedNoData) {
+          state.timeoutReportedNoData = true;
+          logSocketTimeout(state, 'connected_but_no_data', {
+            sinceOpenMs: now - state.openedAt,
+          });
+        }
+        if (discoveryOnlyMode && !state.pingOutstanding) {
+          sendSocketFrame(
+            state.socket,
+            state,
+            PING_FRAME,
+            'ping_sent_connected_but_no_data',
+          );
+        }
+      }
+
+      if (
+        state.pingOutstanding &&
+        state.lastPingAt &&
+        now - state.lastPingAt > SOCKET_PONG_TIMEOUT_MS
+      ) {
+        if (!state.timeoutReportedNoPong) {
+          state.timeoutReportedNoPong = true;
+          logSocketTimeout(state, 'ping_sent_no_pong', {
+            sincePingMs: now - state.lastPingAt,
+          });
+        }
+      }
+
+      if (
+        !discoveryOnlyMode &&
+        !state.replicationStarted &&
+        now - state.openedAt > REPLICATION_START_TIMEOUT_MS
+      ) {
+        if (!state.timeoutReportedReplication) {
+          state.timeoutReportedReplication = true;
+          logSocketTimeout(state, 'replication_not_started', {
+            sinceOpenMs: now - state.openedAt,
+          });
+        }
+      }
+    }
+
     updateStuckState();
     if (
       stuckSince !== null &&
@@ -461,8 +607,18 @@ async function ensureStopped() {
     cursorDirty = false;
   }
 
+  if (discovery) {
+    try {
+      await discovery.destroy();
+    } catch {
+      // ignore
+    }
+    discovery = null;
+  }
+
   if (swarm) {
     try {
+      swarm.removeAllListeners?.();
       await swarm.destroy();
     } catch {
       // ignore
@@ -472,6 +628,7 @@ async function ensureStopped() {
 
   if (base) {
     try {
+      base.removeAllListeners?.();
       await base.close();
     } catch {
       // ignore
@@ -489,8 +646,13 @@ async function ensureStopped() {
   }
 
   peerConnectionCounts.clear();
+  for (const state of socketStates) {
+    clearSocketPingTimer(state);
+  }
+  socketStates.clear();
   activeConnections = 0;
   sentViewLength = 0;
+  sentRemoteOpIds = new Set();
   isFlushing = false;
   runtimeStatus = 'idle';
   lastBackendError = null;
@@ -506,14 +668,19 @@ async function ensureStopped() {
   startedAt = null;
   rpcHandshakeLogged = false;
   rejoinInFlight = false;
+  discoveryOnlyMode = false;
+  disableCursorOptimization = false;
   stopHeartbeat();
 }
 
 async function startSync(config) {
   await ensureStopped();
-  runtimeStatus = 'connecting';
+  runtimeStatus = 'idle';
   lastBackendError = null;
   lastSyncedAt = null;
+
+  discoveryOnlyMode = !!config?.debug?.discoveryOnly;
+  disableCursorOptimization = !!config?.debug?.disableCursorOptimization;
 
   const topic = topicFromSecretHex(config.pairingSecretHex);
   topicHex = b4a.toString(topic, 'hex');
@@ -524,51 +691,108 @@ async function startSync(config) {
   storageRoot = join(basePath, 'pearlift-sync');
   await mkdir(storageRoot, { recursive: true });
   localDeviceId = config.deviceId ?? null;
-
-  store = new Corestore(storageRoot);
-  await store.ready();
-
-  const bootstrap = config.bootstrapKeyHex
-    ? b4a.from(config.bootstrapKeyHex, 'hex')
-    : null;
-
-  base = new Autobase(store, bootstrap, {
-    valueEncoding: 'json',
-    optimistic: true,
-    open(viewStore) {
-      return viewStore.get({ name: 'sync-ops', valueEncoding: 'json' });
-    },
-    async apply(nodes, view, host) {
-      for (const node of nodes) {
-        if (node.value == null) continue;
-        await host.ackWriter(node.from.key);
-        await view.append(node.value);
-      }
-    },
+  logMajorEvent('startup', 'snapshot', 'Worklet startup snapshot.', {
+    appLaunchAt: WORKLET_BOOT_AT,
+    workletStartAt: WORKLET_BOOT_AT,
+    storagePathFromRn: config.storagePath ?? null,
+    storageRoot,
+    deviceId: localDeviceId,
+    pairingSecretHash: hashSecretHex(config.pairingSecretHex),
+    topicHex,
+    bootstrapKeyHexState: config.bootstrapKeyHex ? 'present' : 'absent',
+    bootstrapKeyHex: config.bootstrapKeyHex ?? null,
+    discoveryOnlyMode,
+    disableCursorOptimization,
   });
 
-  await base.ready();
+  if (!discoveryOnlyMode) {
+    store = new Corestore(storageRoot);
+    await store.ready();
 
-  const storedCursor = await loadCursor();
-  sentViewLength = Math.min(storedCursor, base.view.length);
-  logMajorEvent('cursor', 'restored', 'Cursor restored from disk.', {
-    stored: storedCursor,
-    applied: sentViewLength,
-    viewLength: base.view.length,
-  });
-  logMajorEvent('autobase', 'ready', 'Autobase ready.', {
-    viewLength: base.view.length,
-    writable: !!base.writable,
-  });
+    const bootstrap = config.bootstrapKeyHex
+      ? b4a.from(config.bootstrapKeyHex, 'hex')
+      : null;
 
-  base.on('update', () => {
-    void flushRemoteOps().catch((error) => {
-      logBackendError('flushRemoteOps', error);
-      emitStatus('error', getErrorMessage(error));
+    base = new Autobase(store, bootstrap, {
+      valueEncoding: 'json',
+      optimistic: true,
+      open(viewStore) {
+        return viewStore.get({ name: 'sync-ops', valueEncoding: 'json' });
+      },
+      async apply(nodes, view, host) {
+        for (const node of nodes) {
+          if (node.value == null) continue;
+          await host.ackWriter(node.from.key);
+          await view.append(node.value);
+        }
+      },
     });
-  });
+
+    await base.ready();
+
+    const storedCursor = await loadCursor();
+    sentViewLength = disableCursorOptimization
+      ? 0
+      : Math.min(storedCursor, base.view.length);
+    logMajorEvent(
+      'cursor',
+      disableCursorOptimization ? 'disabled' : 'restored',
+      disableCursorOptimization
+        ? 'Cursor optimization disabled for debug startup.'
+        : 'Cursor restored from disk.',
+      {
+        stored: storedCursor,
+        applied: sentViewLength,
+        viewLength: base.view.length,
+      },
+    );
+    logMajorEvent('autobase', 'ready', 'Autobase ready.', {
+      viewLength: base.view.length,
+      writable: !!base.writable,
+      autobaseKey: b4a.toString(base.key, 'hex'),
+      localWriterKey: base.local?.key
+        ? b4a.toString(base.local.key, 'hex')
+        : null,
+    });
+    logMajorEvent('autobase', 'start_config', 'Start configuration.', {
+      hasBootstrapKey: !!config.bootstrapKeyHex,
+      bootstrapKeyHexState: config.bootstrapKeyHex ? 'present' : 'absent',
+      deviceId: config.deviceId,
+      storageRoot,
+    });
+
+    base.on('update', () => {
+      void flushRemoteOps().catch((error) => {
+        logBackendError('flushRemoteOps', error);
+        emitStatus('error', getErrorMessage(error));
+      });
+    });
+
+    base.on('writers', () => {
+      logMajorEvent('autobase', 'writers_changed', 'Writer set updated.', {
+        writerCount: base.writers?.length ?? 0,
+      });
+      // Flush any pending remote ops that may now be ready.
+      void flushRemoteOps().catch((error) => {
+        logBackendError('flushRemoteOps', error);
+      });
+    });
+  } else {
+    sentViewLength = 0;
+    logMajorEvent(
+      'backend',
+      'discovery_only_enabled',
+      'Discovery-only debug mode enabled; replication/apply layers skipped.',
+    );
+  }
 
   swarm = new Hyperswarm();
+  const swarmPublicKey = swarm?.keyPair?.publicKey
+    ? b4a.toString(swarm.keyPair.publicKey, 'hex')
+    : null;
+  logMajorEvent('swarm', 'keypair', 'Swarm keypair initialized.', {
+    swarmPublicKey,
+  });
 
   swarm.on('error', (error) => {
     logBackendError('swarm', error);
@@ -585,6 +809,9 @@ async function startSync(config) {
   swarm.on('connection', (socket, peerInfo) => {
     const remoteKeyBuf = peerInfo?.publicKey ?? socket.remotePublicKey;
     const remoteKey = remoteKeyBuf ? b4a.toString(remoteKeyBuf, 'hex') : null;
+    const socketState = createSocketState(socket, remoteKey);
+    socketStates.add(socketState);
+    let discoveryBuffer = '';
     let closed = false;
     trackConnectionOpen(remoteKey);
     reconnectAttempts = 0;
@@ -592,11 +819,12 @@ async function startSync(config) {
 
     stuckSince = null;
     if (runtimeStatus !== 'error') {
-      emitStatus('connecting', null);
+      emitSocketStatus('peer_connected', socketState);
     } else {
       emitStatus('error', lastBackendError);
     }
-    logMajorEvent('peer', 'connected', 'Peer connected.', {
+    logMajorEvent('socket', 'connection_opened', 'Socket connection opened.', {
+      socketId: socketState.socketId,
       peers: getPeerCount(),
       connections: activeConnections,
       remoteKey,
@@ -605,32 +833,117 @@ async function startSync(config) {
     socket.once('close', () => {
       if (closed) return;
       closed = true;
+      socketState.closed = true;
+      clearSocketPingTimer(socketState);
+      socketStates.delete(socketState);
       trackConnectionClose(remoteKey);
+      logSocketTimeout(socketState, 'socket_closed');
       if (runtimeStatus !== 'error') {
         const statusAfterClose =
-          activeConnections > 0 ? 'synced' : 'connecting';
+          activeConnections > 0 ? 'peer_connected' : 'connecting';
         emitStatus(statusAfterClose, lastBackendError);
       } else {
         emitStatus('error', lastBackendError);
       }
-      logMajorEvent('peer', 'disconnected', 'Peer disconnected.', {
+      logMajorEvent('socket', 'socket_close', 'Socket closed.', {
+        socketId: socketState.socketId,
         peers: getPeerCount(),
         connections: activeConnections,
         remoteKey,
       });
     });
 
+    socket.on?.('data', (chunk) => {
+      const now = Date.now();
+      socketState.lastDataAt = now;
+      if (!socketState.firstByteAt) {
+        socketState.firstByteAt = now;
+        socketState.handshakeOk = true;
+        emitSocketStatus('handshake_ok', socketState);
+        logMajorEvent(
+          'socket',
+          'first_byte_received',
+          'Socket first byte received.',
+          {
+            socketId: socketState.socketId,
+            remoteKey,
+            bytes: chunk?.byteLength ?? chunk?.length ?? null,
+          },
+        );
+      }
+
+      if (!discoveryOnlyMode) return;
+
+      const raw = typeof chunk === 'string' ? chunk : b4a.toString(chunk);
+      discoveryBuffer += raw;
+      let newlineIndex = discoveryBuffer.indexOf('\n');
+      while (newlineIndex >= 0) {
+        const line = discoveryBuffer.slice(0, newlineIndex).trim();
+        discoveryBuffer = discoveryBuffer.slice(newlineIndex + 1);
+        if (line === PING_FRAME) {
+          sendSocketFrame(socket, socketState, PONG_FRAME, 'pong_sent');
+        } else if (line === PONG_FRAME) {
+          socketState.lastPongAt = Date.now();
+          socketState.pingOutstanding = false;
+          socketState.timeoutReportedNoPong = false;
+          logMajorEvent('socket', 'pong_received', 'Socket pong received.', {
+            socketId: socketState.socketId,
+            remoteKey,
+          });
+        }
+        newlineIndex = discoveryBuffer.indexOf('\n');
+      }
+    });
+
     try {
-      store.replicate(socket);
+      if (!discoveryOnlyMode && base) {
+        socketState.replicationStarted = true;
+        emitSocketStatus('replicating', socketState);
+        logMajorEvent(
+          'socket',
+          'replication_started',
+          'Corestore/Autobase replication started on socket.',
+          {
+            socketId: socketState.socketId,
+            remoteKey,
+          },
+        );
+        const connection = base.replicate(socket);
+        connection.on('remote-core', (core, peerKey) => {
+          if (!core.writable && peerKey) {
+            base.ackWriter(peerKey).catch((err) => {
+              logMajorWarning('ack', 'ack_writer_failed', getErrorMessage(err));
+            });
+          }
+        });
+      }
     } catch (error) {
       logBackendError('replicate', error);
       emitStatus('error', getErrorMessage(error));
     }
 
+    if (discoveryOnlyMode) {
+      sendSocketFrame(socket, socketState, PING_FRAME, 'ping_sent');
+      socketState.pingTimer = setInterval(() => {
+        if (socketState.closed) {
+          clearSocketPingTimer(socketState);
+          return;
+        }
+        if (!socketState.pingOutstanding) {
+          sendSocketFrame(socket, socketState, PING_FRAME, 'ping_sent');
+        }
+      }, PING_INTERVAL_MS);
+    }
+
     socket.on?.('error', (error) => {
+      logMajorWarning('socket', 'socket_error', getErrorMessage(error), {
+        socketId: socketState.socketId,
+        remoteKey,
+      });
       if (isTransientSocketError(error)) {
         const message = getErrorMessage(error);
         logMajorWarning('socket', 'timeout', message, {
+          socketId: socketState.socketId,
           peers: getPeerCount(),
           connections: activeConnections,
           remoteKey,
@@ -644,8 +957,10 @@ async function startSync(config) {
       emitStatus('error', getErrorMessage(error));
     });
 
-    // Announce presence so the new peer flips to 'synced' promptly.
-    void publishBackendPresence();
+    if (!discoveryOnlyMode) {
+      // Announce presence so the new peer flips to 'synced' promptly.
+      void publishBackendPresence();
+    }
   });
 
   currentTopic = topic;
@@ -653,28 +968,31 @@ async function startSync(config) {
     topicHex,
   });
   discovery = swarm.join(topic, { server: true, client: true });
-
-  // Don't block start on DHT flush. Log in the background.
-  void discovery
-    .flushed()
-    .then(() => {
-      logMajorEvent('swarm', 'topic_announced', 'Swarm topic announced.');
-    })
-    .catch((error) => {
-      logMajorWarning('swarm', 'flush_failed', getErrorMessage(error));
-    });
+  await discovery.flushed();
+  emitStatus('dht_ready', null);
+  logMajorEvent('dht', 'dht_ready', 'Discovery flush completed.', {
+    topicHex,
+    bootstrapped: isDhtBootstrapped(),
+  });
 
   startedAt = Date.now();
   stuckSince = Date.now();
   lastDhtBootstrapped = isDhtBootstrapped();
   emitStatus('connecting', null);
   logMajorEvent('backend', 'started', 'Sync backend started.', {
+    storageRoot,
+    autobaseKey: base?.key ? b4a.toString(base.key, 'hex') : null,
+    localWriterKey: base?.local?.key
+      ? b4a.toString(base.local.key, 'hex')
+      : null,
+    swarmPublicKey,
     dhtReady: lastDhtBootstrapped,
+    discoveryOnlyMode,
   });
   startHeartbeat();
 
   return {
-    bootstrapKeyHex: b4a.toString(base.key, 'hex'),
+    bootstrapKeyHex: base?.key ? b4a.toString(base.key, 'hex') : '',
   };
 }
 
@@ -714,6 +1032,15 @@ rpc = new RPC(IPC, async (req) => {
 
     if (req.command === RPC_SYNC_PUBLISH) {
       const op = decodeRequest(req);
+      if (discoveryOnlyMode) {
+        logMajorEvent(
+          'publish',
+          'ignored_discovery_only',
+          'Ignoring publish in discovery-only mode.',
+        );
+        safeReply(req, { ok: true });
+        return;
+      }
       if (!base) {
         throw new Error('Sync base not started.');
       }
@@ -736,10 +1063,22 @@ try {
   const p = typeof process !== 'undefined' ? process : null;
   if (p?.on) {
     p.on('uncaughtException', (error) => {
+      logMajorWarning(
+        'fatal',
+        'uncaught_exception',
+        'Unhandled fatal exception in backend.',
+        { message: getErrorMessage(error) },
+      );
       logBackendError('uncaughtException', error);
       emitStatus('error', getErrorMessage(error));
     });
     p.on('unhandledRejection', (error) => {
+      logMajorWarning(
+        'fatal',
+        'unhandled_rejection',
+        'Unhandled promise rejection in backend.',
+        { message: getErrorMessage(error) },
+      );
       logBackendError('unhandledRejection', error);
       emitStatus('error', getErrorMessage(error));
     });
@@ -755,6 +1094,7 @@ try {
       ? globalThis.Bare.version
       : null;
   logMajorEvent('worklet', 'boot', 'Sync worklet booted.', {
+    workletStartAt: WORKLET_BOOT_AT,
     argv: p?.argv ?? null,
     bareVersion,
   });

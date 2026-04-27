@@ -30,8 +30,13 @@
     },
     "getStarted": "Get Started",
     "notNow": "Not now",
+    "skipSync": "Skip",
     "setupSync": "Set up sync",
-    "settingUp": "Setting up..."
+    "settingUp": "Setting up...",
+    "syncPrompt": {
+      "title": "Sync across your devices",
+      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+    }
   },
   "sync": {
     "setup": {
@@ -46,10 +51,13 @@
       "scanQr": "Scan QR code",
       "scanEnableCamera": "Enable camera",
       "scanHelp": "Point your camera at the QR code on your other device.",
+      "waitForConnection": "Connection in progress. Scanner paused for stability.",
       "codePlaceholder": "Enter your share code",
       "replaceJoinLabel": "Replace my data with their data",
       "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
       "copy": "Copy code",
+      "copied": "Copied!",
+      "paste": "Paste",
       "start": "Start sync",
       "stop": "Stop sync",
       "invalidCode": "Invalid code. It must be 64 hex characters.",
@@ -113,6 +121,13 @@
         "connecting": "Connecting",
         "off": "Sync off"
       },
+      "summary": {
+        "issue": "Sync needs attention",
+        "connected_one": "Connected to {{count}} device",
+        "connected_other": "Connected to {{count}} devices",
+        "connecting": "Looking for devices",
+        "off": "Sync is off"
+      },
       "description": {
         "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
         "connected": "Your device is syncing with the group.",
@@ -126,6 +141,7 @@
         "pair": "Pair new device",
         "manage": "Manage devices",
         "openHub": "Open Sync Hub",
+        "troubleshoot": "Troubleshoot",
         "stop": "Stop sync"
       }
     }
@@ -225,6 +241,29 @@
       "stopSync": "Stop Sync",
       "connectionInfo": "Connection info",
       "openSyncHub": "Open Sync Hub"
+    },
+    "syncStatus": {
+      "title": "Sync Status",
+      "status": "Status",
+      "syncingWith_one": "Syncing with {{count}} device",
+      "syncingWith_other": "Syncing with {{count}} devices",
+      "off": "Sync is off",
+      "lastSuccessfulSync": "Last successful sync",
+      "manage": "Manage Sync"
+    },
+    "localBackup": {
+      "title": "Local Backup",
+      "export": "Save backup to device",
+      "import": "Restore from backup"
+    },
+    "pairingDevices": {
+      "title": "Pairing & Devices",
+      "count_one": "{{count}} paired device",
+      "count_other": "{{count}} paired devices"
+    },
+    "syncAdvanced": {
+      "title": "Sync Hub",
+      "description": "Debug logs and device identifiers for troubleshooting."
     },
     "syncHub": {
       "title": "Sync Hub",

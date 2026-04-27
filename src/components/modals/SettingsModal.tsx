@@ -64,6 +64,7 @@ interface SettingsModalProps {
   syncError: string | null;
   pairedDevices: PairedDevice[];
   onToggleSync: () => void;
+  onOpenSyncQuickStatus: () => void;
   onOpenSyncSetup: () => void;
   onOpenPairNewDevice: () => void;
   onOpenPairedDevices: () => void;
@@ -126,6 +127,7 @@ export function SettingsModal({
   syncError,
   pairedDevices,
   onToggleSync,
+  onOpenSyncQuickStatus,
   onOpenSyncSetup,
   onOpenPairNewDevice,
   onOpenPairedDevices,
@@ -585,13 +587,55 @@ export function SettingsModal({
               <View style={styles.sectionHeader}>
                 <RefreshCw size={16} color={tokens.colors.primary} />
                 <Text style={styles.sectionTitle}>
-                  {t('settings.syncBackup.title')}
+                  {t('settings.syncStatus.title')}
                 </Text>
               </View>
 
-              <Text style={styles.subSectionLabel}>
-                {t('backup.localJson.title')}
-              </Text>
+              <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>
+                  {t('settings.syncStatus.status')}
+                </Text>
+                <Text style={styles.infoValue}>
+                  {syncActive
+                    ? t('settings.syncStatus.syncingWith', {
+                        count: syncPeers,
+                      })
+                    : t('settings.syncStatus.off')}
+                </Text>
+              </View>
+              <View style={styles.infoRowLast}>
+                <Text style={styles.infoLabel}>
+                  {t('settings.syncStatus.lastSuccessfulSync')}
+                </Text>
+                <Text style={styles.infoValue}>
+                  {lastSyncedAt
+                    ? new Date(lastSyncedAt).toLocaleString()
+                    : t('sync.info.never')}
+                </Text>
+              </View>
+              {syncError ? (
+                <Text style={styles.syncErrorText}>{syncError}</Text>
+              ) : null}
+              <AnimatedPressable
+                style={styles.githubButton}
+                onPress={syncActive ? onOpenSyncQuickStatus : onOpenSyncSetup}
+              >
+                <RefreshCw size={18} color={tokens.colors.onPrimary} />
+                <Text style={styles.githubButtonText}>
+                  {syncActive
+                    ? t('settings.syncStatus.manage')
+                    : t('settings.syncBackup.enableSync')}
+                </Text>
+              </AnimatedPressable>
+            </View>
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Download size={16} color={tokens.colors.primary} />
+                <Text style={styles.sectionTitle}>
+                  {t('settings.localBackup.title')}
+                </Text>
+              </View>
               <Text style={styles.rowSubtitle}>
                 {t('backup.localJson.description')}
               </Text>
@@ -602,7 +646,7 @@ export function SettingsModal({
                 >
                   <Download size={15} color={tokens.colors.textSecondary} />
                   <Text style={styles.outlineButtonText}>
-                    {t('backup.localJson.export')}
+                    {t('settings.localBackup.export')}
                   </Text>
                 </AnimatedPressable>
                 <AnimatedPressable
@@ -611,88 +655,89 @@ export function SettingsModal({
                 >
                   <Upload size={15} color={tokens.colors.textSecondary} />
                   <Text style={styles.outlineButtonText}>
-                    {t('backup.localJson.import')}
+                    {t('settings.localBackup.import')}
                   </Text>
                 </AnimatedPressable>
               </View>
+            </View>
 
-              {!syncActive ? (
-                <>
-                  {syncError ? (
-                    <Text style={styles.syncErrorText}>{syncError}</Text>
-                  ) : null}
+            {syncActive ? (
+              <View style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Users size={16} color={tokens.colors.primary} />
+                  <Text style={styles.sectionTitle}>
+                    {t('settings.pairingDevices.title')}
+                  </Text>
+                </View>
+                <Text style={styles.rowSubtitle}>
+                  {pairedDevices.length > 0
+                    ? t('settings.pairingDevices.count', {
+                        count: pairedDevices.length,
+                      })
+                    : t('settings.syncBackup.noDevices')}
+                </Text>
+                <View style={styles.actionRow}>
                   <AnimatedPressable
-                    style={styles.githubButton}
-                    onPress={onOpenSyncSetup}
+                    style={styles.primaryButton}
+                    onPress={onOpenPairNewDevice}
                   >
                     <Sliders size={18} color={tokens.colors.onPrimary} />
                     <Text style={styles.githubButtonText}>
-                      {t('settings.syncBackup.enableSync')}
+                      {t('settings.syncBackup.pairNewDevice')}
                     </Text>
                   </AnimatedPressable>
-                </>
-              ) : (
-                <>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>
-                      {t('settings.syncBackup.peers', { count: syncPeers })}
-                    </Text>
-                    {lastSyncedAt ? (
-                      <Text style={styles.infoValue}>
-                        {new Date(lastSyncedAt).toLocaleString()}
-                      </Text>
-                    ) : null}
-                  </View>
-
-                  <View style={styles.actionRow}>
-                    <AnimatedPressable
-                      style={styles.primaryButton}
-                      onPress={onOpenPairNewDevice}
-                    >
-                      <Sliders size={18} color={tokens.colors.onPrimary} />
-                      <Text style={styles.githubButtonText}>
-                        {t('settings.syncBackup.pairNewDevice')}
-                      </Text>
-                    </AnimatedPressable>
-                    <AnimatedPressable
-                      style={[
-                        styles.outlineButton,
-                        pairedDevices.length === 0 && styles.disabledButton,
-                      ]}
-                      disabled={pairedDevices.length === 0}
-                      onPress={onOpenPairedDevices}
-                    >
-                      <RefreshCw
-                        size={15}
-                        color={tokens.colors.textSecondary}
-                      />
-                      <Text style={styles.outlineButtonText}>
-                        {t('settings.syncBackup.pairedDevices')}
-                      </Text>
-                    </AnimatedPressable>
-                  </View>
-
                   <AnimatedPressable
-                    style={styles.stopSyncButton}
+                    style={[
+                      styles.outlineButton,
+                      pairedDevices.length === 0 && styles.disabledButton,
+                    ]}
+                    disabled={pairedDevices.length === 0}
+                    onPress={onOpenPairedDevices}
+                  >
+                    <Users size={15} color={tokens.colors.textSecondary} />
+                    <Text style={styles.outlineButtonText}>
+                      {t('settings.syncBackup.pairedDevices')}
+                    </Text>
+                  </AnimatedPressable>
+                </View>
+              </View>
+            ) : null}
+
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Info size={16} color={tokens.colors.primary} />
+                <Text style={styles.sectionTitle}>
+                  {t('settings.syncAdvanced.title')}
+                </Text>
+              </View>
+              <Text style={styles.rowSubtitle}>
+                {t('settings.syncAdvanced.description')}
+              </Text>
+              <View style={styles.actionRow}>
+                <AnimatedPressable
+                  style={styles.outlineButton}
+                  onPress={() => onSyncHubOpenChange(true)}
+                >
+                  <Info size={15} color={tokens.colors.textSecondary} />
+                  <Text style={styles.outlineButtonText}>
+                    {t('settings.syncBackup.openSyncHub')}
+                  </Text>
+                </AnimatedPressable>
+                {syncActive ? (
+                  <AnimatedPressable
+                    style={styles.stopSyncButtonInline}
                     onPress={onToggleSync}
                   >
-                    <RefreshCw size={16} color={tokens.colors.accentDanger} />
+                    <AlertTriangle
+                      size={15}
+                      color={tokens.colors.accentDanger}
+                    />
                     <Text style={styles.stopSyncButtonText}>
                       {t('settings.syncBackup.stopSync')}
                     </Text>
                   </AnimatedPressable>
-                </>
-              )}
-
-              <AnimatedPressable
-                style={styles.outlineButton}
-                onPress={() => onSyncHubOpenChange(true)}
-              >
-                <Info size={15} color={tokens.colors.textSecondary} />
-                <Text style={styles.outlineButtonText}>
-                  {t('settings.syncBackup.openSyncHub')}
-                </Text>
-              </AnimatedPressable>
+                ) : null}
+              </View>
             </View>
 
             <View style={styles.section}>
@@ -1034,6 +1079,19 @@ function createStyles(
       color: tokens.colors.accentDanger,
       fontSize: tokens.type.body,
       fontWeight: '700',
+    },
+    stopSyncButtonInline: {
+      flex: 1,
+      borderRadius: tokens.radius.md,
+      backgroundColor: withAlpha(tokens.colors.error, 0.12),
+      minHeight: 40,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: tokens.spacing.xs,
+      paddingHorizontal: tokens.spacing.md,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.accentDanger, 0.35),
     },
     githubButton: {
       marginTop: tokens.spacing.xs,

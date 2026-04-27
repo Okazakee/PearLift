@@ -1,4 +1,4 @@
-import { AlertTriangle, RefreshCw, Users } from 'lucide-react-native';
+import { AlertTriangle, RefreshCw, Users, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
@@ -56,7 +56,7 @@ export function SyncQuickStatusModal({
   const syncActive = syncStatus === 'connecting' || syncStatus === 'synced';
   const statusColor =
     quickState === 'issue'
-      ? tokens.colors.accentDanger
+      ? tokens.colors.accentWarning
       : quickState === 'connected'
         ? tokens.colors.primary
         : tokens.colors.textSecondary;
@@ -72,17 +72,20 @@ export function SyncQuickStatusModal({
       onClose={onClose}
       containerStyle={styles.modalRoot}
       backdropStyle={styles.backdrop}
-      sheetStyle={styles.card}
+      sheetStyle={styles.sheet}
     >
       <View style={styles.header}>
         <Text style={styles.title}>{t('sync.quick.title')}</Text>
+        <AnimatedPressable style={styles.closeButton} onPress={onClose}>
+          <X size={18} color={tokens.colors.textSecondary} />
+        </AnimatedPressable>
       </View>
 
       <View style={styles.panel}>
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>{t('sync.quick.statusLabel')}</Text>
+        <View style={styles.statusSummaryRow}>
+          <View style={[styles.statusDot, { backgroundColor: statusColor }]} />
           <Text style={[styles.statusValue, { color: statusColor }]}>
-            {t(`sync.quick.state.${quickState}`)}
+            {t(`sync.quick.summary.${quickState}`, { count: syncPeers })}
           </Text>
         </View>
 
@@ -146,7 +149,9 @@ export function SyncQuickStatusModal({
               onPress={() => closeAnd(onOpenSyncHub)}
             >
               <Text style={styles.outlineButtonText}>
-                {t('sync.quick.actions.openHub')}
+                {quickState === 'issue'
+                  ? t('sync.quick.actions.troubleshoot')
+                  : t('sync.quick.actions.openHub')}
               </Text>
             </AnimatedPressable>
 
@@ -169,16 +174,22 @@ export function SyncQuickStatusModal({
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({
     modalRoot: {
-      paddingHorizontal: tokens.spacing.lg,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.md,
+      paddingBottom: tokens.spacing.md,
     },
     backdrop: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: 'rgba(0, 0, 0, 0.6)',
     },
-    card: {
+    sheet: {
       width: '100%',
       maxWidth: 520,
-      borderRadius: tokens.radius.xl,
+      borderTopLeftRadius: tokens.radius.xl,
+      borderTopRightRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.md,
+      borderBottomRightRadius: tokens.radius.md,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
       backgroundColor: tokens.colors.surfaceContainer,
@@ -195,22 +206,29 @@ function createStyles(tokens: ThemeTokens) {
       fontSize: tokens.type.subtitle,
       fontWeight: '700',
     },
+    closeButton: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     panel: {
       borderRadius: tokens.radius.lg,
       backgroundColor: tokens.colors.surfaceContainerHigh,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.sm,
     },
-    statusRow: {
+    statusSummaryRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: tokens.spacing.md,
+      gap: tokens.spacing.sm,
     },
-    statusLabel: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.type.body,
-      fontWeight: '600',
+    statusDot: {
+      width: 9,
+      height: 9,
+      borderRadius: 5,
     },
     statusValue: {
       fontSize: tokens.type.body,

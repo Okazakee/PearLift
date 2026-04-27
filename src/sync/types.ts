@@ -35,7 +35,15 @@ export interface SyncOpEnvelope {
   mutation?: SyncMutation;
 }
 
-export type SyncStatus = 'idle' | 'connecting' | 'synced' | 'error';
+export type SyncStatus =
+  | 'idle'
+  | 'connecting'
+  | 'dht_ready'
+  | 'peer_connected'
+  | 'handshake_ok'
+  | 'replicating'
+  | 'synced'
+  | 'error';
 
 export interface SyncHealth {
   status: SyncStatus;
@@ -72,6 +80,10 @@ export interface StartSyncInput {
   pairingSecretHex: string;
   deviceId: string;
   bootstrapKeyHex?: string | null;
+  debug?: {
+    discoveryOnly?: boolean;
+    disableCursorOptimization?: boolean;
+  };
 }
 
 export interface SyncBridge {

@@ -48,12 +48,6 @@ const PAGE_CONTENT = [
     kind: 'units' as const,
   },
   {
-    icon: Monitor,
-    titleKey: 'onboarding.pages.sync.title',
-    descriptionKey: 'onboarding.pages.sync.description',
-    kind: 'normal' as const,
-  },
-  {
     icon: Bell,
     titleKey: 'onboarding.pages.notifications.title',
     descriptionKey: 'onboarding.pages.notifications.description',
@@ -87,7 +81,6 @@ export function OnboardingScreen({
   const content = PAGE_CONTENT[page];
   const isLastPage = page === PAGE_CONTENT.length - 1;
   const isFirstPage = page === 0;
-  const isSyncPage = content.titleKey === 'onboarding.pages.sync.title';
 
   const handleNext = async () => {
     if (isLastPage) {
@@ -111,8 +104,12 @@ export function OnboardingScreen({
     setPage((p) => p - 1);
   };
 
-  const handleNotNow = () => {
+  const handleSkipSync = () => {
     void handleNext();
+  };
+
+  const handleSetupSync = () => {
+    setSyncSetupOpen(true);
   };
 
   return (
@@ -193,6 +190,40 @@ export function OnboardingScreen({
             </AnimatedPressable>
           </View>
         )}
+
+        {isLastPage ? (
+          <View style={styles.syncPromptCard}>
+            <View style={styles.syncPromptIcon}>
+              <Monitor size={20} color={tokens.colors.primary} />
+            </View>
+            <View style={styles.syncPromptText}>
+              <Text style={styles.syncPromptTitle}>
+                {t('onboarding.syncPrompt.title')}
+              </Text>
+              <Text style={styles.syncPromptDescription}>
+                {t('onboarding.syncPrompt.description')}
+              </Text>
+              <View style={styles.syncPromptActions}>
+                <AnimatedPressable
+                  style={styles.syncPromptPrimary}
+                  onPress={handleSetupSync}
+                >
+                  <Text style={styles.syncPromptPrimaryText}>
+                    {t('onboarding.setupSync')}
+                  </Text>
+                </AnimatedPressable>
+                <AnimatedPressable
+                  style={styles.syncPromptSecondary}
+                  onPress={handleSkipSync}
+                >
+                  <Text style={styles.syncPromptSecondaryText}>
+                    {t('onboarding.skipSync')}
+                  </Text>
+                </AnimatedPressable>
+              </View>
+            </View>
+          </View>
+        ) : null}
       </Animated.View>
 
       <View style={styles.footer}>
@@ -208,20 +239,9 @@ export function OnboardingScreen({
           </Text>
         </AnimatedPressable>
 
-        {isSyncPage ? (
-          <AnimatedPressable
-            style={styles.secondaryButton}
-            onPress={handleNotNow}
-          >
-            <Text style={styles.secondaryButtonText}>
-              {t('onboarding.notNow')}
-            </Text>
-          </AnimatedPressable>
-        ) : null}
-
         <AnimatedPressable
           style={[styles.nextButton, requesting && styles.buttonDisabled]}
-          onPress={isSyncPage ? () => setSyncSetupOpen(true) : handleNext}
+          onPress={handleNext}
           disabled={requesting}
         >
           <Text style={styles.nextButtonText}>
@@ -229,9 +249,7 @@ export function OnboardingScreen({
               ? requesting
                 ? t('onboarding.settingUp')
                 : t('onboarding.getStarted')
-              : isSyncPage
-                ? t('onboarding.setupSync')
-                : t('common.next')}
+              : t('common.next')}
           </Text>
         </AnimatedPressable>
       </View>
@@ -249,6 +267,10 @@ export function OnboardingScreen({
         onClose={() => setSyncSetupOpen(false)}
         onDone={() => {
           setSyncSetupOpen(false);
+          if (isLastPage) {
+            onComplete();
+            return;
+          }
           void handleNext();
         }}
       />
@@ -318,6 +340,74 @@ function createStyles(
       lineHeight: 22,
       textAlign: 'center',
     },
+    syncPromptCard: {
+      width: '100%',
+      maxWidth: 460,
+      marginTop: tokens.spacing.xl,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainer,
+      padding: tokens.spacing.md,
+      flexDirection: 'row',
+      gap: tokens.spacing.md,
+      alignItems: 'flex-start',
+    },
+    syncPromptIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.14),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    syncPromptText: {
+      flex: 1,
+      gap: tokens.spacing.sm,
+    },
+    syncPromptTitle: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '800',
+    },
+    syncPromptDescription: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      lineHeight: 18,
+    },
+    syncPromptActions: {
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+      flexWrap: 'wrap',
+    },
+    syncPromptPrimary: {
+      minHeight: 36,
+      borderRadius: tokens.radius.md,
+      backgroundColor: tokens.colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: tokens.spacing.md,
+    },
+    syncPromptPrimaryText: {
+      color: tokens.colors.onPrimary,
+      fontSize: tokens.type.label,
+      fontWeight: '800',
+    },
+    syncPromptSecondary: {
+      minHeight: 36,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: tokens.spacing.md,
+    },
+    syncPromptSecondaryText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '800',
+    },
     unitRow: {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
@@ -364,21 +454,6 @@ function createStyles(
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.body,
       fontWeight: '600',
-    },
-    secondaryButton: {
-      minHeight: 48,
-      borderRadius: tokens.radius.md,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: tokens.spacing.md,
-      backgroundColor: tokens.colors.surfaceContainerHigh,
-    },
-    secondaryButtonText: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.type.body,
-      fontWeight: '700',
     },
     nextButton: {
       flex: 1,

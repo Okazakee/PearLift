@@ -28,9 +28,36 @@ import type {
 import { INITIAL_SYNC_HEALTH } from './types';
 
 const SYNC_SECRET_KEY = 'pearlift.sync.secret';
+const APP_LAUNCH_AT = nowIso();
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function hashSecretHex(secretHex: string) {
+  let hash = 2166136261;
+  for (let i = 0; i < secretHex.length; i += 1) {
+    hash ^= secretHex.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+function readGlobalBoolean(name: string): boolean | null {
+  const value = (globalThis as Record<string, unknown>)[name];
+  return typeof value === 'boolean' ? value : null;
+}
+
+function resolveSyncDebugConfig() {
+  const discoveryOnly =
+    readGlobalBoolean('__PEARLIFT_SYNC_DISCOVERY_ONLY__') ?? false;
+  const disableCursorOptimization =
+    readGlobalBoolean('__PEARLIFT_SYNC_DISABLE_CURSOR_OPTIMIZATION__') ??
+    __DEV__;
+  return {
+    discoveryOnly,
+    disableCursorOptimization,
+  };
 }
 
 function toHex(bytes: Uint8Array) {
@@ -148,22 +175,33 @@ class SyncManagerImpl implements SyncManager {
         });
 
         const state = await this.repository.getSyncState();
+        const requestedBootstrapKey =
+          bootstrapKeyHex ?? state.autobaseBootstrapKey;
+        const debugConfig = resolveSyncDebugConfig();
         logSyncEvent(
           'info',
           'manager',
-          'autostart_decision',
-          'Sync start decision resolved.',
+          'startup_snapshot',
+          'RN startup sync snapshot.',
           {
+            appLaunchAt: APP_LAUNCH_AT,
+            startRequestedAt: nowIso(),
             syncEnabled: state.syncEnabled,
-            hasBootstrapKey: !!state.autobaseBootstrapKey,
-            hasPairingSecret: !!secret,
+            storagePathSource: 'expo-file-system.documentDirectory',
             deviceId,
+            pairingSecretHash: hashSecretHex(secret),
+            topicHex: secret,
+            bootstrapKeyHexState: requestedBootstrapKey ? 'present' : 'absent',
+            bootstrapKeyHex: requestedBootstrapKey ?? null,
+            discoveryOnly: debugConfig.discoveryOnly,
+            disableCursorOptimization: debugConfig.disableCursorOptimization,
           },
         );
         const started = await this.bridge.start({
           pairingSecretHex: secret,
           deviceId,
-          bootstrapKeyHex: bootstrapKeyHex ?? state.autobaseBootstrapKey,
+          bootstrapKeyHex: requestedBootstrapKey,
+          debug: debugConfig,
         });
 
         if (epoch !== this.lifecycleEpoch) {
@@ -175,11 +213,34 @@ class SyncManagerImpl implements SyncManager {
           return;
         }
 
+        const startedBootstrapKey = started.bootstrapKeyHex?.trim() ?? '';
+        const bootstrapKeyToStore =
+          requestedBootstrapKey && requestedBootstrapKey.length > 0
+            ? requestedBootstrapKey
+            : startedBootstrapKey.length > 0
+              ? startedBootstrapKey
+              : null;
+
         await this.repository.setSyncState({
           syncEnabled: true,
-          autobaseBootstrapKey: bootstrapKeyHex ?? started.bootstrapKeyHex,
           lastError: null,
+          ...(bootstrapKeyToStore
+            ? { autobaseBootstrapKey: bootstrapKeyToStore }
+            : {}),
         });
+
+        if (!bootstrapKeyToStore) {
+          logSyncEvent(
+            'warn',
+            'manager',
+            'missing_bootstrap_key',
+            'Start returned no bootstrap key.',
+            {
+              hadRequestedBootstrapKey: !!requestedBootstrapKey,
+              hadStartedBootstrapKey: !!startedBootstrapKey,
+            },
+          );
+        }
 
         this.active = true;
         this.setHealth({
@@ -197,7 +258,6 @@ class SyncManagerImpl implements SyncManager {
         const message =
           error instanceof Error ? error.message : 'Sync start failed';
         await this.repository.setSyncState({
-          syncEnabled: false,
           lastError: message,
         });
         this.setHealth({
@@ -215,6 +275,16 @@ class SyncManagerImpl implements SyncManager {
   }
 
   async stop() {
+    return this.stopInternal({
+      persistDisabled: true,
+      reason: 'explicit_stop',
+    });
+  }
+
+  private async stopInternal(options: {
+    persistDisabled: boolean;
+    reason: string;
+  }) {
     if (this.stopTask) {
       return this.stopTask;
     }
@@ -249,7 +319,17 @@ class SyncManagerImpl implements SyncManager {
           ...INITIAL_SYNC_HEALTH,
           lastSyncedAt: this.health.lastSyncedAt,
         });
-        await this.repository.setSyncState({ syncEnabled: false });
+        if (options.persistDisabled) {
+          await this.repository.setSyncState({ syncEnabled: false });
+        } else {
+          logSyncEvent(
+            'info',
+            'manager',
+            'stop_persist_skipped',
+            'Internal stop skipped syncEnabled=false persistence.',
+            { reason: options.reason },
+          );
+        }
         this.stopTask = null;
       }
 
@@ -431,7 +511,10 @@ class SyncManagerImpl implements SyncManager {
           { status, dhtReady },
         );
         try {
-          await this.stop();
+          await this.stopInternal({
+            persistDisabled: false,
+            reason: 'resume_reconnect',
+          });
         } catch (error) {
           logSyncError('manager', 'resume_stop_failed', error);
         }

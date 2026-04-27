@@ -7,9 +7,9 @@ import {
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Platform, useColorScheme, View } from 'react-native';
+import { Linking, Platform, Text, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -72,6 +72,8 @@ export function WorkoutScreen() {
   const [syncQuickStatusOpen, setSyncQuickStatusOpen] = useState(false);
   const [settingsSyncHubOpen, setSettingsSyncHubOpen] = useState(false);
   const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
+  const [peerToastVisible, setPeerToastVisible] = useState(false);
+  const peerToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     snapshot,
@@ -547,9 +549,24 @@ export function WorkoutScreen() {
 
   useEffect(() => {
     if (!newPeerSignal) return;
-    showPrompt(t('sync.toast.newPeerTitle'), t('sync.toast.newPeerMessage'));
+    setPeerToastVisible(true);
+    if (peerToastTimerRef.current) {
+      clearTimeout(peerToastTimerRef.current);
+    }
+    peerToastTimerRef.current = setTimeout(() => {
+      setPeerToastVisible(false);
+      peerToastTimerRef.current = null;
+    }, 2200);
     acknowledgeNewPeerSignal();
-  }, [newPeerSignal, showPrompt, t, acknowledgeNewPeerSignal]);
+  }, [newPeerSignal, acknowledgeNewPeerSignal]);
+
+  useEffect(() => {
+    return () => {
+      if (peerToastTimerRef.current) {
+        clearTimeout(peerToastTimerRef.current);
+      }
+    };
+  }, []);
 
   const authenticateIfAvailable = async (promptMessage: string) => {
     const enrolledLevel = await LocalAuthentication.getEnrolledLevelAsync();
@@ -875,6 +892,10 @@ export function WorkoutScreen() {
           syncError={syncError}
           pairedDevices={pairedDevices}
           onToggleSync={handleToggleSync}
+          onOpenSyncQuickStatus={() => {
+            setSettingsOpen(false);
+            setSyncQuickStatusOpen(true);
+          }}
           onOpenSyncSetup={handleOpenSyncSetup}
           onOpenPairNewDevice={handleOpenPairNewDevice}
           onOpenPairedDevices={handleOpenPairedDevices}
@@ -957,6 +978,44 @@ export function WorkoutScreen() {
             handleLanguageChange(code);
           }}
         />
+
+        {peerToastVisible ? (
+          <View
+            style={{
+              position: 'absolute',
+              top: insets.top + 12,
+              left: 16,
+              right: 16,
+              borderRadius: tokens.radius.md,
+              borderWidth: 1,
+              borderColor: tokens.colors.outlineVariant,
+              backgroundColor: tokens.colors.surfaceContainer,
+              paddingHorizontal: tokens.spacing.md,
+              paddingVertical: tokens.spacing.sm,
+              zIndex: 20,
+            }}
+            pointerEvents="none"
+          >
+            <Text
+              style={{
+                color: tokens.colors.textPrimary,
+                fontSize: tokens.type.body,
+                fontWeight: '700',
+              }}
+            >
+              {t('sync.toast.newPeerTitle')}
+            </Text>
+            <Text
+              style={{
+                color: tokens.colors.textSecondary,
+                fontSize: tokens.type.label,
+                marginTop: 2,
+              }}
+            >
+              {t('sync.toast.newPeerMessage')}
+            </Text>
+          </View>
+        ) : null}
 
         <AppPromptModal
           open={Boolean(promptConfig)}

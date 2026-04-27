@@ -35,6 +35,17 @@ type RuntimeRpcMessage = {
   data: Uint8Array | null;
 };
 
+const APP_LAUNCH_AT = new Date().toISOString();
+
+function hashSecretHex(secretHex: string) {
+  let hash = 2166136261;
+  for (let i = 0; i < secretHex.length; i += 1) {
+    hash ^= secretHex.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `fnv1a32:${(hash >>> 0).toString(16).padStart(8, '0')}`;
+}
+
 async function requestJson<TReq, TRes>(
   rpc: RpcLike,
   command: number,
@@ -73,13 +84,25 @@ export class HolepunchWorkletBridge implements SyncBridge {
       return;
     }
 
+    const storagePath = this.getStoragePath();
+    const workletStartAt = new Date().toISOString();
+    logSyncEvent(
+      'info',
+      'bridge',
+      'worklet_start',
+      'Starting sync worklet runtime.',
+      {
+        appLaunchAt: APP_LAUNCH_AT,
+        workletStartAt,
+        storagePath,
+      },
+    );
+
     const worklet = new Worklet();
     if (typeof syncBundle === 'string') {
-      worklet.start('/sync.bundle', syncBundle, [this.getStoragePath()]);
+      worklet.start('/sync.bundle', syncBundle, [storagePath]);
     } else {
-      worklet.start('/sync.bundle', new Uint8Array(syncBundle), [
-        this.getStoragePath(),
-      ]);
+      worklet.start('/sync.bundle', new Uint8Array(syncBundle), [storagePath]);
     }
 
     const rpc = new RPC(worklet.IPC as never, (req: unknown) => {
@@ -154,12 +177,32 @@ export class HolepunchWorkletBridge implements SyncBridge {
       throw new Error('Holepunch RPC unavailable');
     }
 
+    const storagePath = this.getStoragePath();
+    logSyncEvent(
+      'info',
+      'bridge',
+      'start_request',
+      'Sending SYNC_START to worklet backend.',
+      {
+        appLaunchAt: APP_LAUNCH_AT,
+        startRequestAt: new Date().toISOString(),
+        storagePath,
+        deviceId: input.deviceId,
+        pairingSecretHash: hashSecretHex(input.pairingSecretHex),
+        topicHex: input.pairingSecretHex,
+        bootstrapKeyHexState: input.bootstrapKeyHex ? 'present' : 'absent',
+        bootstrapKeyHex: input.bootstrapKeyHex ?? null,
+        discoveryOnly: !!input.debug?.discoveryOnly,
+        disableCursorOptimization: !!input.debug?.disableCursorOptimization,
+      },
+    );
+
     const response = await requestJson<
       StartSyncInput & { storagePath: string },
       { bootstrapKeyHex?: string; ok?: boolean; error?: string }
     >(this.rpc, RPC_SYNC_START, {
       ...input,
-      storagePath: this.getStoragePath(),
+      storagePath,
     });
 
     if (response.error) {

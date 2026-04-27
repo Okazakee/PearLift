@@ -1,12 +1,14 @@
-import {
-  Activity,
-  AlertTriangle,
-  RefreshCw,
-  Settings,
-} from 'lucide-react-native';
-import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Settings } from 'lucide-react-native';
+import { useEffect, useMemo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import type { SyncStatus } from '../sync/types';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -40,43 +42,70 @@ export function Header({
   onOpenSyncQuickStatus,
   onOpenSettings,
 }: HeaderProps) {
-  const { t } = useTranslation();
   const styles = createStyles(tokens, topInset);
   const syncState = getHeaderSyncState(syncStatus, syncPeers);
 
   const syncVisual = useMemo(() => {
     if (syncState === 'issue') {
       return {
-        label: t('sync.quick.button.issue'),
-        icon: AlertTriangle,
-        color: tokens.colors.accentDanger,
-        backgroundColor: withAlpha(tokens.colors.accentDanger, 0.16),
+        accessibilityLabel: 'Sync warning',
+        color: tokens.colors.accentWarning,
+        ringColor: withAlpha(tokens.colors.accentWarning, 0.22),
+        pulsing: true,
       };
     }
     if (syncState === 'connected') {
       return {
-        label: t('sync.quick.button.connected'),
-        icon: Activity,
+        accessibilityLabel: 'Sync connected',
         color: tokens.colors.primary,
-        backgroundColor: withAlpha(tokens.colors.primary, 0.14),
+        ringColor: withAlpha(tokens.colors.primary, 0.18),
+        pulsing: false,
       };
     }
     if (syncState === 'connecting') {
       return {
-        label: t('sync.quick.button.connecting'),
-        icon: RefreshCw,
-        color: tokens.colors.textSecondary,
-        backgroundColor: withAlpha(tokens.colors.textSecondary, 0.12),
+        accessibilityLabel: 'Sync connecting',
+        color: tokens.colors.accentWarning,
+        ringColor: withAlpha(tokens.colors.accentWarning, 0.2),
+        pulsing: true,
       };
     }
     return {
-      label: t('sync.quick.button.off'),
-      icon: RefreshCw,
+      accessibilityLabel: 'Sync off',
       color: tokens.colors.textSecondary,
-      backgroundColor: tokens.colors.bgSurface,
+      ringColor: withAlpha(tokens.colors.textSecondary, 0.12),
+      pulsing: false,
     };
-  }, [syncState, t, tokens]);
-  const SyncIcon = syncVisual.icon;
+  }, [syncState, tokens]);
+
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    if (!syncVisual.pulsing) {
+      pulse.value = withTiming(1, { duration: 160 });
+      return;
+    }
+
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(0.35, {
+          duration: 780,
+          easing: Easing.inOut(Easing.ease),
+        }),
+        withTiming(1, {
+          duration: 780,
+          easing: Easing.inOut(Easing.ease),
+        }),
+      ),
+      -1,
+      false,
+    );
+  }, [pulse, syncVisual.pulsing]);
+
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: pulse.value,
+    transform: [{ scale: 0.86 + pulse.value * 0.18 }],
+  }));
 
   return (
     <View style={styles.container}>
@@ -96,15 +125,23 @@ export function Header({
       <View style={styles.actionsRow}>
         <Pressable
           onPress={onOpenSyncQuickStatus}
-          style={[
-            styles.syncButton,
-            { backgroundColor: syncVisual.backgroundColor },
-          ]}
+          style={styles.syncIndicatorButton}
+          accessibilityRole="button"
+          accessibilityLabel={syncVisual.accessibilityLabel}
         >
-          <SyncIcon size={14} color={syncVisual.color} />
-          <Text style={[styles.syncButtonText, { color: syncVisual.color }]}>
-            {syncVisual.label}
-          </Text>
+          <Animated.View
+            style={[
+              styles.syncIndicatorRing,
+              { backgroundColor: syncVisual.ringColor },
+              syncVisual.pulsing && pulseStyle,
+            ]}
+          />
+          <View
+            style={[
+              styles.syncIndicatorDot,
+              { backgroundColor: syncVisual.color },
+            ]}
+          />
         </Pressable>
         <Pressable onPress={onOpenSettings} style={styles.iconButton}>
           <Settings size={18} color={tokens.colors.textSecondary} />
@@ -155,20 +192,26 @@ function createStyles(tokens: ThemeTokens, topInset: number) {
       alignItems: 'center',
       gap: tokens.spacing.xs,
     },
-    syncButton: {
-      minHeight: 36,
-      borderRadius: tokens.radius.pill,
-      paddingHorizontal: tokens.spacing.sm + 2,
+    syncIndicatorButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-      flexDirection: 'row',
-      gap: 6,
       borderWidth: 1,
       borderColor: withAlpha(tokens.colors.outline, 0.2),
+      backgroundColor: tokens.colors.bgSurface,
     },
-    syncButtonText: {
-      fontSize: tokens.type.label,
-      fontWeight: '700',
+    syncIndicatorRing: {
+      width: 18,
+      height: 18,
+      borderRadius: 9,
+      position: 'absolute',
+    },
+    syncIndicatorDot: {
+      width: 9,
+      height: 9,
+      borderRadius: 5,
     },
     iconButton: {
       width: 36,

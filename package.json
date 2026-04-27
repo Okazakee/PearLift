@@ -11,6 +11,7 @@
     "ios": "node ./scripts/ensure-sync-backend-bundle.mjs && expo run:ios",
     "web": "expo start --web",
     "bundle:sync-backend": "node ./scripts/ensure-sync-backend-bundle.mjs --force",
+    "test:sync-backend": "node ./scripts/test-sync-backend-local-peers.mjs",
     "prebuild": "expo prebuild",
     "prebuild:android": "expo prebuild --platform android",
     "prebuild:ios": "expo prebuild --platform ios",

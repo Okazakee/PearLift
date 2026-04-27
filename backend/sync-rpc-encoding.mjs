@@ -76,7 +76,45 @@ function assertStartRequest(value) {
   if (value.storagePath != null && typeof value.storagePath !== 'string') {
     throw new Error('SYNC_START storagePath must be a string.');
   }
-  return value;
+  if (value.debug != null && !isRecord(value.debug)) {
+    throw new Error('SYNC_START debug must be an object when provided.');
+  }
+  if (
+    isRecord(value.debug) &&
+    value.debug.discoveryOnly != null &&
+    typeof value.debug.discoveryOnly !== 'boolean'
+  ) {
+    throw new Error('SYNC_START debug.discoveryOnly must be boolean.');
+  }
+  if (
+    isRecord(value.debug) &&
+    value.debug.disableCursorOptimization != null &&
+    typeof value.debug.disableCursorOptimization !== 'boolean'
+  ) {
+    throw new Error(
+      'SYNC_START debug.disableCursorOptimization must be boolean.',
+    );
+  }
+  return {
+    pairingSecretHex: value.pairingSecretHex,
+    deviceId: value.deviceId,
+    bootstrapKeyHex:
+      typeof value.bootstrapKeyHex === 'string' ? value.bootstrapKeyHex : null,
+    storagePath:
+      typeof value.storagePath === 'string' ? value.storagePath : undefined,
+    debug: isRecord(value.debug)
+      ? {
+          discoveryOnly:
+            typeof value.debug.discoveryOnly === 'boolean'
+              ? value.debug.discoveryOnly
+              : undefined,
+          disableCursorOptimization:
+            typeof value.debug.disableCursorOptimization === 'boolean'
+              ? value.debug.disableCursorOptimization
+              : undefined,
+        }
+      : undefined,
+  };
 }
 
 function normalizeAck(value) {
