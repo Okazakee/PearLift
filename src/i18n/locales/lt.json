@@ -32,7 +32,7 @@
     "notNow": "Ne dabar",
     "skipSync": "Praleisti",
     "setupSync": "Nustatyti sinchronizavimą",
-"settingUp": "Nustatymas...",
+    "settingUp": "Nustatymas...",
     "syncPrompt": {
       "title": "Sinchronizuokite savo įrenginius",
       "description": "Jūsų duomenys niekada neišgalvoja iš jūsų įrenginių. Galite tai nustatyti bet kada Nustatymuose."
@@ -222,7 +222,7 @@
       "appLanguage": "Programos kalba",
       "system": "Sistema"
     },
-"syncBackup": {
+    "syncBackup": {
       "title": "Sinchronizavimas ir atsarginė kopija",
       "comingSoon": "Įrenginys-įrenginys sinchronizavimas greitai bus prieinamas.",
       "openSyncSetup": "Atidaryti sinchronizavimo nustatymus",

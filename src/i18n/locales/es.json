@@ -222,7 +222,7 @@
       "appLanguage": "Idioma de la aplicación",
       "system": "Sistema"
     },
-"syncBackup": {
+    "syncBackup": {
       "title": "Sincronización y copia de seguridad",
       "comingSoon": "La sincronización dispositivo a dispositivo llega pronto.",
       "openSyncSetup": "Abrir configuración de sincronización",
@@ -250,15 +250,6 @@
       "off": "Sync desactivado",
       "lastSuccessfulSync": "Última sincronización exitosa",
       "manage": "Gestionar sincronización"
-    },
-    "syncStatus": {
-      "title": "Sync Status",
-      "status": "Status",
-      "syncingWith_one": "Syncing with {{count}} device",
-      "syncingWith_other": "Syncing with {{count}} devices",
-      "off": "Sync is off",
-      "lastSuccessfulSync": "Last successful sync",
-      "manage": "Manage Sync"
     },
     "localBackup": {
       "title": "Copia de seguridad",
