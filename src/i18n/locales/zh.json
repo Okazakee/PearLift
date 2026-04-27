@@ -156,7 +156,15 @@
     "duration": "时长",
     "notification": {
       "title": "休息结束",
-      "body": "是时候开始下一组了。"
+      "body": "是时候开始下一组了。",
+      "channelName": "休息计时器",
+      "runningPrefix": "剩余",
+      "pausedPrefix": "已暂停",
+      "actions": {
+        "pause": "暂停",
+        "resume": "继续",
+        "stop": "停止"
+      }
     }
   },
   "programSettings": {

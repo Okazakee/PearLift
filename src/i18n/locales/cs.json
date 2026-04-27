@@ -156,7 +156,15 @@
     "duration": "Trvání",
     "notification": {
       "title": "Odpočinek hotový",
-      "body": "Čas na další sérii."
+      "body": "Čas na další sérii.",
+      "channelName": "Časovač odpočinku",
+      "runningPrefix": "Zbývá",
+      "pausedPrefix": "Pozastaveno",
+      "actions": {
+        "pause": "Pauza",
+        "resume": "Pokračovat",
+        "stop": "Zastavit"
+      }
     }
   },
   "programSettings": {

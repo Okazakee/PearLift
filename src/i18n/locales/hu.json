@@ -156,7 +156,15 @@
     "duration": "Időtartam",
     "notification": {
       "title": "Pihenés vége",
-      "body": "Ideje a következő szettnek."
+      "body": "Ideje a következő szettnek.",
+      "channelName": "Pihenő időzítő",
+      "runningPrefix": "Hátralévő",
+      "pausedPrefix": "Szüneteltetve",
+      "actions": {
+        "pause": "Szünet",
+        "resume": "Folytatás",
+        "stop": "Leállítás"
+      }
     }
   },
   "programSettings": {

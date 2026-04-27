@@ -156,7 +156,15 @@
     "duration": "Dauer",
     "notification": {
       "title": "Pause beendet",
-      "body": "Zeit für deinen nächsten Satz."
+      "body": "Zeit für deinen nächsten Satz.",
+      "channelName": "Pausentimer",
+      "runningPrefix": "Verbleibend",
+      "pausedPrefix": "Pausiert",
+      "actions": {
+        "pause": "Pause",
+        "resume": "Fortsetzen",
+        "stop": "Stopp"
+      }
     }
   },
   "programSettings": {

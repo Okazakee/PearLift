@@ -156,7 +156,15 @@
     "duration": "時間",
     "notification": {
       "title": "休憩終了",
-      "body": "次のセットの時間です。"
+      "body": "次のセットの時間です。",
+      "channelName": "リタイマー",
+      "runningPrefix": "残り",
+      "pausedPrefix": "一時停止中",
+      "actions": {
+        "pause": "一時停止",
+        "resume": "再開",
+        "stop": "停止"
+      }
     }
   },
   "programSettings": {

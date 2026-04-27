@@ -156,7 +156,15 @@
     "duration": "Varaktighet",
     "notification": {
       "title": "Vila klar",
-      "body": "Dags för ditt nästa set."
+      "body": "Dags för ditt nästa set.",
+      "channelName": "Vilotimer",
+      "runningPrefix": "Kvar",
+      "pausedPrefix": "Pausad",
+      "actions": {
+        "pause": "Pausa",
+        "resume": "Återuppta",
+        "stop": "Stoppa"
+      }
     }
   },
   "programSettings": {

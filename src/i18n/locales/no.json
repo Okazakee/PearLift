@@ -156,7 +156,15 @@
     "duration": "Varighet",
     "notification": {
       "title": "Hvil ferdig",
-      "body": "Tid for neste sett."
+      "body": "Tid for neste sett.",
+      "channelName": "Hviletimer",
+      "runningPrefix": "Gjenstår",
+      "pausedPrefix": "Pauset",
+      "actions": {
+        "pause": "Pause",
+        "resume": "Fortsett",
+        "stop": "Stopp"
+      }
     }
   },
   "programSettings": {

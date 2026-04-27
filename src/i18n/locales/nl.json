@@ -156,7 +156,15 @@
     "duration": "Duur",
     "notification": {
       "title": "Rust voltooid",
-      "body": "Tijd voor je volgende set."
+      "body": "Tijd voor je volgende set.",
+      "channelName": "Rusttimer",
+      "runningPrefix": "Resterend",
+      "pausedPrefix": "Gepauzeerd",
+      "actions": {
+        "pause": "Pauze",
+        "resume": "Hervatten",
+        "stop": "Stoppen"
+      }
     }
   },
   "programSettings": {

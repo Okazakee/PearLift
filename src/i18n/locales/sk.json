@@ -155,7 +155,15 @@
     "duration": "Trvanie",
     "notification": {
       "title": "Oddych hotový",
-      "body": "Čas na ďalšiu sériu."
+      "body": "Čas na ďalšiu sériu.",
+      "channelName": "Časovač oddychu",
+      "runningPrefix": "Zostáva",
+      "pausedPrefix": "Pozastavené",
+      "actions": {
+        "pause": "Pauza",
+        "resume": "Pokračovať",
+        "stop": "Zastaviť"
+      }
     }
   },
   "programSettings": {

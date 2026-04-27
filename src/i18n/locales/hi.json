@@ -156,7 +156,15 @@
     "duration": "अवधि",
     "notification": {
       "title": "रेस्ट पूर्ण",
-      "body": "आपके अगले सेट का समय।"
+      "body": "आपके अगले सेट का समय।",
+      "channelName": "रेस्ट टाइमर",
+      "runningPrefix": "शेष",
+      "pausedPrefix": "रोका गया",
+      "actions": {
+        "pause": "विराम",
+        "resume": "फिर शुरू करें",
+        "stop": "रोकें"
+      }
     }
   },
   "programSettings": {

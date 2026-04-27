@@ -156,7 +156,15 @@
     "duration": "Thời gian",
     "notification": {
       "title": "Nghỉ ngơi xong",
-      "body": "Đến lúc set tiếp theo của bạn."
+      "body": "Đến lúc set tiếp theo của bạn.",
+      "channelName": "Đồng hồ nghỉ ngơi",
+      "runningPrefix": "Còn lại",
+      "pausedPrefix": "Đã tạm dừng",
+      "actions": {
+        "pause": "Tạm dừng",
+        "resume": "Tiếp tục",
+        "stop": "Dừng"
+      }
     }
   },
   "programSettings": {

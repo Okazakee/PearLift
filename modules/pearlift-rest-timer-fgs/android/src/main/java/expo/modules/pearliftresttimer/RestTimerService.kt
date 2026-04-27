@@ -25,6 +25,14 @@ class RestTimerService : Service() {
     private const val PREF_REMAINING_SEC = "remainingSec"
     private const val PREF_STARTED_DURATION_SEC = "startedDurationSec"
     private const val PREF_COMPLETED_AT_MS = "completedAtMs"
+    private const val PREF_RUNNING_TITLE = "runningTitle"
+    private const val PREF_RUNNING_PREFIX = "runningPrefix"
+    private const val PREF_PAUSED_PREFIX = "pausedPrefix"
+    private const val PREF_COMPLETION_TITLE = "completionTitle"
+    private const val PREF_COMPLETION_BODY = "completionBody"
+    private const val PREF_PAUSE_ACTION_LABEL = "pauseActionLabel"
+    private const val PREF_RESUME_ACTION_LABEL = "resumeActionLabel"
+    private const val PREF_STOP_ACTION_LABEL = "stopActionLabel"
 
     const val MODE_IDLE = "idle"
     const val MODE_RUNNING = "running"
@@ -44,11 +52,30 @@ class RestTimerService : Service() {
 
     const val EXTRA_END_AT_ELAPSED_MS = "endAtElapsedMs"
     const val EXTRA_STARTED_DURATION_SEC = "startedDurationSec"
+    const val EXTRA_RUNNING_TITLE = "runningTitle"
+    const val EXTRA_RUNNING_PREFIX = "runningPrefix"
+    const val EXTRA_PAUSED_PREFIX = "pausedPrefix"
+    const val EXTRA_COMPLETION_TITLE = "completionTitle"
+    const val EXTRA_COMPLETION_BODY = "completionBody"
+    const val EXTRA_PAUSE_ACTION_LABEL = "pauseActionLabel"
+    const val EXTRA_RESUME_ACTION_LABEL = "resumeActionLabel"
+    const val EXTRA_STOP_ACTION_LABEL = "stopActionLabel"
   }
 
   private val handler = Handler(Looper.getMainLooper())
   private var isTicking = false
   private var wakeLock: PowerManager.WakeLock? = null
+
+  private data class NotificationText(
+    val runningTitle: String = "Rest timer",
+    val runningPrefix: String = "Remaining",
+    val pausedPrefix: String = "Paused",
+    val completionTitle: String = "Rest complete",
+    val completionBody: String = "Time for your next set.",
+    val pauseActionLabel: String = "Pause",
+    val resumeActionLabel: String = "Resume",
+    val stopActionLabel: String = "Stop",
+  )
 
   private fun prefs(): SharedPreferences =
     getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -65,6 +92,7 @@ class RestTimerService : Service() {
       ACTION_START -> {
         val endAtElapsedMs = intent.getLongExtra(EXTRA_END_AT_ELAPSED_MS, 0L)
         val startedDurationSec = intent.getIntExtra(EXTRA_STARTED_DURATION_SEC, 0)
+        val notificationText = readNotificationTextFromIntent(intent)
 
         if (endAtElapsedMs <= 0L) {
           stopSelf()
@@ -76,8 +104,17 @@ class RestTimerService : Service() {
           .putLong(PREF_END_AT_ELAPSED_MS, endAtElapsedMs)
           .putInt(PREF_STARTED_DURATION_SEC, startedDurationSec)
           .putLong(PREF_COMPLETED_AT_MS, 0L)
+          .putString(PREF_RUNNING_TITLE, notificationText.runningTitle)
+          .putString(PREF_RUNNING_PREFIX, notificationText.runningPrefix)
+          .putString(PREF_PAUSED_PREFIX, notificationText.pausedPrefix)
+          .putString(PREF_COMPLETION_TITLE, notificationText.completionTitle)
+          .putString(PREF_COMPLETION_BODY, notificationText.completionBody)
+          .putString(PREF_PAUSE_ACTION_LABEL, notificationText.pauseActionLabel)
+          .putString(PREF_RESUME_ACTION_LABEL, notificationText.resumeActionLabel)
+          .putString(PREF_STOP_ACTION_LABEL, notificationText.stopActionLabel)
           .apply()
 
+        ensureNotificationChannels()
         startForegroundCompat(buildRunningNotification())
         startTicking()
       }
@@ -122,6 +159,14 @@ class RestTimerService : Service() {
           .putInt(PREF_REMAINING_SEC, 0)
           .putInt(PREF_STARTED_DURATION_SEC, 0)
           .putLong(PREF_COMPLETED_AT_MS, 0L)
+          .remove(PREF_RUNNING_TITLE)
+          .remove(PREF_RUNNING_PREFIX)
+          .remove(PREF_PAUSED_PREFIX)
+          .remove(PREF_COMPLETION_TITLE)
+          .remove(PREF_COMPLETION_BODY)
+          .remove(PREF_PAUSE_ACTION_LABEL)
+          .remove(PREF_RESUME_ACTION_LABEL)
+          .remove(PREF_STOP_ACTION_LABEL)
           .apply()
         stopTicking()
         stopForegroundCompat(removeNotification = true)
@@ -158,6 +203,34 @@ class RestTimerService : Service() {
     val remainingSec = p.getInt(PREF_REMAINING_SEC, 0)
     val startedDurationSec = p.getInt(PREF_STARTED_DURATION_SEC, 0)
     return State(mode, endAtElapsed, remainingSec, startedDurationSec)
+  }
+
+  private fun readNotificationTextFromIntent(intent: Intent): NotificationText {
+    val fallback = readNotificationText()
+    return NotificationText(
+      runningTitle = intent.getStringExtra(EXTRA_RUNNING_TITLE) ?: fallback.runningTitle,
+      runningPrefix = intent.getStringExtra(EXTRA_RUNNING_PREFIX) ?: fallback.runningPrefix,
+      pausedPrefix = intent.getStringExtra(EXTRA_PAUSED_PREFIX) ?: fallback.pausedPrefix,
+      completionTitle = intent.getStringExtra(EXTRA_COMPLETION_TITLE) ?: fallback.completionTitle,
+      completionBody = intent.getStringExtra(EXTRA_COMPLETION_BODY) ?: fallback.completionBody,
+      pauseActionLabel = intent.getStringExtra(EXTRA_PAUSE_ACTION_LABEL) ?: fallback.pauseActionLabel,
+      resumeActionLabel = intent.getStringExtra(EXTRA_RESUME_ACTION_LABEL) ?: fallback.resumeActionLabel,
+      stopActionLabel = intent.getStringExtra(EXTRA_STOP_ACTION_LABEL) ?: fallback.stopActionLabel,
+    )
+  }
+
+  private fun readNotificationText(): NotificationText {
+    val p = prefs()
+    return NotificationText(
+      runningTitle = p.getString(PREF_RUNNING_TITLE, null) ?: "Rest timer",
+      runningPrefix = p.getString(PREF_RUNNING_PREFIX, null) ?: "Remaining",
+      pausedPrefix = p.getString(PREF_PAUSED_PREFIX, null) ?: "Paused",
+      completionTitle = p.getString(PREF_COMPLETION_TITLE, null) ?: "Rest complete",
+      completionBody = p.getString(PREF_COMPLETION_BODY, null) ?: "Time for your next set.",
+      pauseActionLabel = p.getString(PREF_PAUSE_ACTION_LABEL, null) ?: "Pause",
+      resumeActionLabel = p.getString(PREF_RESUME_ACTION_LABEL, null) ?: "Resume",
+      stopActionLabel = p.getString(PREF_STOP_ACTION_LABEL, null) ?: "Stop",
+    )
   }
 
   private fun startTicking() {
@@ -201,10 +274,11 @@ class RestTimerService : Service() {
       .putLong(PREF_COMPLETED_AT_MS, System.currentTimeMillis())
       .apply()
 
+    val notificationText = readNotificationText()
     val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     val completion = NotificationCompat.Builder(this, CHANNEL_COMPLETE_ID)
-      .setContentTitle("Rest complete")
-      .setContentText("Time for your next set.")
+      .setContentTitle(notificationText.completionTitle)
+      .setContentText(notificationText.completionBody)
       .setSmallIcon(applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_lock_idle_alarm)
       .setAutoCancel(true)
       .setContentIntent(buildLaunchPendingIntent())
@@ -219,31 +293,27 @@ class RestTimerService : Service() {
   private fun ensureNotificationChannels() {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
     val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val notificationText = readNotificationText()
 
-    if (nm.getNotificationChannel(CHANNEL_RUNNING_ID) == null) {
-      val ch = NotificationChannel(
-        CHANNEL_RUNNING_ID,
-        "Rest timer (running)",
-        NotificationManager.IMPORTANCE_LOW,
-      )
-      ch.setSound(null, null)
-      ch.enableVibration(false)
-      ch.enableLights(false)
-      ch.setShowBadge(false)
-      nm.createNotificationChannel(ch)
-    }
+    val runningChannel = NotificationChannel(
+      CHANNEL_RUNNING_ID,
+      notificationText.runningTitle,
+      NotificationManager.IMPORTANCE_LOW,
+    )
+    runningChannel.setSound(null, null)
+    runningChannel.enableVibration(false)
+    runningChannel.enableLights(false)
+    runningChannel.setShowBadge(false)
+    nm.createNotificationChannel(runningChannel)
 
-    // Ensure completion channel exists too (JS normally creates it, but service may run standalone).
-    if (nm.getNotificationChannel(CHANNEL_COMPLETE_ID) == null) {
-      val ch = NotificationChannel(
-        CHANNEL_COMPLETE_ID,
-        "Rest timer",
-        NotificationManager.IMPORTANCE_MAX,
-      )
-      ch.enableVibration(true)
-      ch.setShowBadge(false)
-      nm.createNotificationChannel(ch)
-    }
+    val completionChannel = NotificationChannel(
+      CHANNEL_COMPLETE_ID,
+      notificationText.runningTitle,
+      NotificationManager.IMPORTANCE_MAX,
+    )
+    completionChannel.enableVibration(true)
+    completionChannel.setShowBadge(false)
+    nm.createNotificationChannel(completionChannel)
   }
 
   private fun buildLaunchPendingIntent(): PendingIntent? {
@@ -259,18 +329,19 @@ class RestTimerService : Service() {
 
   private fun buildRunningNotification(): Notification {
     val state = readState()
+    val notificationText = readNotificationText()
     val remaining = state.endAtElapsedMs?.let { computeRemainingSeconds(it) } ?: 0
     val icon = applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_lock_idle_alarm
     return NotificationCompat.Builder(this, CHANNEL_RUNNING_ID)
-      .setContentTitle("Rest timer")
-      .setContentText("Remaining ${formatSeconds(remaining)}")
+      .setContentTitle(notificationText.runningTitle)
+      .setContentText("${notificationText.runningPrefix} ${formatSeconds(remaining)}")
       .setSmallIcon(icon)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
       .setContentIntent(buildLaunchPendingIntent())
       .addAction(
         0,
-        "Pause",
+        notificationText.pauseActionLabel,
         PendingIntent.getService(
           this,
           1,
@@ -280,7 +351,7 @@ class RestTimerService : Service() {
       )
       .addAction(
         0,
-        "Stop",
+        notificationText.stopActionLabel,
         PendingIntent.getService(
           this,
           2,
@@ -292,17 +363,18 @@ class RestTimerService : Service() {
   }
 
   private fun buildPausedNotification(remainingSec: Int): Notification {
+    val notificationText = readNotificationText()
     val icon = applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_lock_idle_alarm
     return NotificationCompat.Builder(this, CHANNEL_RUNNING_ID)
-      .setContentTitle("Rest timer")
-      .setContentText("Paused ${formatSeconds(remainingSec)}")
+      .setContentTitle(notificationText.runningTitle)
+      .setContentText("${notificationText.pausedPrefix} ${formatSeconds(remainingSec)}")
       .setSmallIcon(icon)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
       .setContentIntent(buildLaunchPendingIntent())
       .addAction(
         0,
-        "Resume",
+        notificationText.resumeActionLabel,
         PendingIntent.getService(
           this,
           3,
@@ -312,7 +384,7 @@ class RestTimerService : Service() {
       )
       .addAction(
         0,
-        "Stop",
+        notificationText.stopActionLabel,
         PendingIntent.getService(
           this,
           2,
@@ -325,17 +397,18 @@ class RestTimerService : Service() {
 
   private fun updateRunningNotification(remainingSec: Int) {
     val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val notificationText = readNotificationText()
     val icon = applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_lock_idle_alarm
     val notif = NotificationCompat.Builder(this, CHANNEL_RUNNING_ID)
-      .setContentTitle("Rest timer")
-      .setContentText("Remaining ${formatSeconds(remainingSec)}")
+      .setContentTitle(notificationText.runningTitle)
+      .setContentText("${notificationText.runningPrefix} ${formatSeconds(remainingSec)}")
       .setSmallIcon(icon)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
       .setContentIntent(buildLaunchPendingIntent())
       .addAction(
         0,
-        "Pause",
+        notificationText.pauseActionLabel,
         PendingIntent.getService(
           this,
           1,
@@ -345,7 +418,7 @@ class RestTimerService : Service() {
       )
       .addAction(
         0,
-        "Stop",
+        notificationText.stopActionLabel,
         PendingIntent.getService(
           this,
           2,

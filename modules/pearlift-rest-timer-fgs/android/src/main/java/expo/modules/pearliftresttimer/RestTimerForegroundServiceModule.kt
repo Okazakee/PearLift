@@ -11,7 +11,7 @@ class RestTimerForegroundServiceModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("RestTimerForegroundService")
 
-    AsyncFunction("start") { endAtMs: Double, startedDurationSec: Int ->
+    AsyncFunction("start") { endAtMs: Double, startedDurationSec: Int, notificationText: Map<String, Any?> ->
       val ctx = appContext.reactContext ?: return@AsyncFunction
       val endAtMsLong = endAtMs.toLong()
       val diffMs = endAtMsLong - System.currentTimeMillis()
@@ -23,6 +23,38 @@ class RestTimerForegroundServiceModule : Module() {
         action = RestTimerService.ACTION_START
         putExtra(RestTimerService.EXTRA_END_AT_ELAPSED_MS, endAtElapsedMs)
         putExtra(RestTimerService.EXTRA_STARTED_DURATION_SEC, startedDurationSec)
+        putExtra(
+          RestTimerService.EXTRA_RUNNING_TITLE,
+          notificationText["runningTitle"] as? String,
+        )
+        putExtra(
+          RestTimerService.EXTRA_RUNNING_PREFIX,
+          notificationText["runningPrefix"] as? String,
+        )
+        putExtra(
+          RestTimerService.EXTRA_PAUSED_PREFIX,
+          notificationText["pausedPrefix"] as? String,
+        )
+        putExtra(
+          RestTimerService.EXTRA_COMPLETION_TITLE,
+          notificationText["completionTitle"] as? String,
+        )
+        putExtra(
+          RestTimerService.EXTRA_COMPLETION_BODY,
+          notificationText["completionBody"] as? String,
+        )
+        putExtra(
+          RestTimerService.EXTRA_PAUSE_ACTION_LABEL,
+          notificationText["pauseActionLabel"] as? String,
+        )
+        putExtra(
+          RestTimerService.EXTRA_RESUME_ACTION_LABEL,
+          notificationText["resumeActionLabel"] as? String,
+        )
+        putExtra(
+          RestTimerService.EXTRA_STOP_ACTION_LABEL,
+          notificationText["stopActionLabel"] as? String,
+        )
       }
       ContextCompat.startForegroundService(ctx, intent)
       null

@@ -156,7 +156,15 @@
     "duration": "Trajanje",
     "notification": {
       "title": "Odmor završen",
-      "body": "Vrijeme za sljedeću seriju."
+      "body": "Vrijeme za sljedeću seriju.",
+      "channelName": "Mjerač odmora",
+      "runningPrefix": "Preostalo",
+      "pausedPrefix": "Pauzirano",
+      "actions": {
+        "pause": "Pauza",
+        "resume": "Nastavi",
+        "stop": "Zaustavi"
+      }
     }
   },
   "programSettings": {

@@ -156,7 +156,15 @@
     "duration": "ระยะเวลา",
     "notification": {
       "title": "พักเสร็จแล้ว",
-      "body": "ถึงเวลาของเซ็ตถัดไปแล้ว"
+      "body": "ถึงเวลาของเซ็ตถัดไปแล้ว",
+      "channelName": "ตัวจับเวลาพัก",
+      "runningPrefix": "เหลือ",
+      "pausedPrefix": "หยุดชั่วคราว",
+      "actions": {
+        "pause": "หยุดชั่วคราว",
+        "resume": "ดำเนินการต่อ",
+        "stop": "หยุด"
+      }
     }
   },
   "programSettings": {

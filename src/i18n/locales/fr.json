@@ -156,7 +156,15 @@
     "duration": "Durée",
     "notification": {
       "title": "Repos terminé",
-      "body": "Temps pour votre prochaine série."
+      "body": "Temps pour votre prochaine série.",
+      "channelName": "Minuteur de repos",
+      "runningPrefix": "Restant",
+      "pausedPrefix": "En pause",
+      "actions": {
+        "pause": "Pause",
+        "resume": "Reprendre",
+        "stop": "Arrêter"
+      }
     }
   },
   "programSettings": {

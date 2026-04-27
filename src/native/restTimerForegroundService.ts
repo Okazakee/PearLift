@@ -1,4 +1,7 @@
-import { RestTimerForegroundService as Native } from 'pearlift-rest-timer-fgs';
+import {
+  RestTimerForegroundService as Native,
+  type RestTimerNotificationText,
+} from 'pearlift-rest-timer-fgs';
 import { Platform } from 'react-native';
 
 export type RestTimerForegroundServiceState = Awaited<
@@ -14,10 +17,14 @@ export const RestTimerForegroundService = {
   isAvailable() {
     return !!getNative();
   },
-  start(endAtMs: number, startedDurationSec: number) {
+  start(
+    endAtMs: number,
+    startedDurationSec: number,
+    notificationText: RestTimerNotificationText,
+  ) {
     const native = getNative();
     if (!native) return Promise.resolve();
-    return native.start(endAtMs, startedDurationSec);
+    return native.start(endAtMs, startedDurationSec, notificationText);
   },
   stop() {
     const native = getNative();
@@ -40,3 +47,5 @@ export const RestTimerForegroundService = {
     return native.clearCompletion();
   },
 };
+
+export type { RestTimerNotificationText };

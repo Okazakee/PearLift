@@ -156,7 +156,15 @@
     "duration": "Trukmė",
     "notification": {
       "title": "Pertrauka baigta",
-      "body": "Laikas kitam setui."
+      "body": "Laikas kitam setui.",
+      "channelName": "Pertraukos laikmatis",
+      "runningPrefix": "Liko",
+      "pausedPrefix": "Pristabdyta",
+      "actions": {
+        "pause": "Pauze",
+        "resume": "Tęsti",
+        "stop": "Sustabdyti"
+      }
     }
   },
   "programSettings": {

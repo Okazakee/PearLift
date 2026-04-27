@@ -39,7 +39,10 @@ import {
   RING_STROKE,
   STEP,
 } from '../config/timer';
-import { RestTimerForegroundService } from '../native/restTimerForegroundService';
+import {
+  RestTimerForegroundService,
+  type RestTimerNotificationText,
+} from '../native/restTimerForegroundService';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { PersistedRestTimerStateV1, RestTimerMode } from '../types/timer';
@@ -104,6 +107,19 @@ export function RestTimer({
     () => createStyles(tokens, isComplete, fabBottom, panelBottom),
     [tokens, isComplete, fabBottom, panelBottom],
   );
+  const nativeNotificationText = useMemo<RestTimerNotificationText>(
+    () => ({
+      runningTitle: t('restTimer.title'),
+      runningPrefix: t('restTimer.notification.runningPrefix'),
+      pausedPrefix: t('restTimer.notification.pausedPrefix'),
+      completionTitle: t('restTimer.notification.title'),
+      completionBody: t('restTimer.notification.body'),
+      pauseActionLabel: t('restTimer.notification.actions.pause'),
+      resumeActionLabel: t('restTimer.notification.actions.resume'),
+      stopActionLabel: t('restTimer.notification.actions.stop'),
+    }),
+    [t],
+  );
 
   useEffect(() => {
     onExpandedChange?.(expanded);
@@ -153,15 +169,10 @@ export function RestTimer({
       return;
     }
     if (mode === 'paused') {
-      // If user adjusts duration while paused, mirror it as the remaining time baseline.
-      // This matches the existing UX where adjusting duration updates the visible time when not running.
-      setRemainingSec((current) => {
-        if (current > duration) return duration;
-        return current;
-      });
-      setStartedDurationSec((current) =>
-        current < duration ? duration : current,
-      );
+      // Paused timers should reflect the new configured duration immediately.
+      // This also resets the progress baseline for the next resume to match the edited value.
+      setRemainingSec(duration);
+      setStartedDurationSec(duration);
       return;
     }
   }, [duration, mode]);
@@ -354,6 +365,8 @@ export function RestTimer({
         setMode('complete');
         setEndAtMs(null);
         setRemainingSec(0);
+        setScheduledNotificationId(null);
+        scheduledIdRef.current = null;
         if (
           typeof state.startedDurationSec === 'number' &&
           state.startedDurationSec > 0
@@ -369,6 +382,8 @@ export function RestTimer({
         setMode('paused');
         setEndAtMs(null);
         setRemainingSec(Math.max(0, Math.round(state.remainingSec)));
+        setScheduledNotificationId(null);
+        scheduledIdRef.current = null;
         if (
           typeof state.startedDurationSec === 'number' &&
           state.startedDurationSec > 0
@@ -389,6 +404,8 @@ export function RestTimer({
           setMode('running');
           setEndAtMs(reconciledEndAt);
         }
+        setScheduledNotificationId(null);
+        scheduledIdRef.current = null;
         if (
           typeof state.startedDurationSec === 'number' &&
           state.startedDurationSec > 0
@@ -487,6 +504,7 @@ export function RestTimer({
             void RestTimerForegroundService.start(
               latestEnd,
               startedDurationSec,
+              nativeNotificationText,
             );
           } else {
             // iOS/web fallback: rely on completion notifications only (no running notification).
@@ -521,6 +539,8 @@ export function RestTimer({
             setMode('paused');
             setEndAtMs(null);
             setRemainingSec(Math.max(0, Math.round(state.remainingSec)));
+            setScheduledNotificationId(null);
+            scheduledIdRef.current = null;
             return;
           }
 
@@ -530,6 +550,8 @@ export function RestTimer({
             setEndAtMs(null);
             setRemainingSec(duration);
             setStartedDurationSec(duration);
+            setScheduledNotificationId(null);
+            scheduledIdRef.current = null;
             return;
           }
 
@@ -537,6 +559,8 @@ export function RestTimer({
             // If the service was still running, reconcile endAt.
             setMode('running');
             setEndAtMs(Math.round(state.endAtMs));
+            setScheduledNotificationId(null);
+            scheduledIdRef.current = null;
             return;
           }
         })();
@@ -567,6 +591,7 @@ export function RestTimer({
     refreshRemainingFromEndAt,
     startTicking,
     startedDurationSec,
+    nativeNotificationText,
   ]);
 
   useEffect(() => {

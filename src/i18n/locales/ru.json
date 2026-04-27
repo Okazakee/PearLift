@@ -156,7 +156,15 @@
     "duration": "Продолжительность",
     "notification": {
       "title": "Отдых завершён",
-      "body": "Время для следующего подхода."
+      "body": "Время для следующего подхода.",
+      "channelName": "Таймер отдыха",
+      "runningPrefix": "Осталось",
+      "pausedPrefix": "Пауза",
+      "actions": {
+        "pause": "Пауза",
+        "resume": "Продолжить",
+        "stop": "Остановить"
+      }
     }
   },
   "programSettings": {

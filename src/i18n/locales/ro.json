@@ -156,7 +156,15 @@
     "duration": "Durată",
     "notification": {
       "title": "Odihnă completă",
-      "body": "Timp pentru următoarea ta serie."
+      "body": "Timp pentru următoarea ta serie.",
+      "channelName": "Cronometru de odihnă",
+      "runningPrefix": "Rămas",
+      "pausedPrefix": "În pauză",
+      "actions": {
+        "pause": "Pauză",
+        "resume": "Reia",
+        "stop": "Oprește"
+      }
     }
   },
   "programSettings": {

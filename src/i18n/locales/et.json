@@ -156,7 +156,15 @@
     "duration": "Kestus",
     "notification": {
       "title": "Puhkus läbi",
-      "body": "Aeg järgmiseks seeriaks."
+      "body": "Aeg järgmiseks seeriaks.",
+      "channelName": "Puhkuse taimer",
+      "runningPrefix": "Jäänud",
+      "pausedPrefix": "Peatatud",
+      "actions": {
+        "pause": "Paus",
+        "resume": "Jätka",
+        "stop": "Peata"
+      }
     }
   },
   "programSettings": {

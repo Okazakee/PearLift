@@ -156,7 +156,15 @@
     "duration": "Duración",
     "notification": {
       "title": "Descanso completo",
-      "body": "Es hora de tu siguiente serie."
+      "body": "Es hora de tu siguiente serie.",
+      "channelName": "Temporizador de descanso",
+      "runningPrefix": "Restante",
+      "pausedPrefix": "En pausa",
+      "actions": {
+        "pause": "Pausa",
+        "resume": "Reanudar",
+        "stop": "Detener"
+      }
     }
   },
   "programSettings": {

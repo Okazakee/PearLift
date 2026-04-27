@@ -156,7 +156,15 @@
     "duration": "Durasi",
     "notification": {
       "title": "Istirahat selesai",
-      "body": "Waktunya untuk set berikutnya."
+      "body": "Waktunya untuk set berikutnya.",
+      "channelName": "Timer istirahat",
+      "runningPrefix": "Tersisa",
+      "pausedPrefix": "Dijeda",
+      "actions": {
+        "pause": "Jeda",
+        "resume": "Lanjutkan",
+        "stop": "Berhenti"
+      }
     }
   },
   "programSettings": {

@@ -156,7 +156,15 @@
     "duration": "Kesto",
     "notification": {
       "title": "Lepo valmis",
-      "body": "Aika seuraavalle sarjallesi."
+      "body": "Aika seuraavalle sarjallesi.",
+      "channelName": "Lepoajastin",
+      "runningPrefix": "Jäljellä",
+      "pausedPrefix": "Tauolla",
+      "actions": {
+        "pause": "Tauko",
+        "resume": "Jatka",
+        "stop": "Pysäytä"
+      }
     }
   },
   "programSettings": {

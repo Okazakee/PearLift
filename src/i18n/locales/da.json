@@ -156,7 +156,15 @@
     "duration": "Varighed",
     "notification": {
       "title": "Hvil færdig",
-      "body": "Tid til dit næste sæt."
+      "body": "Tid til dit næste sæt.",
+      "channelName": "Hviletimer",
+      "runningPrefix": "Tilbage",
+      "pausedPrefix": "Pauset",
+      "actions": {
+        "pause": "Pause",
+        "resume": "Genoptag",
+        "stop": "Stop"
+      }
     }
   },
   "programSettings": {

@@ -74,28 +74,37 @@ export default function App() {
 
   useEffect(() => {
     if (Platform.OS !== 'android') return;
-    // Ensure a dedicated channel exists so the rest timer completion notification is timely and visible.
-    Notifications.setNotificationChannelAsync('rest-timer', {
-      name: 'Rest timer',
-      importance: Notifications.AndroidImportance.MAX,
-      enableVibrate: true,
-      vibrationPattern: [0, 250, 150, 250],
-      showBadge: false,
-    }).catch(() => {
-      // ignore channel creation failures
-    });
+    const syncRestTimerChannels = () => {
+      // Channel ids are immutable once created, but Android allows channel metadata like
+      // the display name to be updated by recreating the channel with the same id.
+      Notifications.setNotificationChannelAsync('rest-timer', {
+        name: i18n.t('restTimer.notification.channelName'),
+        importance: Notifications.AndroidImportance.MAX,
+        enableVibrate: true,
+        vibrationPattern: [0, 250, 150, 250],
+        showBadge: false,
+      }).catch(() => {
+        // ignore channel creation failures
+      });
 
-    // Channel ids are immutable once created. Use a versioned id for future behavior changes.
-    Notifications.setNotificationChannelAsync('rest-timer-v2', {
-      name: 'Rest timer',
-      importance: Notifications.AndroidImportance.MAX,
-      enableVibrate: true,
-      vibrationPattern: [0, 250, 150, 250],
-      showBadge: false,
-      audioAttributes: { usage: Notifications.AndroidAudioUsage.ALARM },
-    }).catch(() => {
-      // ignore channel creation failures
-    });
+      Notifications.setNotificationChannelAsync('rest-timer-v2', {
+        name: i18n.t('restTimer.notification.channelName'),
+        importance: Notifications.AndroidImportance.MAX,
+        enableVibrate: true,
+        vibrationPattern: [0, 250, 150, 250],
+        showBadge: false,
+        audioAttributes: { usage: Notifications.AndroidAudioUsage.ALARM },
+      }).catch(() => {
+        // ignore channel creation failures
+      });
+    };
+
+    syncRestTimerChannels();
+    i18n.on('languageChanged', syncRestTimerChannels);
+
+    return () => {
+      i18n.off('languageChanged', syncRestTimerChannels);
+    };
   }, []);
 
   return (

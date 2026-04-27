@@ -156,7 +156,15 @@
     "duration": "Продължителност",
     "notification": {
       "title": "Почивката е готова",
-      "body": "Време за следващата ви серия."
+      "body": "Време за следващата ви серия.",
+      "channelName": "Таймер за почивка",
+      "runningPrefix": "Остава",
+      "pausedPrefix": "На пауза",
+      "actions": {
+        "pause": "Пауза",
+        "resume": "Продължи",
+        "stop": "Спри"
+      }
     }
   },
   "programSettings": {

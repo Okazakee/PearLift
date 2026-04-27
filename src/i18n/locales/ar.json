@@ -156,7 +156,15 @@
     "duration": "المدة",
     "notification": {
       "title": "انتهت الراحة",
-      "body": "حان وقت مجموعتك التالية."
+      "body": "حان وقت مجموعتك التالية.",
+      "channelName": "مؤقت الراحة",
+      "runningPrefix": "المتبقي",
+      "pausedPrefix": "متوقف مؤقتا",
+      "actions": {
+        "pause": "إيقاف مؤقت",
+        "resume": "استئناف",
+        "stop": "إيقاف"
+      }
     }
   },
   "programSettings": {

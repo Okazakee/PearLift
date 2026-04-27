@@ -156,7 +156,15 @@
     "duration": "Duration",
     "notification": {
       "title": "Rest complete",
-      "body": "Time for your next set."
+      "body": "Time for your next set.",
+      "channelName": "Rest Timer",
+      "runningPrefix": "Remaining",
+      "pausedPrefix": "Paused",
+      "actions": {
+        "pause": "Pause",
+        "resume": "Resume",
+        "stop": "Stop"
+      }
     }
   },
   "programSettings": {

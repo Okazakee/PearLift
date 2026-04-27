@@ -156,7 +156,15 @@
     "duration": "지속 시간",
     "notification": {
       "title": "휴식 완료",
-      "body": "다음 세트 시간입니다."
+      "body": "다음 세트 시간입니다.",
+      "channelName": "휴식 타이머",
+      "runningPrefix": "남음",
+      "pausedPrefix": "일시 정지됨",
+      "actions": {
+        "pause": "일시 정지",
+        "resume": "다시 시작",
+        "stop": "중지"
+      }
     }
   },
   "programSettings": {

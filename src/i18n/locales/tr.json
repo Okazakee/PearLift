@@ -156,7 +156,15 @@
     "duration": "Süre",
     "notification": {
       "title": "Dinlenme tamamlandı",
-      "body": "Bir sonraki setin zamanı."
+      "body": "Bir sonraki setin zamanı.",
+      "channelName": "Dinlenme zamanlayıcısı",
+      "runningPrefix": "Kalan",
+      "pausedPrefix": "Duraklatıldı",
+      "actions": {
+        "pause": "Duraklat",
+        "resume": "Sürdür",
+        "stop": "Durdur"
+      }
     }
   },
   "programSettings": {

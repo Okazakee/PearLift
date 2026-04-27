@@ -156,7 +156,15 @@
     "duration": "Ilgums",
     "notification": {
       "title": "Atpūta pabeigta",
-      "body": "Laiks nākamajam komplektam."
+      "body": "Laiks nākamajam komplektam.",
+      "channelName": "Atpūtas taimeris",
+      "runningPrefix": "Atlicis",
+      "pausedPrefix": "Pauzēts",
+      "actions": {
+        "pause": "Pauze",
+        "resume": "Turpināt",
+        "stop": "Apturēt"
+      }
     }
   },
   "programSettings": {

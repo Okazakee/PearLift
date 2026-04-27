@@ -156,7 +156,15 @@
     "duration": "Durata",
     "notification": {
       "title": "Riposo completato",
-      "body": "È ora della tua prossima serie."
+      "body": "È ora della tua prossima serie.",
+      "channelName": "Timer di riposo",
+      "runningPrefix": "Rimanente",
+      "pausedPrefix": "In pausa",
+      "actions": {
+        "pause": "Pausa",
+        "resume": "Riprendi",
+        "stop": "Ferma"
+      }
     }
   },
   "programSettings": {

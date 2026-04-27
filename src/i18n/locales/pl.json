@@ -156,7 +156,15 @@
     "duration": "Czas trwania",
     "notification": {
       "title": "Odpoczynek zakończony",
-      "body": "Czas na kolejną serię."
+      "body": "Czas na kolejną serię.",
+      "channelName": "Minutnik odpoczynku",
+      "runningPrefix": "Pozostało",
+      "pausedPrefix": "Wstrzymano",
+      "actions": {
+        "pause": "Pauza",
+        "resume": "Wznów",
+        "stop": "Zatrzymaj"
+      }
     }
   },
   "programSettings": {

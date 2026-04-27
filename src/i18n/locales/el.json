@@ -156,7 +156,15 @@
     "duration": "Διάρκεια",
     "notification": {
       "title": "Ξεκούραση ολοκληρωμένη",
-      "body": "Ώρα για το επόμενο σετ σου."
+      "body": "Ώρα για το επόμενο σετ σου.",
+      "channelName": "Χρονοδιακόπτης ξεκούρασης",
+      "runningPrefix": "Απομένει",
+      "pausedPrefix": "Σε παύση",
+      "actions": {
+        "pause": "Παύση",
+        "resume": "Συνέχεια",
+        "stop": "Διακοπή"
+      }
     }
   },
   "programSettings": {

@@ -156,7 +156,15 @@
     "duration": "Trajanje",
     "notification": {
       "title": "Počitek končan",
-      "body": "Čas za vaš naslednji niz."
+      "body": "Čas za vaš naslednji niz.",
+      "channelName": "Časovnik za počitek",
+      "runningPrefix": "Preostalo",
+      "pausedPrefix": "Začasno ustavljeno",
+      "actions": {
+        "pause": "Premor",
+        "resume": "Nadaljuj",
+        "stop": "Ustavi"
+      }
     }
   },
   "programSettings": {
