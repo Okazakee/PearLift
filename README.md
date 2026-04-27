@@ -1,8 +1,8 @@
 # PearLift
 
-**A local‑first, privacy‑focused workout tracker with progressive overload, rest timers, and peer‑to‑peer sync.**
+**A local‑first, privacy‑focused workout tracker with progressive overload, rest timers, and local backup/restore.**
 
-PearLift is a React Native app built with Expo. It helps you log sets, manage progressive overload, and time your rests—all without an account. Your data stays on your device and syncs directly between your own devices using the Holepunch P2P stack. Read‑only sharing with friends is planned for a future release.
+PearLift is a React Native app built with Expo. It helps you log sets, manage progressive overload, and time your rests—all without an account. Your data stays on your device, and you can export/import it as a JSON backup.
 
 <p align="center">
   <img src="./assets/pearlift_icon.png" alt="PearLift Icon" width="120" />
@@ -24,14 +24,11 @@ PearLift is a React Native app built with Expo. It helps you log sets, manage pr
 - **📁 Local Backup & Restore**  
   Export/import all data as a JSON file. Preview changes before applying a backup to avoid accidental overwrites.
 
-- **📡 Device‑to‑Device Sync**  
-  Sync your workouts across your own devices seamlessly and privately. Powered by the Holepunch P2P stack, data never touches a cloud server.
-
 - **👥 Share Workout Plans (Planned)**  
   Read‑only sharing with friends is planned for a future release. (Not implemented yet.)
 
 - **🔒 Privacy First**  
-  No accounts, no cloud servers. All data lives in a local SQLite database and syncs directly between trusted devices.
+  No accounts, no cloud servers. All data lives in a local SQLite database on your device.
 
 ---
 
@@ -45,8 +42,6 @@ PearLift is a React Native app built with Expo. It helps you log sets, manage pr
 | Animations           | [React Native Reanimated 4](https://docs.swmansion.com/react-native-reanimated/)                  |
 | Drag & Drop          | [react-native-sortables](https://github.com/margelo/react-native-sortables)                       |
 | Background Timer     | Custom native module (Android) + `expo-notifications` fallback                                     |
-| Peer‑to‑Peer Sync    | [Holepunch (Pear) stack](https://docs.pears.com/) – Autobase, Hypercore, Hyperswarm, Corestore   |
-| P2P React Native     | [react-native-bare-kit](https://github.com/holepunchto/react-native-bare-kit)                     |
 
 ---
 
@@ -83,7 +78,6 @@ bun run ios
 
 ```
 ├── App.tsx                 # Font loading, notifications, root view
-├── backend/                # Bare (Holepunch) sync backend entrypoints
 ├── plugins/                # Expo config plugins (prebuild hooks)
 ├── src/
 │   ├── backup/             # JSON import/export + diff preview
@@ -91,7 +85,6 @@ bun run ios
 │   ├── screens/            # Screen containers (WorkoutScreen, etc.)
 │   ├── storage/            # SQLite repository + types
 │   ├── store/              # Zustand store + optimistic updates
-│   ├── sync/               # Sync manager + bridge + RPC surface
 │   ├── native/             # Native-module bridges (Android foreground service)
 │   ├── theme/              # Tokens + light/dark themes
 │   └── utils/              # Shared helpers (units, math, errors)
@@ -107,22 +100,6 @@ bun run ios
 2. The store applies an **optimistic update** to the in‑memory snapshot for instant feedback.
 3. The mutation is persisted via `WorkoutRepository` inside a SQLite transaction.
 4. On failure, the store reloads from SQLite to recover a consistent snapshot.
-
-### Peer‑to‑Peer Sync Architecture
-
-PearLift uses the Holepunch stack to enable direct device‑to‑device sync without any central server.
-
-- Each device has a stable **device ID** and a **pairing secret** (stored in `expo-secure-store`).
-- Devices with the same pairing secret join the same **Hyperswarm topic** and establish an encrypted P2P connection.
-- Sync operations are merged via **Autobase** and written back into the local SQLite database.
-- SQLite remains the **source of truth** for the UI; sync just feeds mutations into the same persistence layer.
-
-### Sync Setup Flow
-
-1. Enable sync in Settings – a unique cryptographic seed is generated and stored securely in `expo-secure-store`.
-2. On a second device, scan the QR code or enter the seed phrase to join the same sync group.
-3. Devices discover each other automatically and begin exchanging data logs.
-4. Conflict resolution merges any offline changes the next time devices connect.
 
 ### Rest Timer Persistence
 
@@ -157,7 +134,6 @@ PearLift is open‑source software licensed under the **MIT License**. See [LICE
 ## 💬 Acknowledgements
 
 - [Expo](https://expo.dev/) for the amazing toolchain.
-- [Holepunch](https://holepunch.to/) for building a truly peer‑to‑peer future.
 - The open‑source community for all the great libraries used in this project.
 
 ---

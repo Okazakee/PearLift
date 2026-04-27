@@ -6,20 +6,9 @@ import type { AppPromptAction } from '../components/modals/AppPromptModal';
 import { REST_TIMER_PERSIST_KEY } from '../config/timer';
 import i18n from '../i18n';
 import { RestTimerForegroundService } from '../native/restTimerForegroundService';
-import type {
-  PairedDevice,
-  WorkoutMutation,
-  WorkoutStoreSnapshot,
-} from '../storage/types';
+import type { WorkoutMutation, WorkoutStoreSnapshot } from '../storage/types';
 import type { WorkoutRepository } from '../storage/workoutRepository';
 import { WorkoutRepository as WorkoutRepoClass } from '../storage/workoutRepository';
-import { logSyncEvent } from '../sync/logger';
-import {
-  createSyncManager,
-  getPairingSecretPayload,
-} from '../sync/syncManager';
-import type { SyncHealth, SyncManager, SyncStatus } from '../sync/types';
-import { INITIAL_SYNC_HEALTH } from '../sync/types';
 import type { PersistedRestTimerStateV1 } from '../types/timer';
 
 interface PromptConfig {
@@ -28,33 +17,10 @@ interface PromptConfig {
   actions: AppPromptAction[];
 }
 
-interface StartSyncOptions {
-  replaceBeforeJoin?: boolean;
-}
-
 interface WorkoutStore {
   repository: WorkoutRepository | null;
-  syncManager: SyncManager | null;
   snapshot: WorkoutStoreSnapshot | null;
   isReady: boolean;
-
-  syncStatus: SyncStatus;
-  syncPeers: number;
-  syncPeerKeys: string[];
-  syncConnections: number;
-  syncLocalWriterKey: string | null;
-  syncLocalPublicKey: string | null;
-  syncAutobaseKey: string | null;
-  syncTopicHex: string | null;
-  syncBootstrapped: boolean;
-  syncReconnectAttempts: number;
-  lastSyncedAt: string | null;
-  syncError: string | null;
-  pairedDevices: PairedDevice[];
-  syncSecret: string | null;
-  localDeviceId: string | null;
-  syncSetupOpen: boolean;
-  newPeerSignal: string | null;
 
   promptConfig: PromptConfig | null;
 
@@ -71,23 +37,9 @@ interface WorkoutStore {
   pendingImport: MigratedBackupResult | null;
   importSummary: ChangeSummary;
 
-  seenPeerKeys: Set<string>;
-
   initialize: () => Promise<void>;
   reload: () => Promise<void>;
   applyMutation: (mutation: WorkoutMutation) => Promise<void>;
-  startSync: (
-    pairingSecretHex?: string,
-    bootstrapKeyHex?: string,
-    opts?: StartSyncOptions,
-  ) => Promise<void>;
-  stopSync: () => Promise<void>;
-  setSyncHealth: (health: SyncHealth) => void;
-  loadPairedDevices: () => Promise<void>;
-  forgetDevice: (deviceId: string) => Promise<void>;
-  setSyncSecret: (secret: string | null) => void;
-  setSyncSetupOpen: (open: boolean) => void;
-  acknowledgeNewPeerSignal: () => void;
 
   showPrompt: (
     title: string,
@@ -111,28 +63,8 @@ interface WorkoutStore {
 
 export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   repository: null,
-  syncManager: null,
   snapshot: null,
   isReady: false,
-
-  syncStatus: INITIAL_SYNC_HEALTH.status,
-  syncPeers: INITIAL_SYNC_HEALTH.peers,
-  syncPeerKeys: INITIAL_SYNC_HEALTH.peerKeys,
-  syncConnections: INITIAL_SYNC_HEALTH.connections,
-  syncLocalWriterKey: INITIAL_SYNC_HEALTH.localWriterKey,
-  syncLocalPublicKey: INITIAL_SYNC_HEALTH.localPublicKey,
-  syncAutobaseKey: INITIAL_SYNC_HEALTH.autobaseKey,
-  syncTopicHex: INITIAL_SYNC_HEALTH.topicHex,
-  syncBootstrapped: INITIAL_SYNC_HEALTH.bootstrapped,
-  syncReconnectAttempts: INITIAL_SYNC_HEALTH.reconnectAttempts,
-  lastSyncedAt: INITIAL_SYNC_HEALTH.lastSyncedAt,
-  syncError: INITIAL_SYNC_HEALTH.lastError,
-  pairedDevices: [],
-  syncSecret: null,
-  localDeviceId: null,
-  syncSetupOpen: false,
-  newPeerSignal: null,
-  seenPeerKeys: new Set<string>(),
 
   promptConfig: null,
 
@@ -159,91 +91,12 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     const repo = new WorkoutRepoClass();
     await repo.initialize();
     const snapshot = await repo.getSnapshot();
-    const syncManager = createSyncManager(repo);
-    const syncState = await repo.getSyncState();
-    const localDeviceId = await repo.getOrCreateDeviceId();
-    const syncSecret = await getPairingSecretPayload().catch(() => null);
-
-    syncManager.onHealth((health) => {
-      const current = get().syncManager;
-      if (current !== syncManager) {
-        return;
-      }
-      const prev = get();
-      const prevKeys = new Set(prev.syncPeerKeys);
-      const nextKeys = health.peerKeys;
-      let newPeer: string | null = prev.newPeerSignal;
-      for (const key of nextKeys) {
-        if (!prev.seenPeerKeys.has(key)) {
-          newPeer = key;
-        }
-      }
-      const mergedSeen = new Set(prev.seenPeerKeys);
-      for (const key of nextKeys) mergedSeen.add(key);
-
-      set({
-        syncStatus: health.status,
-        syncPeers: health.peers,
-        syncConnections: health.connections,
-        syncPeerKeys: nextKeys,
-        syncLocalWriterKey: health.localWriterKey,
-        syncLocalPublicKey: health.localPublicKey,
-        syncAutobaseKey: health.autobaseKey,
-        syncTopicHex: health.topicHex,
-        syncBootstrapped: health.bootstrapped,
-        syncReconnectAttempts: health.reconnectAttempts,
-        lastSyncedAt: health.lastSyncedAt,
-        syncError: health.lastError,
-        seenPeerKeys: mergedSeen,
-        newPeerSignal: newPeer,
-      });
-
-      const peerSetChanged =
-        prevKeys.size !== nextKeys.length ||
-        nextKeys.some((k) => !prevKeys.has(k));
-      if (peerSetChanged || health.status === 'synced') {
-        void get().loadPairedDevices();
-      }
-    });
 
     set({
       repository: repo,
-      syncManager,
       snapshot,
       isReady: true,
-      localDeviceId,
-      syncSecret,
-      lastSyncedAt: syncState.lastSyncedAt,
-      syncError: syncState.lastError,
     });
-
-    logSyncEvent('info', 'store', 'autostart_begin', 'Store boot sync check.', {
-      syncEnabled: syncState.syncEnabled,
-      hasBootstrapKey: !!syncState.autobaseBootstrapKey,
-    });
-    if (syncState.syncEnabled) {
-      try {
-        await syncManager.start();
-        logSyncEvent(
-          'info',
-          'store',
-          'autostart_complete',
-          'Auto-start sync completed.',
-        );
-      } catch (error) {
-        const message =
-          error instanceof Error ? error.message : 'Sync start failed';
-        logSyncEvent('error', 'store', 'autostart_failed', message);
-        set({ syncStatus: 'error', syncError: message });
-      }
-    } else {
-      logSyncEvent(
-        'info',
-        'store',
-        'autostart_skipped',
-        'Sync not enabled; skipping auto-start.',
-      );
-    }
   },
 
   reload: async () => {
@@ -254,7 +107,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   },
 
   applyMutation: async (mutation: WorkoutMutation) => {
-    const { repository, syncManager } = get();
+    const { repository } = get();
     if (!repository) return;
 
     const skipReload =
@@ -277,18 +130,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     try {
       await repository.applyMutation(mutation);
 
-      if (syncManager?.isActive()) {
-        try {
-          await syncManager.publishLocalMutation(mutation, get().snapshot);
-        } catch (syncError) {
-          const message =
-            syncError instanceof Error
-              ? syncError.message
-              : 'Failed to publish sync operation';
-          set({ syncStatus: 'error', syncError: message });
-        }
-      }
-
       if (mutation.type === 'resetAllData') {
         await clearRestTimerRuntimeState();
       }
@@ -302,76 +143,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       throw error;
     }
   },
-
-  startSync: async (
-    pairingSecretHex?: string,
-    bootstrapKeyHex?: string,
-    opts?: StartSyncOptions,
-  ) => {
-    const { syncManager, repository } = get();
-    if (!syncManager || !repository) {
-      return;
-    }
-    try {
-      if (opts?.replaceBeforeJoin) {
-        await repository.applyMutation({ type: 'resetWorkoutData' });
-        const snapshot = await repository.getSnapshot();
-        set({ snapshot });
-      }
-
-      set({ syncStatus: 'connecting', syncError: null });
-      await syncManager.start(pairingSecretHex, bootstrapKeyHex);
-      void get().loadPairedDevices();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : 'Sync start failed';
-      set({ syncStatus: 'error', syncError: message });
-      throw error;
-    }
-  },
-
-  stopSync: async () => {
-    const { syncManager } = get();
-    if (!syncManager) {
-      return;
-    }
-    await syncManager.stop();
-    set({
-      syncStatus: 'idle',
-      syncPeers: 0,
-      syncPeerKeys: [],
-      syncConnections: 0,
-      syncLocalWriterKey: null,
-      syncLocalPublicKey: null,
-      syncAutobaseKey: null,
-      syncTopicHex: null,
-      syncBootstrapped: false,
-      syncReconnectAttempts: 0,
-      syncError: null,
-      pairedDevices: [],
-      seenPeerKeys: new Set<string>(),
-      newPeerSignal: null,
-    });
-  },
-
-  setSyncHealth: (health) => {
-    set({
-      syncStatus: health.status,
-      syncPeers: health.peers,
-      syncConnections: health.connections,
-      syncPeerKeys: health.peerKeys,
-      syncLocalWriterKey: health.localWriterKey,
-      syncLocalPublicKey: health.localPublicKey,
-      syncAutobaseKey: health.autobaseKey,
-      syncTopicHex: health.topicHex,
-      syncBootstrapped: health.bootstrapped,
-      syncReconnectAttempts: health.reconnectAttempts,
-      lastSyncedAt: health.lastSyncedAt,
-      syncError: health.lastError,
-    });
-  },
-
-  acknowledgeNewPeerSignal: () => set({ newPeerSignal: null }),
 
   showPrompt: (title, message, actions) => {
     set({
@@ -396,24 +167,6 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   setTimerExpanded: (expanded) => set({ timerExpanded: expanded }),
   setPendingImport: (data) => set({ pendingImport: data }),
   setImportSummary: (summary) => set({ importSummary: summary }),
-
-  loadPairedDevices: async () => {
-    const { repository } = get();
-    if (!repository) return;
-    const devices = await repository.getPairedDevices();
-    set({ pairedDevices: devices });
-  },
-
-  forgetDevice: async (deviceId: string) => {
-    const { repository } = get();
-    if (!repository) return;
-    await repository.forgetDevice(deviceId);
-    const devices = await repository.getPairedDevices();
-    set({ pairedDevices: devices });
-  },
-
-  setSyncSecret: (secret) => set({ syncSecret: secret }),
-  setSyncSetupOpen: (open) => set({ syncSetupOpen: open }),
 }));
 
 async function clearRestTimerRuntimeState() {

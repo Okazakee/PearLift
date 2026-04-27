@@ -7,9 +7,9 @@ import {
 import * as LocalAuthentication from 'expo-local-authentication';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Platform, Text, useColorScheme, View } from 'react-native';
+import { Linking, Platform, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -28,12 +28,8 @@ import { AddExerciseModal } from '../components/modals/AddExerciseModal';
 import { AppPromptModal } from '../components/modals/AppPromptModal';
 import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
 import { LanguageListModal } from '../components/modals/LanguageListModal';
-import { PairedDevicesModal } from '../components/modals/PairedDevicesModal';
 import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
-import { SyncPairNewDeviceModal } from '../components/modals/SyncPairNewDeviceModal';
-import { SyncQuickStatusModal } from '../components/modals/SyncQuickStatusModal';
-import { SyncSetupModal } from '../components/modals/SyncSetupModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
@@ -43,12 +39,6 @@ import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
-import type { SyncLogEntry } from '../sync/logger';
-import { logSyncEvent } from '../sync/logger';
-import {
-  clearPairingSecret,
-  getPairingSecretPayload,
-} from '../sync/syncManager';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
@@ -66,14 +56,6 @@ export function WorkoutScreen() {
   const systemScheme = useColorScheme();
   const systemLanguage = useSystemLanguage(SUPPORTED_I18N_LANGUAGE_CODES, 'en');
   const { t } = useTranslation();
-
-  const [pairNewDeviceOpen, setPairNewDeviceOpen] = useState(false);
-  const [pairedDevicesOpen, setPairedDevicesOpen] = useState(false);
-  const [syncQuickStatusOpen, setSyncQuickStatusOpen] = useState(false);
-  const [settingsSyncHubOpen, setSettingsSyncHubOpen] = useState(false);
-  const [syncLogs, setSyncLogs] = useState<SyncLogEntry[]>([]);
-  const [peerToastVisible, setPeerToastVisible] = useState(false);
-  const peerToastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const {
     snapshot,
@@ -105,30 +87,6 @@ export function WorkoutScreen() {
     setImportSummary,
     timerExpanded,
     setTimerExpanded,
-    syncStatus,
-    syncPeers,
-    syncConnections,
-    syncPeerKeys,
-    syncLocalWriterKey,
-    syncAutobaseKey,
-    syncTopicHex,
-    syncBootstrapped,
-    syncReconnectAttempts,
-    syncManager,
-    localDeviceId,
-    lastSyncedAt,
-    syncError,
-    startSync,
-    stopSync,
-    pairedDevices,
-    syncSecret,
-    loadPairedDevices,
-    forgetDevice,
-    setSyncSecret,
-    setSyncSetupOpen,
-    syncSetupOpen,
-    newPeerSignal,
-    acknowledgeNewPeerSignal,
   } = useWorkoutStore();
 
   useEffect(() => {
@@ -314,24 +272,7 @@ export function WorkoutScreen() {
                     return;
                   }
                 }
-
-                try {
-                  await stopSync();
-                } catch (error) {
-                  logError('sync/stop before reset failed', error);
-                }
-
-                try {
-                  await clearPairingSecret();
-                } catch (error) {
-                  logError('sync/clear pairing secret failed', error);
-                }
-
-                setSyncSecret(null);
                 await applyMutation({ type: 'resetAllData' });
-                await loadPairedDevices();
-                const nextSecret = await getPairingSecretPayload();
-                setSyncSecret(nextSecret);
               } catch (error) {
                 logError('reset/authentication failed', error);
                 showPrompt(
@@ -547,151 +488,6 @@ export function WorkoutScreen() {
     void applyMutation({ type: 'setExerciseWeight', exerciseId, value });
   };
 
-  useEffect(() => {
-    if (!newPeerSignal) return;
-    setPeerToastVisible(true);
-    if (peerToastTimerRef.current) {
-      clearTimeout(peerToastTimerRef.current);
-    }
-    peerToastTimerRef.current = setTimeout(() => {
-      setPeerToastVisible(false);
-      peerToastTimerRef.current = null;
-    }, 2200);
-    acknowledgeNewPeerSignal();
-  }, [newPeerSignal, acknowledgeNewPeerSignal]);
-
-  useEffect(() => {
-    return () => {
-      if (peerToastTimerRef.current) {
-        clearTimeout(peerToastTimerRef.current);
-      }
-    };
-  }, []);
-
-  const authenticateIfAvailable = async (promptMessage: string) => {
-    const enrolledLevel = await LocalAuthentication.getEnrolledLevelAsync();
-    if (enrolledLevel === LocalAuthentication.SecurityLevel.NONE) {
-      return true;
-    }
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage,
-      cancelLabel: t('common.cancel'),
-      disableDeviceFallback: false,
-    });
-    return result.success;
-  };
-
-  const handleOpenPairNewDevice = () => {
-    showPrompt(
-      t('prompts.pairNewDevice.title'),
-      t('prompts.pairNewDevice.message'),
-      [
-        { label: t('common.cancel'), tone: 'cancel' },
-        {
-          label: t('common.ok'),
-          onPress: () => {
-            void (async () => {
-              try {
-                const ok = await authenticateIfAvailable(
-                  t('prompts.pairNewDevice.authPromptMessage'),
-                );
-                if (!ok) {
-                  showPrompt(
-                    t('prompts.pairNewDevice.canceledTitle'),
-                    t('prompts.pairNewDevice.canceledMessage'),
-                  );
-                  return;
-                }
-                logSyncEvent(
-                  'info',
-                  'ui',
-                  'pair_new_device_requested',
-                  'New pair request opened.',
-                );
-                setPairNewDeviceOpen(true);
-              } catch (error) {
-                logError('sync/pair/authentication failed', error);
-                showPrompt(
-                  t('prompts.pairNewDevice.failedTitle'),
-                  getErrorMessage(error),
-                );
-              }
-            })();
-          },
-        },
-      ],
-    );
-  };
-
-  const handleOpenPairedDevices = () => {
-    setPairedDevicesOpen(true);
-    void loadPairedDevices();
-  };
-
-  const handleForgetDevice = (deviceId: string) => {
-    showPrompt(
-      t('settings.syncBackup.forgetConfirmTitle'),
-      t('settings.syncBackup.forgetConfirmMessage'),
-      [
-        { label: t('common.cancel'), tone: 'cancel' },
-        {
-          label: t('settings.syncBackup.forgetDevice'),
-          tone: 'destructive',
-          onPress: () => {
-            void (async () => {
-              try {
-                const ok = await authenticateIfAvailable(
-                  t('prompts.forgetDevice.authPromptMessage'),
-                );
-                if (!ok) {
-                  showPrompt(
-                    t('prompts.forgetDevice.canceledTitle'),
-                    t('prompts.forgetDevice.canceledMessage'),
-                  );
-                  return;
-                }
-                await forgetDevice(deviceId);
-              } catch (error) {
-                logError('sync/forget/authentication failed', error);
-                showPrompt(
-                  t('prompts.forgetDevice.failedTitle'),
-                  getErrorMessage(error),
-                );
-              }
-            })();
-          },
-        },
-      ],
-    );
-  };
-
-  const handleOpenSyncSetup = () => {
-    setSettingsOpen(false);
-    setSettingsSyncHubOpen(false);
-    setSyncQuickStatusOpen(false);
-    setSyncSetupOpen(true);
-  };
-
-  const refreshSyncLogs = () => {
-    if (!syncManager) return;
-    void syncManager.getAllLogs().then((entries) => setSyncLogs(entries));
-  };
-
-  const openSettingsSyncHub = () => {
-    setSyncQuickStatusOpen(false);
-    setSettingsOpen(true);
-    setSettingsSyncHubOpen(true);
-    refreshSyncLogs();
-  };
-
-  const handleToggleSync = () => {
-    if (syncStatus === 'idle' || syncStatus === 'error') {
-      handleOpenSyncSetup();
-      return;
-    }
-    void stopSync();
-  };
-
   const onboardingBlocking = snapshot?.isSetupDone === false;
 
   if (onboardingBlocking) {
@@ -711,11 +507,6 @@ export function WorkoutScreen() {
           bottomInset={insets.bottom}
           weightUnit={weightUnit}
           onWeightUnitChange={handleWeightUnitChange}
-          syncStatus={syncStatus}
-          lastSyncedAt={lastSyncedAt}
-          syncError={syncError}
-          onStartSync={startSync}
-          onStopSync={stopSync}
           onComplete={finishOnboarding}
         />
       </SafeAreaView>
@@ -764,11 +555,7 @@ export function WorkoutScreen() {
         <Header
           tokens={tokens}
           topInset={insets.top}
-          syncStatus={syncStatus}
-          syncPeers={syncPeers}
-          onOpenSyncQuickStatus={() => setSyncQuickStatusOpen(true)}
           onOpenSettings={() => {
-            setSettingsSyncHubOpen(false);
             setSettingsOpen(true);
           }}
         />
@@ -876,95 +663,13 @@ export function WorkoutScreen() {
           language={currentLanguage}
           onLanguageChange={handleLanguageChange}
           onLanguageListOpen={() => setLanguageListOpen(true)}
-          syncStatus={syncStatus}
-          syncPeers={syncPeers}
-          syncConnections={syncConnections}
-          syncPeerKeys={syncPeerKeys}
-          syncLocalWriterKey={syncLocalWriterKey}
-          syncAutobaseKey={syncAutobaseKey}
-          syncTopicHex={syncTopicHex}
-          syncBootstrapped={syncBootstrapped}
-          syncReconnectAttempts={syncReconnectAttempts}
-          localDeviceId={localDeviceId}
-          syncLogs={syncLogs}
-          onRefreshSyncLogs={refreshSyncLogs}
-          lastSyncedAt={lastSyncedAt}
-          syncError={syncError}
-          pairedDevices={pairedDevices}
-          onToggleSync={handleToggleSync}
-          onOpenSyncQuickStatus={() => {
-            setSettingsOpen(false);
-            setSyncQuickStatusOpen(true);
-          }}
-          onOpenSyncSetup={handleOpenSyncSetup}
-          onOpenPairNewDevice={handleOpenPairNewDevice}
-          onOpenPairedDevices={handleOpenPairedDevices}
-          syncHubOpen={settingsSyncHubOpen}
-          onSyncHubOpenChange={setSettingsSyncHubOpen}
           onExportLocalBackup={handleExportBackup}
           onImportLocalBackup={() => void handleImportBackup()}
           onResetData={handleResetData}
           onClose={() => {
-            setSettingsSyncHubOpen(false);
             setSettingsOpen(false);
           }}
           onOpenGithub={handleOpenGithub}
-        />
-
-        <SyncQuickStatusModal
-          open={syncQuickStatusOpen}
-          tokens={tokens}
-          syncStatus={syncStatus}
-          syncPeers={syncPeers}
-          lastSyncedAt={lastSyncedAt}
-          syncError={syncError}
-          onOpenSyncSetup={handleOpenSyncSetup}
-          onOpenPairNewDevice={handleOpenPairNewDevice}
-          onOpenPairedDevices={handleOpenPairedDevices}
-          onOpenSyncHub={openSettingsSyncHub}
-          onStopSync={() => {
-            void stopSync();
-          }}
-          onClose={() => setSyncQuickStatusOpen(false)}
-        />
-
-        <SyncPairNewDeviceModal
-          open={pairNewDeviceOpen}
-          tokens={tokens}
-          syncPeers={syncPeers}
-          lastSyncedAt={lastSyncedAt}
-          syncSecret={syncSecret}
-          onClose={() => setPairNewDeviceOpen(false)}
-        />
-
-        <PairedDevicesModal
-          open={pairedDevicesOpen}
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
-          pairedDevices={pairedDevices}
-          onForgetDevice={handleForgetDevice}
-          onClose={() => setPairedDevicesOpen(false)}
-        />
-
-        <SyncSetupModal
-          open={syncSetupOpen}
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
-          syncStatus={syncStatus}
-          lastSyncedAt={lastSyncedAt}
-          syncPeers={syncPeers}
-          syncError={syncError}
-          syncBootstrapKey={syncAutobaseKey}
-          onStartSync={startSync}
-          onStopSync={stopSync}
-          onClose={() => setSyncSetupOpen(false)}
-          onDone={() => setSyncSetupOpen(false)}
-          onViewInfo={() => {
-            setSyncSetupOpen(false);
-            openSettingsSyncHub();
-          }}
         />
 
         <LanguageListModal
@@ -978,44 +683,6 @@ export function WorkoutScreen() {
             handleLanguageChange(code);
           }}
         />
-
-        {peerToastVisible ? (
-          <View
-            style={{
-              position: 'absolute',
-              top: insets.top + 12,
-              left: 16,
-              right: 16,
-              borderRadius: tokens.radius.md,
-              borderWidth: 1,
-              borderColor: tokens.colors.outlineVariant,
-              backgroundColor: tokens.colors.surfaceContainer,
-              paddingHorizontal: tokens.spacing.md,
-              paddingVertical: tokens.spacing.sm,
-              zIndex: 20,
-            }}
-            pointerEvents="none"
-          >
-            <Text
-              style={{
-                color: tokens.colors.textPrimary,
-                fontSize: tokens.type.body,
-                fontWeight: '700',
-              }}
-            >
-              {t('sync.toast.newPeerTitle')}
-            </Text>
-            <Text
-              style={{
-                color: tokens.colors.textSecondary,
-                fontSize: tokens.type.label,
-                marginTop: 2,
-              }}
-            >
-              {t('sync.toast.newPeerMessage')}
-            </Text>
-          </View>
-        ) : null}
 
         <AppPromptModal
           open={Boolean(promptConfig)}

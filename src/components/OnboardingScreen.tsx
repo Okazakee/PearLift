@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { Activity, Bell, Monitor, Sliders } from 'lucide-react-native';
+import { Activity, Bell, Sliders } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View } from 'react-native';
@@ -10,8 +10,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MOTION } from '../animation/motion';
 import { AnimatedPressable } from '../animation/primitives';
-import { SyncSetupModal } from '../components/modals/SyncSetupModal';
-import type { SyncStatus } from '../sync/types';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { WeightUnit } from '../types';
@@ -22,15 +20,6 @@ interface OnboardingScreenProps {
   bottomInset: number;
   weightUnit: WeightUnit;
   onWeightUnitChange: (next: WeightUnit) => void;
-  syncStatus: SyncStatus;
-  lastSyncedAt?: string | null;
-  syncError: string | null;
-  onStartSync: (
-    pairingSecretHex?: string,
-    bootstrapKeyHex?: string,
-    opts?: { replaceBeforeJoin?: boolean },
-  ) => Promise<void>;
-  onStopSync: () => Promise<void>;
   onComplete: () => void;
 }
 
@@ -61,17 +50,11 @@ export function OnboardingScreen({
   bottomInset,
   weightUnit,
   onWeightUnitChange,
-  syncStatus,
-  lastSyncedAt = null,
-  syncError,
-  onStartSync,
-  onStopSync,
   onComplete,
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
   const [page, setPage] = useState(0);
   const [requesting, setRequesting] = useState(false);
-  const [syncSetupOpen, setSyncSetupOpen] = useState(false);
 
   const styles = useMemo(
     () => createStyles(tokens, topInset, bottomInset),
@@ -102,14 +85,6 @@ export function OnboardingScreen({
   const handleBack = () => {
     if (isFirstPage) return;
     setPage((p) => p - 1);
-  };
-
-  const handleSkipSync = () => {
-    void handleNext();
-  };
-
-  const handleSetupSync = () => {
-    setSyncSetupOpen(true);
   };
 
   return (
@@ -190,40 +165,6 @@ export function OnboardingScreen({
             </AnimatedPressable>
           </View>
         )}
-
-        {isLastPage ? (
-          <View style={styles.syncPromptCard}>
-            <View style={styles.syncPromptIcon}>
-              <Monitor size={20} color={tokens.colors.primary} />
-            </View>
-            <View style={styles.syncPromptText}>
-              <Text style={styles.syncPromptTitle}>
-                {t('onboarding.syncPrompt.title')}
-              </Text>
-              <Text style={styles.syncPromptDescription}>
-                {t('onboarding.syncPrompt.description')}
-              </Text>
-              <View style={styles.syncPromptActions}>
-                <AnimatedPressable
-                  style={styles.syncPromptPrimary}
-                  onPress={handleSetupSync}
-                >
-                  <Text style={styles.syncPromptPrimaryText}>
-                    {t('onboarding.setupSync')}
-                  </Text>
-                </AnimatedPressable>
-                <AnimatedPressable
-                  style={styles.syncPromptSecondary}
-                  onPress={handleSkipSync}
-                >
-                  <Text style={styles.syncPromptSecondaryText}>
-                    {t('onboarding.skipSync')}
-                  </Text>
-                </AnimatedPressable>
-              </View>
-            </View>
-          </View>
-        ) : null}
       </Animated.View>
 
       <View style={styles.footer}>
@@ -253,27 +194,6 @@ export function OnboardingScreen({
           </Text>
         </AnimatedPressable>
       </View>
-
-      <SyncSetupModal
-        open={syncSetupOpen}
-        tokens={tokens}
-        topInset={topInset}
-        bottomInset={bottomInset}
-        syncStatus={syncStatus}
-        lastSyncedAt={lastSyncedAt}
-        syncError={syncError}
-        onStartSync={onStartSync}
-        onStopSync={onStopSync}
-        onClose={() => setSyncSetupOpen(false)}
-        onDone={() => {
-          setSyncSetupOpen(false);
-          if (isLastPage) {
-            onComplete();
-            return;
-          }
-          void handleNext();
-        }}
-      />
     </View>
   );
 }
@@ -339,74 +259,6 @@ function createStyles(
       fontSize: tokens.type.body,
       lineHeight: 22,
       textAlign: 'center',
-    },
-    syncPromptCard: {
-      width: '100%',
-      maxWidth: 460,
-      marginTop: tokens.spacing.xl,
-      borderRadius: tokens.radius.md,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-      backgroundColor: tokens.colors.surfaceContainer,
-      padding: tokens.spacing.md,
-      flexDirection: 'row',
-      gap: tokens.spacing.md,
-      alignItems: 'flex-start',
-    },
-    syncPromptIcon: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.14),
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    syncPromptText: {
-      flex: 1,
-      gap: tokens.spacing.sm,
-    },
-    syncPromptTitle: {
-      color: tokens.colors.textPrimary,
-      fontSize: tokens.type.body,
-      fontWeight: '800',
-    },
-    syncPromptDescription: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.type.label,
-      lineHeight: 18,
-    },
-    syncPromptActions: {
-      flexDirection: 'row',
-      gap: tokens.spacing.sm,
-      flexWrap: 'wrap',
-    },
-    syncPromptPrimary: {
-      minHeight: 36,
-      borderRadius: tokens.radius.md,
-      backgroundColor: tokens.colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: tokens.spacing.md,
-    },
-    syncPromptPrimaryText: {
-      color: tokens.colors.onPrimary,
-      fontSize: tokens.type.label,
-      fontWeight: '800',
-    },
-    syncPromptSecondary: {
-      minHeight: 36,
-      borderRadius: tokens.radius.md,
-      borderWidth: 1,
-      borderColor: tokens.colors.outlineVariant,
-      backgroundColor: tokens.colors.surfaceContainerHigh,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: tokens.spacing.md,
-    },
-    syncPromptSecondaryText: {
-      color: tokens.colors.textSecondary,
-      fontSize: tokens.type.label,
-      fontWeight: '800',
     },
     unitRow: {
       flexDirection: 'row',

@@ -14,8 +14,7 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "CADisableMinimumFrameDurationOnPhone": true,
-        "NSCameraUsageDescription": "Allow PearLift to use the camera to scan a sync QR code."
+        "CADisableMinimumFrameDurationOnPhone": true
       },
       "bundleIdentifier": "dev.okazakee.pearlift"
     },
@@ -32,7 +31,6 @@
       "predictiveBackGestureEnabled": false
     },
     "plugins": [
-      "./plugins/withSyncBackendBundle",
       "expo-sharing",
       [
         "expo-local-authentication",
@@ -52,7 +50,6 @@
         }
       ],
       "expo-sqlite",
-      "expo-secure-store",
       [
         "expo-notifications",
         {

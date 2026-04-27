@@ -14,7 +14,7 @@
       "!.expo",
       "!dist",
       "!web-build",
-      "!src/sync/sync.bundle.mjs"
+      "!src/sync"
     ]
   },
   "formatter": {
