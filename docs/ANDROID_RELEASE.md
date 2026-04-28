@@ -20,7 +20,7 @@ bun run android:release:aab
 F-Droid builders or environments without Bun can use the npm equivalent:
 
 ```bash
-npm ci
+npm install
 npx --yes expo prebuild --clean --platform android
 ./scripts/build-android-apk.sh
 ```
