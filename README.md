@@ -44,7 +44,7 @@ Release and store documentation:
 
 ## Privacy and support
 
-- Privacy policy source: [site/privacy/index.html](./site/privacy/index.html)
+- Privacy policy source: [docs/privacy/index.html](./docs/privacy/index.html)
 - Support / issue tracker: `https://github.com/Okazakee/PearLift/issues`
 - Source repository: `https://github.com/Okazakee/PearLift`
 
