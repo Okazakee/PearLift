@@ -6,10 +6,8 @@ This file is the source of truth for Play and F-Droid listing content.
 
 - Source repository: `https://github.com/Okazakee/PearLift`
 - Issue tracker / support: `https://github.com/Okazakee/PearLift/issues`
-- Production website placeholder: `https://pearlift.app/`
-- Production privacy policy placeholder: `https://pearlift.app/privacy/`
-
-Replace the placeholder production URLs before store submission if the final domain differs.
+- Production website: `https://pearlift.okazakee.dev/`
+- Production privacy policy: `https://pearlift.okazakee.dev/privacy/`
 
 ## Short summary
 
