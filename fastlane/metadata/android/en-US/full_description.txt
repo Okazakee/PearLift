@@ -1,0 +1,17 @@
+PearLift is a local-first workout tracker built for lifters who want fast logging without accounts or cloud lock-in.
+
+Key points:
+
+- Create and organize multi-day workout programs
+- Track sets, reps, load, and progressive overload
+- Run resilient rest timers that continue working on Android in the background
+- Export or restore your data with local backup files
+- Transfer backups between devices with QR-based sharing
+- Use the app without creating an account
+
+Privacy posture:
+
+- All workout data stays on your device by default
+- No ads
+- No analytics or tracking SDKs
+- No Firebase or Google Play Services dependency

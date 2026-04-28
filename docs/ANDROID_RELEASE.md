@@ -17,6 +17,14 @@ bun run android:release:apk
 bun run android:release:aab
 ```
 
+F-Droid builders or environments without Bun can use the npm equivalent:
+
+```bash
+npm ci
+npx --yes expo prebuild --clean --platform android
+./scripts/build-android-apk.sh
+```
+
 Outputs:
 
 - APK: `android/app/build/outputs/apk/release/app-release.apk`
@@ -61,7 +69,7 @@ Do not replace the keystore after publication unless you intentionally want to b
 ## Store artifacts
 
 - Google Play target artifact: signed `.aab`
-- F-Droid target artifact: source-buildable release `.apk`
+- F-Droid target artifact: source-built APK (built via `assembleFdroid`, then signed by F-Droid)
 
 ## Permission summary
 

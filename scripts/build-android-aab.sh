@@ -17,7 +17,11 @@ fi
 
 if [[ ! -f "${GRADLE_FILE}" ]]; then
   echo "Android project missing. Running Expo prebuild for Android..."
-  bunx expo prebuild --platform android
+  if command -v bunx >/dev/null 2>&1; then
+    bunx expo prebuild --platform android
+  else
+    npx --yes expo prebuild --platform android
+  fi
 fi
 
 if [[ ! -f "${KEYSTORE_PROPS_FILE}" ]]; then
