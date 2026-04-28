@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PearLift</title>
+    <meta
+      name="description"
+      content="PearLift is a local-first workout tracker with resilient rest timers, progressive overload, and privacy-first backups."
+    />
+    <link rel="icon" href="./assets/pearlift_icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="site-shell header-row">
+        <a class="brand" href="./">
+          <img src="./assets/pearlift_icon.png" alt="PearLift icon" />
+          <span class="brand-mark">
+            <strong>PearLift</strong>
+            <span>Local-first lifting log</span>
+          </span>
+        </a>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="#features">Features</a>
+          <a href="#privacy">Privacy</a>
+          <a href="#backups">Backups</a>
+          <a href="./privacy/">Privacy Policy</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="site-shell hero-panel">
+          <div class="hero-copy">
+            <span class="eyebrow">No account. No tracking. No cloud lock-in.</span>
+            <h1>Train hard. Keep your data on your device.</h1>
+            <p class="lead">
+              PearLift is a privacy-focused workout tracker built for fast lifting
+              sessions, resilient Android rest timers, and user-controlled local
+              backups. It stays out of your way and keeps your workout history under
+              your control.
+            </p>
+            <div class="cta-row">
+              <a class="button button-primary" href="./privacy/">Read Privacy Policy</a>
+              <a class="button button-secondary" href="https://github.com/Okazakee/PearLift">View Source</a>
+            </div>
+            <div class="hero-notes">
+              <div class="note-chip">
+                <strong>Local-first</strong>
+                <span>Workout data stays on your device instead of behind an account.</span>
+              </div>
+              <div class="note-chip">
+                <strong>Rest timer</strong>
+                <span>Android background timing continues with a local foreground service.</span>
+              </div>
+              <div class="note-chip">
+                <strong>Backups</strong>
+                <span>Export JSON backups or transfer between devices with QR sharing.</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="hero-card" aria-label="PearLift highlights">
+            <div class="device-shell">
+              <figure class="hero-shot">
+                <img
+                  src="./assets/1.png"
+                  alt="PearLift workout screen showing current exercises and rest timer controls"
+                />
+              </figure>
+              <div class="hero-caption">
+                <strong>Fast logging, clear structure</strong>
+                <span>
+                  PearLift keeps the current session, progression, and timer flow
+                  visible without burying them behind extra navigation.
+                </span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section section-screens" aria-labelledby="screens-title">
+        <div class="site-shell">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">App preview</span>
+              <h2 id="screens-title">A closer look at the flow</h2>
+            </div>
+            <p>
+              The app is built to keep planning, training, and backup actions close
+              together without turning the interface into a settings maze.
+            </p>
+          </div>
+          <div class="screens-grid">
+            <figure class="screen-card screen-card-tilt-left">
+              <img
+                src="./assets/2.png"
+                alt="PearLift program screen with workout structure and session organization"
+              />
+            </figure>
+            <figure class="screen-card screen-card-center">
+              <img
+                src="./assets/1.png"
+                alt="PearLift workout session screen with exercise tracking"
+              />
+            </figure>
+            <figure class="screen-card screen-card-tilt-right">
+              <img
+                src="./assets/3.png"
+                alt="PearLift settings and backup area showing privacy-focused controls"
+              />
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="site-shell">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Core workflow</span>
+              <h2>Built for lifting, not account funnels</h2>
+            </div>
+            <p>
+              PearLift focuses on the actual training loop: set logging,
+              progressive overload, rest timing, and backups you can export.
+            </p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card">
+              <h3>Program-driven sessions</h3>
+              <p>
+                Organize multi-day plans, reorder exercises, and keep the next
+                training block close to the workout itself.
+              </p>
+            </article>
+            <article class="feature-card">
+              <h3>Progressive overload tracking</h3>
+              <p>
+                Track weights, reps, and unit preferences while keeping adjustment
+                logic inside the app instead of in a spreadsheet.
+              </p>
+            </article>
+            <article class="feature-card">
+              <h3>Resilient rest timers</h3>
+              <p>
+                On Android, PearLift uses a local foreground service so your rest
+                timer survives backgrounding and still completes on time.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="privacy">
+        <div class="site-shell">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Privacy stance</span>
+              <h2>What PearLift does not do matters</h2>
+            </div>
+            <p>
+              PearLift is designed around local storage and explicit user actions.
+              It avoids the usual mobile app surveillance stack.
+            </p>
+          </div>
+          <div class="info-grid">
+            <article class="info-card">
+              <h3>Data stays local by default</h3>
+              <p>
+                Workout programs, settings, and history are stored locally on your
+                device. PearLift does not require you to create an account.
+              </p>
+              <ul class="list">
+                <li>No cloud account is required to use the app.</li>
+                <li>No ad SDK is bundled.</li>
+                <li>No analytics or tracking SDK is bundled.</li>
+              </ul>
+            </article>
+            <article class="info-card">
+              <h3>Permissions stay tied to app behavior</h3>
+              <p>
+                The app only asks for permissions that support visible features such
+                as QR scanning, notifications, and Android background timers.
+              </p>
+              <ul class="list">
+                <li>Camera for backup QR scanning</li>
+                <li>Notifications for timer completion and foreground timer status</li>
+                <li>Foreground service and wake lock for Android timer reliability</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="backups">
+        <div class="site-shell">
+          <div class="section-head">
+            <div>
+              <span class="eyebrow">Backup flow</span>
+              <h2>Your export path stays in your hands</h2>
+            </div>
+            <p>
+              PearLift treats backups as an explicit user-controlled action instead
+              of an always-on sync pipeline.
+            </p>
+          </div>
+          <div class="info-grid">
+            <article class="info-card">
+              <h3>Local backup export and restore</h3>
+              <p>
+                Export your workout data to a JSON backup file or restore from an
+                existing backup when you choose to.
+              </p>
+            </article>
+            <article class="info-card">
+              <h3>Device-to-device QR transfer</h3>
+              <p>
+                Share backups between devices with QR transfer. The flow is initiated
+                by the user on both ends and is meant for explicit transfer, not
+                hidden background syncing.
+              </p>
+            </article>
+          </div>
+          <div class="link-row">
+            <a class="pill-link" href="https://github.com/Okazakee/PearLift">Source code</a>
+            <a class="pill-link" href="https://github.com/Okazakee/PearLift/issues">Support</a>
+            <a class="pill-link" href="./privacy/">Privacy Policy</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-shell footer-card">
+        <p>PearLift is a privacy-focused workout tracker built around local control.</p>
+        <nav aria-label="Footer">
+          <a href="./privacy/">Privacy Policy</a>
+          <a href="https://github.com/Okazakee/PearLift">Source</a>
+          <a href="https://github.com/Okazakee/PearLift/issues">Support</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+  </html>
