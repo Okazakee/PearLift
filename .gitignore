@@ -35,6 +35,7 @@ yarn-error.*
 .local/
 .codex/
 .codex
+.fdroiddata/
 
 # typescript
 *.tsbuildinfo
