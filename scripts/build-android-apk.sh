@@ -7,6 +7,7 @@ ANDROID_DIR="${ROOT_DIR}/android"
 GRADLE_FILE="${ANDROID_DIR}/app/build.gradle"
 DEFAULT_ABIS="armeabi-v7a,arm64-v8a"
 RELEASE_ABIS="${PEARLIFT_RELEASE_ABIS:-${DEFAULT_ABIS}}"
+PREBUILD_CLEAN="${PEARLIFT_PREBUILD_CLEAN:-1}"
 ENV_FILE="${ROOT_DIR}/.env.local"
 KEYSTORE_PROPS_FILE="${ANDROID_DIR}/keystore.properties"
 
@@ -21,6 +22,15 @@ if [[ ! -f "${GRADLE_FILE}" ]]; then
     bunx expo prebuild --platform android
   else
     npx --yes expo prebuild --platform android
+  fi
+fi
+
+if [[ "${PREBUILD_CLEAN}" != "0" ]]; then
+  echo "Running Expo prebuild --clean for a reproducible release build..."
+  if command -v bunx >/dev/null 2>&1; then
+    bunx expo prebuild --clean --platform android
+  else
+    npx --yes expo prebuild --clean --platform android
   fi
 fi
 

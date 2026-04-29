@@ -2,7 +2,7 @@
   "expo": {
     "name": "PearLift",
     "slug": "PearLift",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/pearlift_icon.png",
     "userInterfaceStyle": "automatic",
