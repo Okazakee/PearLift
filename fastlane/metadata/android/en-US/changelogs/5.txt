@@ -1,0 +1,1 @@
+Fix: pin react-native-worklets to 0.8.1 and remove packageManager metadata for Yarn 1 compatibility.
