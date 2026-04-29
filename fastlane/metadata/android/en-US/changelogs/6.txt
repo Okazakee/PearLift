@@ -1,0 +1,1 @@
+Fix: align Expo SDK 55 packages and keep react-native-worklets/Reanimated compatible for F-Droid builds.
