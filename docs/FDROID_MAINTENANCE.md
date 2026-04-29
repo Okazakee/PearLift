@@ -6,6 +6,9 @@ This doc is the checklist to ship updates without breaking the F-Droid build or 
 
 - Keep releases **tagged** (`vX.Y.Z`). F-Droid update checks rely on tags.
 - Keep `fdroid-version.txt` updated for every release.
+- Keep dependency installs **deterministic** for CI/buildservers:
+  - Commit `yarn.lock` (F-Droid uses it via `yarn install --frozen-lockfile`).
+  - Keep Bun configured to print `yarn.lock` by default (`bunfig.toml`).
 - Keep store text and screenshots in the upstream **Fastlane** structure:
   - `fastlane/metadata/android/en-US/short_description.txt`
   - `fastlane/metadata/android/en-US/full_description.txt`
@@ -54,6 +57,7 @@ When you update:
 2. Keep Hermes working
    - If the app uses Hermes (recommended), do **not** delete Linux `hermesc` from `node_modules`.
    - In fdroiddata metadata, `scanignore` should include the Linux `hermesc` binary path so scanners don’t fail on it.
+   - Truth source: F-Droid CI will fail at `:app:createBundleReleaseJsAndAssets` if `hermesc` is missing.
 
 3. Avoid “variant not found”
    - If you do not define an `fdroid` flavor/variant, do not build `:app:assembleFdroid`.
@@ -64,11 +68,23 @@ When you update:
    - If Gradle/RN requires Java 17 toolchains, the fdroiddata build recipe may need to provide a JDK17 and point Gradle at it via:
      - `org.gradle.java.installations.paths=...`
    - Do not rely on Debian packages for Java 17 in the buildserver image.
+   - Truth source: F-Droid CI uses `registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie` and installs `openjdk-21-jdk-headless`.
 
-5. Scanner hygiene
+5. Node/Yarn in fdroiddata
+   - Do not rely on distro Node. Pin a Node tarball + SHA256 (pattern used by other Expo apps, e.g. `metadata/jp.nonbili.noutube.yml`).
+   - Install Yarn globally and build using `yarn install --frozen-lockfile`.
+
+6. ABI handling (important!)
+   - F-Droid build entries are effectively “one build -> one APK”. If a single build produces multiple APKs (ABI splits), `fdroid build` typically fails.
+   - Supported way to publish per-ABI APKs on F-Droid:
+     - Create one build entry per ABI (same `versionName`, different `versionCode`), OR ship a single universal APK.
+   - If/when you implement split APKs, each ABI APK must have a distinct versionCode.
+
+7. Scanner hygiene
    - Prefer `scanignore` for specific build scripts known to cause false positives.
    - Use `scandelete` only when necessary, and avoid deleting files that your build actually needs.
    - If you change dependencies and CI fails on scanning, update `scanignore/scandelete` minimally and document the reason in the MR.
+   - Truth source: `scandelete` runs before `build`, so deleting required binaries breaks the build.
 
 ## “Do Not Do This” (Common Breakages)
 
@@ -76,6 +92,13 @@ When you update:
 - Don’t put multiline shell scripts in fdroiddata `build:` using YAML blocks that `rewritemeta` can rewrite in surprising ways. Prefer single-line steps.
 - Don’t delete the Linux Hermes compiler binary if Hermes is enabled.
 - Don’t assume `android/gradlew` exists in F-Droid CI. Build recipes should use the buildserver’s Gradle wrapper helper (`gradlew-fdroid`) if required.
+- Don’t run `npm install` in fdroiddata without a lockfile. That causes Expo module drift and Kotlin compile failures (e.g. `expo-av` API mismatch).
+
+## Truth Sources (When In Doubt, Check These)
+
+- F-Droid “Build Metadata Reference” (what fields do, order, pitfalls): citeturn0search0
+- F-Droid “Adding React Native Apps to F-Droid” (common RN/Node/scanning issues): citeturn0search3
+- fdroiddata example for Expo + pinned Node + Yarn: `metadata/jp.nonbili.noutube.yml` (in fdroiddata repo).
 
 ## Troubleshooting (Fast Pattern)
 
@@ -83,6 +106,8 @@ When an fdroiddata pipeline fails, always focus on the *first* real error:
 
 - `fdroid rewritemeta`:
   - It’s a formatting failure. Make your metadata match the diff output exactly.
+- `check-fastlane`:
+  - Upstream `fastlane/metadata/android/...` is missing or incomplete (especially `changelogs/<versionCode>.txt`).
 - `fdroid build`:
   - Look for the first `FAILURE:` block and the exact command it ran.
   - Fix one root cause per commit/MR update, then re-run CI.
@@ -92,4 +117,3 @@ When an fdroiddata pipeline fails, always focus on the *first* real error:
 - If you say “no analytics / no tracking / no ads”, verify dependencies remain consistent with that claim.
 - If you request permissions (camera, notifications, etc.), keep the privacy policy and store listing consistent with actual behavior.
 - Avoid bundling proprietary services that would violate F-Droid inclusion criteria.
-
