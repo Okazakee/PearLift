@@ -1,17 +1,41 @@
-# PearLift
+# <img src="assets/pearlift_icon.png" alt="PearLift Icon" width="40" height="40" /> PearLift
 
-PearLift is a local-first, privacy-focused workout tracker built with Expo and React Native. It focuses on fast workout logging, progressive overload, resilient rest timers, and user-controlled local backups.
+*Local-first, privacy-focused workout tracker built with Expo & React Native*
 
-## Highlights
+<div align="center">
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" />
+  </a>
+  <a href="https://expo.dev/">
+    <img src="https://img.shields.io/badge/Expo-000020?logo=expo&logoColor=white" alt="Expo" />
+  </a>
+  <a href="https://reactnative.dev/">
+    <img src="https://img.shields.io/badge/React_Native-61DAFB?logo=react&logoColor=black" alt="React Native" />
+  </a>
+</div>
 
-- Multi-day workout programs with reordering and structured progression
-- Weight tracking with kg/lb support and automatic overload adjustments
-- Android background rest timer support through a local foreground-service module
-- Local backup export/import and QR-based device transfer
-- No account required
-- No proprietary analytics, ads, or tracking SDKs
+---
 
-## Development
+## Features
+
+- **Multi-day workout programs** with reordering and structured progression
+- **Weight tracking** with kg/lb support and automatic overload adjustments
+- **Android background rest timer** support through a local foreground-service module
+- **Local backups** with export/import and QR-based device transfer
+- **No account required** — your data stays with you
+- **Privacy-first** — no proprietary analytics, ads, or tracking SDKs
+
+## Screenshots
+
+<div align="center">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="200" alt="Screenshot 1" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="200" alt="Screenshot 2" />
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="200" alt="Screenshot 3" />
+</div>
+
+## Quick Start
+
+Clone the repo and install dependencies:
 
 ```bash
 git clone https://github.com/Okazakee/PearLift.git
@@ -21,14 +45,13 @@ bun run start
 ```
 
 Useful commands:
+- `bun run android` — run on Android device/emulator
+- `bun run ios` — run on iOS device/emulator
+- `bun run lint` — lint the codebase
+- `bun run typecheck` — run TypeScript checks
+- `bun run site:preview` — preview the website
 
-- `bun run android`
-- `bun run ios`
-- `bun run lint`
-- `bun run typecheck`
-- `bun run site:preview`
-
-## Android release flow
+## Android Releases
 
 ```bash
 bun run prebuild -- --clean --platform android
@@ -37,17 +60,16 @@ bun run android:release:aab
 ```
 
 Release and store documentation:
-
 - [Android release guide](./docs/ANDROID_RELEASE.md)
 - [Store metadata](./docs/STORE_METADATA.md)
 - [Asset provenance](./docs/ASSET_PROVENANCE.md)
 
-## Privacy and support
+## Privacy & Support
 
-- Website: `https://pearlift.okazakee.dev/`
-- Privacy policy: `https://pearlift.okazakee.dev/privacy/` (source: [docs/privacy/index.html](./docs/privacy/index.html))
-- Support / issue tracker: `https://github.com/Okazakee/PearLift/issues`
-- Source repository: `https://github.com/Okazakee/PearLift`
+- **Website**: [pearlift.okazakee.dev](https://pearlift.okazakee.dev/)
+- **Privacy Policy**: [pearlift.okazakee.dev/privacy/](https://pearlift.okazakee.dev/privacy/) (source: [docs/privacy/index.html](./docs/privacy/index.html))
+- **Issue Tracker**: [GitHub Issues](https://github.com/Okazakee/PearLift/issues)
+- **Source Repository**: [github.com/Okazakee/PearLift](https://github.com/Okazakee/PearLift)
 
 ## License
 
