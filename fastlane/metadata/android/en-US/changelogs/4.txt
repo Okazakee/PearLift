@@ -1,0 +1,1 @@
+Fix: align react-native-worklets version with Reanimated requirements (use 0.8.x).
