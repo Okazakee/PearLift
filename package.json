@@ -1,6 +1,6 @@
 {
   "name": "pearlift",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.ts",
   "packageManager": "bun@1.3.12",
   "scripts": {

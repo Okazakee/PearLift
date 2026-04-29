@@ -2,7 +2,7 @@
   "expo": {
     "name": "PearLift",
     "slug": "PearLift",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/pearlift_icon.png",
     "userInterfaceStyle": "automatic",
@@ -63,7 +63,8 @@
           "sounds": []
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "./plugins/with-pearlift-abi-splits"
     ]
   }
 }
