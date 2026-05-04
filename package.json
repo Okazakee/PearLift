@@ -10,6 +10,8 @@
     "android:keygen": "./scripts/create-android-keystore.sh",
     "android:release:aab": "./scripts/build-android-aab.sh",
     "android:release:apk": "./scripts/build-android-apk.sh",
+    "fdroid:prepare": "node ./scripts/fdroid-prepare.mjs",
+    "version:bump": "node ./scripts/bump-version.mjs",
     "ios": "expo run:ios",
     "site:preview": "python3 -m http.server 4321 --directory docs",
     "web": "expo start --web",

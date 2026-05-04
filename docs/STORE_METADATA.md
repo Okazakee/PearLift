@@ -1,6 +1,10 @@
 # PearLift Store Metadata
 
-This file is the source of truth for Play and F-Droid listing content.
+This file is the copy reference for store listings and MR text.
+
+Canonical store assets still live in:
+
+- `fastlane/metadata/android/...`
 
 ## Canonical URLs
 
@@ -50,7 +54,7 @@ PearLift X.Y.Z
 
 Current repo posture:
 
-- buildable from source with documented release steps
+- buildable from source with the release flow in `docs/RELEASING.md`
 - fully FLOSS dependency posture for the current app stack
 - no anti-feature declaration expected from current dependency set
 

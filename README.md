@@ -60,7 +60,7 @@ bun run android:release:aab
 ```
 
 Release and store documentation:
-- [Android release guide](./docs/ANDROID_RELEASE.md)
+- [Release guide](./docs/RELEASING.md)
 - [Store metadata](./docs/STORE_METADATA.md)
 - [Asset provenance](./docs/ASSET_PROVENANCE.md)
 
