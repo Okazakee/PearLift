@@ -34,6 +34,7 @@
     },
     "plugins": [
       "expo-sharing",
+      "expo-secure-store",
       [
         "expo-local-authentication",
         {
@@ -53,6 +54,7 @@
       ],
       "expo-sqlite",
       "expo-localization",
+      "./plugins/withSyncBackendBundle",
       "./plugins/with-pearlift-abi-splits"
     ]
   }

@@ -8,6 +8,7 @@ import {
   RefreshCw,
   ScanLine,
   Share2,
+  Shield,
   Sun,
   Upload,
 } from 'lucide-react-native';
@@ -42,6 +43,10 @@ interface SettingsModalProps {
   language: string;
   onLanguageChange: (next: string) => void;
   onLanguageListOpen: () => void;
+  syncEnabled: boolean;
+  syncPeers: number;
+  syncLastSyncedAt: string | null;
+  onOpenSync: () => void;
   onShareToDevice: () => void;
   onScanFromDevice: () => void;
   onExportLocalBackup: () => void;
@@ -67,6 +72,10 @@ export function SettingsModal({
   language,
   onLanguageChange,
   onLanguageListOpen,
+  syncEnabled,
+  syncPeers,
+  syncLastSyncedAt,
+  onOpenSync,
   onShareToDevice,
   onScanFromDevice,
   onExportLocalBackup,
@@ -236,6 +245,47 @@ export function SettingsModal({
                 </AnimatedPressable>
               </View>
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Shield size={16} color={tokens.colors.primary} />
+              <Text style={styles.sectionTitle}>
+                {t('settings.syncBackup.title')}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={styles.rowTitle}>
+                  {syncEnabled
+                    ? t('settings.syncStatus.enabled')
+                    : t('settings.syncStatus.disabled')}
+                </Text>
+                <Text style={styles.rowSubtitle}>
+                  {syncEnabled
+                    ? t('settings.syncStatus.syncingWith', {
+                        count: Math.max(syncPeers, 0),
+                      })
+                    : t('settings.syncStatus.off')}
+                </Text>
+                <Text style={styles.rowSubtitle}>
+                  {syncLastSyncedAt
+                    ? t('settings.syncStatus.lastSuccessfulSync', {
+                        at: new Date(syncLastSyncedAt).toLocaleString(),
+                      })
+                    : t('sync.quick.lastSyncNever')}
+                </Text>
+              </View>
+            </View>
+            <AnimatedPressable
+              style={styles.outlineButton}
+              onPress={onOpenSync}
+            >
+              <Shield size={15} color={tokens.colors.textSecondary} />
+              <Text style={styles.outlineButtonText}>
+                {t('settings.syncBackup.openSyncSetup')}
+              </Text>
+            </AnimatedPressable>
           </View>
 
           <View style={styles.section}>

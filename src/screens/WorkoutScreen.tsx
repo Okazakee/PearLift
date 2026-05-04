@@ -1,3 +1,4 @@
+import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
 import {
   EncodingType,
@@ -36,6 +37,8 @@ import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal'
 import { ScanFromDeviceModal } from '../components/modals/ScanFromDeviceModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
 import { ShareToDeviceModal } from '../components/modals/ShareToDeviceModal';
+import { SyncDebugInfoModal } from '../components/modals/SyncDebugInfoModal';
+import { SyncManagementModal } from '../components/modals/SyncManagementModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
@@ -45,6 +48,10 @@ import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
+import {
+  getPairingSecretPayload,
+  setPairingSecretPayload,
+} from '../sync/syncManager';
 import type { ThemeMode, ThemePreference } from '../theme/tokens';
 import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
 import type { Exercise, WeightUnit, WorkoutDay } from '../types';
@@ -65,14 +72,24 @@ export function WorkoutScreen() {
 
   const [shareToDeviceOpen, setShareToDeviceOpen] = useState(false);
   const [scanFromDeviceOpen, setScanFromDeviceOpen] = useState(false);
+  const [syncMasterKey, setSyncMasterKey] = useState<string | null>(null);
 
   const {
     snapshot,
     isReady,
     repository,
+    syncState,
+    syncHealth,
+    pairedDevices,
+    syncLogs,
     applyMutation,
     reload,
     initialize,
+    refreshSyncState,
+    refreshSyncLogs,
+    startSync,
+    stopSync,
+    forgetPairedDevice,
     promptConfig,
     closePrompt,
     showPrompt,
@@ -86,6 +103,10 @@ export function WorkoutScreen() {
     setProgramSettingsOpen,
     settingsOpen,
     setSettingsOpen,
+    syncManagementOpen,
+    setSyncManagementOpen,
+    syncDebugOpen,
+    setSyncDebugOpen,
     languageListOpen,
     setLanguageListOpen,
     importPreviewOpen,
@@ -101,6 +122,23 @@ export function WorkoutScreen() {
   useEffect(() => {
     initialize();
   }, [initialize]);
+
+  useEffect(() => {
+    if (!syncManagementOpen) return;
+    void (async () => {
+      try {
+        const key = await getPairingSecretPayload();
+        setSyncMasterKey(key);
+      } catch {
+        setSyncMasterKey(null);
+      }
+    })();
+  }, [syncManagementOpen]);
+
+  useEffect(() => {
+    if (!syncDebugOpen) return;
+    void refreshSyncLogs();
+  }, [refreshSyncLogs, syncDebugOpen]);
 
   useEffect(() => {
     const preferred = snapshot?.language ?? 'system';
@@ -547,6 +585,73 @@ export function WorkoutScreen() {
     void applyMutation({ type: 'setExerciseWeight', exerciseId, value });
   };
 
+  const handleOpenSyncManagement = async () => {
+    setSettingsOpen(false);
+    setSyncManagementOpen(true);
+    await refreshSyncState();
+  };
+
+  const handleToggleSync = async (nextEnabled: boolean) => {
+    if (nextEnabled) {
+      await startSync(syncMasterKey ?? undefined);
+      return;
+    }
+    await stopSync();
+  };
+
+  const handleApplyMasterKey = async (nextKey: string) => {
+    const normalized = nextKey.trim().toLowerCase();
+    if (!repository) {
+      throw new Error('Sync storage is not ready yet.');
+    }
+
+    const wasActive = syncState?.syncEnabled ?? false;
+    if (wasActive) {
+      await stopSync();
+    }
+    await repository.clearSyncPeerHistory();
+    await setPairingSecretPayload(normalized);
+    setSyncMasterKey(normalized);
+    await refreshSyncState();
+    if (wasActive) {
+      await startSync(normalized);
+    }
+  };
+
+  const handleCopyMasterKey = async () => {
+    const key = syncMasterKey ?? (await getPairingSecretPayload());
+    setSyncMasterKey(key);
+    await Clipboard.setStringAsync(key);
+  };
+
+  const handleRefreshSync = async () => {
+    await refreshSyncState();
+    await refreshSyncLogs();
+    try {
+      const key = await getPairingSecretPayload();
+      setSyncMasterKey(key);
+    } catch {
+      setSyncMasterKey(null);
+    }
+  };
+
+  const handleForgetPairedDevice = async (deviceId: string) => {
+    showPrompt(
+      t('settings.syncBackup.forgetConfirmTitle'),
+      t('settings.syncBackup.forgetConfirmMessage'),
+      [
+        { label: t('common.cancel'), tone: 'cancel' },
+        {
+          label: t('settings.syncBackup.forgetDevice'),
+          tone: 'destructive',
+          onPress: () => {
+            void forgetPairedDevice(deviceId);
+          },
+        },
+      ],
+    );
+  };
+
   const onboardingBlocking = snapshot?.isSetupDone === false;
 
   if (onboardingBlocking) {
@@ -722,6 +827,10 @@ export function WorkoutScreen() {
           language={currentLanguage}
           onLanguageChange={handleLanguageChange}
           onLanguageListOpen={() => setLanguageListOpen(true)}
+          syncEnabled={syncState?.syncEnabled ?? false}
+          syncPeers={pairedDevices.length}
+          syncLastSyncedAt={syncState?.lastSyncedAt ?? null}
+          onOpenSync={() => void handleOpenSyncManagement()}
           onShareToDevice={() => setShareToDeviceOpen(true)}
           onScanFromDevice={() => setScanFromDeviceOpen(true)}
           onExportLocalBackup={handleExportBackup}
@@ -731,6 +840,41 @@ export function WorkoutScreen() {
             setSettingsOpen(false);
           }}
           onOpenGithub={handleOpenGithub}
+        />
+
+        <SyncManagementModal
+          open={syncManagementOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          syncState={syncState}
+          syncHealth={syncHealth}
+          pairedDevices={pairedDevices}
+          masterKey={syncMasterKey}
+          onToggleSync={handleToggleSync}
+          onApplyMasterKey={handleApplyMasterKey}
+          onCopyMasterKey={handleCopyMasterKey}
+          onForgetDevice={handleForgetPairedDevice}
+          onOpenDebug={() => {
+            setSyncDebugOpen(true);
+          }}
+          onRefresh={handleRefreshSync}
+          onClose={() => {
+            setSyncManagementOpen(false);
+          }}
+        />
+
+        <SyncDebugInfoModal
+          open={syncDebugOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          syncHealth={syncHealth}
+          logEntries={syncLogs}
+          onRefresh={handleRefreshSync}
+          onClose={() => {
+            setSyncDebugOpen(false);
+          }}
         />
 
         <ShareToDeviceModal

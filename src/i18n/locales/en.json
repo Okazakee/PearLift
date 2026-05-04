@@ -74,6 +74,10 @@
       "status": {
         "idle": "Idle",
         "connecting": "Searching",
+        "dht_ready": "DHT ready",
+        "peer_connected": "Peer connected",
+        "handshake_ok": "Handshake OK",
+        "replicating": "Replicating",
         "synced": "Connected",
         "error": "Error"
       },
@@ -144,6 +148,35 @@
         "troubleshoot": "Troubleshoot",
         "stop": "Stop sync"
       }
+    },
+    "manage": {
+      "title": "Device sync",
+      "subtitle": "Keep sync maintenance in one place: toggle it, manage your key, and check paired devices.",
+      "status": "Sync status",
+      "turnOn": "Turn on",
+      "turnOff": "Turn off",
+      "refresh": "Refresh",
+      "masterKey": "Master key",
+      "masterKeyHint": "Use the same 64-character key on every device that should share data.",
+      "masterKeyPlaceholder": "Paste or edit the 64-character key",
+      "copyKey": "Copy key",
+      "applyKey": "Apply key",
+      "syncedDevices": "{{count}} paired devices",
+      "syncedDevicesTitle": "Paired devices",
+      "noDevices": "No devices have synced yet.",
+      "lastSeen": "Last seen {{at}}",
+      "lastSyncAt": "Last sync {{at}}",
+      "debug": "Debug info",
+      "never": "Never"
+    },
+    "debug": {
+      "title": "Sync debug info",
+      "subtitle": "Runtime status, connection details, and recent sync logs.",
+      "snapshot": "Runtime snapshot",
+      "connections": "Connections",
+      "lastError": "Last error",
+      "logs": "Recent logs",
+      "logCount": "Showing {{shown}} of {{total}} log entries"
     }
   },
   "workout": {
@@ -253,6 +286,8 @@
     "syncStatus": {
       "title": "Sync Status",
       "status": "Status",
+      "enabled": "Sync is on",
+      "disabled": "Sync is off",
       "syncingWith_one": "Syncing with {{count}} device",
       "syncingWith_other": "Syncing with {{count}} devices",
       "off": "Sync is off",

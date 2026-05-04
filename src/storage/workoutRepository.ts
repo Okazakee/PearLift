@@ -726,6 +726,21 @@ export class WorkoutRepository {
     });
   }
 
+  async clearSyncPeerHistory(): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.withTransactionAsync(async () => {
+        await db.runAsync('DELETE FROM sync_applied_ops');
+        await this.writeSyncStatePatch(db, {
+          autobaseBootstrapKey: null,
+          lastError: null,
+          lastSyncedAt: null,
+        });
+      });
+    });
+  }
+
   async getOrCreateDeviceId(): Promise<string> {
     await this.initialize();
     return this.enqueueWrite(async () => {
