@@ -86,6 +86,29 @@ async function configureDatabase(db: SQLite.SQLiteDatabase) {
     ON sync_applied_ops(device_id, lamport);
 
   `);
+
+  await ensureSyncStateColumns(db);
+}
+
+async function ensureSyncStateColumns(db: SQLite.SQLiteDatabase) {
+  const columns = [
+    ['sync_role', 'TEXT'],
+    ['room_binding_state', "TEXT NOT NULL DEFAULT 'unconfigured'"],
+    ['first_sync_resolution', "TEXT NOT NULL DEFAULT 'unknown'"],
+    ['pending_local_summary', 'TEXT'],
+    ['pending_remote_summary', 'TEXT'],
+    ['pending_conflict_summary', 'TEXT'],
+  ] as const;
+
+  for (const [name, definition] of columns) {
+    try {
+      await db.runAsync(
+        `ALTER TABLE sync_state ADD COLUMN ${name} ${definition}`,
+      );
+    } catch {
+      // Existing installs already have the column.
+    }
+  }
 }
 
 export async function getDatabase() {

@@ -25,6 +25,11 @@ import { getDatabase } from './database';
 import type {
   MutationContext,
   PairedDevice,
+  SyncConflictSummary,
+  SyncDataSummary,
+  SyncFirstSyncResolution,
+  SyncRole,
+  SyncRoomBindingState,
   SyncStateRow,
   WorkoutMutation,
   WorkoutStoreSnapshot,
@@ -256,10 +261,25 @@ type SyncStateDbRow = {
   pairing_secret_tag: string | null;
   autobase_bootstrap_key: string | null;
   lamport_counter: number;
+  sync_role: SyncRole | null;
+  room_binding_state: SyncRoomBindingState | null;
+  first_sync_resolution: SyncFirstSyncResolution | null;
+  pending_local_summary: string | null;
+  pending_remote_summary: string | null;
+  pending_conflict_summary: string | null;
   last_error: string | null;
   last_synced_at: string | null;
   updated_at: string;
 };
+
+function parseJsonColumn<T>(value: string | null): T | null {
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
 
 export class WorkoutRepository {
   private initialized = false;
@@ -734,6 +754,12 @@ export class WorkoutRepository {
         await db.runAsync('DELETE FROM sync_applied_ops');
         await this.writeSyncStatePatch(db, {
           autobaseBootstrapKey: null,
+          syncRole: null,
+          roomBindingState: 'unconfigured',
+          firstSyncResolution: 'unknown',
+          pendingLocalSummary: null,
+          pendingRemoteSummary: null,
+          pendingConflictSummary: null,
           lastError: null,
           lastSyncedAt: null,
         });
@@ -766,6 +792,12 @@ export class WorkoutRepository {
       pairingSecretTag: null,
       autobaseBootstrapKey: null,
       lamportCounter: 0,
+      syncRole: null,
+      roomBindingState: 'unconfigured',
+      firstSyncResolution: 'unknown',
+      pendingLocalSummary: null,
+      pendingRemoteSummary: null,
+      pendingConflictSummary: null,
       lastError: null,
       lastSyncedAt: null,
     });
@@ -1017,10 +1049,16 @@ export class WorkoutRepository {
         pairing_secret_tag,
         autobase_bootstrap_key,
         lamport_counter,
+        sync_role,
+        room_binding_state,
+        first_sync_resolution,
+        pending_local_summary,
+        pending_remote_summary,
+        pending_conflict_summary,
         last_error,
         last_synced_at,
         updated_at
-      ) VALUES (1, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, NULL, ?)`,
+      ) VALUES (1, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 'unconfigured', 'unknown', NULL, NULL, NULL, NULL, NULL, ?)`,
       nowIso(),
     );
   }
@@ -1036,6 +1074,12 @@ export class WorkoutRepository {
         pairing_secret_tag,
         autobase_bootstrap_key,
         lamport_counter,
+        sync_role,
+        room_binding_state,
+        first_sync_resolution,
+        pending_local_summary,
+        pending_remote_summary,
+        pending_conflict_summary,
         last_error,
         last_synced_at,
         updated_at
@@ -1052,6 +1096,12 @@ export class WorkoutRepository {
         pairingSecretTag: null,
         autobaseBootstrapKey: null,
         lamportCounter: 0,
+        syncRole: null,
+        roomBindingState: 'unconfigured',
+        firstSyncResolution: 'unknown',
+        pendingLocalSummary: null,
+        pendingRemoteSummary: null,
+        pendingConflictSummary: null,
         lastError: null,
         lastSyncedAt: null,
         updatedAt: now,
@@ -1066,6 +1116,18 @@ export class WorkoutRepository {
       pairingSecretTag: row.pairing_secret_tag,
       autobaseBootstrapKey: row.autobase_bootstrap_key,
       lamportCounter: row.lamport_counter,
+      syncRole: row.sync_role,
+      roomBindingState: row.room_binding_state ?? 'unconfigured',
+      firstSyncResolution: row.first_sync_resolution ?? 'unknown',
+      pendingLocalSummary: parseJsonColumn<SyncDataSummary>(
+        row.pending_local_summary,
+      ),
+      pendingRemoteSummary: parseJsonColumn<SyncDataSummary>(
+        row.pending_remote_summary,
+      ),
+      pendingConflictSummary: parseJsonColumn<SyncConflictSummary>(
+        row.pending_conflict_summary,
+      ),
       lastError: row.last_error,
       lastSyncedAt: row.last_synced_at,
       updatedAt: row.updated_at,
@@ -1093,6 +1155,12 @@ export class WorkoutRepository {
       pairingSecretTag: 'pairing_secret_tag',
       autobaseBootstrapKey: 'autobase_bootstrap_key',
       lamportCounter: 'lamport_counter',
+      syncRole: 'sync_role',
+      roomBindingState: 'room_binding_state',
+      firstSyncResolution: 'first_sync_resolution',
+      pendingLocalSummary: 'pending_local_summary',
+      pendingRemoteSummary: 'pending_remote_summary',
+      pendingConflictSummary: 'pending_conflict_summary',
       lastError: 'last_error',
       lastSyncedAt: 'last_synced_at',
       updatedAt: 'updated_at',
@@ -1110,6 +1178,12 @@ export class WorkoutRepository {
       setClauses.push(`${column} = ?`);
       if (key === 'syncEnabled') {
         values.push(patch[key] ? 1 : 0);
+      } else if (
+        key === 'pendingLocalSummary' ||
+        key === 'pendingRemoteSummary' ||
+        key === 'pendingConflictSummary'
+      ) {
+        values.push(patch[key] == null ? null : JSON.stringify(patch[key]));
       } else {
         values.push((patch[key] as string | number | null | undefined) ?? null);
       }

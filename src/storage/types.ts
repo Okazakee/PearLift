@@ -54,6 +54,43 @@ export type WorkoutMutation =
 
 export type MutationOrigin = 'local' | 'remote';
 
+export type SyncRole = 'creator' | 'joiner';
+
+export type SyncRoomBindingState =
+  | 'unconfigured'
+  | 'pending_first_sync'
+  | 'active'
+  | 'conflict_requires_decision';
+
+export type SyncFirstSyncResolution =
+  | 'unknown'
+  | 'auto_import_remote'
+  | 'auto_publish_local'
+  | 'auto_merge'
+  | 'local_chosen'
+  | 'remote_chosen';
+
+export interface SyncDataSummary {
+  workoutCount: number;
+  workoutIds: string[];
+  exerciseCount: number;
+  exerciseIds: string[];
+  weightEntryCount: number;
+  weekConfigIds: number[];
+  dayConfigIds: string[];
+  settingsFingerprint: string;
+}
+
+export interface SyncConflictSummary {
+  overlappingWorkoutIds: string[];
+  overlappingExerciseIds: string[];
+  overlappingWeekConfigIds: number[];
+  overlappingDayConfigIds: string[];
+  settingsConflict: boolean;
+  remoteOpCount: number;
+  requiresManualChoice: boolean;
+}
+
 export interface MutationContext {
   origin: MutationOrigin;
   opId?: string;
@@ -70,6 +107,12 @@ export interface SyncStateRow {
   pairingSecretTag: string | null;
   autobaseBootstrapKey: string | null;
   lamportCounter: number;
+  syncRole: SyncRole | null;
+  roomBindingState: SyncRoomBindingState;
+  firstSyncResolution: SyncFirstSyncResolution;
+  pendingLocalSummary: SyncDataSummary | null;
+  pendingRemoteSummary: SyncDataSummary | null;
+  pendingConflictSummary: SyncConflictSummary | null;
   lastError: string | null;
   lastSyncedAt: string | null;
   updatedAt: string;

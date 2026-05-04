@@ -5,7 +5,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ANDROID_DIR="${ROOT_DIR}/android"
 GRADLE_FILE="${ANDROID_DIR}/app/build.gradle"
-DEFAULT_ABIS="armeabi-v7a,arm64-v8a"
+DEFAULT_ABIS="arm64-v8a"
 RELEASE_ABIS="${PEARLIFT_RELEASE_ABIS:-${DEFAULT_ABIS}}"
 PREBUILD_CLEAN="${PEARLIFT_PREBUILD_CLEAN:-1}"
 ENV_FILE="${ROOT_DIR}/.env.local"

@@ -67,6 +67,9 @@ function assertStartRequest(value) {
   if (typeof value.deviceId !== 'string') {
     throw new Error('SYNC_START deviceId must be a string.');
   }
+  if (value.role !== 'creator' && value.role !== 'joiner') {
+    throw new Error('SYNC_START role must be creator or joiner.');
+  }
   if (
     value.bootstrapKeyHex != null &&
     typeof value.bootstrapKeyHex !== 'string'
@@ -98,6 +101,7 @@ function assertStartRequest(value) {
   return {
     pairingSecretHex: value.pairingSecretHex,
     deviceId: value.deviceId,
+    role: value.role,
     bootstrapKeyHex:
       typeof value.bootstrapKeyHex === 'string' ? value.bootstrapKeyHex : null,
     storagePath:

@@ -74,6 +74,7 @@
       "status": {
         "idle": "Idle",
         "connecting": "Searching",
+        "waiting": "Waiting",
         "dht_ready": "DHT ready",
         "peer_connected": "Peer connected",
         "handshake_ok": "Handshake OK",
@@ -151,11 +152,26 @@
     },
     "manage": {
       "title": "Device sync",
-      "subtitle": "Keep sync maintenance in one place: toggle it, manage your key, and check paired devices.",
+      "subtitle": "Keep room setup and sync maintenance in one place.",
+      "roomSetup": "Room setup",
+      "roomSetupHint": "Pick whether this device starts a new room or joins one that already exists.",
+      "createRoom": "Create room",
+      "joinRoom": "Join room",
       "status": "Sync status",
       "turnOn": "Turn on",
       "turnOff": "Turn off",
       "refresh": "Refresh",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Room creator",
+        "joiner": "Room joiner"
+      },
+      "binding": {
+        "unconfigured": "Not configured",
+        "pending_first_sync": "Waiting for first sync",
+        "active": "Active",
+        "conflict_requires_decision": "Needs your decision"
+      },
       "masterKey": "Master key",
       "masterKeyHint": "Use the same 64-character key on every device that should share data.",
       "masterKeyPlaceholder": "Paste or edit the 64-character key",
@@ -168,6 +184,41 @@
       "lastSyncAt": "Last sync {{at}}",
       "debug": "Debug info",
       "never": "Never"
+    },
+    "create": {
+      "title": "Create room",
+      "subtitle": "This device starts a new sync room and can share the master key with other devices.",
+      "room": "New room",
+      "explainer": "Use this when this device should define the initial room and invite the others.",
+      "datasetSummary": "This device currently has {{workouts}} workouts and {{exercises}} exercises.",
+      "masterKey": "Master key",
+      "copy": "Copy key",
+      "startRoom": "Start this room"
+    },
+    "join": {
+      "title": "Join room",
+      "subtitle": "Use the room key from another device to connect this device to the same sync room.",
+      "preflight": "Before joining",
+      "localSummary": "This device currently has {{workouts}} workouts and {{exercises}} exercises.",
+      "remoteSummaryHint": "If both devices already have a lot of overlapping changes, PearLift will ask which dataset to keep.",
+      "masterKey": "Room key",
+      "keyPlaceholder": "Paste the 64-character room key",
+      "paste": "Paste",
+      "scanQr": "Scan QR",
+      "scanHelp": "Point the camera at the QR code that contains the room key.",
+      "invalidKey": "Invalid room key. It must be 64 hex characters.",
+      "joinRoom": "Join room"
+    },
+    "decision": {
+      "title": "Choose first sync data",
+      "subtitle": "Both sides already contain meaningful data. Pick which baseline this room should keep.",
+      "thisDevice": "This device",
+      "roomData": "Room data",
+      "datasetSummary": "{{workouts}} workouts · {{exercises}} exercises",
+      "conflictTitle": "Overlapping changes detected",
+      "conflictSummary": "{{workouts}} workout overlaps and {{exercises}} exercise overlaps were detected.",
+      "useThisDevice": "Use this device's data",
+      "useRoomData": "Use room data"
     },
     "debug": {
       "title": "Sync debug info",

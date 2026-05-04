@@ -1,8 +1,12 @@
 import type {
   MutationContext,
+  SyncConflictSummary,
+  SyncDataSummary,
+  SyncRole,
   WorkoutMutation,
   WorkoutStoreSnapshot,
 } from '../storage/types';
+import type { PearLiftRuntimeState } from '../backup/types';
 
 export const SYNC_OP_SCHEMA_VERSION = 1 as const;
 
@@ -23,7 +27,16 @@ export interface SyncMutationPayload {
   mutation: SyncMutation;
 }
 
-export type SyncPayload = SyncMutationPayload | SyncPresencePayload;
+export interface SyncSnapshotReplacePayload {
+  kind: 'snapshot_replace';
+  runtime: PearLiftRuntimeState;
+  summary: SyncDataSummary;
+}
+
+export type SyncPayload =
+  | SyncMutationPayload
+  | SyncPresencePayload
+  | SyncSnapshotReplacePayload;
 
 export interface SyncOpEnvelope {
   schemaVersion: typeof SYNC_OP_SCHEMA_VERSION;
@@ -38,6 +51,7 @@ export interface SyncOpEnvelope {
 export type SyncStatus =
   | 'idle'
   | 'connecting'
+  | 'waiting'
   | 'dht_ready'
   | 'peer_connected'
   | 'handshake_ok'
@@ -79,11 +93,25 @@ export const INITIAL_SYNC_HEALTH: SyncHealth = {
 export interface StartSyncInput {
   pairingSecretHex: string;
   deviceId: string;
+  role: SyncRole;
   bootstrapKeyHex?: string | null;
   debug?: {
     discoveryOnly?: boolean;
     disableCursorOptimization?: boolean;
   };
+}
+
+export interface FirstSyncState {
+  role: SyncRole | null;
+  state:
+    | 'idle'
+    | 'pending_first_sync'
+    | 'waiting_for_remote'
+    | 'conflict_requires_decision'
+    | 'active';
+  localSummary: SyncDataSummary | null;
+  remoteSummary: SyncDataSummary | null;
+  conflictSummary: SyncConflictSummary | null;
 }
 
 export interface SyncBridge {
@@ -105,7 +133,12 @@ export interface SyncBridgeLogEntry {
 }
 
 export interface SyncManager {
-  start(pairingSecretHex?: string, bootstrapKeyHex?: string): Promise<void>;
+  start(input: {
+    role: SyncRole;
+    pairingSecretHex?: string;
+    bootstrapKeyHex?: string;
+    localSnapshot: WorkoutStoreSnapshot | null;
+  }): Promise<void>;
   stop(): Promise<void>;
   publishLocalMutation(
     mutation: WorkoutMutation,
@@ -115,6 +148,8 @@ export interface SyncManager {
   getHealth(): SyncHealth;
   onHealth(cb: (health: SyncHealth) => void): () => void;
   onRemoteApplied(cb: () => void): () => void;
+  onStateChanged(cb: () => void): () => void;
+  resolveFirstSyncChoice(choice: 'local' | 'remote'): Promise<void>;
   isActive(): boolean;
   getAllLogs(): Promise<SyncBridgeLogEntry[]>;
 }

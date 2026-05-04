@@ -8,6 +8,8 @@ import { cancelRestTimerNotification } from '../native/localNotifications';
 import { RestTimerForegroundService } from '../native/restTimerForegroundService';
 import type {
   PairedDevice,
+  SyncFirstSyncResolution,
+  SyncRole,
   SyncStateRow,
   WorkoutMutation,
   WorkoutStoreSnapshot,
@@ -62,9 +64,12 @@ interface WorkoutStore {
   applyMutation: (mutation: WorkoutMutation) => Promise<void>;
   refreshSyncState: () => Promise<void>;
   refreshSyncLogs: () => Promise<void>;
-  startSync: (pairingSecretHex?: string) => Promise<void>;
+  startSync: (role: SyncRole, pairingSecretHex?: string) => Promise<void>;
   stopSync: () => Promise<void>;
   forgetPairedDevice: (deviceId: string) => Promise<void>;
+  resolveFirstSyncChoice: (
+    choice: Extract<SyncFirstSyncResolution, 'local_chosen' | 'remote_chosen'>,
+  ) => Promise<void>;
 
   showPrompt: (
     title: string,
@@ -141,6 +146,9 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       void get().reload();
       void get().refreshSyncState();
     });
+    syncManager.onStateChanged(() => {
+      void get().refreshSyncState();
+    });
 
     set({
       repository: repo,
@@ -154,7 +162,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
     if (syncState.syncEnabled) {
       void syncManager
-        .start(undefined, syncState.autobaseBootstrapKey ?? undefined)
+        .start({
+          role: syncState.syncRole ?? 'creator',
+          bootstrapKeyHex: syncState.autobaseBootstrapKey ?? undefined,
+          localSnapshot: snapshot,
+        })
         .then(() => get().refreshSyncState())
         .catch(async () => {
           await get().refreshSyncState();
@@ -240,10 +252,14 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set({ syncLogs });
   },
 
-  startSync: async (pairingSecretHex) => {
-    const { syncManager } = get();
+  startSync: async (role, pairingSecretHex) => {
+    const { syncManager, snapshot } = get();
     if (!syncManager) return;
-    await syncManager.start(pairingSecretHex);
+    await syncManager.start({
+      role,
+      pairingSecretHex,
+      localSnapshot: snapshot,
+    });
     await get().refreshSyncState();
     await get().refreshSyncLogs();
   },
@@ -261,6 +277,17 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     if (!repository) return;
     await repository.forgetDevice(deviceId);
     await get().refreshSyncState();
+  },
+
+  resolveFirstSyncChoice: async (choice) => {
+    const { syncManager } = get();
+    if (!syncManager) return;
+    await syncManager.resolveFirstSyncChoice(
+      choice === 'local_chosen' ? 'local' : 'remote',
+    );
+    await get().reload();
+    await get().refreshSyncState();
+    await get().refreshSyncLogs();
   },
 
   showPrompt: (title, message, actions) => {

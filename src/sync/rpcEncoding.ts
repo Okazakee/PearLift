@@ -10,6 +10,7 @@ import {
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
 } from './rpcCommands';
+import type { SyncRole } from '../storage/types';
 import type { SyncHealth, SyncOpEnvelope, SyncStatus } from './types';
 
 type Direction = 'request' | 'response' | 'event';
@@ -41,6 +42,7 @@ function isSyncStatus(value: unknown): value is SyncStatus {
   return (
     value === 'idle' ||
     value === 'connecting' ||
+    value === 'waiting' ||
     value === 'dht_ready' ||
     value === 'peer_connected' ||
     value === 'handshake_ok' ||
@@ -84,6 +86,7 @@ function encodeFramePayload(value: unknown): Uint8Array {
 function assertStartRequest(value: unknown): {
   pairingSecretHex: string;
   deviceId: string;
+  role: SyncRole;
   bootstrapKeyHex?: string | null;
   storagePath?: string;
   debug?: {
@@ -99,6 +102,9 @@ function assertStartRequest(value: unknown): {
   }
   if (typeof value.deviceId !== 'string') {
     throw new Error('SYNC_START deviceId must be a string.');
+  }
+  if (value.role !== 'creator' && value.role !== 'joiner') {
+    throw new Error('SYNC_START role must be creator or joiner.');
   }
   if (
     value.bootstrapKeyHex != null &&
@@ -131,6 +137,7 @@ function assertStartRequest(value: unknown): {
   return {
     pairingSecretHex: value.pairingSecretHex,
     deviceId: value.deviceId,
+    role: value.role as SyncRole,
     bootstrapKeyHex:
       typeof value.bootstrapKeyHex === 'string' ? value.bootstrapKeyHex : null,
     storagePath:

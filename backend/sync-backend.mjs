@@ -52,9 +52,9 @@ let discoveryOnlyMode = false;
 let disableCursorOptimization = false;
 
 const MAX_LOG_ENTRIES = 200;
-const MAX_RECONNECT_ATTEMPTS = 10;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
+const WAITING_STATUS_THRESHOLD_ATTEMPTS = 3;
 const logRing = [];
 const WORKLET_BOOT_AT = new Date().toISOString();
 const SOCKET_NO_DATA_TIMEOUT_MS = 10000;
@@ -458,16 +458,6 @@ async function rejoinTopic() {
     );
     return;
   }
-  if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-    logBackendError(
-      'watchdog',
-      new Error(
-        `Reconnect cap reached after ${MAX_RECONNECT_ATTEMPTS} attempts.`,
-      ),
-    );
-    emitStatus('error', lastBackendError);
-    return;
-  }
   reconnectAttempts += 1;
   rejoinInFlight = true;
   logMajorEvent('watchdog', 'rejoin', 'Forcing topic rejoin.', {
@@ -582,6 +572,13 @@ function startHeartbeat() {
     }
 
     updateStuckState();
+    if (
+      runtimeStatus === 'connecting' &&
+      activeConnections === 0 &&
+      reconnectAttempts >= WAITING_STATUS_THRESHOLD_ATTEMPTS
+    ) {
+      emitStatus('waiting', lastBackendError);
+    }
     if (
       stuckSince !== null &&
       Date.now() - stuckSince > WATCHDOG_STUCK_THRESHOLD_MS

@@ -33,6 +33,8 @@ interface SyncManagementModalProps {
   pairedDevices: PairedDevice[];
   masterKey: string | null;
   onToggleSync: (nextEnabled: boolean) => Promise<void>;
+  onOpenCreateRoom: () => void;
+  onOpenJoinRoom: () => void;
   onApplyMasterKey: (nextKey: string) => Promise<void>;
   onCopyMasterKey: () => Promise<void>;
   onForgetDevice: (deviceId: string) => Promise<void>;
@@ -58,6 +60,8 @@ export function SyncManagementModal({
   pairedDevices,
   masterKey,
   onToggleSync,
+  onOpenCreateRoom,
+  onOpenJoinRoom,
   onApplyMasterKey,
   onCopyMasterKey,
   onForgetDevice,
@@ -84,6 +88,8 @@ export function SyncManagementModal({
   }, [masterKey, open]);
 
   const syncEnabled = syncState?.syncEnabled ?? false;
+  const roomRole = syncState?.syncRole ?? null;
+  const bindingState = syncState?.roomBindingState ?? 'unconfigured';
   const statusTone = getStatusTone(tokens, syncHealth);
   const lastSyncedLabel = syncState?.lastSyncedAt
     ? new Date(syncState.lastSyncedAt).toLocaleString()
@@ -123,6 +129,36 @@ export function SyncManagementModal({
         >
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
+              <Shield size={16} color={tokens.colors.primary} />
+              <Text style={styles.sectionTitle}>
+                {t('sync.manage.roomSetup')}
+              </Text>
+            </View>
+            <Text style={styles.helperText}>
+              {t('sync.manage.roomSetupHint')}
+            </Text>
+            <View style={styles.actionRow}>
+              <AnimatedPressable
+                style={styles.primaryButton}
+                onPress={onOpenCreateRoom}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {t('sync.manage.createRoom')}
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={styles.outlineButton}
+                onPress={onOpenJoinRoom}
+              >
+                <Text style={styles.outlineButtonText}>
+                  {t('sync.manage.joinRoom')}
+                </Text>
+              </AnimatedPressable>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
               <Link2 size={16} color={tokens.colors.primary} />
               <Text style={styles.sectionTitle}>{t('sync.manage.status')}</Text>
             </View>
@@ -143,6 +179,12 @@ export function SyncManagementModal({
                 </Text>
                 <Text style={styles.helperText}>
                   {t('sync.manage.lastSyncAt', { at: lastSyncedLabel })}
+                </Text>
+                <Text style={styles.helperText}>
+                  {t('sync.manage.roleState', {
+                    role: roomRole ? t(`sync.manage.roles.${roomRole}`) : '—',
+                    state: t(`sync.manage.binding.${bindingState}`),
+                  })}
                 </Text>
               </View>
               <AnimatedPressable

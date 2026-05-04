@@ -10,7 +10,13 @@ import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Platform, useColorScheme, View } from 'react-native';
+import {
+  AppState,
+  Linking,
+  Platform,
+  useColorScheme,
+  View,
+} from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -37,7 +43,10 @@ import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal'
 import { ScanFromDeviceModal } from '../components/modals/ScanFromDeviceModal';
 import { SettingsModal } from '../components/modals/SettingsModal';
 import { ShareToDeviceModal } from '../components/modals/ShareToDeviceModal';
+import { SyncCreateRoomModal } from '../components/modals/SyncCreateRoomModal';
 import { SyncDebugInfoModal } from '../components/modals/SyncDebugInfoModal';
+import { SyncFirstDecisionModal } from '../components/modals/SyncFirstDecisionModal';
+import { SyncJoinRoomModal } from '../components/modals/SyncJoinRoomModal';
 import { SyncManagementModal } from '../components/modals/SyncManagementModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
@@ -73,6 +82,8 @@ export function WorkoutScreen() {
   const [shareToDeviceOpen, setShareToDeviceOpen] = useState(false);
   const [scanFromDeviceOpen, setScanFromDeviceOpen] = useState(false);
   const [syncMasterKey, setSyncMasterKey] = useState<string | null>(null);
+  const [createRoomOpen, setCreateRoomOpen] = useState(false);
+  const [joinRoomOpen, setJoinRoomOpen] = useState(false);
 
   const {
     snapshot,
@@ -89,6 +100,7 @@ export function WorkoutScreen() {
     refreshSyncLogs,
     startSync,
     stopSync,
+    resolveFirstSyncChoice,
     forgetPairedDevice,
     promptConfig,
     closePrompt,
@@ -139,6 +151,47 @@ export function WorkoutScreen() {
     if (!syncDebugOpen) return;
     void refreshSyncLogs();
   }, [refreshSyncLogs, syncDebugOpen]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (nextState !== 'active') return;
+      if (!syncState?.syncEnabled) return;
+      if (
+        syncHealth.status !== 'error' &&
+        syncHealth.status !== 'waiting' &&
+        syncHealth.reconnectAttempts <= 0
+      ) {
+        return;
+      }
+
+      void (async () => {
+        try {
+          await refreshSyncState();
+          await refreshSyncLogs();
+          const key = syncMasterKey ?? (await getPairingSecretPayload());
+          setSyncMasterKey(key);
+          await stopSync();
+          await startSync(syncState.syncRole ?? 'creator', key);
+        } catch {
+          // Ignore foreground reconnect nudges; the backend watchdog continues retrying.
+        }
+      })();
+    });
+
+    return () => {
+      sub.remove();
+    };
+  }, [
+    refreshSyncLogs,
+    refreshSyncState,
+    startSync,
+    stopSync,
+    syncHealth.reconnectAttempts,
+    syncHealth.status,
+    syncMasterKey,
+    syncState?.syncEnabled,
+    syncState?.syncRole,
+  ]);
 
   useEffect(() => {
     const preferred = snapshot?.language ?? 'system';
@@ -211,6 +264,32 @@ export function WorkoutScreen() {
       exercises: [],
     };
   }, [workouts, currentDay, dayConfigs]);
+
+  const localSyncSummary = useMemo(() => {
+    if (!snapshot) return null;
+    return {
+      workoutCount: snapshot.workouts.length,
+      workoutIds: snapshot.workouts.map((workout) => workout.id),
+      exerciseCount: snapshot.workouts.reduce(
+        (total, workout) => total + workout.exercises.length,
+        0,
+      ),
+      exerciseIds: snapshot.workouts.flatMap((workout) =>
+        workout.exercises.map((exercise) => exercise.id),
+      ),
+      weightEntryCount: Object.keys(snapshot.userWeights).length,
+      weekConfigIds: snapshot.weekConfigs.map((week) => week.id),
+      dayConfigIds: snapshot.dayConfigs.map((day) => day.id),
+      settingsFingerprint: [
+        snapshot.currentWeek,
+        snapshot.currentDay,
+        snapshot.restDuration,
+        snapshot.themeMode,
+        snapshot.weightUnit,
+        snapshot.language,
+      ].join(':'),
+    };
+  }, [snapshot]);
 
   const getWeek = (weekId?: number) =>
     weekConfigs.find((week) => week.id === (weekId ?? currentWeek)) ??
@@ -593,7 +672,21 @@ export function WorkoutScreen() {
 
   const handleToggleSync = async (nextEnabled: boolean) => {
     if (nextEnabled) {
-      await startSync(syncMasterKey ?? undefined);
+      const existingKey = syncMasterKey ?? (await getPairingSecretPayload());
+      const role = syncState?.syncRole;
+      setSyncMasterKey(existingKey);
+
+      if (!role) {
+        setCreateRoomOpen(true);
+        return;
+      }
+
+      if (role === 'joiner' && !existingKey.trim()) {
+        setJoinRoomOpen(true);
+        return;
+      }
+
+      await startSync(role, existingKey);
       return;
     }
     await stopSync();
@@ -614,7 +707,7 @@ export function WorkoutScreen() {
     setSyncMasterKey(normalized);
     await refreshSyncState();
     if (wasActive) {
-      await startSync(normalized);
+      await startSync(syncState?.syncRole ?? 'joiner', normalized);
     }
   };
 
@@ -633,6 +726,60 @@ export function WorkoutScreen() {
     } catch {
       setSyncMasterKey(null);
     }
+  };
+
+  const handleOpenCreateRoom = async () => {
+    const key = syncMasterKey ?? (await getPairingSecretPayload());
+    setSyncMasterKey(key);
+    setCreateRoomOpen(true);
+  };
+
+  const handleStartCreatorRoom = async () => {
+    if (!repository) {
+      throw new Error('Sync storage is not ready yet.');
+    }
+
+    const wasActive = syncState?.syncEnabled ?? false;
+    if (wasActive) {
+      await stopSync();
+    }
+
+    const key = (syncMasterKey ?? (await getPairingSecretPayload()))
+      .trim()
+      .toLowerCase();
+    await repository.clearSyncPeerHistory();
+    await setPairingSecretPayload(key);
+    setSyncMasterKey(key);
+    await refreshSyncState();
+    await startSync('creator', key);
+    setCreateRoomOpen(false);
+    setJoinRoomOpen(false);
+  };
+
+  const handleJoinRoom = async (nextKey: string) => {
+    if (!repository) {
+      throw new Error('Sync storage is not ready yet.');
+    }
+
+    const normalized = nextKey.trim().toLowerCase();
+    const wasActive = syncState?.syncEnabled ?? false;
+    if (wasActive) {
+      await stopSync();
+    }
+
+    await repository.clearSyncPeerHistory();
+    await setPairingSecretPayload(normalized);
+    setSyncMasterKey(normalized);
+    await refreshSyncState();
+    await startSync('joiner', normalized);
+    setJoinRoomOpen(false);
+    setCreateRoomOpen(false);
+  };
+
+  const handleResolveFirstSyncDecision = async (
+    choice: 'local_chosen' | 'remote_chosen',
+  ) => {
+    await resolveFirstSyncChoice(choice);
   };
 
   const handleForgetPairedDevice = async (deviceId: string) => {
@@ -852,6 +999,10 @@ export function WorkoutScreen() {
           pairedDevices={pairedDevices}
           masterKey={syncMasterKey}
           onToggleSync={handleToggleSync}
+          onOpenCreateRoom={() => {
+            void handleOpenCreateRoom();
+          }}
+          onOpenJoinRoom={() => setJoinRoomOpen(true)}
           onApplyMasterKey={handleApplyMasterKey}
           onCopyMasterKey={handleCopyMasterKey}
           onForgetDevice={handleForgetPairedDevice}
@@ -861,6 +1012,42 @@ export function WorkoutScreen() {
           onRefresh={handleRefreshSync}
           onClose={() => {
             setSyncManagementOpen(false);
+          }}
+        />
+
+        <SyncCreateRoomModal
+          open={createRoomOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          masterKey={syncMasterKey}
+          localSummary={localSyncSummary}
+          onStartRoom={handleStartCreatorRoom}
+          onClose={() => setCreateRoomOpen(false)}
+        />
+
+        <SyncJoinRoomModal
+          open={joinRoomOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          localSummary={localSyncSummary}
+          onJoinRoom={handleJoinRoom}
+          onClose={() => setJoinRoomOpen(false)}
+        />
+
+        <SyncFirstDecisionModal
+          open={syncState?.roomBindingState === 'conflict_requires_decision'}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          localSummary={syncState?.pendingLocalSummary ?? localSyncSummary}
+          remoteSummary={syncState?.pendingRemoteSummary ?? null}
+          conflictSummary={syncState?.pendingConflictSummary ?? null}
+          onChooseLocal={() => handleResolveFirstSyncDecision('local_chosen')}
+          onChooseRemote={() => handleResolveFirstSyncDecision('remote_chosen')}
+          onClose={() => {
+            void handleRefreshSync();
           }}
         />
 
