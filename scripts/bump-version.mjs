@@ -38,8 +38,14 @@ const nextFdroidVersion = fdroidVersion
   .replace(/^versionCode=\d+$/m, `versionCode=${nextVersionCode}`)
   .replace(/^versionName=.*$/m, `versionName=${nextVersion}`);
 
-await writeFile(packageJsonPath, `${JSON.stringify(packageJson, null, 2)}\n`, 'utf8');
+await writeFile(
+  packageJsonPath,
+  `${JSON.stringify(packageJson, null, 2)}\n`,
+  'utf8',
+);
 await writeFile(appJsonPath, `${JSON.stringify(appJson, null, 2)}\n`, 'utf8');
 await writeFile(fdroidVersionPath, nextFdroidVersion, 'utf8');
 
-console.log(`Bumped version ${currentVersion} (${currentVersionCode}) -> ${nextVersion} (${nextVersionCode})`);
+console.log(
+  `Bumped version ${currentVersion} (${currentVersionCode}) -> ${nextVersion} (${nextVersionCode})`,
+);
