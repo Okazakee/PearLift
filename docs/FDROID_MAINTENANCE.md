@@ -7,8 +7,9 @@ This doc is the checklist to ship updates without breaking the F-Droid build or 
 - Keep releases **tagged** (`vX.Y.Z`). F-Droid update checks rely on tags.
 - Keep `fdroid-version.txt` updated for every release.
 - Keep dependency installs **deterministic** for CI/buildservers:
-  - Commit `yarn.lock` (F-Droid uses it via `yarn install --frozen-lockfile`).
-  - Keep Bun configured to print `yarn.lock` by default (`bunfig.toml`).
+  - Commit `bun.lock` (preferred authoritative lockfile for local dev and F-Droid).
+  - Keep Bun configured consistently via `bunfig.toml`.
+  - Keep `yarn.lock` only if you intentionally want a compatibility export for non-Bun tooling.
 - Keep store text and screenshots in the upstream **Fastlane** structure:
   - `fastlane/metadata/android/en-US/short_description.txt`
   - `fastlane/metadata/android/en-US/full_description.txt`
@@ -20,7 +21,7 @@ This doc is the checklist to ship updates without breaking the F-Droid build or 
 ## Release Checklist (Every Version)
 
 1. Bump app version
-   - Update your app’s versionName/versionCode in the repo (wherever your Android build reads them).
+   - Update your app’s versionName/versionCode in the repo (for Expo, this includes `expo.version` and `expo.android.versionCode` in `app.json`).
    - Update `fdroid-version.txt` to match the release:
      - `versionCode=<INTEGER>`
      - `versionName=<X.Y.Z>`
@@ -70,9 +71,10 @@ When you update:
    - Do not rely on Debian packages for Java 17 in the buildserver image.
    - Truth source: F-Droid CI uses `registry.gitlab.com/fdroid/fdroidserver:buildserver-trixie` and installs `openjdk-21-jdk-headless`.
 
-5. Node/Yarn in fdroiddata
+5. Node/Bun in fdroiddata
    - Do not rely on distro Node. Pin a Node tarball + SHA256 (pattern used by other Expo apps, e.g. `metadata/jp.nonbili.noutube.yml`).
-   - Install Yarn globally and build using `yarn install --frozen-lockfile`.
+   - If you want the build to match local development, install a pinned Bun version and build using `bun install --frozen-lockfile`.
+   - Use `bunx expo prebuild ...` rather than `yarn expo prebuild ...` when the repo standardizes on Bun.
 
 6. ABI handling (important!)
    - F-Droid build entries are effectively “one build -> one APK”. If a single build produces multiple APKs (ABI splits), `fdroid build` typically fails.
@@ -93,6 +95,7 @@ When you update:
 - Don’t delete the Linux Hermes compiler binary if Hermes is enabled.
 - Don’t assume `android/gradlew` exists in F-Droid CI. Build recipes should use the buildserver’s Gradle wrapper helper (`gradlew-fdroid`) if required.
 - Don’t run `npm install` in fdroiddata without a lockfile. That causes Expo module drift and Kotlin compile failures (e.g. `expo-av` API mismatch).
+- Don’t mix package managers in release recipes unless you have a specific reason. If the repo standard is Bun, keep F-Droid on Bun too.
 
 ## Truth Sources (When In Doubt, Check These)
 

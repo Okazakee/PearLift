@@ -21,6 +21,7 @@
     },
     "android": {
       "package": "dev.okazakee.pearlift",
+      "versionCode": 6,
       "adaptiveIcon": {
         "foregroundImage": "./assets/pearlift_splash.png",
         "backgroundColor": "#111113"

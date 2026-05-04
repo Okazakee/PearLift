@@ -34,4 +34,67 @@ async function patchDraggableFlatList() {
   }
 }
 
+async function patchExpoAv() {
+  const file =
+    'node_modules/expo-av/android/src/main/java/expo/modules/av/ViewUtils.kt';
+  if (!existsSync(file)) return;
+
+  let text = await readFile(file, 'utf8');
+  const original = text;
+
+  text = text.replace(
+    'import expo.modules.core.interfaces.services.UIManager\n',
+    '',
+  );
+  text = text.replaceAll(
+    'moduleRegistry.getModule(UIManager::class.java).resolveView(viewTag) as VideoViewWrapper?',
+    'moduleRegistry.appContext?.findView<VideoViewWrapper>(viewTag)',
+  );
+
+  const fullscreenFile =
+    'node_modules/expo-av/android/src/main/java/expo/modules/av/video/FullscreenVideoPlayer.java';
+  if (existsSync(fullscreenFile)) {
+    let fullscreenText = await readFile(fullscreenFile, 'utf8');
+    const originalFullscreenText = fullscreenText;
+
+    fullscreenText = fullscreenText.replace(
+      'import expo.modules.core.ModuleRegistry;\n',
+      '',
+    );
+    fullscreenText = fullscreenText.replace(
+      'import expo.modules.core.interfaces.services.KeepAwakeManager;\n',
+      '',
+    );
+    fullscreenText = fullscreenText.replace(
+      `          AppContext appContext = fullscreenVideoPlayer.mAppContext.get();
+          ModuleRegistry moduleRegistry = appContext != null ? appContext.getLegacyModuleRegistry() : null;
+          if (moduleRegistry != null) {
+            KeepAwakeManager keepAwakeManager = moduleRegistry.getModule(KeepAwakeManager.class);
+            boolean keepAwakeIsActivated = keepAwakeManager != null && keepAwakeManager.isActivated();
+            if (isPlaying || keepAwakeIsActivated) {
+              window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            } else {
+              window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            }
+          }
+`,
+      `          if (isPlaying) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+          } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+          }
+`,
+    );
+
+    if (fullscreenText !== originalFullscreenText) {
+      await writeFile(fullscreenFile, fullscreenText, 'utf8');
+    }
+  }
+
+  if (text !== original) {
+    await writeFile(file, text, 'utf8');
+  }
+}
+
 await patchDraggableFlatList();
+await patchExpoAv();
