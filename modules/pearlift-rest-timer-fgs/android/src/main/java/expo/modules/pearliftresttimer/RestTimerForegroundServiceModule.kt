@@ -69,6 +69,15 @@ class RestTimerForegroundServiceModule : Module() {
       null
     }
 
+    AsyncFunction("resume") {
+      val ctx = appContext.reactContext ?: return@AsyncFunction null
+      val intent = Intent(ctx, RestTimerService::class.java).apply {
+        action = RestTimerService.ACTION_RESUME
+      }
+      ctx.startService(intent)
+      null
+    }
+
     // Stop FGS + ongoing notification, but keep stored state for JS reconciliation.
     AsyncFunction("stop") {
       val ctx = appContext.reactContext ?: return@AsyncFunction null

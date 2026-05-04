@@ -497,12 +497,14 @@ export function RestTimer({
             RestTimerForegroundService.isAvailable()
           ) {
             // Hand off to the foreground service while backgrounded.
-            void cancelScheduledNotificationIfAny();
-            void RestTimerForegroundService.start(
-              latestEnd,
-              startedDurationSec,
-              nativeNotificationText,
-            );
+            void (async () => {
+              await cancelScheduledNotificationIfAny();
+              await RestTimerForegroundService.start(
+                latestEnd,
+                startedDurationSec,
+                nativeNotificationText,
+              );
+            })();
           } else {
             // iOS/web fallback: rely on completion notifications only (no running notification).
           }

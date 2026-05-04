@@ -28,6 +28,7 @@ type NativeApi = {
     notificationText: RestTimerNotificationText,
   ): Promise<void>;
   pause(): Promise<void>;
+  resume(): Promise<void>;
   stop(): Promise<void>; // handoff: stop FGS + notification, keep state
   cancel(): Promise<void>; // cancel/reset
   getState(): Promise<RestTimerForegroundServiceState>;
