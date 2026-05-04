@@ -20,6 +20,11 @@ function upsert(contents) {
   const block =
     `\n` +
     `    ${START}\n` +
+    `    dependenciesInfo {\n` +
+    `        includeInApk false\n` +
+    `        includeInBundle false\n` +
+    `    }\n` +
+    `\n` +
     `    // Opt-in via: -PpearliftAbiSplits=true\n` +
     `    def pearliftAbiSplits = (project.findProperty("pearliftAbiSplits") ?: "false").toString().toBoolean()\n` +
     `    if (pearliftAbiSplits) {\n` +

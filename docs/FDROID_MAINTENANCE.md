@@ -9,7 +9,6 @@ This doc is the checklist to ship updates without breaking the F-Droid build or 
 - Keep dependency installs **deterministic** for CI/buildservers:
   - Commit `bun.lock` (preferred authoritative lockfile for local dev and F-Droid).
   - Keep Bun configured consistently via `bunfig.toml`.
-  - Keep `yarn.lock` only if you intentionally want a compatibility export for non-Bun tooling.
 - Keep store text and screenshots in the upstream **Fastlane** structure:
   - `fastlane/metadata/android/en-US/short_description.txt`
   - `fastlane/metadata/android/en-US/full_description.txt`
@@ -74,7 +73,7 @@ When you update:
 5. Node/Bun in fdroiddata
    - Do not rely on distro Node. Pin a Node tarball + SHA256 (pattern used by other Expo apps, e.g. `metadata/jp.nonbili.noutube.yml`).
    - If you want the build to match local development, install a pinned Bun version and build using `bun install --frozen-lockfile`.
-   - Use `bunx expo prebuild ...` rather than `yarn expo prebuild ...` when the repo standardizes on Bun.
+   - Use `bunx expo prebuild ...` to match the repo's Bun-based install/build flow.
 
 6. ABI handling (important!)
    - F-Droid build entries are effectively “one build -> one APK”. If a single build produces multiple APKs (ABI splits), `fdroid build` typically fails.
@@ -101,7 +100,7 @@ When you update:
 
 - F-Droid “Build Metadata Reference” (what fields do, order, pitfalls): citeturn0search0
 - F-Droid “Adding React Native Apps to F-Droid” (common RN/Node/scanning issues): citeturn0search3
-- fdroiddata example for Expo + pinned Node + Yarn: `metadata/jp.nonbili.noutube.yml` (in fdroiddata repo).
+- fdroiddata example for Expo + pinned Node + Bun: keep your own `metadata/dev.okazakee.pearlift.yml` in sync with the app repo after every release fix.
 
 ## Troubleshooting (Fast Pattern)
 

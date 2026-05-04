@@ -1,10 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
 import { create } from 'zustand';
 import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
 import type { AppPromptAction } from '../components/modals/AppPromptModal';
 import { REST_TIMER_PERSIST_KEY } from '../config/timer';
 import i18n from '../i18n';
+import { cancelRestTimerNotification } from '../native/localNotifications';
 import { RestTimerForegroundService } from '../native/restTimerForegroundService';
 import type { WorkoutMutation, WorkoutStoreSnapshot } from '../storage/types';
 import type { WorkoutRepository } from '../storage/workoutRepository';
@@ -180,7 +180,7 @@ async function clearRestTimerRuntimeState() {
           : null;
       if (id) {
         try {
-          await Notifications.cancelScheduledNotificationAsync(id);
+          await cancelRestTimerNotification(id);
         } catch {
           // ignore
         }

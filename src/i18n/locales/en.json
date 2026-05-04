@@ -342,6 +342,8 @@
     "cameraPermissionTitle": "Camera permission required",
     "cameraPermissionMessage": "Allow camera access to scan a backup QR code.",
     "cameraPermissionButton": "Allow Camera",
+    "cameraUnavailableTitle": "Camera unavailable",
+    "cameraUnavailableMessage": "PearLift could not access a usable back camera on this device.",
     "invalidQr": "That QR code doesn't look like a PearLift backup.",
     "tooLarge": "Backup is too large to fit in a single QR code. Use “Save backup to device” instead."
   },

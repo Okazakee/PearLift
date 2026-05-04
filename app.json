@@ -35,12 +35,6 @@
     "plugins": [
       "expo-sharing",
       [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow PearLift to scan a backup QR code."
-        }
-      ],
-      [
         "expo-local-authentication",
         {
           "faceIDPermission": "Allow PearLift to use Face ID to confirm sensitive actions."
@@ -58,12 +52,6 @@
         }
       ],
       "expo-sqlite",
-      [
-        "expo-notifications",
-        {
-          "sounds": []
-        }
-      ],
       "expo-localization",
       "./plugins/with-pearlift-abi-splits"
     ]

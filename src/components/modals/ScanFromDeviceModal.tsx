@@ -1,8 +1,16 @@
-import { CameraView, useCameraPermissions } from 'expo-camera';
+import { fromByteArray } from 'base64-js';
 import { ChevronLeft } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
+import {
+  Camera,
+  CommonResolutions,
+  useCameraDevice,
+  useCameraPermission,
+  usePhotoOutput,
+} from 'react-native-vision-camera';
+import { decodeBase64 } from 'vision-camera-zxing';
 import { AnimatedPressable } from '../../animation/primitives';
 import {
   assembleChunkedPackets,
@@ -34,7 +42,14 @@ export function ScanFromDeviceModal({
     () => createStyles(tokens, topInset, bottomInset),
     [tokens, topInset, bottomInset],
   );
-  const [permission, requestPermission] = useCameraPermissions();
+  const permission = useCameraPermission();
+  const device = useCameraDevice('back');
+  const photoOutput = usePhotoOutput({
+    targetResolution: CommonResolutions.LOWEST_4_3,
+    containerFormat: 'jpeg',
+    quality: 0.65,
+    qualityPrioritization: 'speed',
+  });
   const [processing, setProcessing] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [chunkTransferId, setChunkTransferId] = useState<string | null>(null);
@@ -43,6 +58,8 @@ export function ScanFromDeviceModal({
   const [chunkPayloads, setChunkPayloads] = useState<Map<number, string>>(
     () => new Map(),
   );
+  const scanLoopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const captureInFlightRef = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -54,36 +71,86 @@ export function ScanFromDeviceModal({
     setChunkPayloads(new Map());
   }, [open]);
 
-  const resetChunkState = () => {
+  useEffect(() => {
+    return () => {
+      if (scanLoopTimeoutRef.current) {
+        clearTimeout(scanLoopTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const resetChunkState = useCallback(() => {
     setChunkTransferId(null);
     setChunkChecksum(null);
     setChunkTotal(0);
     setChunkPayloads(new Map());
-  };
+  }, []);
 
-  const handleScanned = async (rawPayload: string) => {
-    if (processing) return;
-    setScanError(null);
+  const handleScanned = useCallback(
+    async (rawPayload: string) => {
+      if (processing) return;
+      setScanError(null);
 
-    try {
-      const decoded = decodeQrPayload(rawPayload);
+      try {
+        const decoded = decodeQrPayload(rawPayload);
 
-      if (decoded.kind === 'raw') {
-        setProcessing(true);
-        const ok = await onScanPayload(decoded.payload);
-        if (ok) {
-          onClose();
+        if (decoded.kind === 'raw') {
+          setProcessing(true);
+          const ok = await onScanPayload(decoded.payload);
+          if (ok) {
+            onClose();
+            return;
+          }
+          setProcessing(false);
+          setScanError(t('deviceTransfer.invalidQr'));
           return;
         }
-        setProcessing(false);
-        setScanError(t('deviceTransfer.invalidQr'));
-        return;
-      }
 
-      if (decoded.kind === 'single') {
+        if (decoded.kind === 'single') {
+          const payload = assembleChunkedPackets(
+            new Map([[0, decoded.payload]]),
+            1,
+            decoded.checksum,
+          );
+          setProcessing(true);
+          const ok = await onScanPayload(payload);
+          if (ok) {
+            onClose();
+            return;
+          }
+          setProcessing(false);
+          setScanError(t('deviceTransfer.invalidQr'));
+          return;
+        }
+
+        const transferChanged =
+          chunkTransferId !== decoded.transferId ||
+          chunkChecksum !== decoded.checksum ||
+          chunkTotal !== decoded.total;
+
+        if (transferChanged) {
+          setChunkTransferId(decoded.transferId);
+          setChunkChecksum(decoded.checksum);
+          setChunkTotal(decoded.total);
+          const nextPayloads = new Map<number, string>();
+          nextPayloads.set(decoded.index, decoded.payload);
+          setChunkPayloads(nextPayloads);
+          return;
+        }
+
+        const nextPayloads = new Map(chunkPayloads);
+        if (!nextPayloads.has(decoded.index)) {
+          nextPayloads.set(decoded.index, decoded.payload);
+        }
+        setChunkPayloads(nextPayloads);
+
+        if (nextPayloads.size !== decoded.total) {
+          return;
+        }
+
         const payload = assembleChunkedPackets(
-          new Map([[0, decoded.payload]]),
-          1,
+          nextPayloads,
+          decoded.total,
           decoded.checksum,
         );
         setProcessing(true);
@@ -92,63 +159,104 @@ export function ScanFromDeviceModal({
           onClose();
           return;
         }
+        resetChunkState();
         setProcessing(false);
         setScanError(t('deviceTransfer.invalidQr'));
+      } catch {
+        resetChunkState();
+        setProcessing(false);
+        setScanError(
+          t('deviceTransfer.transferCorrupted', {
+            defaultValue:
+              'QR transfer failed integrity check. Please scan from the first chunk again.',
+          }),
+        );
+      }
+    },
+    [
+      chunkChecksum,
+      chunkPayloads,
+      chunkTotal,
+      chunkTransferId,
+      onClose,
+      onScanPayload,
+      processing,
+      resetChunkState,
+      t,
+    ],
+  );
+
+  const permissionGranted = permission.hasPermission;
+
+  useEffect(() => {
+    if (!open || !permissionGranted || !device) return;
+
+    let cancelled = false;
+
+    const queueNextCapture = (delayMs: number) => {
+      if (scanLoopTimeoutRef.current) {
+        clearTimeout(scanLoopTimeoutRef.current);
+      }
+      scanLoopTimeoutRef.current = setTimeout(() => {
+        if (cancelled) return;
+        void captureAndDecode();
+      }, delayMs);
+    };
+
+    const captureAndDecode = async () => {
+      if (cancelled || captureInFlightRef.current || processing) {
+        queueNextCapture(400);
         return;
       }
 
-      const transferChanged =
-        chunkTransferId !== decoded.transferId ||
-        chunkChecksum !== decoded.checksum ||
-        chunkTotal !== decoded.total;
+      captureInFlightRef.current = true;
+      let nextDelayMs = 350;
 
-      if (transferChanged) {
-        setChunkTransferId(decoded.transferId);
-        setChunkChecksum(decoded.checksum);
-        setChunkTotal(decoded.total);
-        const nextPayloads = new Map<number, string>();
-        nextPayloads.set(decoded.index, decoded.payload);
-        setChunkPayloads(nextPayloads);
-        return;
+      try {
+        const photo = await photoOutput.capturePhoto(
+          { enableShutterSound: false },
+          {},
+        );
+        try {
+          const fileData = await photo.getFileDataAsync();
+          const qrResults = await decodeBase64(
+            fromByteArray(new Uint8Array(fileData)),
+            {
+              multiple: true,
+            },
+          );
+          const payload = qrResults.find(
+            (result) => result.barcodeText,
+          )?.barcodeText;
+          if (payload) {
+            nextDelayMs = 900;
+            await handleScanned(payload);
+          }
+        } finally {
+          photo.dispose();
+        }
+      } catch {
+        nextDelayMs = 700;
+      } finally {
+        captureInFlightRef.current = false;
       }
 
-      const nextPayloads = new Map(chunkPayloads);
-      if (!nextPayloads.has(decoded.index)) {
-        nextPayloads.set(decoded.index, decoded.payload);
+      if (!cancelled) {
+        queueNextCapture(nextDelayMs);
       }
-      setChunkPayloads(nextPayloads);
+    };
 
-      if (nextPayloads.size !== decoded.total) {
-        return;
+    queueNextCapture(250);
+
+    return () => {
+      cancelled = true;
+      captureInFlightRef.current = false;
+      if (scanLoopTimeoutRef.current) {
+        clearTimeout(scanLoopTimeoutRef.current);
+        scanLoopTimeoutRef.current = null;
       }
-
-      const payload = assembleChunkedPackets(
-        nextPayloads,
-        decoded.total,
-        decoded.checksum,
-      );
-      setProcessing(true);
-      const ok = await onScanPayload(payload);
-      if (ok) {
-        onClose();
-        return;
-      }
-      resetChunkState();
-      setProcessing(false);
-      setScanError(t('deviceTransfer.invalidQr'));
-    } catch {
-      resetChunkState();
-      setProcessing(false);
-      setScanError(
-        t('deviceTransfer.transferCorrupted', {
-          defaultValue:
-            'QR transfer failed integrity check. Please scan from the first chunk again.',
-        }),
-      );
-    }
-  };
-
-  const permissionGranted = permission?.granted ?? false;
+    };
+  }, [device, handleScanned, open, permissionGranted, photoOutput, processing]);
 
   return (
     <AnimatedScreenModal open={open} onClose={onClose}>
@@ -171,26 +279,29 @@ export function ScanFromDeviceModal({
             </Text>
             <AnimatedPressable
               style={styles.permissionButton}
-              onPress={() => void requestPermission()}
+              onPress={() => void permission.requestPermission()}
             >
               <Text style={styles.permissionButtonText}>
                 {t('deviceTransfer.cameraPermissionButton')}
               </Text>
             </AnimatedPressable>
           </View>
+        ) : !device ? (
+          <View style={styles.permissionCard}>
+            <Text style={styles.permissionTitle}>
+              {t('deviceTransfer.cameraUnavailableTitle')}
+            </Text>
+            <Text style={styles.permissionText}>
+              {t('deviceTransfer.cameraUnavailableMessage')}
+            </Text>
+          </View>
         ) : (
           <View style={styles.cameraContainer}>
-            <CameraView
+            <Camera
               style={styles.camera}
-              onBarcodeScanned={(event) => {
-                if (processing) return;
-                if (event.data) {
-                  void handleScanned(String(event.data));
-                }
-              }}
-              barcodeScannerSettings={{
-                barcodeTypes: ['qr'],
-              }}
+              device={device}
+              outputs={[photoOutput]}
+              isActive={open}
             />
 
             <View style={styles.overlay}>

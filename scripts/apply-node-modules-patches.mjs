@@ -96,5 +96,215 @@ async function patchExpoAv() {
   }
 }
 
+async function patchVisionCameraZxing() {
+  const packageFile =
+    'node_modules/vision-camera-zxing/android/src/main/java/com/visioncamerazxing/VisionCameraZXingPackage.java';
+  if (existsSync(packageFile)) {
+    let text = await readFile(packageFile, 'utf8');
+    const original = text;
+
+    text = text.replace(
+      'import com.mrousavy.camera.frameprocessors.FrameProcessorPluginRegistry;\n',
+      '',
+    );
+    text = text.replace(
+      'public class VisionCameraZXingPackage implements ReactPackage {\n  static {\n    FrameProcessorPluginRegistry.addFrameProcessorPlugin("zxing", ZXingFrameProcessorPlugin::new);\n  }\n',
+      'public class VisionCameraZXingPackage implements ReactPackage {\n',
+    );
+
+    if (text !== original) {
+      await writeFile(packageFile, text, 'utf8');
+    }
+  }
+
+  const bitmapUtilsFile =
+    'node_modules/vision-camera-zxing/android/src/main/java/com/visioncamerazxing/BitmapUtils.java';
+  if (existsSync(bitmapUtilsFile)) {
+    await writeFile(
+      bitmapUtilsFile,
+      `package com.visioncamerazxing;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+
+public class BitmapUtils {
+  public static Bitmap base642Bitmap(String base64) {
+    byte[] decode = Base64.decode(base64, Base64.DEFAULT);
+    return BitmapFactory.decodeByteArray(decode, 0, decode.length);
+  }
+}
+`,
+      'utf8',
+    );
+  }
+
+  const frameProcessorFile =
+    'node_modules/vision-camera-zxing/android/src/main/java/com/visioncamerazxing/ZXingFrameProcessorPlugin.java';
+  if (existsSync(frameProcessorFile)) {
+    await writeFile(
+      frameProcessorFile,
+      `package com.visioncamerazxing;
+
+final class ZXingFrameProcessorPlugin {}
+`,
+      'utf8',
+    );
+  }
+
+  const sourceIndexFile = 'node_modules/vision-camera-zxing/src/index.tsx';
+  if (existsSync(sourceIndexFile)) {
+    await writeFile(
+      sourceIndexFile,
+      `import { NativeModules, Platform } from 'react-native';
+
+const LINKING_ERROR =
+  \`The package 'vision-camera-zxing' doesn't seem to be linked. Make sure: \\n\\n\` +
+  Platform.select({ ios: "- You have run 'pod install'\\n", default: '' }) +
+  '- You rebuilt the app after installing the package\\n' +
+  '- You are not using Expo Go\\n';
+
+const VisionCameraZXing = NativeModules.VisionCameraZXing
+  ? NativeModules.VisionCameraZXing
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
+export function decodeBase64(base64: string, config?: ScanConfig): Promise<Result[]> {
+  return VisionCameraZXing.decodeBase64(base64, config);
+}
+
+export interface ScanConfig {
+  multiple?: boolean;
+}
+
+export interface Result {
+  barcodeText: string;
+  barcodeFormat: string;
+  barcodeBytesBase64: string;
+  points: { x: number; y: number }[];
+}
+`,
+      'utf8',
+    );
+  }
+
+  const commonJsFile = 'node_modules/vision-camera-zxing/lib/commonjs/index.js';
+  if (existsSync(commonJsFile)) {
+    await writeFile(
+      commonJsFile,
+      `"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.decodeBase64 = decodeBase64;
+var _reactNative = require("react-native");
+const LINKING_ERROR = \`The package 'vision-camera-zxing' doesn't seem to be linked. Make sure: \\n\\n\` + _reactNative.Platform.select({
+  ios: "- You have run 'pod install'\\n",
+  default: ''
+}) + '- You rebuilt the app after installing the package\\n' + '- You are not using Expo Go\\n';
+const VisionCameraZXing = _reactNative.NativeModules.VisionCameraZXing ? _reactNative.NativeModules.VisionCameraZXing : new Proxy({}, {
+  get() {
+    throw new Error(LINKING_ERROR);
+  }
+});
+
+function decodeBase64(base64, config) {
+  return VisionCameraZXing.decodeBase64(base64, config);
+}
+//# sourceMappingURL=index.js.map
+`,
+      'utf8',
+    );
+  }
+
+  const moduleJsFile = 'node_modules/vision-camera-zxing/lib/module/index.js';
+  if (existsSync(moduleJsFile)) {
+    await writeFile(
+      moduleJsFile,
+      `"use strict";
+
+import { NativeModules, Platform } from 'react-native';
+const LINKING_ERROR = \`The package 'vision-camera-zxing' doesn't seem to be linked. Make sure: \\n\\n\` + Platform.select({
+  ios: "- You have run 'pod install'\\n",
+  default: ''
+}) + '- You rebuilt the app after installing the package\\n' + '- You are not using Expo Go\\n';
+const VisionCameraZXing = NativeModules.VisionCameraZXing ? NativeModules.VisionCameraZXing : new Proxy({}, {
+  get() {
+    throw new Error(LINKING_ERROR);
+  }
+});
+
+export function decodeBase64(base64, config) {
+  return VisionCameraZXing.decodeBase64(base64, config);
+}
+//# sourceMappingURL=index.js.map
+`,
+      'utf8',
+    );
+  }
+
+  const typesFile =
+    'node_modules/vision-camera-zxing/lib/typescript/src/index.d.ts';
+  if (existsSync(typesFile)) {
+    await writeFile(
+      typesFile,
+      `export declare function decodeBase64(base64: string, config?: ScanConfig): Promise<Result[]>;
+export interface ScanConfig {
+    multiple?: boolean;
+}
+export interface Result {
+    barcodeText: string;
+    barcodeFormat: string;
+    barcodeBytesBase64: string;
+    points: {
+        x: number;
+        y: number;
+    }[];
+}
+//# sourceMappingURL=index.d.ts.map
+`,
+      'utf8',
+    );
+  }
+
+  const iosSwiftFile =
+    'node_modules/vision-camera-zxing/ios/ZXingFrameProcessorPlugin.swift';
+  if (existsSync(iosSwiftFile)) {
+    await writeFile(
+      iosSwiftFile,
+      `import Foundation
+
+@objc(ZXingFrameProcessorPlugin)
+public final class ZXingFrameProcessorPlugin: NSObject {}
+`,
+      'utf8',
+    );
+  }
+
+  const iosObjcFile =
+    'node_modules/vision-camera-zxing/ios/ZXingFrameProcessorPlugin.m';
+  if (existsSync(iosObjcFile)) {
+    await writeFile(iosObjcFile, '#import <Foundation/Foundation.h>\n', 'utf8');
+  }
+
+  const iosBridgeFile =
+    'node_modules/vision-camera-zxing/ios/VisionCameraZXing-Bridging-Header.h';
+  if (existsSync(iosBridgeFile)) {
+    await writeFile(
+      iosBridgeFile,
+      '#import <React/RCTBridgeModule.h>\n',
+      'utf8',
+    );
+  }
+}
+
 await patchDraggableFlatList();
 await patchExpoAv();
+await patchVisionCameraZxing();

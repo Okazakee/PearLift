@@ -1,1 +1,1 @@
-Fix: pin react-native-worklets to 0.8.1 and remove packageManager metadata for Yarn 1 compatibility.
+Fix: standardize release builds on Bun and keep F-Droid-friendly native dependencies.

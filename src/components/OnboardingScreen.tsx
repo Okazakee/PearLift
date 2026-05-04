@@ -1,4 +1,3 @@
-import * as Notifications from 'expo-notifications';
 import { Activity, Bell, Sliders } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MOTION } from '../animation/motion';
 import { AnimatedPressable } from '../animation/primitives';
+import { requestNotificationPermission } from '../native/localNotifications';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { WeightUnit } from '../types';
@@ -69,7 +69,7 @@ export function OnboardingScreen({
     if (isLastPage) {
       if (!requesting) {
         setRequesting(true);
-        await Notifications.requestPermissionsAsync();
+        await requestNotificationPermission();
       }
       return;
     }

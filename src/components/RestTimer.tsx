@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Notifications from 'expo-notifications';
 import {
   Minus,
   Pause,
@@ -39,6 +38,10 @@ import {
   RING_STROKE,
   STEP,
 } from '../config/timer';
+import {
+  cancelRestTimerNotification,
+  scheduleRestTimerCompletionNotification,
+} from '../native/localNotifications';
 import {
   RestTimerForegroundService,
   type RestTimerNotificationText,
@@ -198,7 +201,7 @@ export function RestTimer({
     // Invalidate any in-flight schedule() calls.
     scheduleTokenRef.current += 1;
     try {
-      await Notifications.cancelScheduledNotificationAsync(id);
+      await cancelRestTimerNotification(id);
     } catch {
       // ignore
     } finally {
@@ -214,21 +217,15 @@ export function RestTimer({
       // the scheduled notification to avoid double alerts.
       const token = scheduleTokenRef.current;
       try {
-        const id = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: t('restTimer.notification.title'),
-            body: t('restTimer.notification.body'),
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: new Date(targetEndAtMs),
-            channelId: Platform.OS === 'android' ? 'rest-timer-v2' : undefined,
-          },
-        });
+        const id = await scheduleRestTimerCompletionNotification(
+          t('restTimer.notification.title'),
+          t('restTimer.notification.body'),
+          targetEndAtMs,
+        );
         if (scheduleTokenRef.current !== token) {
           // State changed (pause/reset/complete) while scheduling; cancel the stray notification.
           try {
-            await Notifications.cancelScheduledNotificationAsync(id);
+            await cancelRestTimerNotification(id);
           } catch {
             // ignore
           }
