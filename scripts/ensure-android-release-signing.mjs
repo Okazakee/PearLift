@@ -5,23 +5,13 @@ import { resolve } from 'node:path';
 const projectRoot = resolve(import.meta.dirname, '..');
 const gradlePath = resolve(projectRoot, 'android/app/build.gradle');
 
-const importSnippet = `import java.util.Properties
-
-def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
-def keystoreProperties = new Properties()
-def keystorePropertiesFile = rootProject.file("keystore.properties")
-
-if (keystorePropertiesFile.exists()) {
-    keystorePropertiesFile.withInputStream { stream ->
-        keystoreProperties.load(stream)
-    }
-}
+const importSnippet = `def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 `;
 
-const signingSnippet = `def releaseStoreFile = findProperty('PEARLIFT_UPLOAD_STORE_FILE') ?: keystoreProperties.getProperty('PEARLIFT_UPLOAD_STORE_FILE') ?: System.getenv('PEARLIFT_UPLOAD_STORE_FILE')
-def releaseStorePassword = findProperty('PEARLIFT_UPLOAD_STORE_PASSWORD') ?: keystoreProperties.getProperty('PEARLIFT_UPLOAD_STORE_PASSWORD') ?: System.getenv('PEARLIFT_UPLOAD_STORE_PASSWORD')
-def releaseKeyAlias = findProperty('PEARLIFT_UPLOAD_KEY_ALIAS') ?: keystoreProperties.getProperty('PEARLIFT_UPLOAD_KEY_ALIAS') ?: System.getenv('PEARLIFT_UPLOAD_KEY_ALIAS')
-def releaseKeyPassword = findProperty('PEARLIFT_UPLOAD_KEY_PASSWORD') ?: keystoreProperties.getProperty('PEARLIFT_UPLOAD_KEY_PASSWORD') ?: System.getenv('PEARLIFT_UPLOAD_KEY_PASSWORD')
+const signingSnippet = `def releaseStoreFile = findProperty('PEARLIFT_UPLOAD_STORE_FILE') ?: System.getenv('PEARLIFT_UPLOAD_STORE_FILE')
+def releaseStorePassword = findProperty('PEARLIFT_UPLOAD_STORE_PASSWORD') ?: System.getenv('PEARLIFT_UPLOAD_STORE_PASSWORD')
+def releaseKeyAlias = findProperty('PEARLIFT_UPLOAD_KEY_ALIAS') ?: System.getenv('PEARLIFT_UPLOAD_KEY_ALIAS')
+def releaseKeyPassword = findProperty('PEARLIFT_UPLOAD_KEY_PASSWORD') ?: System.getenv('PEARLIFT_UPLOAD_KEY_PASSWORD')
 def hasReleaseSigning = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword
 `;
 
@@ -39,7 +29,16 @@ async function main() {
   let text = await readFile(gradlePath, 'utf8');
   const original = text;
 
-  if (!text.includes('import java.util.Properties')) {
+  if (text.includes('import java.util.Properties')) {
+    text = text.replace(
+      /import java\.util\.Properties\s+def projectRoot = rootDir\.getAbsoluteFile\(\)\.getParentFile\(\)\.getAbsolutePath\(\)\s+def keystoreProperties = new Properties\(\)\s+def keystorePropertiesFile = rootProject\.file\("keystore\.properties"\)\s+if \(keystorePropertiesFile\.exists\(\)\) \{\s+keystorePropertiesFile\.withInputStream \{ stream ->\s+keystoreProperties\.load\(stream\)\s+\}\s+\}\s+/m,
+      `${importSnippet}\n`,
+    );
+  } else if (
+    !text.includes(
+      'def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()',
+    )
+  ) {
     text = text.replace(
       'apply plugin: "com.facebook.react"\n\ndef projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()\n',
       `apply plugin: "com.facebook.react"\n\n${importSnippet}`,
@@ -54,6 +53,11 @@ async function main() {
     text = text.replace(
       "def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBuilds') ?: false).toBoolean()\n",
       `def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBuilds') ?: false).toBoolean()\n\n${signingSnippet}\n`,
+    );
+  } else {
+    text = text.replace(
+      /def releaseStoreFile = findProperty\('PEARLIFT_UPLOAD_STORE_FILE'\) \?: .*?\ndef releaseStorePassword = findProperty\('PEARLIFT_UPLOAD_STORE_PASSWORD'\) \?: .*?\ndef releaseKeyAlias = findProperty\('PEARLIFT_UPLOAD_KEY_ALIAS'\) \?: .*?\ndef releaseKeyPassword = findProperty\('PEARLIFT_UPLOAD_KEY_PASSWORD'\) \?: .*?\ndef hasReleaseSigning = releaseStoreFile && releaseStorePassword && releaseKeyAlias && releaseKeyPassword\n/s,
+      `${signingSnippet}\n`,
     );
   }
 

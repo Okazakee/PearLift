@@ -23,6 +23,25 @@ Nothing reaches F-Droid users until you do all of these on purpose:
 
 ## Release flow
 
+### 0. Configure the Play upload key locally
+
+For local signed release builds, provide the real Play upload key via environment variables.
+
+Recommended: keep these in `.env.local`:
+
+```bash
+PEARLIFT_UPLOAD_STORE_FILE=/absolute/path/to/your-play-upload-key.jks
+PEARLIFT_UPLOAD_STORE_PASSWORD=...
+PEARLIFT_UPLOAD_KEY_ALIAS=...
+PEARLIFT_UPLOAD_KEY_PASSWORD=...
+```
+
+Notes:
+
+- PearLift does not generate or manage a separate repo-local production keystore anymore.
+- F-Droid does not use your local signing key.
+- Local release APK/AAB builds should use the actual Play upload key, supplied from secure local storage.
+
 ### 1. Bump the version
 
 Run:
@@ -56,6 +75,8 @@ Outputs:
 
 - APK: `android/app/build/outputs/apk/release/app-release.apk`
 - AAB: `android/app/build/outputs/bundle/release/app-release.aab`
+
+If signing variables are missing, the Android release scripts will fail early.
 
 ### 3. Prepare the separate F-Droid repo
 

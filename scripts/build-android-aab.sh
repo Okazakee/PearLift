@@ -9,7 +9,6 @@ DEFAULT_ABIS="armeabi-v7a,arm64-v8a,x86,x86_64"
 RELEASE_ABIS="${PEARLIFT_RELEASE_ABIS:-${DEFAULT_ABIS}}"
 PREBUILD_CLEAN="${PEARLIFT_PREBUILD_CLEAN:-1}"
 ENV_FILE="${ROOT_DIR}/.env.local"
-KEYSTORE_PROPS_FILE="${ANDROID_DIR}/keystore.properties"
 
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
@@ -34,26 +33,10 @@ if [[ "${PREBUILD_CLEAN}" != "0" ]]; then
   fi
 fi
 
-if [[ ! -f "${KEYSTORE_PROPS_FILE}" ]]; then
-  if [[ -n "${PEARLIFT_UPLOAD_STORE_FILE:-}" && -n "${PEARLIFT_UPLOAD_STORE_PASSWORD:-}" && -n "${PEARLIFT_UPLOAD_KEY_ALIAS:-}" && -n "${PEARLIFT_UPLOAD_KEY_PASSWORD:-}" ]]; then
-    cat > "${KEYSTORE_PROPS_FILE}" <<EOF
-PEARLIFT_UPLOAD_STORE_FILE=${PEARLIFT_UPLOAD_STORE_FILE}
-PEARLIFT_UPLOAD_STORE_PASSWORD=${PEARLIFT_UPLOAD_STORE_PASSWORD}
-PEARLIFT_UPLOAD_KEY_ALIAS=${PEARLIFT_UPLOAD_KEY_ALIAS}
-PEARLIFT_UPLOAD_KEY_PASSWORD=${PEARLIFT_UPLOAD_KEY_PASSWORD}
-EOF
-  fi
-fi
-
-if [[ ! -f "${KEYSTORE_PROPS_FILE}" ]]; then
-  echo "Missing android/keystore.properties and no signing values were loaded." >&2
-  echo "Run: bun run android:keygen" >&2
-  exit 1
-fi
-
 if [[ -z "${PEARLIFT_UPLOAD_STORE_FILE:-}" || -z "${PEARLIFT_UPLOAD_STORE_PASSWORD:-}" || -z "${PEARLIFT_UPLOAD_KEY_ALIAS:-}" || -z "${PEARLIFT_UPLOAD_KEY_PASSWORD:-}" ]]; then
-  echo "Signing variables were not loaded correctly." >&2
-  echo "Check android/keystore.properties or .env.local." >&2
+  echo "Missing Android release signing variables." >&2
+  echo "Set PEARLIFT_UPLOAD_STORE_FILE, PEARLIFT_UPLOAD_STORE_PASSWORD, PEARLIFT_UPLOAD_KEY_ALIAS, and PEARLIFT_UPLOAD_KEY_PASSWORD." >&2
+  echo "You can keep them in .env.local if you want local convenience." >&2
   exit 1
 fi
 
