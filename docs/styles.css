@@ -285,8 +285,29 @@ h3 {
 
 .hero-card {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
   padding: 1.15rem;
+}
+
+.hero-card-head {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.2rem;
+  margin-bottom: 0.9rem;
+}
+
+.hero-card-head span {
+  color: var(--brand);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-card-head strong {
+  font-size: 1rem;
+  letter-spacing: -0.03em;
 }
 
 .hero-card::before {
@@ -300,6 +321,7 @@ h3 {
       rgba(61, 214, 140, 0.14),
       transparent 34%
     );
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -375,6 +397,8 @@ h3 {
   display: flex;
   justify-content: stretch;
   width: 100%;
+  position: relative;
+  z-index: 1;
 }
 
 .hero-shot img {
@@ -385,28 +409,6 @@ h3 {
   border-radius: 26px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 22px 55px rgba(0, 0, 0, 0.32);
-}
-
-.hero-caption {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.hero-caption strong {
-  display: block;
-  color: var(--brand);
-  font-size: 0.98rem;
-}
-
-.hero-caption span {
-  display: block;
-  margin-top: 0.42rem;
-  color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
 }
 
 .screens-grid {
@@ -655,11 +657,6 @@ h3 {
   .hero-shot img {
     width: 100%;
     border-radius: 22px;
-  }
-
-  .hero-caption {
-    margin-top: 0.85rem;
-    padding: 0.9rem;
   }
 
   h1 {
