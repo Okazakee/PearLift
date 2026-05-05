@@ -93,10 +93,17 @@ This updates:
 It syncs:
 
 - `versionName`
-- `versionCode`
+- F-Droid split `versionCode`s
 - `commit`
 - `CurrentVersion`
 - `CurrentVersionCode`
+
+PearLift uses ABI split APKs on F-Droid. The app's base `versionCode` stays in
+`app.json` and `fdroid-version.txt`; the F-Droid metadata derives APK-specific
+codes from it:
+
+- `armeabi-v7a`: `baseVersionCode * 100 + 1`
+- `arm64-v8a`: `baseVersionCode * 100 + 2`
 
 It does not commit or push anything.
 

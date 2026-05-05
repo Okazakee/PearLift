@@ -44,6 +44,32 @@ function parseFdroidVersionFile(content) {
   };
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function replaceBuildForOutput(content, outputFile, build) {
+  const blocks = content.match(
+    /^ {2}- versionName:[\s\S]*?(?=\n\n {2}- versionName:|\n\nAutoUpdateMode:)/gm,
+  );
+  const buildBlock = blocks?.find((block) =>
+    new RegExp(`^ {4}output: ${escapeRegExp(outputFile)}$`, 'm').test(block),
+  );
+  if (!buildBlock) {
+    throw new Error(`Could not find ${build.abi} build in ${metadataPath}`);
+  }
+
+  const nextBuild = buildBlock
+    .replace(
+      /^ {2}- versionName: .*$/m,
+      `  - versionName: ${build.versionName}`,
+    )
+    .replace(/^ {4}versionCode: \d+$/m, `    versionCode: ${build.versionCode}`)
+    .replace(/^ {4}commit: [0-9a-f]{40}$/m, `    commit: ${build.commitSha}`);
+
+  return content.replace(buildBlock, nextBuild);
+}
+
 const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
 const appJson = JSON.parse(await readFile(appJsonPath, 'utf8'));
 const fdroidVersion = parseFdroidVersionFile(
@@ -75,26 +101,31 @@ const { stdout: commitStdout } = await execFile('git', ['rev-parse', 'HEAD'], {
   cwd: repoRoot,
 });
 const commitSha = commitStdout.trim();
+const fdroidBuilds = [
+  {
+    abi: 'armeabi-v7a',
+    outputFile:
+      'android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk',
+    versionCode: versionCode * 100 + 1,
+    versionName,
+    commitSha,
+  },
+  {
+    abi: 'arm64-v8a',
+    outputFile:
+      'android/app/build/outputs/apk/release/app-arm64-v8a-release.apk',
+    versionCode: versionCode * 100 + 2,
+    versionName,
+    commitSha,
+  },
+];
 
 let nextMetadata = metadata;
-nextMetadata = replaceRequired(
-  nextMetadata,
-  /^ {2}- versionName: .*$/m,
-  `  - versionName: ${versionName}`,
-  'Builds[0].versionName',
-);
-nextMetadata = replaceRequired(
-  nextMetadata,
-  /^ {4}versionCode: \d+$/m,
-  `    versionCode: ${versionCode}`,
-  'Builds[0].versionCode',
-);
-nextMetadata = replaceRequired(
-  nextMetadata,
-  /^ {4}commit: [0-9a-f]{40}$/m,
-  `    commit: ${commitSha}`,
-  'Builds[0].commit',
-);
+
+for (const build of fdroidBuilds) {
+  nextMetadata = replaceBuildForOutput(nextMetadata, build.outputFile, build);
+}
+
 nextMetadata = replaceRequired(
   nextMetadata,
   /^CurrentVersion: .*$/m,
@@ -104,7 +135,7 @@ nextMetadata = replaceRequired(
 nextMetadata = replaceRequired(
   nextMetadata,
   /^CurrentVersionCode: \d+$/m,
-  `CurrentVersionCode: ${versionCode}`,
+  `CurrentVersionCode: ${fdroidBuilds.at(-1).versionCode}`,
   'CurrentVersionCode',
 );
 
@@ -112,7 +143,10 @@ await writeFile(metadataPath, nextMetadata, 'utf8');
 
 console.log(`Updated ${metadataPath}`);
 console.log(`- versionName: ${versionName}`);
-console.log(`- versionCode: ${versionCode}`);
+console.log(`- base versionCode: ${versionCode}`);
+for (const build of fdroidBuilds) {
+  console.log(`- ${build.abi} versionCode: ${build.versionCode}`);
+}
 console.log(`- commit: ${commitSha}`);
 console.log('');
 console.log('Next steps:');
