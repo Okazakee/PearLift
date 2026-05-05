@@ -47,7 +47,7 @@
             "minSdkVersion": 29,
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,
-            "extraProguardRules": "-dontwarn expo.modules.core.interfaces.services.KeepAwakeManager"
+            "extraProguardRules": "-keep class com.margelo.nitro.camera.** { *; }\n-keep class com.margelo.nitro.image.** { *; }\n-keep class com.margelo.nitro.core.** { *; }\n-keep class com.margelo.nitro.NitroModules { *; }\n-dontwarn expo.modules.core.interfaces.services.KeepAwakeManager"
           }
         }
       ],
