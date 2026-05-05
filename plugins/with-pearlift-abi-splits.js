@@ -28,18 +28,24 @@ function upsert(contents) {
     `    // Opt-in via: -PpearliftAbiSplits=true\n` +
     `    def pearliftAbiSplits = (project.findProperty("pearliftAbiSplits") ?: "false").toString().toBoolean()\n` +
     `    if (pearliftAbiSplits) {\n` +
+    `        def requestedAbi = (project.findProperty("pearliftFdroidAbi") ?: "").toString()\n` +
+    `        def enabledAbis = requestedAbi ? [requestedAbi] : ["armeabi-v7a", "arm64-v8a"]\n` +
+    `        def abiCodes = ["armeabi-v7a": 1, "arm64-v8a": 2]\n` +
+    `        if (!enabledAbis.every { abiCodes.containsKey(it) }) {\n` +
+    `            throw new GradleException("Unsupported pearliftFdroidAbi: " + requestedAbi)\n` +
+    `        }\n` +
+    `\n` +
     `        splits {\n` +
     `            abi {\n` +
     `                enable true\n` +
     `                reset()\n` +
-    `                include "armeabi-v7a", "arm64-v8a"\n` +
+    `                include enabledAbis as String[]\n` +
     `                universalApk false\n` +
     `            }\n` +
     `        }\n` +
     `\n` +
     `        // F-Droid expects distinct versionCodes per ABI output.\n` +
     `        // Scheme: baseVersionCode*100 + abiCode\n` +
-    `        def abiCodes = ["armeabi-v7a": 1, "arm64-v8a": 2]\n` +
     `        applicationVariants.all { variant ->\n` +
     `            variant.outputs.each { output ->\n` +
     `                def abi = output.getFilter(com.android.build.OutputFile.ABI)\n` +
