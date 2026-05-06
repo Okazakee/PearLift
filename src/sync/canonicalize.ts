@@ -5,14 +5,6 @@ export function canonicalizeMutationForSync(
   mutation: WorkoutMutation,
   snapshot: WorkoutStoreSnapshot | null,
 ): SyncMutation | null {
-  if (
-    mutation.type === 'resetWorkoutData' ||
-    mutation.type === 'resetAllData' ||
-    mutation.type === 'restoreRuntimeState'
-  ) {
-    return null;
-  }
-
   if (mutation.type === 'adjustExerciseWeight') {
     const value = snapshot?.userWeights[mutation.exerciseId] ?? 0;
     return {
@@ -22,5 +14,16 @@ export function canonicalizeMutationForSync(
     };
   }
 
-  return mutation;
+  switch (mutation.type) {
+    case 'setExerciseWeight':
+    case 'addExercise':
+    case 'editExercise':
+    case 'deleteExercise':
+    case 'reorderExercises':
+    case 'replaceWeekConfigs':
+    case 'replaceDayConfigs':
+      return mutation;
+    default:
+      return null;
+  }
 }

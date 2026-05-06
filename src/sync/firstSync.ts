@@ -1,4 +1,10 @@
 import type { PearLiftRuntimeState } from '../backup/types';
+import {
+  buildInitialWeights,
+  defaultDayConfigs,
+  defaultWeekConfigs,
+  defaultWorkouts,
+} from '../data/workouts';
 import type {
   SyncConflictSummary,
   SyncDataSummary,
@@ -6,6 +12,7 @@ import type {
 import type { WorkoutMutation, WorkoutStoreSnapshot } from '../storage/types';
 
 export type FirstSyncResolutionResult =
+  | { kind: 'already_in_sync'; summary: SyncDataSummary }
   | { kind: 'auto_import_remote'; remoteSummary: SyncDataSummary }
   | { kind: 'auto_publish_local'; localSummary: SyncDataSummary }
   | {
@@ -21,16 +28,74 @@ export type FirstSyncResolutionResult =
       conflictSummary: SyncConflictSummary;
     };
 
-function fingerprintSettings(runtime: PearLiftRuntimeState) {
-  return JSON.stringify({
-    currentWeek: runtime.currentWeek,
-    currentDay: runtime.currentDay,
-    restDuration: runtime.restDuration,
-    themeMode: runtime.themeMode,
-    weightUnit: runtime.weightUnit,
-    language: runtime.language,
+function stableStringify(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableStringify).join(',')}]`;
+  }
+  if (value && typeof value === 'object') {
+    const object = value as Record<string, unknown>;
+    return `{${Object.keys(object)
+      .sort()
+      .map((key) => `${JSON.stringify(key)}:${stableStringify(object[key])}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function buildFingerprints<T extends string | number>(
+  ids: T[],
+  getValue: (id: T) => unknown,
+) {
+  const fingerprints: Record<string, string> = {};
+  for (const id of ids) {
+    fingerprints[String(id)] = stableStringify(getValue(id));
+  }
+  return fingerprints;
+}
+
+function buildRuntimeFingerprint(runtime: PearLiftRuntimeState) {
+  const workouts = runtime.workouts.map((workout) => ({
+    id: workout.id,
+    name: workout.name,
+    description: workout.description,
+    exercises: [...workout.exercises]
+      .sort((a, b) => a.position - b.position)
+      .map((exercise) => ({
+        id: exercise.id,
+        name: exercise.name,
+        sets: exercise.sets,
+        reps: exercise.reps,
+        baseWeight: exercise.baseWeight,
+        muscleGroup: exercise.muscleGroup,
+        notes: exercise.notes,
+        position: exercise.position,
+        weight: runtime.userWeights[exercise.id] ?? exercise.baseWeight ?? 0,
+      })),
+  }));
+
+  return stableStringify({
+    workouts,
+    weekConfigs: runtime.weekConfigs,
+    dayConfigs: runtime.dayConfigs,
   });
 }
+
+function buildDefaultRuntime(): PearLiftRuntimeState {
+  return {
+    workouts: defaultWorkouts,
+    userWeights: buildInitialWeights(defaultWorkouts),
+    weekConfigs: defaultWeekConfigs,
+    dayConfigs: defaultDayConfigs,
+    currentWeek: 1,
+    currentDay: defaultDayConfigs[0]?.id ?? 'push',
+    restDuration: 150,
+    themeMode: 'system',
+    weightUnit: 'kg',
+    language: 'system',
+  };
+}
+
+const DEFAULT_SYNC_FINGERPRINT = buildRuntimeFingerprint(buildDefaultRuntime());
 
 export function summarizeRuntime(
   runtime: PearLiftRuntimeState | WorkoutStoreSnapshot,
@@ -39,23 +104,57 @@ export function summarizeRuntime(
   const exerciseIds = runtime.workouts.flatMap((workout) =>
     workout.exercises.map((exercise) => exercise.id),
   );
+  const workoutsById = new Map(
+    runtime.workouts.map((workout) => [workout.id, workout]),
+  );
+  const exercisesById = new Map(
+    runtime.workouts.flatMap((workout) =>
+      workout.exercises.map((exercise) => [exercise.id, exercise] as const),
+    ),
+  );
+  const weekConfigsById = new Map(
+    runtime.weekConfigs.map((week) => [week.id, week]),
+  );
+  const dayConfigsById = new Map(runtime.dayConfigs.map((day) => [day.id, day]));
+  const weightIds = Object.keys(runtime.userWeights).sort();
+  const syncFingerprint = buildRuntimeFingerprint(runtime);
+
   return {
     workoutCount: runtime.workouts.length,
     workoutIds,
+    workoutFingerprints: buildFingerprints(workoutIds, (id) =>
+      workoutsById.get(id),
+    ),
     exerciseCount: exerciseIds.length,
     exerciseIds,
-    weightEntryCount: Object.keys(runtime.userWeights).length,
+    exerciseFingerprints: buildFingerprints(exerciseIds, (id) => ({
+      exercise: exercisesById.get(id),
+      weight: runtime.userWeights[id] ?? null,
+    })),
+    weightEntryCount: weightIds.length,
+    weightFingerprints: buildFingerprints(weightIds, (id) => runtime.userWeights[id]),
     weekConfigIds: runtime.weekConfigs.map((week) => week.id),
+    weekConfigFingerprints: buildFingerprints(
+      runtime.weekConfigs.map((week) => week.id),
+      (id) => weekConfigsById.get(id),
+    ),
     dayConfigIds: runtime.dayConfigs.map((day) => day.id),
-    settingsFingerprint: fingerprintSettings(runtime),
+    dayConfigFingerprints: buildFingerprints(
+      runtime.dayConfigs.map((day) => day.id),
+      (id) => dayConfigsById.get(id),
+    ),
+    settingsFingerprint: 'local-preferences-excluded',
+    syncFingerprint,
+    isDefaultRuntime: syncFingerprint === DEFAULT_SYNC_FINGERPRINT,
   };
 }
 
 export function isSummaryEmpty(summary: SyncDataSummary) {
   return (
-    summary.workoutCount === 0 &&
-    summary.exerciseCount === 0 &&
-    summary.weightEntryCount === 0
+    summary.isDefaultRuntime ||
+    (summary.workoutCount === 0 &&
+      summary.exerciseCount === 0 &&
+      summary.weightEntryCount === 0)
   );
 }
 
@@ -64,25 +163,42 @@ function intersection<T extends string | number>(a: T[], b: T[]) {
   return a.filter((item) => bSet.has(item));
 }
 
+function divergentIntersection<T extends string | number>(
+  ids: T[],
+  localFingerprints: Record<string, string>,
+  remoteFingerprints: Record<string, string>,
+) {
+  return ids.filter(
+    (id) => localFingerprints[String(id)] !== remoteFingerprints[String(id)],
+  );
+}
+
 export function buildConflictSummary(
   local: SyncDataSummary,
   remote: SyncDataSummary,
   remoteOpCount: number,
 ): SyncConflictSummary {
-  const overlappingWorkoutIds = intersection(local.workoutIds, remote.workoutIds);
-  const overlappingExerciseIds = intersection(
-    local.exerciseIds,
-    remote.exerciseIds,
+  const overlappingWorkoutIds = divergentIntersection(
+    intersection(local.workoutIds, remote.workoutIds),
+    local.workoutFingerprints,
+    remote.workoutFingerprints,
   );
-  const overlappingWeekConfigIds = intersection(
-    local.weekConfigIds,
-    remote.weekConfigIds,
+  const overlappingExerciseIds = divergentIntersection(
+    intersection(local.exerciseIds, remote.exerciseIds),
+    local.exerciseFingerprints,
+    remote.exerciseFingerprints,
   );
-  const overlappingDayConfigIds = intersection(
-    local.dayConfigIds,
-    remote.dayConfigIds,
+  const overlappingWeekConfigIds = divergentIntersection(
+    intersection(local.weekConfigIds, remote.weekConfigIds),
+    local.weekConfigFingerprints,
+    remote.weekConfigFingerprints,
   );
-  const settingsConflict = local.settingsFingerprint !== remote.settingsFingerprint;
+  const overlappingDayConfigIds = divergentIntersection(
+    intersection(local.dayConfigIds, remote.dayConfigIds),
+    local.dayConfigFingerprints,
+    remote.dayConfigFingerprints,
+  );
+  const settingsConflict = false;
   const requiresManualChoice =
     overlappingWorkoutIds.length > 0 ||
     overlappingExerciseIds.length > 0 ||
@@ -145,6 +261,12 @@ export function resolveFirstSync(
   }
 
   const remoteSummary = summarizeRuntime(remoteRuntime);
+  if (localSummary.syncFingerprint === remoteSummary.syncFingerprint) {
+    return {
+      kind: 'already_in_sync',
+      summary: localSummary,
+    };
+  }
   if (isSummaryEmpty(localSummary)) {
     return {
       kind: 'auto_import_remote',

@@ -1,5 +1,10 @@
 import * as Clipboard from 'expo-clipboard';
-import { ClipboardPaste, DoorOpen, KeyRound } from 'lucide-react-native';
+import {
+  ClipboardPaste,
+  DoorOpen,
+  KeyRound,
+  QrCode,
+} from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -20,7 +25,8 @@ interface SyncJoinRoomModalProps {
   topInset: number;
   bottomInset: number;
   localSummary: SyncDataSummary | null;
-  onJoinRoom: (masterKey: string) => Promise<void>;
+  onJoinRoom: (masterKey: string) => Promise<boolean>;
+  onScanRoomKey: () => void;
   onClose: () => void;
 }
 
@@ -31,6 +37,7 @@ export function SyncJoinRoomModal({
   bottomInset,
   localSummary,
   onJoinRoom,
+  onScanRoomKey,
   onClose,
 }: SyncJoinRoomModalProps) {
   const { t } = useTranslation();
@@ -80,13 +87,26 @@ export function SyncJoinRoomModal({
             placeholderTextColor={tokens.colors.textSecondary}
             style={styles.input}
           />
-          <AnimatedPressable
-            style={styles.outlineButton}
-            onPress={() => void Clipboard.getStringAsync().then(setKey)}
-          >
-            <ClipboardPaste size={15} color={tokens.colors.textPrimary} />
-            <Text style={styles.outlineButtonText}>{t('sync.join.paste')}</Text>
-          </AnimatedPressable>
+          <View style={styles.buttonRow}>
+            <AnimatedPressable
+              style={styles.outlineButton}
+              onPress={() => void Clipboard.getStringAsync().then(setKey)}
+            >
+              <ClipboardPaste size={15} color={tokens.colors.textPrimary} />
+              <Text style={styles.outlineButtonText}>
+                {t('sync.join.paste')}
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={styles.outlineButton}
+              onPress={onScanRoomKey}
+            >
+              <QrCode size={15} color={tokens.colors.textPrimary} />
+              <Text style={styles.outlineButtonText}>
+                {t('sync.join.scanQr')}
+              </Text>
+            </AnimatedPressable>
+          </View>
         </View>
 
         <AnimatedPressable
@@ -161,6 +181,7 @@ function createStyles(
       fontFamily: 'monospace',
     },
     outlineButton: {
+      flex: 1,
       minHeight: 42,
       borderRadius: tokens.radius.md,
       borderWidth: 1,
@@ -175,6 +196,10 @@ function createStyles(
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.label,
       fontWeight: '700',
+    },
+    buttonRow: {
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
     },
     primaryButton: {
       minHeight: 48,

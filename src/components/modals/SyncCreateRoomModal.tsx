@@ -15,9 +15,9 @@ interface SyncCreateRoomModalProps {
   tokens: ThemeTokens;
   topInset: number;
   bottomInset: number;
-  masterKey: string | null;
+  invitePayload: string | null;
+  isStarting: boolean;
   localSummary: SyncDataSummary | null;
-  onStartRoom: () => Promise<void>;
   onClose: () => void;
 }
 
@@ -26,9 +26,9 @@ export function SyncCreateRoomModal({
   tokens,
   topInset,
   bottomInset,
-  masterKey,
+  invitePayload,
+  isStarting,
   localSummary,
-  onStartRoom,
   onClose,
 }: SyncCreateRoomModalProps) {
   const { t } = useTranslation();
@@ -37,13 +37,15 @@ export function SyncCreateRoomModal({
     [tokens, topInset, bottomInset],
   );
   const [qrSvg, setQrSvg] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!open || !masterKey) return;
+    if (!open || !invitePayload) {
+      setQrSvg(null);
+      return;
+    }
     let cancelled = false;
     void (async () => {
-      const svg = await QRCode.toString(masterKey, {
+      const svg = await QRCode.toString(invitePayload, {
         type: 'svg',
         margin: 1,
         color: { dark: '#111113', light: '#ffffff' },
@@ -53,7 +55,7 @@ export function SyncCreateRoomModal({
     return () => {
       cancelled = true;
     };
-  }, [masterKey, open]);
+  }, [invitePayload, open]);
 
   return (
     <AnimatedScreenModal open={open} onClose={onClose}>
@@ -90,34 +92,29 @@ export function SyncCreateRoomModal({
             <View style={styles.qrWrap}>
               <SvgXml xml={qrSvg} width={180} height={180} />
             </View>
+          ) : isStarting ? (
+            <ActivityIndicator color={tokens.colors.primary} />
           ) : null}
-          <Text style={styles.keyText}>{masterKey ?? '—'}</Text>
-          <AnimatedPressable
-            style={styles.outlineButton}
-            onPress={() => void Clipboard.setStringAsync(masterKey ?? '')}
-          >
-            <Copy size={15} color={tokens.colors.textPrimary} />
-            <Text style={styles.outlineButtonText}>
-              {t('sync.create.copy')}
-            </Text>
-          </AnimatedPressable>
+          <Text style={invitePayload ? styles.keyText : styles.helperText}>
+            {invitePayload ??
+              t(
+                isStarting
+                  ? 'sync.create.inviteStarting'
+                  : 'sync.create.invitePending',
+              )}
+          </Text>
+          {invitePayload ? (
+            <AnimatedPressable
+              style={styles.outlineButton}
+              onPress={() => void Clipboard.setStringAsync(invitePayload)}
+            >
+              <Copy size={15} color={tokens.colors.textPrimary} />
+              <Text style={styles.outlineButtonText}>
+                {t('sync.create.copy')}
+              </Text>
+            </AnimatedPressable>
+          ) : null}
         </View>
-
-        <AnimatedPressable
-          style={styles.primaryButton}
-          onPress={() => {
-            setBusy(true);
-            void onStartRoom().finally(() => setBusy(false));
-          }}
-        >
-          {busy ? (
-            <ActivityIndicator color={tokens.colors.onPrimary} />
-          ) : (
-            <Text style={styles.primaryButtonText}>
-              {t('sync.create.startRoom')}
-            </Text>
-          )}
-        </AnimatedPressable>
       </View>
     </AnimatedScreenModal>
   );

@@ -13,6 +13,7 @@ import {
   defaultWorkouts,
 } from '../data/workouts';
 import { getSystemLanguage } from '../i18n/systemLanguage';
+import type { SyncDeviceProfile, SyncMutation } from '../sync/types';
 import type {
   DayConfig,
   Exercise,
@@ -36,6 +37,18 @@ import type {
 } from './types';
 
 const MAX_DAY_CONFIGS = 7;
+const WEEK_CONFIG_REVISION_SETTING = 'syncWeekConfigsRevisionAt';
+const DAY_CONFIG_REVISION_SETTING = 'syncDayConfigsRevisionAt';
+const DEVICE_DISPLAY_NAME_SETTING = 'syncDeviceDisplayName';
+const PENDING_LOCAL_MUTATIONS_SETTING = 'syncPendingLocalMutations';
+
+function toDeviceCode(deviceId: string) {
+  return deviceId.replace(/-/g, '').slice(-4).toUpperCase();
+}
+
+function buildDefaultDeviceName(deviceId: string) {
+  return `PearLift device ${toDeviceCode(deviceId)}`;
+}
 
 function cloneDefaultWorkouts() {
   return JSON.parse(JSON.stringify(defaultWorkouts)) as WorkoutSession[];
@@ -167,7 +180,9 @@ export const resolveLanguage = (stored: string | null | undefined): string => {
 function normalizeDayConfigs(
   workouts: WorkoutSession[],
   dayConfigs: DayConfig[],
+  options: { fallbackToDefault?: boolean } = {},
 ): DayConfig[] {
+  const fallbackToDefault = options.fallbackToDefault ?? true;
   const seen = new Set<string>();
   const merged: DayConfig[] = [];
 
@@ -189,7 +204,8 @@ function normalizeDayConfigs(
     });
   }
 
-  return merged.length > 0 ? merged : defaultDayConfigs;
+  if (merged.length > 0) return merged;
+  return fallbackToDefault ? defaultDayConfigs : [];
 }
 
 function alignWorkoutsToDays(
@@ -253,6 +269,15 @@ type AppSettingRow = {
   value: string;
 };
 
+type SyncDeviceRow = {
+  device_id: string;
+  device_code: string;
+  display_name: string;
+  writer_key: string | null;
+  last_seen: string;
+  is_hidden: number;
+};
+
 type SyncStateDbRow = {
   sync_enabled: number;
   device_id: string | null;
@@ -279,6 +304,19 @@ function parseJsonColumn<T>(value: string | null): T | null {
   } catch {
     return null;
   }
+}
+
+function isNewerRevision(
+  incomingRevision: string | null | undefined,
+  currentRevision: string | null | undefined,
+) {
+  if (!incomingRevision || !currentRevision) return true;
+  const incomingTime = Date.parse(incomingRevision);
+  const currentTime = Date.parse(currentRevision);
+  if (!Number.isFinite(incomingTime) || !Number.isFinite(currentTime)) {
+    return incomingRevision > currentRevision;
+  }
+  return incomingTime > currentTime;
 }
 
 export class WorkoutRepository {
@@ -569,7 +607,17 @@ export class WorkoutRepository {
             break;
           }
           case 'replaceWeekConfigs': {
-            const timestamp = nowIso();
+            const timestamp = ctx.createdAt ?? nowIso();
+            if (
+              ctx.origin === 'remote' &&
+              !(await this.shouldApplyConfigRevision(
+                db,
+                WEEK_CONFIG_REVISION_SETTING,
+                timestamp,
+              ))
+            ) {
+              break;
+            }
             await db.runAsync('DELETE FROM week_configs');
             for (const [index, week] of mutation.weekConfigs.entries()) {
               await db.runAsync(
@@ -583,16 +631,38 @@ export class WorkoutRepository {
                 timestamp,
               );
             }
+            await this.writeSetting(
+              db,
+              WEEK_CONFIG_REVISION_SETTING,
+              timestamp,
+              timestamp,
+            );
             break;
           }
           case 'replaceDayConfigs': {
             const runtime = await this.readRuntimeState(db);
-            const nextDayConfigs = normalizeDayConfigs([], mutation.dayConfigs);
+            const timestamp = ctx.createdAt ?? nowIso();
+            if (
+              ctx.origin === 'remote' &&
+              !(await this.shouldApplyConfigRevision(
+                db,
+                DAY_CONFIG_REVISION_SETTING,
+                timestamp,
+              ))
+            ) {
+              break;
+            }
+            const nextDayConfigs = normalizeDayConfigs(
+              [],
+              mutation.dayConfigs,
+              {
+                fallbackToDefault: ctx.origin !== 'remote',
+              },
+            );
             const alignedWorkouts = alignWorkoutsToDays(
               runtime.workouts,
               nextDayConfigs,
             );
-            const timestamp = nowIso();
 
             await db.runAsync('DELETE FROM day_configs');
             for (const [index, day] of nextDayConfigs.entries()) {
@@ -606,6 +676,12 @@ export class WorkoutRepository {
                 timestamp,
               );
             }
+            await this.writeSetting(
+              db,
+              DAY_CONFIG_REVISION_SETTING,
+              timestamp,
+              timestamp,
+            );
 
             for (const [index, workout] of alignedWorkouts.entries()) {
               await db.runAsync(
@@ -644,6 +720,20 @@ export class WorkoutRepository {
           }
           case 'restoreRuntimeState': {
             await this.replaceAllState(db, mutation.runtime);
+            if (ctx.origin === 'remote' && ctx.createdAt) {
+              await this.writeSetting(
+                db,
+                WEEK_CONFIG_REVISION_SETTING,
+                ctx.createdAt,
+                ctx.createdAt,
+              );
+              await this.writeSetting(
+                db,
+                DAY_CONFIG_REVISION_SETTING,
+                ctx.createdAt,
+                ctx.createdAt,
+              );
+            }
             await this.writeSetting(db, 'setupDone', 'true');
             break;
           }
@@ -703,6 +793,8 @@ export class WorkoutRepository {
     opId: string;
     deviceId: string;
     lamport: number;
+    displayName?: string | null;
+    writerKey?: string | null;
   }): Promise<void> {
     if (!meta.opId || !meta.deviceId) {
       throw new Error('markSyncOpApplied requires opId and deviceId.');
@@ -715,6 +807,14 @@ export class WorkoutRepository {
       const db = await getDatabase();
       await db.withTransactionAsync(async () => {
         await this.markSyncOpAppliedInDb(db, meta);
+        await this.upsertSyncDeviceInDb(db, {
+          deviceId: meta.deviceId,
+          displayName:
+            meta.displayName ?? buildDefaultDeviceName(meta.deviceId),
+          writerKey: meta.writerKey ?? null,
+          lastSeen: nowIso(),
+          isHidden: false,
+        });
         await this.writeSyncStatePatch(db, {
           lastSyncedAt: nowIso(),
           lastError: null,
@@ -726,12 +826,19 @@ export class WorkoutRepository {
   async getPairedDevices(): Promise<PairedDevice[]> {
     await this.initialize();
     const db = await getDatabase();
-    const rows = await db.getAllAsync<{ device_id: string; last_seen: string }>(
-      'SELECT device_id, MAX(applied_at) as last_seen FROM sync_applied_ops GROUP BY device_id ORDER BY last_seen DESC',
+    const rows = await db.getAllAsync<SyncDeviceRow>(
+      `SELECT device_id, device_code, display_name, writer_key, last_seen, is_hidden
+       FROM sync_devices
+       WHERE is_hidden = 0
+       ORDER BY last_seen DESC`,
     );
     return rows.map((row) => ({
       deviceId: row.device_id,
+      deviceCode: row.device_code,
+      displayName: row.display_name,
       lastSeen: row.last_seen,
+      writerKey: row.writer_key,
+      isHidden: row.is_hidden === 1,
     }));
   }
 
@@ -740,9 +847,90 @@ export class WorkoutRepository {
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
       await db.runAsync(
-        'DELETE FROM sync_applied_ops WHERE device_id = ?',
+        'UPDATE sync_devices SET is_hidden = 1 WHERE device_id = ?',
         deviceId,
       );
+    });
+  }
+
+  async renamePairedDevice(
+    deviceId: string,
+    displayName: string,
+  ): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.runAsync(
+        'UPDATE sync_devices SET display_name = ?, is_hidden = 0, updated_at = ? WHERE device_id = ?',
+        displayName.trim(),
+        nowIso(),
+        deviceId,
+      );
+    });
+  }
+
+  async getLocalDeviceDisplayName(): Promise<string> {
+    await this.initialize();
+    return this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      const state = await this.readSyncState(db);
+      const deviceId = state.deviceId ?? Crypto.randomUUID();
+      if (!state.deviceId) {
+        await this.writeSyncStatePatch(db, { deviceId });
+      }
+      const existing = await this.readSetting(db, DEVICE_DISPLAY_NAME_SETTING);
+      if (existing?.trim()) {
+        return existing.trim();
+      }
+      const fallback = buildDefaultDeviceName(deviceId);
+      await this.writeSetting(db, DEVICE_DISPLAY_NAME_SETTING, fallback);
+      return fallback;
+    });
+  }
+
+  async setLocalDeviceDisplayName(displayName: string): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.writeSetting(
+        db,
+        DEVICE_DISPLAY_NAME_SETTING,
+        displayName.trim(),
+      );
+    });
+  }
+
+  async queuePendingLocalSyncMutation(mutation: SyncMutation): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      const existing = await this.readSetting(
+        db,
+        PENDING_LOCAL_MUTATIONS_SETTING,
+      );
+      const parsed = this.parsePendingLocalMutations(existing);
+      parsed.push(mutation);
+      await this.writeSetting(
+        db,
+        PENDING_LOCAL_MUTATIONS_SETTING,
+        JSON.stringify(parsed),
+      );
+    });
+  }
+
+  async getPendingLocalSyncMutations(): Promise<SyncMutation[]> {
+    await this.initialize();
+    const db = await getDatabase();
+    return this.parsePendingLocalMutations(
+      await this.readSetting(db, PENDING_LOCAL_MUTATIONS_SETTING),
+    );
+  }
+
+  async clearPendingLocalSyncMutations(): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
     });
   }
 
@@ -752,7 +940,33 @@ export class WorkoutRepository {
       const db = await getDatabase();
       await db.withTransactionAsync(async () => {
         await db.runAsync('DELETE FROM sync_applied_ops');
+        await db.runAsync('DELETE FROM sync_devices');
+        await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
         await this.writeSyncStatePatch(db, {
+          autobaseBootstrapKey: null,
+          syncRole: null,
+          roomBindingState: 'unconfigured',
+          firstSyncResolution: 'unknown',
+          pendingLocalSummary: null,
+          pendingRemoteSummary: null,
+          pendingConflictSummary: null,
+          lastError: null,
+          lastSyncedAt: null,
+        });
+      });
+    });
+  }
+
+  async leaveSyncRoom(): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.withTransactionAsync(async () => {
+        await db.runAsync('DELETE FROM sync_applied_ops');
+        await db.runAsync('DELETE FROM sync_devices');
+        await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
+        await this.writeSyncStatePatch(db, {
+          syncEnabled: false,
           autobaseBootstrapKey: null,
           syncRole: null,
           roomBindingState: 'unconfigured',
@@ -778,12 +992,35 @@ export class WorkoutRepository {
 
       const deviceId = Crypto.randomUUID();
       await this.writeSyncStatePatch(db, { deviceId });
+      await this.writeSetting(
+        db,
+        DEVICE_DISPLAY_NAME_SETTING,
+        buildDefaultDeviceName(deviceId),
+      );
       return deviceId;
+    });
+  }
+
+  async upsertSyncedDevice(
+    profile: SyncDeviceProfile & { lastSeen?: string | null },
+  ) {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.upsertSyncDeviceInDb(db, {
+        deviceId: profile.deviceId,
+        displayName: profile.displayName,
+        writerKey: profile.writerKey ?? null,
+        lastSeen: profile.lastSeen ?? nowIso(),
+        isHidden: false,
+      });
     });
   }
 
   private async resetSyncState(db: SQLiteDatabase) {
     await db.runAsync('DELETE FROM sync_applied_ops');
+    await db.runAsync('DELETE FROM sync_devices');
+    await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
     await this.writeSyncStatePatch(db, {
       syncEnabled: false,
       deviceId: null,
@@ -937,6 +1174,7 @@ export class WorkoutRepository {
       runtime.weightUnit ?? 'kg',
       timestamp,
     );
+    await this.writeSetting(db, 'language', runtime.language, timestamp);
   }
 
   private async readRuntimeState(
@@ -1225,6 +1463,49 @@ export class WorkoutRepository {
     );
   }
 
+  private async upsertSyncDeviceInDb(
+    db: SQLiteDatabase,
+    input: {
+      deviceId: string;
+      displayName: string;
+      writerKey: string | null;
+      lastSeen: string;
+      isHidden: boolean;
+    },
+  ) {
+    const displayName =
+      input.displayName.trim() || buildDefaultDeviceName(input.deviceId);
+    await db.runAsync(
+      `INSERT INTO sync_devices (
+        device_id,
+        device_code,
+        display_name,
+        writer_key,
+        last_seen,
+        is_hidden,
+        updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(device_id) DO UPDATE SET
+        device_code = excluded.device_code,
+        display_name = CASE
+          WHEN sync_devices.is_hidden = 1 AND excluded.is_hidden = 0
+            THEN COALESCE(sync_devices.display_name, excluded.display_name)
+          ELSE excluded.display_name
+        END,
+        writer_key = COALESCE(excluded.writer_key, sync_devices.writer_key),
+        last_seen = excluded.last_seen,
+        is_hidden = excluded.is_hidden,
+        updated_at = excluded.updated_at`,
+      input.deviceId,
+      toDeviceCode(input.deviceId),
+      displayName,
+      input.writerKey,
+      input.lastSeen,
+      input.isHidden ? 1 : 0,
+      nowIso(),
+    );
+  }
+
   private async writeSetting(
     db: SQLiteDatabase,
     key: string,
@@ -1239,6 +1520,33 @@ export class WorkoutRepository {
       value,
       updatedAt,
     );
+  }
+
+  private async readSetting(db: SQLiteDatabase, key: string) {
+    const row = await db.getFirstAsync<{ value: string }>(
+      'SELECT value FROM app_settings WHERE key = ?',
+      key,
+    );
+    return row?.value ?? null;
+  }
+
+  private parsePendingLocalMutations(value: string | null): SyncMutation[] {
+    if (!value) return [];
+    try {
+      const parsed = JSON.parse(value) as unknown;
+      return Array.isArray(parsed) ? (parsed as SyncMutation[]) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private async shouldApplyConfigRevision(
+    db: SQLiteDatabase,
+    settingKey: string,
+    incomingRevision: string,
+  ) {
+    const currentRevision = await this.readSetting(db, settingKey);
+    return isNewerRevision(incomingRevision, currentRevision);
   }
 
   private async getExercisesForWorkout(db: SQLiteDatabase, workoutId: string) {

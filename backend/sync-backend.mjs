@@ -727,6 +727,17 @@ async function startSync(config) {
 
     await base.ready();
 
+    const openedAutobaseKey = b4a.toString(base.key, 'hex');
+    const requestedBootstrapKey =
+      typeof config.bootstrapKeyHex === 'string'
+        ? config.bootstrapKeyHex.toLowerCase()
+        : null;
+    if (requestedBootstrapKey && openedAutobaseKey !== requestedBootstrapKey) {
+      throw new Error(
+        `Opened Autobase key ${openedAutobaseKey} does not match requested bootstrap key ${requestedBootstrapKey}. Reset sync room storage before joining this room.`,
+      );
+    }
+
     const storedCursor = await loadCursor();
     sentViewLength = disableCursorOptimization
       ? 0
@@ -746,7 +757,8 @@ async function startSync(config) {
     logMajorEvent('autobase', 'ready', 'Autobase ready.', {
       viewLength: base.view.length,
       writable: !!base.writable,
-      autobaseKey: b4a.toString(base.key, 'hex'),
+      autobaseKey: openedAutobaseKey,
+      requestedBootstrapKey,
       localWriterKey: base.local?.key
         ? b4a.toString(base.local.key, 'hex')
         : null,
@@ -755,6 +767,8 @@ async function startSync(config) {
       hasBootstrapKey: !!config.bootstrapKeyHex,
       bootstrapKeyHexState: config.bootstrapKeyHex ? 'present' : 'absent',
       deviceId: config.deviceId,
+      role: config.role ?? null,
+      topicHex,
       storageRoot,
     });
 
@@ -1042,6 +1056,15 @@ rpc = new RPC(IPC, async (req) => {
         throw new Error('Sync base not started.');
       }
       await base.append(op, { optimistic: true });
+      logMajorEvent('publish', 'appended', 'Local sync op appended.', {
+        opId: op?.opId ?? null,
+        type:
+          op?.payload?.kind === 'mutation'
+            ? op.payload.mutation?.type
+            : op?.payload?.kind,
+        deviceId: op?.deviceId ?? null,
+        autobaseKey: base?.key ? b4a.toString(base.key, 'hex') : null,
+      });
       // Note: do NOT advance lastSyncedAt here — that reflects remote activity.
       safeReply(req, { ok: true });
       return;

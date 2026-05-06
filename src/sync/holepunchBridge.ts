@@ -1,5 +1,6 @@
 import RPC from 'bare-rpc';
 import { documentDirectory } from 'expo-file-system/legacy';
+import { deleteAsync } from 'expo-file-system/legacy';
 import { Worklet } from 'react-native-bare-kit';
 import type { SyncLogEntry } from './logger';
 import { logSyncError, logSyncEvent } from './logger';
@@ -77,6 +78,14 @@ export class HolepunchWorkletBridge implements SyncBridge {
       throw new Error('expo-file-system documentDirectory is unavailable.');
     }
     return this.normalizeStoragePath(dir);
+  }
+
+  private getRoomStorageUri() {
+    const dir = documentDirectory;
+    if (!dir) {
+      throw new Error('expo-file-system documentDirectory is unavailable.');
+    }
+    return `${dir}pearlift-sync`;
   }
 
   private ensureRuntime() {
@@ -226,6 +235,15 @@ export class HolepunchWorkletBridge implements SyncBridge {
       this.worklet?.terminate();
       this.worklet = null;
       this.rpc = null;
+    }
+  }
+
+  async clearStorage(): Promise<void> {
+    await this.stop();
+    try {
+      await deleteAsync(this.getRoomStorageUri(), { idempotent: true });
+    } catch {
+      // Ignore missing or already-cleared room storage.
     }
   }
 

@@ -48,6 +48,7 @@ import { SyncDebugInfoModal } from '../components/modals/SyncDebugInfoModal';
 import { SyncFirstDecisionModal } from '../components/modals/SyncFirstDecisionModal';
 import { SyncJoinRoomModal } from '../components/modals/SyncJoinRoomModal';
 import { SyncManagementModal } from '../components/modals/SyncManagementModal';
+import { SyncRoomKeyScanModal } from '../components/modals/SyncRoomKeyScanModal';
 import { Navigation } from '../components/Navigation';
 import { OnboardingScreen } from '../components/OnboardingScreen';
 import { RestTimer } from '../components/RestTimer';
@@ -57,6 +58,8 @@ import { defaultDayConfigs } from '../data/workouts';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
+import { summarizeRuntime } from '../sync/firstSync';
+import { decodeSyncRoomInvite, encodeSyncRoomInvite } from '../sync/roomInvite';
 import {
   getPairingSecretPayload,
   setPairingSecretPayload,
@@ -82,8 +85,11 @@ export function WorkoutScreen() {
   const [shareToDeviceOpen, setShareToDeviceOpen] = useState(false);
   const [scanFromDeviceOpen, setScanFromDeviceOpen] = useState(false);
   const [syncMasterKey, setSyncMasterKey] = useState<string | null>(null);
+  const [syncRoomInvite, setSyncRoomInvite] = useState<string | null>(null);
+  const [createRoomStarting, setCreateRoomStarting] = useState(false);
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
+  const [joinRoomScanOpen, setJoinRoomScanOpen] = useState(false);
 
   const {
     snapshot,
@@ -92,6 +98,7 @@ export function WorkoutScreen() {
     syncState,
     syncHealth,
     pairedDevices,
+    localDeviceDisplayName,
     syncLogs,
     applyMutation,
     reload,
@@ -102,6 +109,8 @@ export function WorkoutScreen() {
     stopSync,
     resolveFirstSyncChoice,
     forgetPairedDevice,
+    renameLocalDevice,
+    leaveSyncRoom,
     promptConfig,
     closePrompt,
     showPrompt,
@@ -267,28 +276,7 @@ export function WorkoutScreen() {
 
   const localSyncSummary = useMemo(() => {
     if (!snapshot) return null;
-    return {
-      workoutCount: snapshot.workouts.length,
-      workoutIds: snapshot.workouts.map((workout) => workout.id),
-      exerciseCount: snapshot.workouts.reduce(
-        (total, workout) => total + workout.exercises.length,
-        0,
-      ),
-      exerciseIds: snapshot.workouts.flatMap((workout) =>
-        workout.exercises.map((exercise) => exercise.id),
-      ),
-      weightEntryCount: Object.keys(snapshot.userWeights).length,
-      weekConfigIds: snapshot.weekConfigs.map((week) => week.id),
-      dayConfigIds: snapshot.dayConfigs.map((day) => day.id),
-      settingsFingerprint: [
-        snapshot.currentWeek,
-        snapshot.currentDay,
-        snapshot.restDuration,
-        snapshot.themeMode,
-        snapshot.weightUnit,
-        snapshot.language,
-      ].join(':'),
-    };
+    return summarizeRuntime(snapshot);
   }, [snapshot]);
 
   const getWeek = (weekId?: number) =>
@@ -677,7 +665,7 @@ export function WorkoutScreen() {
       setSyncMasterKey(existingKey);
 
       if (!role) {
-        setCreateRoomOpen(true);
+        await handleOpenCreateRoom();
         return;
       }
 
@@ -704,6 +692,7 @@ export function WorkoutScreen() {
     }
     await repository.clearSyncPeerHistory();
     await setPairingSecretPayload(normalized);
+    await repository.setSyncState({ autobaseBootstrapKey: null });
     setSyncMasterKey(normalized);
     await refreshSyncState();
     if (wasActive) {
@@ -728,13 +717,7 @@ export function WorkoutScreen() {
     }
   };
 
-  const handleOpenCreateRoom = async () => {
-    const key = syncMasterKey ?? (await getPairingSecretPayload());
-    setSyncMasterKey(key);
-    setCreateRoomOpen(true);
-  };
-
-  const handleStartCreatorRoom = async () => {
+  const startCreatorRoom = async (forcedKey?: string) => {
     if (!repository) {
       throw new Error('Sync storage is not ready yet.');
     }
@@ -744,7 +727,11 @@ export function WorkoutScreen() {
       await stopSync();
     }
 
-    const key = (syncMasterKey ?? (await getPairingSecretPayload()))
+    const key = (
+      forcedKey ??
+      syncMasterKey ??
+      (await getPairingSecretPayload())
+    )
       .trim()
       .toLowerCase();
     await repository.clearSyncPeerHistory();
@@ -752,28 +739,77 @@ export function WorkoutScreen() {
     setSyncMasterKey(key);
     await refreshSyncState();
     await startSync('creator', key);
-    setCreateRoomOpen(false);
+    const nextSyncState = await repository.getSyncState();
+    if (!nextSyncState.autobaseBootstrapKey) {
+      throw new Error('Sync room bootstrap key was not created.');
+    }
+    setSyncRoomInvite(
+      encodeSyncRoomInvite({
+        pairingSecretHex: key,
+        bootstrapKeyHex: nextSyncState.autobaseBootstrapKey,
+      }),
+    );
     setJoinRoomOpen(false);
   };
 
-  const handleJoinRoom = async (nextKey: string) => {
-    if (!repository) {
-      throw new Error('Sync storage is not ready yet.');
+  const handleOpenCreateRoom = async () => {
+    const key = syncMasterKey ?? (await getPairingSecretPayload());
+    setSyncMasterKey(key);
+    setSyncRoomInvite(null);
+    setCreateRoomOpen(true);
+
+    if (syncState?.autobaseBootstrapKey) {
+      setSyncRoomInvite(
+        encodeSyncRoomInvite({
+          pairingSecretHex: key,
+          bootstrapKeyHex: syncState.autobaseBootstrapKey,
+        }),
+      );
+      return;
     }
 
-    const normalized = nextKey.trim().toLowerCase();
-    const wasActive = syncState?.syncEnabled ?? false;
-    if (wasActive) {
-      await stopSync();
+    setCreateRoomStarting(true);
+    try {
+      await startCreatorRoom(key);
+    } finally {
+      setCreateRoomStarting(false);
     }
+  };
 
-    await repository.clearSyncPeerHistory();
-    await setPairingSecretPayload(normalized);
-    setSyncMasterKey(normalized);
-    await refreshSyncState();
-    await startSync('joiner', normalized);
-    setJoinRoomOpen(false);
-    setCreateRoomOpen(false);
+  const handleJoinRoom = async (nextKey: string, showError = true) => {
+    try {
+      if (!repository) {
+        throw new Error('Sync storage is not ready yet.');
+      }
+
+      const invite = decodeSyncRoomInvite(nextKey);
+      const wasActive = syncState?.syncEnabled ?? false;
+      if (wasActive) {
+        await stopSync();
+      }
+
+      await repository.clearSyncPeerHistory();
+      await setPairingSecretPayload(invite.pairingSecretHex);
+      setSyncMasterKey(invite.pairingSecretHex);
+      await repository.setSyncState({
+        autobaseBootstrapKey: invite.bootstrapKeyHex,
+      });
+      await refreshSyncState();
+      await startSync(
+        'joiner',
+        invite.pairingSecretHex,
+        invite.bootstrapKeyHex,
+      );
+      setJoinRoomOpen(false);
+      setJoinRoomScanOpen(false);
+      setCreateRoomOpen(false);
+      return true;
+    } catch (error) {
+      if (showError) {
+        showPrompt(t('sync.join.invalidKey'), getErrorMessage(error));
+      }
+      return false;
+    }
   };
 
   const handleResolveFirstSyncDecision = async (
@@ -784,15 +820,32 @@ export function WorkoutScreen() {
 
   const handleForgetPairedDevice = async (deviceId: string) => {
     showPrompt(
-      t('settings.syncBackup.forgetConfirmTitle'),
-      t('settings.syncBackup.forgetConfirmMessage'),
+      t('sync.manage.removeDeviceConfirmTitle'),
+      t('sync.manage.removeDeviceConfirmMessage'),
       [
         { label: t('common.cancel'), tone: 'cancel' },
         {
-          label: t('settings.syncBackup.forgetDevice'),
+          label: t('sync.manage.removeDevice'),
           tone: 'destructive',
           onPress: () => {
             void forgetPairedDevice(deviceId);
+          },
+        },
+      ],
+    );
+  };
+
+  const handleLeaveSyncRoom = async () => {
+    showPrompt(
+      t('sync.manage.leaveRoomConfirmTitle'),
+      t('sync.manage.leaveRoomConfirmMessage'),
+      [
+        { label: t('common.cancel'), tone: 'cancel' },
+        {
+          label: t('sync.manage.leaveRoom'),
+          tone: 'destructive',
+          onPress: () => {
+            void leaveSyncRoom();
           },
         },
       ],
@@ -997,6 +1050,7 @@ export function WorkoutScreen() {
           syncState={syncState}
           syncHealth={syncHealth}
           pairedDevices={pairedDevices}
+          localDeviceDisplayName={localDeviceDisplayName}
           masterKey={syncMasterKey}
           onToggleSync={handleToggleSync}
           onOpenCreateRoom={() => {
@@ -1004,8 +1058,10 @@ export function WorkoutScreen() {
           }}
           onOpenJoinRoom={() => setJoinRoomOpen(true)}
           onApplyMasterKey={handleApplyMasterKey}
+          onRenameLocalDevice={renameLocalDevice}
           onCopyMasterKey={handleCopyMasterKey}
           onForgetDevice={handleForgetPairedDevice}
+          onLeaveRoom={handleLeaveSyncRoom}
           onOpenDebug={() => {
             setSyncDebugOpen(true);
           }}
@@ -1020,9 +1076,9 @@ export function WorkoutScreen() {
           tokens={tokens}
           topInset={insets.top}
           bottomInset={insets.bottom}
-          masterKey={syncMasterKey}
+          invitePayload={syncRoomInvite}
+          isStarting={createRoomStarting}
           localSummary={localSyncSummary}
-          onStartRoom={handleStartCreatorRoom}
           onClose={() => setCreateRoomOpen(false)}
         />
 
@@ -1033,11 +1089,24 @@ export function WorkoutScreen() {
           bottomInset={insets.bottom}
           localSummary={localSyncSummary}
           onJoinRoom={handleJoinRoom}
+          onScanRoomKey={() => setJoinRoomScanOpen(true)}
           onClose={() => setJoinRoomOpen(false)}
         />
 
+        <SyncRoomKeyScanModal
+          open={joinRoomScanOpen}
+          tokens={tokens}
+          topInset={insets.top}
+          bottomInset={insets.bottom}
+          onScanPayload={(payload) => handleJoinRoom(payload, false)}
+          onClose={() => setJoinRoomScanOpen(false)}
+        />
+
         <SyncFirstDecisionModal
-          open={syncState?.roomBindingState === 'conflict_requires_decision'}
+          open={
+            syncState?.roomBindingState === 'conflict_requires_decision' ||
+            syncState?.roomBindingState === 'active_conflict_requires_decision'
+          }
           tokens={tokens}
           topInset={insets.top}
           bottomInset={insets.bottom}

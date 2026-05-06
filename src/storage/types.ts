@@ -60,7 +60,8 @@ export type SyncRoomBindingState =
   | 'unconfigured'
   | 'pending_first_sync'
   | 'active'
-  | 'conflict_requires_decision';
+  | 'conflict_requires_decision'
+  | 'active_conflict_requires_decision';
 
 export type SyncFirstSyncResolution =
   | 'unknown'
@@ -73,12 +74,19 @@ export type SyncFirstSyncResolution =
 export interface SyncDataSummary {
   workoutCount: number;
   workoutIds: string[];
+  workoutFingerprints: Record<string, string>;
   exerciseCount: number;
   exerciseIds: string[];
+  exerciseFingerprints: Record<string, string>;
   weightEntryCount: number;
+  weightFingerprints: Record<string, string>;
   weekConfigIds: number[];
+  weekConfigFingerprints: Record<string, string>;
   dayConfigIds: string[];
+  dayConfigFingerprints: Record<string, string>;
   settingsFingerprint: string;
+  syncFingerprint: string;
+  isDefaultRuntime: boolean;
 }
 
 export interface SyncConflictSummary {
@@ -96,6 +104,7 @@ export interface MutationContext {
   opId?: string;
   deviceId?: string;
   lamport?: number;
+  createdAt?: string;
   suppressSyncEmit?: boolean;
 }
 
@@ -120,7 +129,11 @@ export interface SyncStateRow {
 
 export interface PairedDevice {
   deviceId: string;
+  deviceCode: string;
+  displayName: string;
   lastSeen: string;
+  writerKey: string | null;
+  isHidden: boolean;
 }
 
 export interface WorkoutStoreSnapshot extends PearLiftRuntimeState {

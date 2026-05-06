@@ -11,6 +11,7 @@ import { logError } from '../utils/errors';
 import { createSyncBridge } from './bridge';
 import { canonicalizeMutationForSync } from './canonicalize';
 import {
+  buildConflictSummary,
   mergeDisjointRuntime,
   resolveFirstSync,
   summarizeRuntime,
@@ -25,6 +26,7 @@ import {
 import type {
   FirstSyncState,
   SyncBridge,
+  SyncDeviceProfilePayload,
   SyncBridgeLogEntry,
   SyncHealth,
   SyncManager,
@@ -37,6 +39,8 @@ import { INITIAL_SYNC_HEALTH } from './types';
 const SYNC_SECRET_KEY = 'pearlift.sync.secret';
 const EMPTY_ROOM_TIMEOUT_MS = 6000;
 const PENDING_RESOLVE_DEBOUNCE_MS = 1000;
+const PUBLISH_DEBOUNCE_MS = 200;
+const RECONNECT_RECONCILE_MS = 1500;
 
 function nowIso() {
   return new Date().toISOString();
@@ -67,12 +71,28 @@ function toRuntime(snapshot: WorkoutStoreSnapshot | PearLiftRuntimeState) {
   } satisfies PearLiftRuntimeState;
 }
 
+function preserveLocalPreferences(
+  incoming: PearLiftRuntimeState,
+  local: PearLiftRuntimeState,
+): PearLiftRuntimeState {
+  return {
+    ...incoming,
+    currentWeek: local.currentWeek,
+    currentDay: local.currentDay,
+    restDuration: local.restDuration,
+    themeMode: local.themeMode,
+    weightUnit: local.weightUnit,
+    language: local.language,
+  };
+}
+
 function getOpPayload(
   op: SyncOpEnvelope,
 ):
   | { kind: 'presence' }
   | { kind: 'mutation'; mutation: SyncMutation }
-  | SyncSnapshotReplacePayload {
+  | SyncSnapshotReplacePayload
+  | SyncDeviceProfilePayload {
   if (op.payload) {
     return op.payload;
   }
@@ -113,10 +133,15 @@ class SyncManagerImpl implements SyncManager {
   private active = false;
   private deviceId: string | null = null;
   private currentRole: SyncRole | null = null;
+  private currentBootstrapKeyHex: string | null = null;
   private pendingLocalRuntime: PearLiftRuntimeState | null = null;
   private bufferedRemoteOps: SyncOpEnvelope[] = [];
+  private pendingReconnectLocalMutations: SyncMutation[] = [];
+  private pendingPublishQueue: SyncMutation[] = [];
   private emptyRoomTimer: ReturnType<typeof setTimeout> | null = null;
   private resolveTimer: ReturnType<typeof setTimeout> | null = null;
+  private publishTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private lastLoggedBackendError: string | null = null;
   private startTask: Promise<void> | null = null;
   private stopTask: Promise<void> | null = null;
@@ -177,8 +202,15 @@ class SyncManagerImpl implements SyncManager {
 
         this.deviceId = deviceId;
         this.currentRole = input.role;
+        this.currentBootstrapKeyHex =
+          input.bootstrapKeyHex ?? syncState.autobaseBootstrapKey ?? null;
         this.pendingLocalRuntime = localRuntime;
         this.bufferedRemoteOps = [];
+        this.pendingReconnectLocalMutations =
+          syncState.roomBindingState === 'active'
+            ? await this.repository.getPendingLocalSyncMutations()
+            : [];
+        this.clearPendingPublishes();
 
         this.clearBridgeSubscriptions();
         this.unsubscribeStatus = this.bridge.onStatus((health) => {
@@ -188,23 +220,42 @@ class SyncManagerImpl implements SyncManager {
           void this.handleRemoteOp(op);
         });
 
+        const requestedBootstrapKey =
+          input.bootstrapKeyHex ?? syncState.autobaseBootstrapKey ?? null;
+        logSyncEvent('info', 'manager', 'start_requested', 'Starting sync.', {
+          role: input.role,
+          requestedBootstrapKey,
+        });
+
         const started = await this.bridge.start({
           pairingSecretHex: secret,
           deviceId,
           role: input.role,
-          bootstrapKeyHex: input.bootstrapKeyHex ?? syncState.autobaseBootstrapKey,
+          bootstrapKeyHex: requestedBootstrapKey,
         });
+
+        if (
+          requestedBootstrapKey &&
+          started.bootstrapKeyHex &&
+          started.bootstrapKeyHex !== requestedBootstrapKey
+        ) {
+          throw new Error(
+            `Sync room mismatch: opened ${started.bootstrapKeyHex}, expected ${requestedBootstrapKey}.`,
+          );
+        }
 
         this.active = true;
         await this.repository.setSyncState({
           syncEnabled: true,
           syncRole: input.role,
           autobaseBootstrapKey:
-            input.bootstrapKeyHex ??
-            syncState.autobaseBootstrapKey ??
-            started.bootstrapKeyHex,
+            requestedBootstrapKey ?? started.bootstrapKeyHex,
           lastError: null,
         });
+
+        await this.publishDeviceProfile(
+          await this.repository.getLocalDeviceDisplayName(),
+        );
 
         if (input.role === 'creator') {
           await this.persistFirstSyncState({
@@ -235,6 +286,8 @@ class SyncManagerImpl implements SyncManager {
           this.scheduleEmptyRoomFallback();
         }
 
+        this.scheduleReconnectPublish();
+
         this.emitStateChanged();
       } catch (error) {
         this.active = false;
@@ -261,13 +314,18 @@ class SyncManagerImpl implements SyncManager {
     this.stopTask = (async () => {
       this.clearTimers();
       try {
+        await this.flushPendingPublishes().catch((error) => {
+          logSyncError('manager', 'publish_flush_before_stop_failed', error);
+        });
         await this.bridge.stop();
       } finally {
         this.clearBridgeSubscriptions();
         this.active = false;
         this.currentRole = null;
+        this.currentBootstrapKeyHex = null;
         this.pendingLocalRuntime = null;
         this.bufferedRemoteOps = [];
+        this.pendingReconnectLocalMutations = [];
         this.setHealth({
           ...INITIAL_SYNC_HEALTH,
           lastSyncedAt: this.health.lastSyncedAt,
@@ -285,11 +343,77 @@ class SyncManagerImpl implements SyncManager {
     mutation: WorkoutMutation,
     snapshot: WorkoutStoreSnapshot | null,
   ) {
-    if (!this.active || !this.deviceId) return;
+    if (!this.active || !this.deviceId) {
+      logSyncEvent(
+        'info',
+        'manager',
+        'publish_skipped_inactive',
+        'Skipping local sync publish while inactive.',
+        { type: mutation.type },
+      );
+      return;
+    }
 
     const canonical = canonicalizeMutationForSync(mutation, snapshot);
-    if (!canonical) return;
+    if (!canonical) {
+      logSyncEvent(
+        'info',
+        'manager',
+        'publish_skipped_unsyncable',
+        'Skipping unsyncable local mutation.',
+        { type: mutation.type },
+      );
+      return;
+    }
 
+    this.enqueuePublish(canonical);
+  }
+
+  private enqueuePublish(mutation: SyncMutation) {
+    if (!this.active || !this.deviceId) {
+      this.clearPendingPublishes();
+      return;
+    }
+
+    this.pendingPublishQueue = coalescePublishQueue(
+      this.pendingPublishQueue,
+      mutation,
+    );
+    logSyncEvent('info', 'manager', 'publish_queued', 'Sync op queued.', {
+      type: mutation.type,
+      queued: this.pendingPublishQueue.length,
+    });
+
+    this.clearPublishTimer();
+    this.publishTimer = setTimeout(() => {
+      void this.flushPendingPublishes().catch((error) => {
+        logSyncError('manager', 'publish_flush_failed', error);
+      });
+    }, PUBLISH_DEBOUNCE_MS);
+  }
+
+  private async flushPendingPublishes() {
+    this.clearPublishTimer();
+    if (!this.active || !this.deviceId) {
+      this.clearPendingPublishes();
+      return;
+    }
+
+    const queue = this.pendingPublishQueue;
+    this.pendingPublishQueue = [];
+    if (queue.length === 0) return;
+
+    logSyncEvent('info', 'manager', 'publish_flush', 'Flushing sync ops.', {
+      count: queue.length,
+    });
+
+    for (const mutation of queue) {
+      await this.publishMutationNow(mutation);
+    }
+  }
+
+  private async publishMutationNow(mutation: SyncMutation) {
+    if (!this.active || !this.deviceId) return;
     const lamport = await this.repository.nextLamport();
     await this.bridge.publish({
       schemaVersion: 1,
@@ -299,7 +423,7 @@ class SyncManagerImpl implements SyncManager {
       createdAt: nowIso(),
       payload: {
         kind: 'mutation',
-        mutation: canonical,
+        mutation,
       },
     });
   }
@@ -308,7 +432,12 @@ class SyncManagerImpl implements SyncManager {
     if (!this.deviceId) {
       this.deviceId = await this.repository.getOrCreateDeviceId();
     }
-    if (op.deviceId === this.deviceId) return;
+    if (op.deviceId === this.deviceId) {
+      logSyncEvent('info', 'manager', 'remote_skip_self', 'Skipping own op.', {
+        opId: op.opId,
+      });
+      return;
+    }
 
     const syncState = await this.repository.getSyncState();
     const payload = getOpPayload(op);
@@ -320,8 +449,43 @@ class SyncManagerImpl implements SyncManager {
       payload.kind !== 'presence'
     ) {
       this.bufferedRemoteOps.push(op);
+      logSyncEvent(
+        'info',
+        'manager',
+        'remote_buffered',
+        'Buffered remote op pending first-sync resolution.',
+        { opId: op.opId, kind: payload.kind },
+      );
       this.schedulePendingJoinResolution();
       return;
+    }
+
+    if (
+      syncState.roomBindingState === 'active_conflict_requires_decision' &&
+      payload.kind !== 'presence' &&
+      payload.kind !== 'device_profile'
+    ) {
+      this.bufferedRemoteOps.push(op);
+      logSyncEvent(
+        'info',
+        'manager',
+        'remote_buffered_active_conflict',
+        'Buffered remote op pending active-room conflict resolution.',
+        { opId: op.opId, kind: payload.kind },
+      );
+      return;
+    }
+
+    if (
+      syncState.roomBindingState === 'active' &&
+      this.pendingReconnectLocalMutations.length > 0 &&
+      payload.kind !== 'presence' &&
+      payload.kind !== 'device_profile'
+    ) {
+      const conflict = await this.tryEnterActiveConflict(op, payload);
+      if (conflict) {
+        return;
+      }
     }
 
     await this.applyRemoteOp(op);
@@ -333,6 +497,8 @@ class SyncManagerImpl implements SyncManager {
 
     if (choice === 'local') {
       await this.publishSnapshotReplace(localRuntime, 'local_chosen');
+      await this.repository.clearPendingLocalSyncMutations();
+      this.pendingReconnectLocalMutations = [];
       await this.persistFirstSyncState({
         roomBindingState: 'active',
         firstSyncResolution: 'local_chosen',
@@ -346,10 +512,42 @@ class SyncManagerImpl implements SyncManager {
     }
 
     await this.applyBufferedRemoteOps('remote_chosen');
+    await this.repository.clearPendingLocalSyncMutations();
+    this.pendingReconnectLocalMutations = [];
   }
 
   getHealth() {
     return this.health;
+  }
+
+  async publishDeviceProfile(displayName: string) {
+    if (!this.active || !this.deviceId) return;
+    const normalized = displayName.trim();
+    if (!normalized) return;
+    const lamport = await this.repository.nextLamport();
+    await this.bridge.publish({
+      schemaVersion: 1,
+      opId: createOpId(this.deviceId, lamport),
+      deviceId: this.deviceId,
+      lamport,
+      createdAt: nowIso(),
+      payload: {
+        kind: 'device_profile',
+        profile: {
+          deviceId: this.deviceId,
+          displayName: normalized,
+          writerKey: this.health.localWriterKey,
+        },
+      },
+    });
+  }
+
+  async leaveRoom() {
+    this.clearPendingPublishes();
+    await this.stop();
+    await this.bridge.clearStorage();
+    await this.repository.leaveSyncRoom();
+    this.emitStateChanged();
   }
 
   async getAllLogs(): Promise<SyncLogEntry[]> {
@@ -379,6 +577,31 @@ class SyncManagerImpl implements SyncManager {
     }, EMPTY_ROOM_TIMEOUT_MS);
   }
 
+  private scheduleReconnectPublish() {
+    this.clearReconnectTimer();
+    if (!this.active || this.pendingReconnectLocalMutations.length === 0) {
+      return;
+    }
+    this.reconnectTimer = setTimeout(() => {
+      void this.flushPendingReconnectLocalMutations().catch((error) => {
+        logSyncError('manager', 'reconnect_flush_failed', error);
+      });
+    }, RECONNECT_RECONCILE_MS);
+  }
+
+  private async flushPendingReconnectLocalMutations() {
+    this.clearReconnectTimer();
+    if (!this.active || this.pendingReconnectLocalMutations.length === 0) {
+      return;
+    }
+    const queue = [...this.pendingReconnectLocalMutations];
+    this.pendingReconnectLocalMutations = [];
+    for (const mutation of queue) {
+      await this.publishMutationNow(mutation);
+    }
+    await this.repository.clearPendingLocalSyncMutations();
+  }
+
   private async resolvePendingJoin(allowEmptyRoomPublish: boolean) {
     const localRuntime =
       this.pendingLocalRuntime ?? (await this.repository.getRuntimeState());
@@ -393,6 +616,20 @@ class SyncManagerImpl implements SyncManager {
 
     if (!remoteSnapshotPayload) {
       if (allowEmptyRoomPublish) {
+        if (this.currentRole === 'joiner' && this.currentBootstrapKeyHex) {
+          logSyncEvent(
+            'info',
+            'manager',
+            'join_waiting_for_snapshot',
+            'Explicit room join is still waiting for room data.',
+          );
+          await this.persistFirstSyncState({
+            roomBindingState: 'pending_first_sync',
+            pendingLocalSummary: summarizeRuntime(localRuntime),
+          });
+          this.emitStateChanged();
+          return;
+        }
         await this.publishSnapshotReplace(localRuntime, 'auto_publish_local');
         await this.persistFirstSyncState({
           roomBindingState: 'active',
@@ -422,6 +659,21 @@ class SyncManagerImpl implements SyncManager {
     );
 
     switch (resolution.kind) {
+      case 'already_in_sync':
+        if (remoteOpCount > 1) {
+          await this.applyBufferedRemoteOps('auto_import_remote');
+          return;
+        }
+        await this.persistFirstSyncState({
+          roomBindingState: 'active',
+          firstSyncResolution: 'auto_merge',
+          pendingLocalSummary: null,
+          pendingRemoteSummary: null,
+          pendingConflictSummary: null,
+        });
+        this.bufferedRemoteOps = [];
+        this.emitStateChanged();
+        return;
       case 'auto_import_remote':
         await this.applyBufferedRemoteOps('auto_import_remote');
         return;
@@ -471,6 +723,63 @@ class SyncManagerImpl implements SyncManager {
     }
   }
 
+  private async tryEnterActiveConflict(
+    op: SyncOpEnvelope,
+    payload: ReturnType<typeof getOpPayload>,
+  ) {
+    const localRuntime = await this.repository.getRuntimeState();
+    const hasConflict =
+      payload.kind === 'snapshot_replace'
+        ? buildConflictSummary(
+            summarizeRuntime(localRuntime),
+            payload.summary,
+            this.pendingReconnectLocalMutations.length,
+          ).requiresManualChoice
+        : payload.kind === 'mutation' &&
+          this.pendingReconnectLocalMutations.some((mutation) =>
+            mutationsConflict(mutation, payload.mutation),
+          );
+
+    if (!hasConflict) {
+      return false;
+    }
+
+    this.clearReconnectTimer();
+    this.bufferedRemoteOps.push(op);
+    const remoteRuntime =
+      payload.kind === 'snapshot_replace'
+        ? payload.runtime
+        : applyOpsToRuntimePreview(localRuntime, this.bufferedRemoteOps);
+    const localSummary = summarizeRuntime(localRuntime);
+    const remoteSummary = summarizeRuntime(remoteRuntime);
+    const conflictSummary = buildConflictSummary(
+      localSummary,
+      remoteSummary,
+      this.pendingReconnectLocalMutations.length + this.bufferedRemoteOps.length,
+    );
+
+    await this.persistFirstSyncState({
+      roomBindingState: 'active_conflict_requires_decision',
+      firstSyncResolution: 'unknown',
+      pendingLocalSummary: localSummary,
+      pendingRemoteSummary: remoteSummary,
+      pendingConflictSummary: conflictSummary,
+    });
+    logSyncEvent(
+      'warn',
+      'manager',
+      'active_conflict_requires_decision',
+      'Paused remote sync application due to conflicting offline edits.',
+      {
+        opId: op.opId,
+        pendingLocalCount: this.pendingReconnectLocalMutations.length,
+        bufferedRemoteCount: this.bufferedRemoteOps.length,
+      },
+    );
+    this.emitStateChanged();
+    return true;
+  }
+
   private async applyBufferedRemoteOps(
     resolution: Exclude<
       SyncFirstSyncResolution,
@@ -493,6 +802,11 @@ class SyncManagerImpl implements SyncManager {
 
   private async applyRemoteOp(op: SyncOpEnvelope) {
     const payload = getOpPayload(op);
+    logSyncEvent('info', 'manager', 'remote_apply', 'Applying remote op.', {
+      opId: op.opId,
+      kind: payload.kind,
+      type: payload.kind === 'mutation' ? payload.mutation.type : undefined,
+    });
 
     if (payload.kind === 'presence') {
       await this.repository.markSyncOpApplied({
@@ -509,11 +823,28 @@ class SyncManagerImpl implements SyncManager {
       return;
     }
 
+    if (payload.kind === 'device_profile') {
+      await this.repository.upsertSyncedDevice({
+        ...payload.profile,
+        lastSeen: nowIso(),
+      });
+      await this.repository.markSyncOpApplied({
+        opId: op.opId,
+        deviceId: op.deviceId,
+        lamport: op.lamport,
+        displayName: payload.profile.displayName,
+        writerKey: payload.profile.writerKey ?? null,
+      });
+      this.emitRemoteApplied();
+      return;
+    }
+
     if (payload.kind === 'snapshot_replace') {
+      const localRuntime = await this.repository.getRuntimeState();
       await this.repository.applyMutation(
         {
           type: 'restoreRuntimeState',
-          runtime: payload.runtime,
+          runtime: preserveLocalPreferences(payload.runtime, localRuntime),
           source: 'migration',
         },
         {
@@ -521,6 +852,7 @@ class SyncManagerImpl implements SyncManager {
           opId: op.opId,
           deviceId: op.deviceId,
           lamport: op.lamport,
+          createdAt: op.createdAt,
           suppressSyncEmit: true,
         },
       );
@@ -530,6 +862,7 @@ class SyncManagerImpl implements SyncManager {
         opId: op.opId,
         deviceId: op.deviceId,
         lamport: op.lamport,
+        createdAt: op.createdAt,
         suppressSyncEmit: true,
       });
     }
@@ -618,6 +951,25 @@ class SyncManagerImpl implements SyncManager {
   private clearTimers() {
     this.clearResolveTimer();
     this.clearEmptyRoomTimer();
+    this.clearPublishTimer();
+    this.clearReconnectTimer();
+  }
+
+  private clearPublishTimer() {
+    if (!this.publishTimer) return;
+    clearTimeout(this.publishTimer);
+    this.publishTimer = null;
+  }
+
+  private clearPendingPublishes() {
+    this.clearPublishTimer();
+    this.pendingPublishQueue = [];
+  }
+
+  private clearReconnectTimer() {
+    if (!this.reconnectTimer) return;
+    clearTimeout(this.reconnectTimer);
+    this.reconnectTimer = null;
   }
 
   private clearBridgeSubscriptions() {
@@ -625,6 +977,192 @@ class SyncManagerImpl implements SyncManager {
     this.unsubscribeRemoteOp?.();
     this.unsubscribeStatus = null;
     this.unsubscribeRemoteOp = null;
+  }
+}
+
+function coalescePublishQueue(
+  queue: SyncMutation[],
+  mutation: SyncMutation,
+): SyncMutation[] {
+  switch (mutation.type) {
+    case 'setExerciseWeight':
+      return [
+        ...queue.filter(
+          (item) =>
+            item.type !== 'setExerciseWeight' ||
+            item.exerciseId !== mutation.exerciseId,
+        ),
+        mutation,
+      ];
+    case 'reorderExercises':
+      return [
+        ...queue.filter(
+          (item) =>
+            item.type !== 'reorderExercises' ||
+            item.workoutId !== mutation.workoutId,
+        ),
+        mutation,
+      ];
+    case 'replaceWeekConfigs':
+      return [
+        ...queue.filter((item) => item.type !== 'replaceWeekConfigs'),
+        mutation,
+      ];
+    case 'replaceDayConfigs':
+      return [
+        ...queue.filter((item) => item.type !== 'replaceDayConfigs'),
+        mutation,
+      ];
+    default:
+      return [...queue, mutation];
+  }
+}
+
+function mutationsConflict(local: SyncMutation, remote: SyncMutation) {
+  if (
+    local.type === 'replaceWeekConfigs' &&
+    remote.type === 'replaceWeekConfigs'
+  ) {
+    return true;
+  }
+  if (
+    local.type === 'replaceDayConfigs' &&
+    remote.type === 'replaceDayConfigs'
+  ) {
+    return true;
+  }
+  if (
+    local.type === 'setExerciseWeight' &&
+    remote.type === 'setExerciseWeight' &&
+    local.exerciseId === remote.exerciseId
+  ) {
+    return true;
+  }
+  if (
+    local.type === 'editExercise' &&
+    remote.type === 'editExercise' &&
+    local.exerciseId === remote.exerciseId
+  ) {
+    return true;
+  }
+  if (
+    local.type === 'deleteExercise' &&
+    (remote.type === 'deleteExercise' ||
+      remote.type === 'editExercise' ||
+      remote.type === 'setExerciseWeight') &&
+    'exerciseId' in remote &&
+    local.exerciseId === remote.exerciseId
+  ) {
+    return true;
+  }
+  if (
+    remote.type === 'deleteExercise' &&
+    (local.type === 'editExercise' ||
+      local.type === 'setExerciseWeight' ||
+      local.type === 'deleteExercise') &&
+    local.exerciseId === remote.exerciseId
+  ) {
+    return true;
+  }
+  if (
+    local.type === 'reorderExercises' &&
+    (remote.type === 'reorderExercises' ||
+      remote.type === 'addExercise' ||
+      remote.type === 'deleteExercise') &&
+    remote.workoutId === local.workoutId
+  ) {
+    return true;
+  }
+  if (
+    remote.type === 'reorderExercises' &&
+    (local.type === 'reorderExercises' ||
+      local.type === 'addExercise' ||
+      local.type === 'deleteExercise') &&
+    local.workoutId === remote.workoutId
+  ) {
+    return true;
+  }
+  return false;
+}
+
+function cloneRuntime(runtime: PearLiftRuntimeState): PearLiftRuntimeState {
+  return JSON.parse(JSON.stringify(runtime)) as PearLiftRuntimeState;
+}
+
+function applyOpsToRuntimePreview(
+  runtime: PearLiftRuntimeState,
+  ops: SyncOpEnvelope[],
+) {
+  let next = cloneRuntime(runtime);
+  for (const op of ops) {
+    const payload = getOpPayload(op);
+    if (payload.kind === 'snapshot_replace') {
+      next = cloneRuntime(payload.runtime);
+      continue;
+    }
+    if (payload.kind !== 'mutation') {
+      continue;
+    }
+    next = applyMutationPreview(next, payload.mutation);
+  }
+  return next;
+}
+
+function applyMutationPreview(
+  runtime: PearLiftRuntimeState,
+  mutation: SyncMutation,
+): PearLiftRuntimeState {
+  const next = cloneRuntime(runtime);
+  switch (mutation.type) {
+    case 'setExerciseWeight':
+      next.userWeights[mutation.exerciseId] = mutation.value;
+      return next;
+    case 'addExercise': {
+      const workout = next.workouts.find((item) => item.id === mutation.workoutId);
+      if (!workout) return next;
+      workout.exercises.push({
+        id: `${mutation.workoutId}-${workout.exercises.length + 1}`,
+        ...mutation.exercise,
+        baseWeight: 0,
+        position: workout.exercises.length,
+      });
+      return next;
+    }
+    case 'editExercise': {
+      for (const workout of next.workouts) {
+        const exercise = workout.exercises.find(
+          (item) => item.id === mutation.exerciseId,
+        );
+        if (!exercise) continue;
+        Object.assign(exercise, mutation.updates);
+        return next;
+      }
+      return next;
+    }
+    case 'deleteExercise':
+      for (const workout of next.workouts) {
+        workout.exercises = workout.exercises
+          .filter((item) => item.id !== mutation.exerciseId)
+          .map((item, index) => ({ ...item, position: index }));
+      }
+      delete next.userWeights[mutation.exerciseId];
+      return next;
+    case 'reorderExercises': {
+      const workout = next.workouts.find((item) => item.id === mutation.workoutId);
+      if (!workout) return next;
+      const byId = new Map(workout.exercises.map((item) => [item.id, item]));
+      workout.exercises = mutation.orderedExerciseIds
+        .map((id) => byId.get(id))
+        .filter((item): item is NonNullable<typeof item> => !!item)
+        .map((item, index) => ({ ...item, position: index }));
+      return next;
+    }
+    case 'replaceWeekConfigs':
+      next.weekConfigs = mutation.weekConfigs;
+      return next;
+    case 'replaceDayConfigs':
+      next.dayConfigs = mutation.dayConfigs;
+      return next;
   }
 }
 

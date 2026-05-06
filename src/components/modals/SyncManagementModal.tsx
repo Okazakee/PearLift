@@ -31,13 +31,16 @@ interface SyncManagementModalProps {
   syncState: SyncStateRow | null;
   syncHealth: SyncHealth;
   pairedDevices: PairedDevice[];
+  localDeviceDisplayName: string;
   masterKey: string | null;
   onToggleSync: (nextEnabled: boolean) => Promise<void>;
   onOpenCreateRoom: () => void;
   onOpenJoinRoom: () => void;
   onApplyMasterKey: (nextKey: string) => Promise<void>;
+  onRenameLocalDevice: (displayName: string) => Promise<void>;
   onCopyMasterKey: () => Promise<void>;
   onForgetDevice: (deviceId: string) => Promise<void>;
+  onLeaveRoom: () => Promise<void>;
   onOpenDebug: () => void;
   onRefresh: () => Promise<void>;
   onClose: () => void;
@@ -58,13 +61,16 @@ export function SyncManagementModal({
   syncState,
   syncHealth,
   pairedDevices,
+  localDeviceDisplayName,
   masterKey,
   onToggleSync,
   onOpenCreateRoom,
   onOpenJoinRoom,
   onApplyMasterKey,
+  onRenameLocalDevice,
   onCopyMasterKey,
   onForgetDevice,
+  onLeaveRoom,
   onOpenDebug,
   onRefresh,
   onClose,
@@ -75,17 +81,21 @@ export function SyncManagementModal({
     [tokens, topInset, bottomInset],
   );
   const [draftKey, setDraftKey] = useState(masterKey ?? '');
+  const [draftDeviceName, setDraftDeviceName] = useState(
+    localDeviceDisplayName,
+  );
   const [busy, setBusy] = useState<
-    null | 'toggle' | 'key' | 'copy' | 'refresh'
+    null | 'toggle' | 'key' | 'copy' | 'refresh' | 'rename' | 'leave'
   >(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     setDraftKey(masterKey ?? '');
+    setDraftDeviceName(localDeviceDisplayName);
     setLocalError(null);
     setBusy(null);
-  }, [masterKey, open]);
+  }, [localDeviceDisplayName, masterKey, open]);
 
   const syncEnabled = syncState?.syncEnabled ?? false;
   const roomRole = syncState?.syncRole ?? null;
@@ -226,6 +236,42 @@ export function SyncManagementModal({
                 </>
               )}
             </AnimatedPressable>
+
+            {syncState?.deviceId ? (
+              <>
+                <Text style={styles.helperText}>
+                  {t('sync.manage.thisDeviceCode', {
+                    code: syncState.deviceId.slice(-4).toUpperCase(),
+                  })}
+                </Text>
+                <TextInput
+                  value={draftDeviceName}
+                  onChangeText={setDraftDeviceName}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  placeholder={t('sync.manage.deviceNamePlaceholder')}
+                  placeholderTextColor={tokens.colors.textSecondary}
+                  style={styles.keyInput}
+                />
+                <AnimatedPressable
+                  style={styles.outlineButton}
+                  onPress={() =>
+                    runBusy('rename', () =>
+                      onRenameLocalDevice(draftDeviceName),
+                    )
+                  }
+                >
+                  {busy === 'rename' ? (
+                    <ActivityIndicator color={tokens.colors.textPrimary} />
+                  ) : (
+                    <Text style={styles.outlineButtonText}>
+                      {t('sync.manage.saveDeviceName')}
+                    </Text>
+                  )}
+                </AnimatedPressable>
+              </>
+            ) : null}
           </View>
 
           <View style={styles.section}>
@@ -277,6 +323,18 @@ export function SyncManagementModal({
                 )}
               </AnimatedPressable>
             </View>
+            <AnimatedPressable
+              style={styles.leaveButton}
+              onPress={() => runBusy('leave', onLeaveRoom)}
+            >
+              {busy === 'leave' ? (
+                <ActivityIndicator color={tokens.colors.accentDanger} />
+              ) : (
+                <Text style={styles.leaveButtonText}>
+                  {t('sync.manage.leaveRoom')}
+                </Text>
+              )}
+            </AnimatedPressable>
           </View>
 
           <View style={styles.section}>
@@ -294,8 +352,9 @@ export function SyncManagementModal({
               pairedDevices.map((device) => (
                 <View key={device.deviceId} style={styles.deviceRow}>
                   <View style={styles.deviceMeta}>
+                    <Text style={styles.deviceName}>{device.displayName}</Text>
                     <Text style={styles.deviceId}>
-                      {device.deviceId.slice(0, 8)}…{device.deviceId.slice(-8)}
+                      {t('sync.manage.deviceCode', { code: device.deviceCode })}
                     </Text>
                     <Text style={styles.helperText}>
                       {t('sync.manage.lastSeen', {
@@ -514,8 +573,13 @@ function createStyles(
     deviceId: {
       color: tokens.colors.textPrimary,
       fontSize: 12,
-      fontWeight: '700',
+      fontWeight: '600',
       fontFamily: 'monospace',
+    },
+    deviceName: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
     },
     forgetButton: {
       width: 34,
@@ -524,6 +588,21 @@ function createStyles(
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: withAlpha(tokens.colors.accentDanger, 0.08),
+    },
+    leaveButton: {
+      minHeight: 42,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.accentDanger, 0.35),
+      backgroundColor: withAlpha(tokens.colors.accentDanger, 0.08),
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: tokens.spacing.md,
+    },
+    leaveButtonText: {
+      color: tokens.colors.accentDanger,
+      fontSize: tokens.type.label,
+      fontWeight: '800',
     },
     errorPanel: {
       borderRadius: tokens.radius.md,

@@ -10,12 +10,15 @@ import type { PearLiftRuntimeState } from '../backup/types';
 
 export const SYNC_OP_SCHEMA_VERSION = 1 as const;
 
-export type SyncMutation = Exclude<
+export type SyncMutation = Extract<
   WorkoutMutation,
-  | { type: 'adjustExerciseWeight' }
-  | { type: 'resetWorkoutData' }
-  | { type: 'resetAllData' }
-  | { type: 'restoreRuntimeState' }
+  | { type: 'setExerciseWeight' }
+  | { type: 'addExercise' }
+  | { type: 'editExercise' }
+  | { type: 'deleteExercise' }
+  | { type: 'reorderExercises' }
+  | { type: 'replaceWeekConfigs' }
+  | { type: 'replaceDayConfigs' }
 >;
 
 export interface SyncPresencePayload {
@@ -33,10 +36,22 @@ export interface SyncSnapshotReplacePayload {
   summary: SyncDataSummary;
 }
 
+export interface SyncDeviceProfile {
+  deviceId: string;
+  displayName: string;
+  writerKey?: string | null;
+}
+
+export interface SyncDeviceProfilePayload {
+  kind: 'device_profile';
+  profile: SyncDeviceProfile;
+}
+
 export type SyncPayload =
   | SyncMutationPayload
   | SyncPresencePayload
-  | SyncSnapshotReplacePayload;
+  | SyncSnapshotReplacePayload
+  | SyncDeviceProfilePayload;
 
 export interface SyncOpEnvelope {
   schemaVersion: typeof SYNC_OP_SCHEMA_VERSION;
@@ -108,6 +123,7 @@ export interface FirstSyncState {
     | 'pending_first_sync'
     | 'waiting_for_remote'
     | 'conflict_requires_decision'
+    | 'active_conflict_requires_decision'
     | 'active';
   localSummary: SyncDataSummary | null;
   remoteSummary: SyncDataSummary | null;
@@ -117,6 +133,7 @@ export interface FirstSyncState {
 export interface SyncBridge {
   start(input: StartSyncInput): Promise<{ bootstrapKeyHex: string }>;
   stop(): Promise<void>;
+  clearStorage(): Promise<void>;
   publish(op: SyncOpEnvelope): Promise<void>;
   onRemoteOp(cb: (op: SyncOpEnvelope) => void): () => void;
   onStatus(cb: (health: SyncHealth) => void): () => void;
@@ -150,6 +167,8 @@ export interface SyncManager {
   onRemoteApplied(cb: () => void): () => void;
   onStateChanged(cb: () => void): () => void;
   resolveFirstSyncChoice(choice: 'local' | 'remote'): Promise<void>;
+  publishDeviceProfile(displayName: string): Promise<void>;
+  leaveRoom(): Promise<void>;
   isActive(): boolean;
   getAllLogs(): Promise<SyncBridgeLogEntry[]>;
 }
@@ -167,9 +186,17 @@ export function isSyncableMutation(
 ): mutation is
   | SyncMutation
   | { type: 'adjustExerciseWeight'; exerciseId: string; delta: number } {
-  return (
-    mutation.type !== 'resetWorkoutData' &&
-    mutation.type !== 'resetAllData' &&
-    mutation.type !== 'restoreRuntimeState'
-  );
+  switch (mutation.type) {
+    case 'setExerciseWeight':
+    case 'adjustExerciseWeight':
+    case 'addExercise':
+    case 'editExercise':
+    case 'deleteExercise':
+    case 'reorderExercises':
+    case 'replaceWeekConfigs':
+    case 'replaceDayConfigs':
+      return true;
+    default:
+      return false;
+  }
 }

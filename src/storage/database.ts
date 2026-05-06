@@ -82,8 +82,21 @@ async function configureDatabase(db: SQLite.SQLiteDatabase) {
       applied_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS sync_devices (
+      device_id TEXT PRIMARY KEY NOT NULL,
+      device_code TEXT NOT NULL,
+      display_name TEXT NOT NULL,
+      writer_key TEXT,
+      last_seen TEXT NOT NULL,
+      is_hidden INTEGER NOT NULL DEFAULT 0,
+      updated_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sync_applied_ops_device_lamport
     ON sync_applied_ops(device_id, lamport);
+
+    CREATE INDEX IF NOT EXISTS idx_sync_devices_last_seen
+    ON sync_devices(last_seen DESC);
 
   `);
 

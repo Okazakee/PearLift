@@ -16,6 +16,7 @@ import type {
 } from '../storage/types';
 import type { WorkoutRepository } from '../storage/workoutRepository';
 import { WorkoutRepository as WorkoutRepoClass } from '../storage/workoutRepository';
+import { canonicalizeMutationForSync } from '../sync/canonicalize';
 import type { SyncLogEntry } from '../sync/logger';
 import { createSyncManager } from '../sync/syncManager';
 import {
@@ -40,6 +41,7 @@ interface WorkoutStore {
   syncState: SyncStateRow | null;
   syncHealth: SyncHealth;
   pairedDevices: PairedDevice[];
+  localDeviceDisplayName: string;
   syncLogs: SyncLogEntry[];
 
   promptConfig: PromptConfig | null;
@@ -64,9 +66,15 @@ interface WorkoutStore {
   applyMutation: (mutation: WorkoutMutation) => Promise<void>;
   refreshSyncState: () => Promise<void>;
   refreshSyncLogs: () => Promise<void>;
-  startSync: (role: SyncRole, pairingSecretHex?: string) => Promise<void>;
+  startSync: (
+    role: SyncRole,
+    pairingSecretHex?: string,
+    bootstrapKeyHex?: string | null,
+  ) => Promise<void>;
   stopSync: () => Promise<void>;
   forgetPairedDevice: (deviceId: string) => Promise<void>;
+  renameLocalDevice: (displayName: string) => Promise<void>;
+  leaveSyncRoom: () => Promise<void>;
   resolveFirstSyncChoice: (
     choice: Extract<SyncFirstSyncResolution, 'local_chosen' | 'remote_chosen'>,
   ) => Promise<void>;
@@ -101,6 +109,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   syncState: null,
   syncHealth: { ...INITIAL_SYNC_HEALTH },
   pairedDevices: [],
+  localDeviceDisplayName: '',
   syncLogs: [],
 
   promptConfig: null,
@@ -131,11 +140,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
 
     const repo = new WorkoutRepoClass();
     await repo.initialize();
-    const [snapshot, syncState, pairedDevices] = await Promise.all([
-      repo.getSnapshot(),
-      repo.getSyncState(),
-      repo.getPairedDevices(),
-    ]);
+    const [snapshot, syncState, pairedDevices, localDeviceDisplayName] =
+      await Promise.all([
+        repo.getSnapshot(),
+        repo.getSyncState(),
+        repo.getPairedDevices(),
+        repo.getLocalDeviceDisplayName(),
+      ]);
     const syncManager = createSyncManager(repo);
 
     syncManager.onHealth((health) => {
@@ -158,6 +169,7 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       syncState,
       syncHealth: syncManager.getHealth(),
       pairedDevices,
+      localDeviceDisplayName,
     });
 
     if (syncState.syncEnabled) {
@@ -224,6 +236,14 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           mutation,
           persistedSnapshot ?? get().snapshot,
         );
+      } else if (isSyncableMutation(mutation)) {
+        const canonical = canonicalizeMutationForSync(
+          mutation,
+          persistedSnapshot ?? get().snapshot,
+        );
+        if (canonical) {
+          await repository.queuePendingLocalSyncMutation(canonical);
+        }
       }
     } catch (error) {
       const snapshot = await repository.getSnapshot();
@@ -235,11 +255,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   refreshSyncState: async () => {
     const { repository } = get();
     if (!repository) return;
-    const [syncState, pairedDevices] = await Promise.all([
-      repository.getSyncState(),
-      repository.getPairedDevices(),
-    ]);
-    set({ syncState, pairedDevices });
+    const [syncState, pairedDevices, localDeviceDisplayName] =
+      await Promise.all([
+        repository.getSyncState(),
+        repository.getPairedDevices(),
+        repository.getLocalDeviceDisplayName(),
+      ]);
+    set({ syncState, pairedDevices, localDeviceDisplayName });
   },
 
   refreshSyncLogs: async () => {
@@ -252,12 +274,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     set({ syncLogs });
   },
 
-  startSync: async (role, pairingSecretHex) => {
+  startSync: async (role, pairingSecretHex, bootstrapKeyHex) => {
     const { syncManager, snapshot } = get();
     if (!syncManager) return;
     await syncManager.start({
       role,
       pairingSecretHex,
+      bootstrapKeyHex: bootstrapKeyHex ?? undefined,
       localSnapshot: snapshot,
     });
     await get().refreshSyncState();
@@ -277,6 +300,32 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     if (!repository) return;
     await repository.forgetDevice(deviceId);
     await get().refreshSyncState();
+  },
+
+  renameLocalDevice: async (displayName) => {
+    const { repository, syncManager } = get();
+    if (!repository) return;
+    const normalized = displayName.trim();
+    if (!normalized) {
+      throw new Error('Device name cannot be empty.');
+    }
+    await repository.setLocalDeviceDisplayName(normalized);
+    if (syncManager?.isActive()) {
+      await syncManager.publishDeviceProfile(normalized);
+    }
+    await get().refreshSyncState();
+  },
+
+  leaveSyncRoom: async () => {
+    const { syncManager, repository } = get();
+    if (!repository) return;
+    if (syncManager) {
+      await syncManager.leaveRoom();
+    } else {
+      await repository.leaveSyncRoom();
+    }
+    await get().refreshSyncState();
+    await get().refreshSyncLogs();
   },
 
   resolveFirstSyncChoice: async (choice) => {

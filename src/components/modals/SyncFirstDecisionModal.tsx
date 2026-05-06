@@ -1,7 +1,7 @@
 import { ArrowLeftRight, ArrowUpFromLine } from 'lucide-react-native';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
 import type { SyncConflictSummary, SyncDataSummary } from '../../storage/types';
 import type { ThemeTokens } from '../../theme/tokens';
@@ -38,6 +38,20 @@ export function SyncFirstDecisionModal({
     () => createStyles(tokens, topInset, bottomInset),
     [tokens, topInset, bottomInset],
   );
+  const [busyChoice, setBusyChoice] = useState<'local' | 'remote' | null>(null);
+
+  const runChoice = async (
+    choice: 'local' | 'remote',
+    action: () => Promise<void>,
+  ) => {
+    if (busyChoice) return;
+    setBusyChoice(choice);
+    try {
+      await action();
+    } finally {
+      setBusyChoice(null);
+    }
+  };
 
   return (
     <AnimatedScreenModal open={open} onClose={onClose}>
@@ -55,6 +69,9 @@ export function SyncFirstDecisionModal({
               exercises: localSummary?.exerciseCount ?? 0,
             })}
           </Text>
+          <Text style={styles.helperText}>
+            {t('sync.decision.useThisDeviceHint')}
+          </Text>
         </View>
 
         <View style={styles.section}>
@@ -64,6 +81,9 @@ export function SyncFirstDecisionModal({
               workouts: remoteSummary?.workoutCount ?? 0,
               exercises: remoteSummary?.exerciseCount ?? 0,
             })}
+          </Text>
+          <Text style={styles.helperText}>
+            {t('sync.decision.useRoomDataHint')}
           </Text>
         </View>
 
@@ -78,26 +98,45 @@ export function SyncFirstDecisionModal({
                 exercises: conflictSummary.overlappingExerciseIds.length,
               })}
             </Text>
+            <Text style={styles.helperText}>
+              {t('sync.decision.configConflictSummary', {
+                weeks: conflictSummary.overlappingWeekConfigIds.length,
+                days: conflictSummary.overlappingDayConfigIds.length,
+                backlog: conflictSummary.remoteOpCount,
+              })}
+            </Text>
           </View>
         ) : null}
 
         <AnimatedPressable
           style={styles.primaryButton}
-          onPress={() => void onChooseLocal()}
+          onPress={() => void runChoice('local', onChooseLocal)}
         >
-          <ArrowUpFromLine size={16} color={tokens.colors.onPrimary} />
-          <Text style={styles.primaryButtonText}>
-            {t('sync.decision.useThisDevice')}
-          </Text>
+          {busyChoice === 'local' ? (
+            <ActivityIndicator color={tokens.colors.onPrimary} />
+          ) : (
+            <>
+              <ArrowUpFromLine size={16} color={tokens.colors.onPrimary} />
+              <Text style={styles.primaryButtonText}>
+                {t('sync.decision.useThisDevice')}
+              </Text>
+            </>
+          )}
         </AnimatedPressable>
         <AnimatedPressable
           style={styles.outlineButton}
-          onPress={() => void onChooseRemote()}
+          onPress={() => void runChoice('remote', onChooseRemote)}
         >
-          <ArrowLeftRight size={16} color={tokens.colors.textPrimary} />
-          <Text style={styles.outlineButtonText}>
-            {t('sync.decision.useRoomData')}
-          </Text>
+          {busyChoice === 'remote' ? (
+            <ActivityIndicator color={tokens.colors.textPrimary} />
+          ) : (
+            <>
+              <ArrowLeftRight size={16} color={tokens.colors.textPrimary} />
+              <Text style={styles.outlineButtonText}>
+                {t('sync.decision.useRoomData')}
+              </Text>
+            </>
+          )}
         </AnimatedPressable>
       </View>
     </AnimatedScreenModal>
