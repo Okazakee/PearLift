@@ -339,9 +339,9 @@ export function SettingsModal({
           <Text style={styles.rowSubtitle}>
             {t('backup.localJson.description')}
           </Text>
-          <View style={styles.actionRow}>
+          <View style={styles.backupGrid}>
             <AnimatedPressable
-              style={[styles.outlineButton, styles.fullWidthButton]}
+              style={[styles.outlineButton, styles.backupButton]}
               onPress={onExportLocalBackup}
             >
               <Download size={15} color={tokens.colors.textSecondary} />
@@ -350,7 +350,7 @@ export function SettingsModal({
               </Text>
             </AnimatedPressable>
             <AnimatedPressable
-              style={[styles.outlineButton, styles.fullWidthButton]}
+              style={[styles.outlineButton, styles.backupButton]}
               onPress={onImportLocalBackup}
             >
               <Upload size={15} color={tokens.colors.textSecondary} />
@@ -358,10 +358,8 @@ export function SettingsModal({
                 {t('settings.localBackup.import')}
               </Text>
             </AnimatedPressable>
-          </View>
-          <View style={styles.actionRow}>
             <AnimatedPressable
-              style={[styles.outlineButton, styles.fullWidthButton]}
+              style={[styles.outlineButton, styles.backupButton]}
               onPress={onShareToDevice}
             >
               <Share2 size={15} color={tokens.colors.textSecondary} />
@@ -370,7 +368,7 @@ export function SettingsModal({
               </Text>
             </AnimatedPressable>
             <AnimatedPressable
-              style={[styles.outlineButton, styles.fullWidthButton]}
+              style={[styles.outlineButton, styles.backupButton]}
               onPress={onScanFromDevice}
             >
               <ScanLine size={15} color={tokens.colors.textSecondary} />
@@ -661,6 +659,16 @@ function createStyles(
     fullWidthButton: {
       width: '100%',
       minWidth: layout.isLandscape ? 220 : undefined,
+    },
+    backupGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.xs,
+    },
+    backupButton: {
+      width: '48%',
+      minHeight: 66,
     },
     resetButton: {
       marginTop: tokens.spacing.sm,
