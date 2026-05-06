@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { SyncLogEntry } from '../../sync/logger';
 import type { SyncHealth } from '../../sync/types';
 import type { ThemeTokens } from '../../theme/tokens';
@@ -38,9 +39,10 @@ export function SyncDebugInfoModal({
   onClose,
 }: SyncDebugInfoModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const [visibleCount, setVisibleCount] = useState(LOG_PAGE_SIZE);
   const [refreshing, setRefreshing] = useState(false);
@@ -62,7 +64,12 @@ export function SyncDebugInfoModal({
   };
 
   return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
+    <AnimatedScreenModal
+      open={open}
+      onClose={onClose}
+      presentation={layout.isTablet ? 'tablet-sheet' : 'fullscreen'}
+      maxWidth={layout.isLandscape ? 1040 : 820}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <View>
@@ -225,6 +232,7 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
@@ -269,10 +277,16 @@ function createStyles(
       padding: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.xxl,
       gap: tokens.spacing.sm,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isLandscape ? 980 : undefined,
     },
     headerContent: {
       gap: tokens.spacing.md,
       marginBottom: tokens.spacing.md,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isLandscape ? 980 : undefined,
     },
     section: {
       borderRadius: tokens.radius.lg,

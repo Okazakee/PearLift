@@ -22,9 +22,11 @@ import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '../../animation/primitives';
 import { dayIconMap, dayIconOptions } from '../../data/workouts';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import type { DayConfig, WeekConfig } from '../../types';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 interface ProgramSettingsModalProps {
@@ -80,6 +82,7 @@ export function ProgramSettingsModal({
   onDayConfigsChange,
   onPrompt,
 }: ProgramSettingsModalProps) {
+  const layout = useResponsiveLayout();
   const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
   const [draftWeeks, setDraftWeeks] = useState<WeekDraft[]>([]);
   const [draftDays, setDraftDays] = useState<DayConfig[]>([]);
@@ -93,8 +96,8 @@ export function ProgramSettingsModal({
 
   const { t } = useTranslation();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
 
   const createWeekUiKey = useCallback(() => {
@@ -522,153 +525,166 @@ export function ProgramSettingsModal({
     [renderDayItem],
   );
 
-  return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <AnimatedPressable style={styles.backButton} onPress={onClose}>
-            <ChevronLeft size={22} color={tokens.colors.textPrimary} />
-          </AnimatedPressable>
-          <Text style={styles.title}>{t('programSettings.title')}</Text>
-          <View style={styles.backButtonPlaceholder} />
-        </View>
+  const content = (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <AnimatedPressable style={styles.backButton} onPress={onClose}>
+          <ChevronLeft size={22} color={tokens.colors.textPrimary} />
+        </AnimatedPressable>
+        <Text style={styles.title}>{t('programSettings.title')}</Text>
+        <View style={styles.backButtonPlaceholder} />
+      </View>
 
-        <View style={styles.content}>
-          <View style={styles.listSection}>
-            <View style={styles.tabRow}>
-              <AnimatedPressable
+      <View style={styles.content}>
+        <View style={styles.listSection}>
+          <View style={styles.tabRow}>
+            <AnimatedPressable
+              style={[
+                styles.tabButton,
+                activeTab === 'weeks' && styles.tabActive,
+              ]}
+              onPress={() => setActiveTab('weeks')}
+            >
+              <Text
                 style={[
-                  styles.tabButton,
-                  activeTab === 'weeks' && styles.tabActive,
+                  styles.tabText,
+                  activeTab === 'weeks' && styles.tabTextActive,
                 ]}
-                onPress={() => setActiveTab('weeks')}
               >
-                <Text
-                  style={[
-                    styles.tabText,
-                    activeTab === 'weeks' && styles.tabTextActive,
-                  ]}
-                >
-                  {t('programSettings.tabs.weeks')}
-                </Text>
-              </AnimatedPressable>
-              <AnimatedPressable
+                {t('programSettings.tabs.weeks')}
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={[
+                styles.tabButton,
+                activeTab === 'days' && styles.tabActive,
+              ]}
+              onPress={() => setActiveTab('days')}
+            >
+              <Text
                 style={[
-                  styles.tabButton,
-                  activeTab === 'days' && styles.tabActive,
+                  styles.tabText,
+                  activeTab === 'days' && styles.tabTextActive,
                 ]}
-                onPress={() => setActiveTab('days')}
               >
-                <Text
-                  style={[
-                    styles.tabText,
-                    activeTab === 'days' && styles.tabTextActive,
-                  ]}
-                >
-                  {t('programSettings.tabs.days')}
-                </Text>
-              </AnimatedPressable>
+                {t('programSettings.tabs.days')}
+              </Text>
+            </AnimatedPressable>
+          </View>
+
+          <View style={styles.listWrap}>
+            <View
+              style={[
+                styles.listWrapper,
+                activeTab !== 'weeks' && styles.listHidden,
+              ]}
+            >
+              <Animated.ScrollView
+                ref={weekScrollRef}
+                style={styles.list}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.listContent}
+              >
+                <Sortable.Grid
+                  enableActiveItemSnap={false}
+                  data={draftWeeks}
+                  keyExtractor={(item) => item.uiKey}
+                  renderItem={renderWeekSortableItem}
+                  columns={1}
+                  rowGap={tokens.spacing.md}
+                  scrollableRef={weekScrollRef}
+                  dragActivationDelay={300}
+                  activeItemScale={1.02}
+                  dropAnimationDuration={200}
+                  onDragEnd={({ data }) => {
+                    const reordered = data.map((w, i) => ({
+                      ...w,
+                      id: i + 1,
+                    }));
+                    setDraftWeeks(reordered);
+                    onWeekConfigsChange(toWeekConfigs(reordered));
+                  }}
+                />
+                {draftWeeks.length < MAX_WEEKS && (
+                  <AnimatedPressable style={styles.ghostCard} onPress={addWeek}>
+                    <Plus
+                      size={16}
+                      color={withAlpha(tokens.colors.primary, 0.7)}
+                    />
+                    <Text style={styles.ghostCardText}>
+                      {t('programSettings.week.addWeek')}
+                    </Text>
+                  </AnimatedPressable>
+                )}
+              </Animated.ScrollView>
             </View>
-
-            <View style={styles.listWrap}>
-              <View
-                style={[
-                  styles.listWrapper,
-                  activeTab !== 'weeks' && styles.listHidden,
-                ]}
+            <View
+              style={[
+                styles.listWrapper,
+                activeTab !== 'days' && styles.listHidden,
+              ]}
+            >
+              <Animated.ScrollView
+                ref={dayScrollRef}
+                style={styles.list}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.listContent}
               >
-                <Animated.ScrollView
-                  ref={weekScrollRef}
-                  style={styles.list}
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={styles.listContent}
-                >
-                  <Sortable.Grid
-                    enableActiveItemSnap={false}
-                    data={draftWeeks}
-                    keyExtractor={(item) => item.uiKey}
-                    renderItem={renderWeekSortableItem}
-                    columns={1}
-                    rowGap={tokens.spacing.md}
-                    scrollableRef={weekScrollRef}
-                    dragActivationDelay={300}
-                    activeItemScale={1.02}
-                    dropAnimationDuration={200}
-                    onDragEnd={({ data }) => {
-                      const reordered = data.map((w, i) => ({
-                        ...w,
-                        id: i + 1,
-                      }));
-                      setDraftWeeks(reordered);
-                      onWeekConfigsChange(toWeekConfigs(reordered));
-                    }}
-                  />
-                  {draftWeeks.length < MAX_WEEKS && (
-                    <AnimatedPressable
-                      style={styles.ghostCard}
-                      onPress={addWeek}
-                    >
-                      <Plus
-                        size={16}
-                        color={withAlpha(tokens.colors.primary, 0.7)}
-                      />
-                      <Text style={styles.ghostCardText}>
-                        {t('programSettings.week.addWeek')}
-                      </Text>
-                    </AnimatedPressable>
-                  )}
-                </Animated.ScrollView>
-              </View>
-              <View
-                style={[
-                  styles.listWrapper,
-                  activeTab !== 'days' && styles.listHidden,
-                ]}
-              >
-                <Animated.ScrollView
-                  ref={dayScrollRef}
-                  style={styles.list}
-                  showsVerticalScrollIndicator={false}
-                  keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={styles.listContent}
-                >
-                  <Sortable.Grid
-                    enableActiveItemSnap={false}
-                    data={draftDays}
-                    keyExtractor={(item) => item.id}
-                    renderItem={renderDaySortableItem}
-                    columns={1}
-                    rowGap={tokens.spacing.md}
-                    scrollableRef={dayScrollRef}
-                    dragActivationDelay={300}
-                    activeItemScale={1.02}
-                    dropAnimationDuration={200}
-                    onDragEnd={({ data: reordered }) => {
-                      setDraftDays(reordered);
-                      onDayConfigsChange(reordered);
-                    }}
-                  />
-                  {draftDays.length < MAX_DAYS && (
-                    <AnimatedPressable
-                      style={styles.ghostCard}
-                      onPress={addDay}
-                    >
-                      <Plus
-                        size={16}
-                        color={withAlpha(tokens.colors.primary, 0.7)}
-                      />
-                      <Text style={styles.ghostCardText}>
-                        {t('programSettings.day.addDay')}
-                      </Text>
-                    </AnimatedPressable>
-                  )}
-                </Animated.ScrollView>
-              </View>
+                <Sortable.Grid
+                  enableActiveItemSnap={false}
+                  data={draftDays}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderDaySortableItem}
+                  columns={1}
+                  rowGap={tokens.spacing.md}
+                  scrollableRef={dayScrollRef}
+                  dragActivationDelay={300}
+                  activeItemScale={1.02}
+                  dropAnimationDuration={200}
+                  onDragEnd={({ data: reordered }) => {
+                    setDraftDays(reordered);
+                    onDayConfigsChange(reordered);
+                  }}
+                />
+                {draftDays.length < MAX_DAYS && (
+                  <AnimatedPressable style={styles.ghostCard} onPress={addDay}>
+                    <Plus
+                      size={16}
+                      color={withAlpha(tokens.colors.primary, 0.7)}
+                    />
+                    <Text style={styles.ghostCardText}>
+                      {t('programSettings.day.addDay')}
+                    </Text>
+                  </AnimatedPressable>
+                )}
+              </Animated.ScrollView>
             </View>
           </View>
         </View>
       </View>
+    </View>
+  );
+
+  if (layout.isTablet) {
+    return (
+      <AnimatedModalShell
+        open={open}
+        onClose={onClose}
+        slideFrom="right"
+        containerStyle={styles.tabletPanelModalRoot}
+        backdropStyle={styles.tabletPanelBackdrop}
+        sheetStyle={styles.tabletPanelSheet}
+      >
+        {content}
+      </AnimatedModalShell>
+    );
+  }
+
+  return (
+    <AnimatedScreenModal open={open} onClose={onClose}>
+      {content}
     </AnimatedScreenModal>
   );
 }
@@ -677,11 +693,27 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: tokens.colors.bgBase,
+    },
+    tabletPanelModalRoot: {
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+    },
+    tabletPanelBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    },
+    tabletPanelSheet: {
+      width: layout.isLandscape ? 560 : 500,
+      height: '100%',
+      overflow: 'hidden',
+      borderTopLeftRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.xl,
     },
     header: {
       paddingTop: topInset + tokens.spacing.sm,
@@ -714,6 +746,7 @@ function createStyles(
       flex: 1,
       padding: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.lg,
+      width: '100%',
     },
     listSection: {
       flex: 1,

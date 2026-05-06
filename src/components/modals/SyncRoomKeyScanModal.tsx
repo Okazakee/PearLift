@@ -12,6 +12,7 @@ import {
 } from 'react-native-vision-camera';
 import { decodeBase64 } from 'vision-camera-zxing';
 import { AnimatedPressable } from '../../animation/primitives';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
@@ -34,9 +35,10 @@ export function SyncRoomKeyScanModal({
   onClose,
 }: SyncRoomKeyScanModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const permission = useCameraPermission();
   const device = useCameraDevice('back');
@@ -216,6 +218,7 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
@@ -247,6 +250,9 @@ function createStyles(
       fontWeight: '800',
     },
     permissionCard: {
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isTablet ? 760 : undefined,
       borderRadius: tokens.radius.lg,
       padding: tokens.spacing.lg,
       backgroundColor: tokens.colors.surfaceContainer,
@@ -276,6 +282,9 @@ function createStyles(
     },
     cameraContainer: {
       flex: 1,
+      width: '100%',
+      maxWidth: layout.isTablet ? 960 : undefined,
+      alignSelf: 'center',
       overflow: 'hidden',
       borderRadius: tokens.radius.xl,
       backgroundColor: tokens.colors.surfaceContainer,

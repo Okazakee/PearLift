@@ -2,6 +2,7 @@ import { Download, Upload, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import { AnimatedModalShell } from '../AnimatedModalShell';
@@ -22,7 +23,8 @@ export function LocalBackupModal({
   onImport,
 }: LocalBackupModalProps) {
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const layout = useResponsiveLayout();
+  const styles = useMemo(() => createStyles(tokens, layout), [tokens, layout]);
 
   return (
     <AnimatedModalShell
@@ -61,7 +63,10 @@ export function LocalBackupModal({
   );
 }
 
-function createStyles(tokens: ThemeTokens) {
+function createStyles(
+  tokens: ThemeTokens,
+  layout: ReturnType<typeof useResponsiveLayout>,
+) {
   return StyleSheet.create({
     modalRoot: {
       paddingHorizontal: tokens.spacing.lg,
@@ -72,7 +77,7 @@ function createStyles(tokens: ThemeTokens) {
     },
     card: {
       width: '100%',
-      maxWidth: 520,
+      maxWidth: layout.isTablet ? Math.min(layout.modalMaxWidth, 620) : 520,
       borderRadius: tokens.radius.xl,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
@@ -118,9 +123,13 @@ function createStyles(tokens: ThemeTokens) {
       lineHeight: 20,
     },
     actions: {
+      flexDirection: layout.isTablet ? 'row' : 'column',
       gap: tokens.spacing.sm,
+      flexWrap: 'wrap',
     },
     actionButton: {
+      flex: layout.isTablet ? 1 : 0,
+      minWidth: layout.isTablet ? 180 : 0,
       borderRadius: tokens.radius.md,
       backgroundColor: tokens.colors.primary,
       minHeight: 44,

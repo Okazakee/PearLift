@@ -3,7 +3,7 @@
     "name": "PearLift",
     "slug": "PearLift",
     "version": "1.0.5",
-    "orientation": "portrait",
+    "orientation": "default",
     "icon": "./assets/pearlift_icon.png",
     "userInterfaceStyle": "automatic",
     "splash": {

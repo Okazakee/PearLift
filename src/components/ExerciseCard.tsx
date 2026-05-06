@@ -182,6 +182,8 @@ export const ExerciseCard = memo(
 function createStyles(tokens: ThemeTokens) {
   return StyleSheet.create({
     card: {
+      flex: 1,
+      minHeight: 196,
       borderRadius: tokens.radius.lg,
       backgroundColor: tokens.colors.surfaceContainer,
       padding: tokens.spacing.lg,

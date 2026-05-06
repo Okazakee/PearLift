@@ -55,6 +55,7 @@ import { RestTimer } from '../components/RestTimer';
 import { WorkoutDayStack } from '../components/WorkoutDayStack';
 import { APP_CONFIG } from '../config/app';
 import { defaultDayConfigs } from '../data/workouts';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
 import { useSystemLanguage } from '../i18n/systemLanguage';
 import { useWorkoutStore } from '../store/workoutStore';
@@ -78,6 +79,7 @@ import { styles } from './styles';
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
+  const responsiveLayout = useResponsiveLayout();
   const systemScheme = useColorScheme();
   const systemLanguage = useSystemLanguage(SUPPORTED_I18N_LANGUAGE_CODES, 'en');
   const { t } = useTranslation();
@@ -248,8 +250,10 @@ export function WorkoutScreen() {
   }, [workouts]);
 
   const layout = useMemo(() => {
-    const navBottomPadding = Math.max(insets.bottom, 8) + tokens.spacing.sm;
-    const navHeight = 64 + navBottomPadding;
+    const navBottomPadding =
+      Math.max(insets.bottom, responsiveLayout.isTablet ? 4 : 8) +
+      (responsiveLayout.isTablet ? 4 : tokens.spacing.sm);
+    const navHeight = (responsiveLayout.isTablet ? 54 : 64) + navBottomPadding;
     const floatingBottom = navHeight + 8;
     return {
       navBottomPadding,
@@ -259,7 +263,7 @@ export function WorkoutScreen() {
       workoutFabBottom: floatingBottom + 8,
       contentBottomPadding: floatingBottom + 96,
     };
-  }, [insets.bottom, tokens.spacing.sm]);
+  }, [insets.bottom, responsiveLayout.isTablet, tokens.spacing.sm]);
 
   const currentWorkout = useMemo(() => {
     const match = workouts.find((workout) => workout.id === currentDay);
@@ -919,6 +923,7 @@ export function WorkoutScreen() {
         <Header
           tokens={tokens}
           topInset={insets.top}
+          maxWidth={responsiveLayout.contentMaxWidth}
           onOpenSettings={() => {
             setSettingsOpen(true);
           }}
@@ -946,6 +951,8 @@ export function WorkoutScreen() {
             layout.contentBottomPadding + (timerExpanded ? 260 : 0)
           }
           fabBottom={layout.workoutFabBottom}
+          contentMaxWidth={responsiveLayout.contentMaxWidth}
+          exerciseColumns={responsiveLayout.exerciseColumns}
         />
 
         <RestTimer

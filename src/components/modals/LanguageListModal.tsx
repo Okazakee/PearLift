@@ -2,6 +2,7 @@ import { Check, Globe, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { SUPPORTED_LANGUAGES } from '../../storage/workoutRepository';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
@@ -28,7 +29,8 @@ export function LanguageListModal({
   onSelectLanguage,
 }: LanguageListModalProps) {
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const layout = useResponsiveLayout();
+  const styles = useMemo(() => createStyles(tokens, layout), [tokens, layout]);
 
   const handleSelect = (code: string) => {
     onSelectLanguage(code);
@@ -80,7 +82,10 @@ export function LanguageListModal({
   );
 }
 
-const createStyles = (tokens: ThemeTokens) =>
+const createStyles = (
+  tokens: ThemeTokens,
+  layout: ReturnType<typeof useResponsiveLayout>,
+) =>
   StyleSheet.create({
     modalRoot: {
       paddingHorizontal: tokens.spacing.lg,
@@ -91,7 +96,7 @@ const createStyles = (tokens: ThemeTokens) =>
     },
     card: {
       width: '100%',
-      maxWidth: 580,
+      maxWidth: layout.isTablet ? Math.min(layout.modalMaxWidth, 640) : 580,
       maxHeight: '82%',
       borderRadius: tokens.radius.xl,
       borderWidth: 1,

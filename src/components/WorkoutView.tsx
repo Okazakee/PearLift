@@ -10,6 +10,7 @@ import Animated, {
 import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '../animation/primitives';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type {
@@ -27,6 +28,8 @@ interface WorkoutViewProps {
   weightUnit: WeightUnit;
   contentBottomPadding: number;
   fabBottom: number;
+  contentMaxWidth: number;
+  exerciseColumns: number;
   workout: WorkoutSession;
   currentWeek: number;
   weekConfigs: WeekConfig[];
@@ -48,6 +51,8 @@ export function WorkoutView({
   weightUnit,
   contentBottomPadding,
   fabBottom: _fabBottom,
+  contentMaxWidth,
+  exerciseColumns,
   workout,
   currentWeek,
   weekConfigs,
@@ -63,6 +68,7 @@ export function WorkoutView({
   onReorderExercises,
 }: WorkoutViewProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const pendingScrollResetRef = useRef(false);
 
@@ -92,8 +98,8 @@ export function WorkoutView({
   }, [isActive, resetScroll]);
 
   const styles = useMemo(
-    () => createStyles(tokens, contentBottomPadding),
-    [tokens, contentBottomPadding],
+    () => createStyles(tokens, contentBottomPadding, contentMaxWidth),
+    [tokens, contentBottomPadding, contentMaxWidth],
   );
   const week = weekConfigs.find((w) => w.id === currentWeek) ?? weekConfigs[0];
   const dayNumberMatch = workout.name.match(/\d+/);
@@ -252,37 +258,44 @@ export function WorkoutView({
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {renderHeader()}
-        <Sortable.Grid
-          enableActiveItemSnap={false}
-          data={displayExerciseIds}
-          keyExtractor={(id) => id}
-          renderItem={renderItem}
-          columns={1}
-          rowGap={tokens.spacing.md}
-          scrollableRef={scrollRef}
-          dragActivationDelay={300}
-          activeItemScale={1.02}
-          activeItemOpacity={0.95}
-          activeItemShadowOpacity={0.12}
-          dropAnimationDuration={200}
-          itemEntering={null}
-          itemExiting={null}
-          onDragEnd={({ data: reordered }) => {
-            setSavedOrderByWorkout((prev) => ({
-              ...prev,
-              [workout.id]: reordered,
-            }));
-            onReorderExercises(reordered);
-          }}
-        />
-        {renderFooter()}
+        <View style={styles.mainColumn}>
+          {renderHeader()}
+          <Sortable.Grid
+            enableActiveItemSnap={false}
+            data={displayExerciseIds}
+            keyExtractor={(id) => id}
+            renderItem={renderItem}
+            columns={exerciseColumns}
+            rowGap={layout.isTablet ? tokens.spacing.sm : tokens.spacing.md}
+            columnGap={layout.isTablet ? tokens.spacing.sm : 0}
+            scrollableRef={scrollRef}
+            dragActivationDelay={300}
+            activeItemScale={1.02}
+            activeItemOpacity={0.95}
+            activeItemShadowOpacity={0.12}
+            dropAnimationDuration={200}
+            itemEntering={null}
+            itemExiting={null}
+            onDragEnd={({ data: reordered }) => {
+              setSavedOrderByWorkout((prev) => ({
+                ...prev,
+                [workout.id]: reordered,
+              }));
+              onReorderExercises(reordered);
+            }}
+          />
+          {renderFooter()}
+        </View>
       </Animated.ScrollView>
     </View>
   );
 }
 
-function createStyles(tokens: ThemeTokens, contentBottomPadding: number) {
+function createStyles(
+  tokens: ThemeTokens,
+  contentBottomPadding: number,
+  contentMaxWidth: number,
+) {
   return StyleSheet.create({
     container: {
       flex: 1,
@@ -291,6 +304,11 @@ function createStyles(tokens: ThemeTokens, contentBottomPadding: number) {
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.lg,
       paddingBottom: contentBottomPadding,
+      alignItems: 'center',
+    },
+    mainColumn: {
+      width: '100%',
+      maxWidth: contentMaxWidth,
     },
     summaryCard: {
       marginBottom: tokens.spacing.md,

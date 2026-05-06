@@ -10,6 +10,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { MOTION } from '../animation/motion';
 import {
   AnimatedFadeInView,
+  AnimatedSlideInRightView,
   AnimatedSlideInView,
 } from '../animation/primitives';
 
@@ -18,6 +19,7 @@ interface AnimatedModalShellProps {
   onClose: () => void;
   backdropStyle: ViewStyle;
   sheetStyle: ViewStyle;
+  slideFrom?: 'bottom' | 'right';
   containerStyle?: StyleProp<ViewStyle>;
   children: ReactNode;
 }
@@ -29,6 +31,7 @@ export function AnimatedModalShell({
   onClose,
   backdropStyle,
   sheetStyle,
+  slideFrom = 'bottom',
   containerStyle,
   children,
 }: AnimatedModalShellProps) {
@@ -57,6 +60,9 @@ export function AnimatedModalShell({
       visible={modalVisible}
       transparent
       animationType="none"
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+      hardwareAccelerated
       onRequestClose={onClose}
     >
       <GestureHandlerRootView style={[styles.modalRoot, containerStyle]}>
@@ -65,9 +71,17 @@ export function AnimatedModalShell({
             <AnimatedFadeInView style={backdropStyle}>
               <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
             </AnimatedFadeInView>
-            <AnimatedSlideInView style={sheetStyle}>
-              {children}
-            </AnimatedSlideInView>
+            {slideFrom === 'right' ? (
+              <AnimatedSlideInRightView
+                style={[styles.rightPanelSheet, sheetStyle]}
+              >
+                {children}
+              </AnimatedSlideInRightView>
+            ) : (
+              <AnimatedSlideInView style={sheetStyle}>
+                {children}
+              </AnimatedSlideInView>
+            )}
           </>
         ) : null}
       </GestureHandlerRootView>
@@ -80,5 +94,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  rightPanelSheet: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
   },
 });

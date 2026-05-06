@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MOTION } from '../animation/motion';
 import { AnimatedPressable } from '../animation/primitives';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 import { requestNotificationPermission } from '../native/localNotifications';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
@@ -53,12 +54,13 @@ export function OnboardingScreen({
   onComplete,
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const [page, setPage] = useState(0);
   const [requesting, setRequesting] = useState(false);
 
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
 
   const content = PAGE_CONTENT[page];
@@ -89,110 +91,115 @@ export function OnboardingScreen({
 
   return (
     <View style={styles.root}>
-      <View style={styles.pageIndicator}>
-        {PAGE_CONTENT.map((content, i) => (
-          <View
-            key={content.titleKey}
-            style={[
-              styles.dot,
-              i <= page ? styles.dotActive : styles.dotInactive,
-            ]}
-          />
-        ))}
-      </View>
-
-      <Animated.View
-        key={content.titleKey}
-        style={styles.content}
-        entering={FadeInDown.duration(MOTION.duration.base).reduceMotion(
-          ReduceMotion.System,
-        )}
-        exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
-          ReduceMotion.System,
-        )}
-      >
-        <View style={styles.iconContainer}>
-          {page === 0 ? (
-            <Image
-              source={require('../../assets/pearlift_transparent.png')}
-              style={styles.logoImage}
-              resizeMode="contain"
+      <View style={styles.panel}>
+        <View style={styles.pageIndicator}>
+          {PAGE_CONTENT.map((content, i) => (
+            <View
+              key={content.titleKey}
+              style={[
+                styles.dot,
+                i <= page ? styles.dotActive : styles.dotInactive,
+              ]}
             />
-          ) : (
-            React.createElement(PAGE_CONTENT[page].icon, {
-              size: 56,
-              color: tokens.colors.primary,
-            })
-          )}
+          ))}
         </View>
 
-        <Text style={styles.title}>{t(content.titleKey)}</Text>
-        <Text style={styles.description}>{t(content.descriptionKey)}</Text>
-
-        {content.kind === 'units' && (
-          <View style={styles.unitRow}>
-            <AnimatedPressable
-              style={[
-                styles.unitOption,
-                weightUnit === 'kg' && styles.unitOptionActive,
-              ]}
-              onPress={() => onWeightUnitChange('kg')}
-            >
-              <Text
-                style={[
-                  styles.unitOptionText,
-                  weightUnit === 'kg' && styles.unitOptionTextActive,
-                ]}
-              >
-                kg
-              </Text>
-            </AnimatedPressable>
-            <AnimatedPressable
-              style={[
-                styles.unitOption,
-                weightUnit === 'lb' && styles.unitOptionActive,
-              ]}
-              onPress={() => onWeightUnitChange('lb')}
-            >
-              <Text
-                style={[
-                  styles.unitOptionText,
-                  weightUnit === 'lb' && styles.unitOptionTextActive,
-                ]}
-              >
-                lb
-              </Text>
-            </AnimatedPressable>
+        <Animated.View
+          key={content.titleKey}
+          style={styles.content}
+          entering={FadeInDown.duration(MOTION.duration.base).reduceMotion(
+            ReduceMotion.System,
+          )}
+          exiting={FadeOutUp.duration(MOTION.duration.fast).reduceMotion(
+            ReduceMotion.System,
+          )}
+        >
+          <View style={styles.iconContainer}>
+            {page === 0 ? (
+              <Image
+                source={require('../../assets/pearlift_transparent.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            ) : (
+              React.createElement(PAGE_CONTENT[page].icon, {
+                size: 56,
+                color: tokens.colors.primary,
+              })
+            )}
           </View>
-        )}
-      </Animated.View>
 
-      <View style={styles.footer}>
-        <AnimatedPressable
-          style={[styles.backButton, isFirstPage && styles.buttonDisabled]}
-          onPress={handleBack}
-          disabled={isFirstPage}
-        >
-          <Text
-            style={[styles.backButtonText, isFirstPage && styles.textDisabled]}
+          <Text style={styles.title}>{t(content.titleKey)}</Text>
+          <Text style={styles.description}>{t(content.descriptionKey)}</Text>
+
+          {content.kind === 'units' && (
+            <View style={styles.unitRow}>
+              <AnimatedPressable
+                style={[
+                  styles.unitOption,
+                  weightUnit === 'kg' && styles.unitOptionActive,
+                ]}
+                onPress={() => onWeightUnitChange('kg')}
+              >
+                <Text
+                  style={[
+                    styles.unitOptionText,
+                    weightUnit === 'kg' && styles.unitOptionTextActive,
+                  ]}
+                >
+                  kg
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={[
+                  styles.unitOption,
+                  weightUnit === 'lb' && styles.unitOptionActive,
+                ]}
+                onPress={() => onWeightUnitChange('lb')}
+              >
+                <Text
+                  style={[
+                    styles.unitOptionText,
+                    weightUnit === 'lb' && styles.unitOptionTextActive,
+                  ]}
+                >
+                  lb
+                </Text>
+              </AnimatedPressable>
+            </View>
+          )}
+        </Animated.View>
+
+        <View style={styles.footer}>
+          <AnimatedPressable
+            style={[styles.backButton, isFirstPage && styles.buttonDisabled]}
+            onPress={handleBack}
+            disabled={isFirstPage}
           >
-            {t('common.back')}
-          </Text>
-        </AnimatedPressable>
+            <Text
+              style={[
+                styles.backButtonText,
+                isFirstPage && styles.textDisabled,
+              ]}
+            >
+              {t('common.back')}
+            </Text>
+          </AnimatedPressable>
 
-        <AnimatedPressable
-          style={[styles.nextButton, requesting && styles.buttonDisabled]}
-          onPress={handleNext}
-          disabled={requesting}
-        >
-          <Text style={styles.nextButtonText}>
-            {isLastPage
-              ? requesting
-                ? t('onboarding.settingUp')
-                : t('onboarding.getStarted')
-              : t('common.next')}
-          </Text>
-        </AnimatedPressable>
+          <AnimatedPressable
+            style={[styles.nextButton, requesting && styles.buttonDisabled]}
+            onPress={handleNext}
+            disabled={requesting}
+          >
+            <Text style={styles.nextButtonText}>
+              {isLastPage
+                ? requesting
+                  ? t('onboarding.settingUp')
+                  : t('onboarding.getStarted')
+                : t('common.next')}
+            </Text>
+          </AnimatedPressable>
+        </View>
       </View>
     </View>
   );
@@ -202,6 +209,7 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     root: {
@@ -209,6 +217,13 @@ function createStyles(
       backgroundColor: tokens.colors.bgBase,
       paddingTop: topInset,
       paddingHorizontal: tokens.spacing.lg,
+      justifyContent: 'center',
+    },
+    panel: {
+      width: '100%',
+      maxWidth: layout.isTablet ? 680 : undefined,
+      alignSelf: 'center',
+      paddingVertical: layout.isTablet ? tokens.spacing.lg : 0,
     },
     pageIndicator: {
       flexDirection: 'row',

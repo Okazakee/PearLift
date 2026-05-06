@@ -14,9 +14,11 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { AnimatedPressable } from '../../animation/primitives';
 import { encodeBackupForQr } from '../../backup/qrBackupCodec';
 import type { PearLiftRuntimeState } from '../../backup/types';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import { getErrorMessage, logError } from '../../utils/errors';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 interface ShareToDeviceModalProps {
@@ -37,9 +39,10 @@ export function ShareToDeviceModal({
   onClose,
 }: ShareToDeviceModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const [packets, setPackets] = useState<string[]>([]);
   const [isChunked, setIsChunked] = useState(false);
@@ -122,163 +125,180 @@ export function ShareToDeviceModal({
     });
   }, [open, activePayload, qrRenderError, activeIndex]);
 
-  return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <AnimatedPressable style={styles.backButton} onPress={onClose}>
-            <ChevronLeft size={22} color={tokens.colors.textPrimary} />
-          </AnimatedPressable>
-          <Text style={styles.title}>{t('deviceTransfer.shareTitle')}</Text>
-          <View style={styles.backButtonPlaceholder} />
+  const content = (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <AnimatedPressable style={styles.backButton} onPress={onClose}>
+          <ChevronLeft size={22} color={tokens.colors.textPrimary} />
+        </AnimatedPressable>
+        <Text style={styles.title}>{t('deviceTransfer.shareTitle')}</Text>
+        <View style={styles.backButtonPlaceholder} />
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.leadRow}>
+          <View style={styles.leadIcon}>
+            <QrCode size={18} color={tokens.colors.primary} />
+          </View>
+          <Text style={styles.leadText}>
+            {t('deviceTransfer.shareDescription')}
+          </Text>
         </View>
 
-        <View style={styles.content}>
-          <View style={styles.leadRow}>
-            <View style={styles.leadIcon}>
-              <QrCode size={18} color={tokens.colors.primary} />
-            </View>
-            <Text style={styles.leadText}>
-              {t('deviceTransfer.shareDescription')}
-            </Text>
-          </View>
-
-          <View style={styles.qrCard}>
-            {!activePayload ? (
-              <ActivityIndicator color={tokens.colors.primary} />
-            ) : visibleError ? (
-              <Text style={styles.errorText}>{visibleError}</Text>
-            ) : qrRender && 'darkPath' in qrRender ? (
-              <View style={styles.qrContent}>
-                <View style={styles.metaRow}>
-                  <View
-                    style={[
-                      styles.modeBadge,
-                      isChunked
-                        ? styles.modeBadgeChunked
-                        : styles.modeBadgeSingle,
-                    ]}
-                  >
-                    <Text style={styles.modeBadgeText}>
-                      {isChunked
-                        ? t('deviceTransfer.modeChunked', {
-                            defaultValue: 'Chunked transfer',
-                          })
-                        : t('deviceTransfer.modeSingle', {
-                            defaultValue: 'Single QR',
-                          })}
-                    </Text>
-                  </View>
-                  <Text style={styles.metaCounter}>
-                    {t('deviceTransfer.shareChunkCounter', {
-                      current: activeIndex + 1,
-                      total: Math.max(totalPackets, 1),
-                      defaultValue: 'Chunk {{current}}/{{total}}',
-                    })}
+        <View style={styles.qrCard}>
+          {!activePayload ? (
+            <ActivityIndicator color={tokens.colors.primary} />
+          ) : visibleError ? (
+            <Text style={styles.errorText}>{visibleError}</Text>
+          ) : qrRender && 'darkPath' in qrRender ? (
+            <View style={styles.qrContent}>
+              <View style={styles.metaRow}>
+                <View
+                  style={[
+                    styles.modeBadge,
+                    isChunked
+                      ? styles.modeBadgeChunked
+                      : styles.modeBadgeSingle,
+                  ]}
+                >
+                  <Text style={styles.modeBadgeText}>
+                    {isChunked
+                      ? t('deviceTransfer.modeChunked', {
+                          defaultValue: 'Chunked transfer',
+                        })
+                      : t('deviceTransfer.modeSingle', {
+                          defaultValue: 'Single QR',
+                        })}
                   </Text>
                 </View>
-
-                <View style={styles.qrImage}>
-                  <Svg
-                    width="100%"
-                    height="100%"
-                    viewBox={`0 0 ${qrRender.size} ${qrRender.size}`}
-                  >
-                    <Rect
-                      x={0}
-                      y={0}
-                      width={qrRender.size}
-                      height={qrRender.size}
-                      fill="#FFFFFF"
-                    />
-                    <Path d={qrRender.darkPath} fill="#000000" />
-                  </Svg>
-                </View>
-
-                {isChunked ? (
-                  <>
-                    <View style={styles.progressTrack}>
-                      <View
-                        style={[
-                          styles.progressFill,
-                          {
-                            width: `${Math.max(0, Math.min(chunkProgress, 1)) * 100}%`,
-                          },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.chunkHint}>
-                      {t('deviceTransfer.shareChunkHint', {
-                        defaultValue:
-                          'Keep both devices steady. QR rotates automatically.',
-                      })}
-                    </Text>
-                    <Text style={styles.chunkSubhint}>
-                      {paused
-                        ? t('deviceTransfer.chunkPaused', {
-                            defaultValue: 'Rotation paused',
-                          })
-                        : t('deviceTransfer.chunkAutoRotating', {
-                            defaultValue: 'Auto-rotating every 0.7s',
-                          })}
-                    </Text>
-                    <View style={styles.controlsRow}>
-                      <AnimatedPressable
-                        style={styles.iconButton}
-                        onPress={() =>
-                          setActiveIndex((current) =>
-                            totalPackets === 0
-                              ? 0
-                              : (current - 1 + totalPackets) % totalPackets,
-                          )
-                        }
-                      >
-                        <SkipBack size={16} color={tokens.colors.textPrimary} />
-                      </AnimatedPressable>
-                      <AnimatedPressable
-                        style={styles.pauseButton}
-                        onPress={() => setPaused((value) => !value)}
-                      >
-                        {paused ? (
-                          <Play size={14} color={tokens.colors.textPrimary} />
-                        ) : (
-                          <Pause size={14} color={tokens.colors.textPrimary} />
-                        )}
-                        <Text style={styles.pauseButtonText}>
-                          {paused
-                            ? t('deviceTransfer.resumeRotation', {
-                                defaultValue: 'Resume',
-                              })
-                            : t('deviceTransfer.pauseRotation', {
-                                defaultValue: 'Pause',
-                              })}
-                        </Text>
-                      </AnimatedPressable>
-                      <AnimatedPressable
-                        style={styles.iconButton}
-                        onPress={() =>
-                          setActiveIndex((current) =>
-                            totalPackets === 0
-                              ? 0
-                              : (current + 1) % totalPackets,
-                          )
-                        }
-                      >
-                        <SkipForward
-                          size={16}
-                          color={tokens.colors.textPrimary}
-                        />
-                      </AnimatedPressable>
-                    </View>
-                  </>
-                ) : null}
+                <Text style={styles.metaCounter}>
+                  {t('deviceTransfer.shareChunkCounter', {
+                    current: activeIndex + 1,
+                    total: Math.max(totalPackets, 1),
+                    defaultValue: 'Chunk {{current}}/{{total}}',
+                  })}
+                </Text>
               </View>
-            ) : (
-              <ActivityIndicator color={tokens.colors.primary} />
-            )}
-          </View>
+
+              <View style={styles.qrImage}>
+                <Svg
+                  width="100%"
+                  height="100%"
+                  viewBox={`0 0 ${qrRender.size} ${qrRender.size}`}
+                >
+                  <Rect
+                    x={0}
+                    y={0}
+                    width={qrRender.size}
+                    height={qrRender.size}
+                    fill="#FFFFFF"
+                  />
+                  <Path d={qrRender.darkPath} fill="#000000" />
+                </Svg>
+              </View>
+
+              {isChunked ? (
+                <>
+                  <View style={styles.progressTrack}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        {
+                          width: `${Math.max(0, Math.min(chunkProgress, 1)) * 100}%`,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.chunkHint}>
+                    {t('deviceTransfer.shareChunkHint', {
+                      defaultValue:
+                        'Keep both devices steady. QR rotates automatically.',
+                    })}
+                  </Text>
+                  <Text style={styles.chunkSubhint}>
+                    {paused
+                      ? t('deviceTransfer.chunkPaused', {
+                          defaultValue: 'Rotation paused',
+                        })
+                      : t('deviceTransfer.chunkAutoRotating', {
+                          defaultValue: 'Auto-rotating every 0.7s',
+                        })}
+                  </Text>
+                  <View style={styles.controlsRow}>
+                    <AnimatedPressable
+                      style={styles.iconButton}
+                      onPress={() =>
+                        setActiveIndex((current) =>
+                          totalPackets === 0
+                            ? 0
+                            : (current - 1 + totalPackets) % totalPackets,
+                        )
+                      }
+                    >
+                      <SkipBack size={16} color={tokens.colors.textPrimary} />
+                    </AnimatedPressable>
+                    <AnimatedPressable
+                      style={styles.pauseButton}
+                      onPress={() => setPaused((value) => !value)}
+                    >
+                      {paused ? (
+                        <Play size={14} color={tokens.colors.textPrimary} />
+                      ) : (
+                        <Pause size={14} color={tokens.colors.textPrimary} />
+                      )}
+                      <Text style={styles.pauseButtonText}>
+                        {paused
+                          ? t('deviceTransfer.resumeRotation', {
+                              defaultValue: 'Resume',
+                            })
+                          : t('deviceTransfer.pauseRotation', {
+                              defaultValue: 'Pause',
+                            })}
+                      </Text>
+                    </AnimatedPressable>
+                    <AnimatedPressable
+                      style={styles.iconButton}
+                      onPress={() =>
+                        setActiveIndex((current) =>
+                          totalPackets === 0 ? 0 : (current + 1) % totalPackets,
+                        )
+                      }
+                    >
+                      <SkipForward
+                        size={16}
+                        color={tokens.colors.textPrimary}
+                      />
+                    </AnimatedPressable>
+                  </View>
+                </>
+              ) : null}
+            </View>
+          ) : (
+            <ActivityIndicator color={tokens.colors.primary} />
+          )}
         </View>
       </View>
+    </View>
+  );
+
+  if (layout.isTablet) {
+    return (
+      <AnimatedModalShell
+        open={open}
+        onClose={onClose}
+        slideFrom="right"
+        containerStyle={styles.tabletPanelModalRoot}
+        backdropStyle={styles.tabletPanelBackdrop}
+        sheetStyle={styles.tabletPanelSheet}
+      >
+        {content}
+      </AnimatedModalShell>
+    );
+  }
+
+  return (
+    <AnimatedScreenModal open={open} onClose={onClose}>
+      {content}
     </AnimatedScreenModal>
   );
 }
@@ -287,11 +307,27 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: tokens.colors.bgBase,
+    },
+    tabletPanelModalRoot: {
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+    },
+    tabletPanelBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    },
+    tabletPanelSheet: {
+      width: layout.isLandscape ? 560 : 480,
+      height: '100%',
+      overflow: 'hidden',
+      borderTopLeftRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.xl,
     },
     header: {
       paddingTop: topInset + tokens.spacing.sm,
@@ -325,6 +361,9 @@ function createStyles(
       padding: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.xxl,
       gap: tokens.spacing.md,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isLandscape ? 920 : 720,
     },
     leadRow: {
       flexDirection: 'row',
@@ -352,6 +391,7 @@ function createStyles(
     },
     qrCard: {
       flex: 1,
+      width: '100%',
       borderRadius: tokens.radius.lg,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,

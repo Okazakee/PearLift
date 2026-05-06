@@ -10,14 +10,9 @@ import {
   Star,
 } from 'lucide-react-native';
 import type React from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { dayIconMap } from '../data/workouts';
+import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../theme/tokens';
 import { withAlpha } from '../theme/tokens';
 import type { DayConfig, WorkoutDay } from '../types';
@@ -54,11 +49,17 @@ export function Navigation({
   bottomPadding,
   minHeight,
 }: NavigationProps) {
-  const window = useWindowDimensions();
-  const styles = createStyles(tokens, bottomPadding, minHeight);
+  const layout = useResponsiveLayout();
+  const styles = createStyles(
+    tokens,
+    bottomPadding,
+    minHeight,
+    layout.isTablet,
+  );
   const itemWidth = Math.max(
-    56,
-    (window.width - tokens.spacing.xs * 2) / Math.max(1, dayConfigs.length),
+    layout.isTablet ? 52 : 56,
+    (Math.min(layout.width, layout.contentMaxWidth) - tokens.spacing.xs * 2) /
+      Math.max(1, dayConfigs.length),
   );
 
   return (
@@ -105,6 +106,7 @@ function createStyles(
   tokens: ThemeTokens,
   bottomPadding: number,
   minHeight: number,
+  isTablet: boolean,
 ) {
   return StyleSheet.create({
     container: {
@@ -116,7 +118,7 @@ function createStyles(
       borderTopColor: tokens.colors.borderSubtle,
       backgroundColor: tokens.colors.surface,
       paddingHorizontal: tokens.spacing.xs,
-      paddingTop: tokens.spacing.xs,
+      paddingTop: isTablet ? 2 : tokens.spacing.xs,
       paddingBottom: bottomPadding,
       minHeight,
       flexDirection: 'row',
@@ -124,18 +126,19 @@ function createStyles(
     row: {
       flexDirection: 'row',
       width: '100%',
+      justifyContent: 'center',
     },
     item: {
       alignItems: 'center',
-      paddingVertical: tokens.spacing.xs,
-      gap: 2,
+      paddingVertical: isTablet ? 2 : tokens.spacing.xs,
+      gap: isTablet ? 1 : 2,
       borderRadius: tokens.radius.pill,
       overflow: 'hidden',
     },
     iconWrap: {
-      width: 40,
-      height: 28,
-      borderRadius: 14,
+      width: isTablet ? 36 : 40,
+      height: isTablet ? 24 : 28,
+      borderRadius: isTablet ? 12 : 14,
       alignItems: 'center',
       justifyContent: 'center',
       overflow: 'hidden',
@@ -145,8 +148,10 @@ function createStyles(
     },
     label: {
       color: tokens.colors.textSecondary,
-      fontSize: 10.5,
+      fontSize: isTablet ? 10 : 10.5,
       fontFamily: 'SpaceGrotesk_500Medium',
+      textAlign: 'center',
+      flexShrink: 1,
     },
     labelActive: {
       color: tokens.colors.primary,

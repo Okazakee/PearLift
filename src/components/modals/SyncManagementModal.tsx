@@ -17,10 +17,12 @@ import {
   View,
 } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { PairedDevice, SyncStateRow } from '../../storage/types';
 import type { SyncHealth } from '../../sync/types';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 interface SyncManagementModalProps {
@@ -76,9 +78,10 @@ export function SyncManagementModal({
   onClose,
 }: SyncManagementModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const [draftKey, setDraftKey] = useState(masterKey ?? '');
   const [draftDeviceName, setDraftDeviceName] = useState(
@@ -120,268 +123,281 @@ export function SyncManagementModal({
     }
   };
 
-  return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.title}>{t('sync.manage.title')}</Text>
-            <Text style={styles.subtitle}>{t('sync.manage.subtitle')}</Text>
+  const content = (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>{t('sync.manage.title')}</Text>
+          <Text style={styles.subtitle}>{t('sync.manage.subtitle')}</Text>
+        </View>
+        <AnimatedPressable style={styles.debugButton} onPress={onOpenDebug}>
+          <Text style={styles.debugButtonText}>{t('sync.manage.debug')}</Text>
+        </AnimatedPressable>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Shield size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('sync.manage.roomSetup')}
+            </Text>
           </View>
-          <AnimatedPressable style={styles.debugButton} onPress={onOpenDebug}>
-            <Text style={styles.debugButtonText}>{t('sync.manage.debug')}</Text>
-          </AnimatedPressable>
+          <Text style={styles.helperText}>
+            {t('sync.manage.roomSetupHint')}
+          </Text>
+          <View style={styles.actionRow}>
+            <AnimatedPressable
+              style={styles.primaryButton}
+              onPress={onOpenCreateRoom}
+            >
+              <Text style={styles.primaryButtonText}>
+                {t('sync.manage.createRoom')}
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={styles.outlineButton}
+              onPress={onOpenJoinRoom}
+            >
+              <Text style={styles.outlineButtonText}>
+                {t('sync.manage.joinRoom')}
+              </Text>
+            </AnimatedPressable>
+          </View>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Shield size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('sync.manage.roomSetup')}
-              </Text>
-            </View>
-            <Text style={styles.helperText}>
-              {t('sync.manage.roomSetupHint')}
-            </Text>
-            <View style={styles.actionRow}>
-              <AnimatedPressable
-                style={styles.primaryButton}
-                onPress={onOpenCreateRoom}
-              >
-                <Text style={styles.primaryButtonText}>
-                  {t('sync.manage.createRoom')}
-                </Text>
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={styles.outlineButton}
-                onPress={onOpenJoinRoom}
-              >
-                <Text style={styles.outlineButtonText}>
-                  {t('sync.manage.joinRoom')}
-                </Text>
-              </AnimatedPressable>
-            </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Link2 size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>{t('sync.manage.status')}</Text>
           </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Link2 size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>{t('sync.manage.status')}</Text>
-            </View>
-            <View style={styles.statusRow}>
-              <View style={styles.statusMeta}>
-                <View style={styles.statusLine}>
-                  <View
-                    style={[styles.statusDot, { backgroundColor: statusTone }]}
-                  />
-                  <Text style={[styles.statusValue, { color: statusTone }]}>
-                    {t(`sync.info.status.${syncHealth.status}`)}
-                  </Text>
-                </View>
-                <Text style={styles.helperText}>
-                  {t('sync.manage.syncedDevices', {
-                    count: pairedDevices.length,
-                  })}
-                </Text>
-                <Text style={styles.helperText}>
-                  {t('sync.manage.lastSyncAt', { at: lastSyncedLabel })}
-                </Text>
-                <Text style={styles.helperText}>
-                  {t('sync.manage.roleState', {
-                    role: roomRole ? t(`sync.manage.roles.${roomRole}`) : '—',
-                    state: t(`sync.manage.binding.${bindingState}`),
-                  })}
+          <View style={styles.statusRow}>
+            <View style={styles.statusMeta}>
+              <View style={styles.statusLine}>
+                <View
+                  style={[styles.statusDot, { backgroundColor: statusTone }]}
+                />
+                <Text style={[styles.statusValue, { color: statusTone }]}>
+                  {t(`sync.info.status.${syncHealth.status}`)}
                 </Text>
               </View>
+              <Text style={styles.helperText}>
+                {t('sync.manage.syncedDevices', {
+                  count: pairedDevices.length,
+                })}
+              </Text>
+              <Text style={styles.helperText}>
+                {t('sync.manage.lastSyncAt', { at: lastSyncedLabel })}
+              </Text>
+              <Text style={styles.helperText}>
+                {t('sync.manage.roleState', {
+                  role: roomRole ? t(`sync.manage.roles.${roomRole}`) : '—',
+                  state: t(`sync.manage.binding.${bindingState}`),
+                })}
+              </Text>
+            </View>
+            <AnimatedPressable
+              style={syncEnabled ? styles.stopButton : styles.startButton}
+              onPress={() =>
+                runBusy('toggle', () => onToggleSync(!syncEnabled))
+              }
+            >
+              {busy === 'toggle' ? (
+                <ActivityIndicator color={tokens.colors.onPrimary} />
+              ) : (
+                <Text
+                  style={
+                    syncEnabled ? styles.stopButtonText : styles.startButtonText
+                  }
+                >
+                  {syncEnabled
+                    ? t('sync.manage.turnOff')
+                    : t('sync.manage.turnOn')}
+                </Text>
+              )}
+            </AnimatedPressable>
+          </View>
+
+          <AnimatedPressable
+            style={styles.outlineButton}
+            onPress={() => runBusy('refresh', onRefresh)}
+          >
+            {busy === 'refresh' ? (
+              <ActivityIndicator color={tokens.colors.textPrimary} />
+            ) : (
+              <>
+                <RefreshCw size={16} color={tokens.colors.textPrimary} />
+                <Text style={styles.outlineButtonText}>
+                  {t('sync.manage.refresh')}
+                </Text>
+              </>
+            )}
+          </AnimatedPressable>
+
+          {syncState?.deviceId ? (
+            <>
+              <Text style={styles.helperText}>
+                {t('sync.manage.thisDeviceCode', {
+                  code: syncState.deviceId.slice(-4).toUpperCase(),
+                })}
+              </Text>
+              <TextInput
+                value={draftDeviceName}
+                onChangeText={setDraftDeviceName}
+                autoCapitalize="words"
+                autoCorrect={false}
+                spellCheck={false}
+                placeholder={t('sync.manage.deviceNamePlaceholder')}
+                placeholderTextColor={tokens.colors.textSecondary}
+                style={styles.keyInput}
+              />
               <AnimatedPressable
-                style={syncEnabled ? styles.stopButton : styles.startButton}
+                style={styles.outlineButton}
                 onPress={() =>
-                  runBusy('toggle', () => onToggleSync(!syncEnabled))
+                  runBusy('rename', () => onRenameLocalDevice(draftDeviceName))
                 }
               >
-                {busy === 'toggle' ? (
-                  <ActivityIndicator color={tokens.colors.onPrimary} />
+                {busy === 'rename' ? (
+                  <ActivityIndicator color={tokens.colors.textPrimary} />
                 ) : (
-                  <Text
-                    style={
-                      syncEnabled
-                        ? styles.stopButtonText
-                        : styles.startButtonText
-                    }
-                  >
-                    {syncEnabled
-                      ? t('sync.manage.turnOff')
-                      : t('sync.manage.turnOn')}
+                  <Text style={styles.outlineButtonText}>
+                    {t('sync.manage.saveDeviceName')}
                   </Text>
                 )}
               </AnimatedPressable>
-            </View>
+            </>
+          ) : null}
+        </View>
 
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <KeyRound size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('sync.manage.masterKey')}
+            </Text>
+          </View>
+          <Text style={styles.helperText}>
+            {t('sync.manage.masterKeyHint')}
+          </Text>
+          <TextInput
+            value={draftKey}
+            onChangeText={setDraftKey}
+            autoCapitalize="none"
+            autoCorrect={false}
+            spellCheck={false}
+            placeholder={t('sync.manage.masterKeyPlaceholder')}
+            placeholderTextColor={tokens.colors.textSecondary}
+            style={styles.keyInput}
+          />
+          <View style={styles.actionRow}>
             <AnimatedPressable
               style={styles.outlineButton}
-              onPress={() => runBusy('refresh', onRefresh)}
+              onPress={() => runBusy('copy', onCopyMasterKey)}
             >
-              {busy === 'refresh' ? (
+              {busy === 'copy' ? (
                 <ActivityIndicator color={tokens.colors.textPrimary} />
               ) : (
                 <>
-                  <RefreshCw size={16} color={tokens.colors.textPrimary} />
+                  <Copy size={16} color={tokens.colors.textPrimary} />
                   <Text style={styles.outlineButtonText}>
-                    {t('sync.manage.refresh')}
+                    {t('sync.manage.copyKey')}
                   </Text>
                 </>
               )}
             </AnimatedPressable>
-
-            {syncState?.deviceId ? (
-              <>
-                <Text style={styles.helperText}>
-                  {t('sync.manage.thisDeviceCode', {
-                    code: syncState.deviceId.slice(-4).toUpperCase(),
-                  })}
-                </Text>
-                <TextInput
-                  value={draftDeviceName}
-                  onChangeText={setDraftDeviceName}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                  spellCheck={false}
-                  placeholder={t('sync.manage.deviceNamePlaceholder')}
-                  placeholderTextColor={tokens.colors.textSecondary}
-                  style={styles.keyInput}
-                />
-                <AnimatedPressable
-                  style={styles.outlineButton}
-                  onPress={() =>
-                    runBusy('rename', () =>
-                      onRenameLocalDevice(draftDeviceName),
-                    )
-                  }
-                >
-                  {busy === 'rename' ? (
-                    <ActivityIndicator color={tokens.colors.textPrimary} />
-                  ) : (
-                    <Text style={styles.outlineButtonText}>
-                      {t('sync.manage.saveDeviceName')}
-                    </Text>
-                  )}
-                </AnimatedPressable>
-              </>
-            ) : null}
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <KeyRound size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('sync.manage.masterKey')}
-              </Text>
-            </View>
-            <Text style={styles.helperText}>
-              {t('sync.manage.masterKeyHint')}
-            </Text>
-            <TextInput
-              value={draftKey}
-              onChangeText={setDraftKey}
-              autoCapitalize="none"
-              autoCorrect={false}
-              spellCheck={false}
-              placeholder={t('sync.manage.masterKeyPlaceholder')}
-              placeholderTextColor={tokens.colors.textSecondary}
-              style={styles.keyInput}
-            />
-            <View style={styles.actionRow}>
-              <AnimatedPressable
-                style={styles.outlineButton}
-                onPress={() => runBusy('copy', onCopyMasterKey)}
-              >
-                {busy === 'copy' ? (
-                  <ActivityIndicator color={tokens.colors.textPrimary} />
-                ) : (
-                  <>
-                    <Copy size={16} color={tokens.colors.textPrimary} />
-                    <Text style={styles.outlineButtonText}>
-                      {t('sync.manage.copyKey')}
-                    </Text>
-                  </>
-                )}
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={styles.primaryButton}
-                onPress={() => runBusy('key', () => onApplyMasterKey(draftKey))}
-              >
-                {busy === 'key' ? (
-                  <ActivityIndicator color={tokens.colors.onPrimary} />
-                ) : (
-                  <Text style={styles.primaryButtonText}>
-                    {t('sync.manage.applyKey')}
-                  </Text>
-                )}
-              </AnimatedPressable>
-            </View>
             <AnimatedPressable
-              style={styles.leaveButton}
-              onPress={() => runBusy('leave', onLeaveRoom)}
+              style={styles.primaryButton}
+              onPress={() => runBusy('key', () => onApplyMasterKey(draftKey))}
             >
-              {busy === 'leave' ? (
-                <ActivityIndicator color={tokens.colors.accentDanger} />
+              {busy === 'key' ? (
+                <ActivityIndicator color={tokens.colors.onPrimary} />
               ) : (
-                <Text style={styles.leaveButtonText}>
-                  {t('sync.manage.leaveRoom')}
+                <Text style={styles.primaryButtonText}>
+                  {t('sync.manage.applyKey')}
                 </Text>
               )}
             </AnimatedPressable>
           </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Shield size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('sync.manage.syncedDevicesTitle')}
-              </Text>
-            </View>
-            {pairedDevices.length === 0 ? (
-              <Text style={styles.helperText}>
-                {t('sync.manage.noDevices')}
-              </Text>
+          <AnimatedPressable
+            style={styles.leaveButton}
+            onPress={() => runBusy('leave', onLeaveRoom)}
+          >
+            {busy === 'leave' ? (
+              <ActivityIndicator color={tokens.colors.accentDanger} />
             ) : (
-              pairedDevices.map((device) => (
-                <View key={device.deviceId} style={styles.deviceRow}>
-                  <View style={styles.deviceMeta}>
-                    <Text style={styles.deviceName}>{device.displayName}</Text>
-                    <Text style={styles.deviceId}>
-                      {t('sync.manage.deviceCode', { code: device.deviceCode })}
-                    </Text>
-                    <Text style={styles.helperText}>
-                      {t('sync.manage.lastSeen', {
-                        at: new Date(device.lastSeen).toLocaleString(),
-                      })}
-                    </Text>
-                  </View>
-                  <AnimatedPressable
-                    style={styles.forgetButton}
-                    onPress={() => void onForgetDevice(device.deviceId)}
-                  >
-                    <Trash2 size={14} color={tokens.colors.accentDanger} />
-                  </AnimatedPressable>
-                </View>
-              ))
-            )}
-          </View>
-
-          {localError || syncHealth.lastError ? (
-            <View style={styles.errorPanel}>
-              <Text style={styles.errorText}>
-                {localError ?? syncHealth.lastError}
+              <Text style={styles.leaveButtonText}>
+                {t('sync.manage.leaveRoom')}
               </Text>
-            </View>
-          ) : null}
-        </ScrollView>
-      </View>
+            )}
+          </AnimatedPressable>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Shield size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('sync.manage.syncedDevicesTitle')}
+            </Text>
+          </View>
+          {pairedDevices.length === 0 ? (
+            <Text style={styles.helperText}>{t('sync.manage.noDevices')}</Text>
+          ) : (
+            pairedDevices.map((device) => (
+              <View key={device.deviceId} style={styles.deviceRow}>
+                <View style={styles.deviceMeta}>
+                  <Text style={styles.deviceName}>{device.displayName}</Text>
+                  <Text style={styles.deviceId}>
+                    {t('sync.manage.deviceCode', { code: device.deviceCode })}
+                  </Text>
+                  <Text style={styles.helperText}>
+                    {t('sync.manage.lastSeen', {
+                      at: new Date(device.lastSeen).toLocaleString(),
+                    })}
+                  </Text>
+                </View>
+                <AnimatedPressable
+                  style={styles.forgetButton}
+                  onPress={() => void onForgetDevice(device.deviceId)}
+                >
+                  <Trash2 size={14} color={tokens.colors.accentDanger} />
+                </AnimatedPressable>
+              </View>
+            ))
+          )}
+        </View>
+
+        {localError || syncHealth.lastError ? (
+          <View style={styles.errorPanel}>
+            <Text style={styles.errorText}>
+              {localError ?? syncHealth.lastError}
+            </Text>
+          </View>
+        ) : null}
+      </ScrollView>
+    </View>
+  );
+
+  if (layout.isTablet) {
+    return (
+      <AnimatedModalShell
+        open={open}
+        onClose={onClose}
+        slideFrom="right"
+        containerStyle={styles.tabletPanelModalRoot}
+        backdropStyle={styles.tabletPanelBackdrop}
+        sheetStyle={styles.tabletPanelSheet}
+      >
+        {content}
+      </AnimatedModalShell>
+    );
+  }
+
+  return (
+    <AnimatedScreenModal open={open} onClose={onClose}>
+      {content}
     </AnimatedScreenModal>
   );
 }
@@ -390,11 +406,27 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: tokens.colors.bgBase,
+    },
+    tabletPanelModalRoot: {
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+    },
+    tabletPanelBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    },
+    tabletPanelSheet: {
+      width: layout.isLandscape ? 540 : 460,
+      height: '100%',
+      overflow: 'hidden',
+      borderTopLeftRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.xl,
     },
     header: {
       paddingTop: topInset + tokens.spacing.sm,
@@ -434,6 +466,9 @@ function createStyles(
       padding: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.xxl,
       gap: tokens.spacing.md,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isLandscape ? 920 : undefined,
     },
     section: {
       borderRadius: tokens.radius.lg,
@@ -456,6 +491,7 @@ function createStyles(
       alignItems: 'center',
       justifyContent: 'space-between',
       gap: tokens.spacing.md,
+      flexWrap: layout.isLandscape ? 'wrap' : 'nowrap',
     },
     statusMeta: {
       flex: 1,
@@ -513,9 +549,11 @@ function createStyles(
     actionRow: {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
+      flexWrap: 'wrap',
     },
     outlineButton: {
       minHeight: 42,
+      minWidth: layout.isLandscape ? 180 : 0,
       borderRadius: tokens.radius.md,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
@@ -534,6 +572,7 @@ function createStyles(
     },
     primaryButton: {
       minHeight: 42,
+      minWidth: layout.isLandscape ? 180 : 0,
       borderRadius: tokens.radius.md,
       backgroundColor: tokens.colors.primary,
       alignItems: 'center',

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { AnimatedPressable } from '../../animation/primitives';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { SyncDataSummary } from '../../storage/types';
 import type { ThemeTokens } from '../../theme/tokens';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
@@ -32,9 +33,10 @@ export function SyncCreateRoomModal({
   onClose,
 }: SyncCreateRoomModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const [qrSvg, setQrSvg] = useState<string | null>(null);
 
@@ -58,7 +60,12 @@ export function SyncCreateRoomModal({
   }, [invitePayload, open]);
 
   return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
+    <AnimatedScreenModal
+      open={open}
+      onClose={onClose}
+      presentation={layout.isTablet ? 'tablet-sheet' : 'fullscreen'}
+      maxWidth={layout.isLandscape ? 820 : 720}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('sync.create.title')}</Text>
@@ -124,6 +131,7 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
@@ -133,6 +141,9 @@ function createStyles(
       paddingHorizontal: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.xl,
       gap: tokens.spacing.md,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isTablet ? 760 : undefined,
     },
     header: { gap: 4 },
     title: {

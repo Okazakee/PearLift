@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import type { ChangeSummary } from '../../backup/types';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import { AnimatedModalShell } from '../AnimatedModalShell';
@@ -23,7 +24,8 @@ export function ImportPreviewModal({
   onConfirm,
 }: ImportPreviewModalProps) {
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const layout = useResponsiveLayout();
+  const styles = useMemo(() => createStyles(tokens, layout), [tokens, layout]);
 
   return (
     <AnimatedModalShell
@@ -127,7 +129,10 @@ export function ImportPreviewModal({
   );
 }
 
-function createStyles(tokens: ThemeTokens) {
+function createStyles(
+  tokens: ThemeTokens,
+  layout: ReturnType<typeof useResponsiveLayout>,
+) {
   return StyleSheet.create({
     modalRoot: {
       paddingHorizontal: tokens.spacing.lg,
@@ -138,7 +143,7 @@ function createStyles(tokens: ThemeTokens) {
     },
     card: {
       width: '100%',
-      maxWidth: 580,
+      maxWidth: layout.isTablet ? Math.min(layout.modalMaxWidth, 680) : 580,
       maxHeight: '82%',
       borderRadius: tokens.radius.xl,
       borderWidth: 1,
@@ -215,6 +220,7 @@ function createStyles(tokens: ThemeTokens) {
       flexDirection: 'row',
       justifyContent: 'flex-end',
       gap: tokens.spacing.sm,
+      flexWrap: 'wrap',
     },
     cancelButton: {
       minWidth: 96,

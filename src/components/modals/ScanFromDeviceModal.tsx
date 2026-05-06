@@ -16,8 +16,10 @@ import {
   assembleChunkedPackets,
   decodeQrPayload,
 } from '../../backup/qrBackupCodec';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 interface ScanFromDeviceModalProps {
@@ -38,9 +40,10 @@ export function ScanFromDeviceModal({
   onClose,
 }: ScanFromDeviceModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const permission = useCameraPermission();
   const device = useCameraDevice('back');
@@ -258,71 +261,90 @@ export function ScanFromDeviceModal({
     };
   }, [device, handleScanned, open, permissionGranted, photoOutput, processing]);
 
+  const content = (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <AnimatedPressable style={styles.backButton} onPress={onClose}>
+          <ChevronLeft size={22} color={tokens.colors.textPrimary} />
+        </AnimatedPressable>
+        <Text style={styles.title}>{t('deviceTransfer.scanTitle')}</Text>
+        <View style={styles.backButtonPlaceholder} />
+      </View>
+
+      {!permissionGranted ? (
+        <View style={styles.permissionCard}>
+          <Text style={styles.permissionTitle}>
+            {t('deviceTransfer.cameraPermissionTitle')}
+          </Text>
+          <Text style={styles.permissionText}>
+            {t('deviceTransfer.cameraPermissionMessage')}
+          </Text>
+          <AnimatedPressable
+            style={styles.permissionButton}
+            onPress={() => void permission.requestPermission()}
+          >
+            <Text style={styles.permissionButtonText}>
+              {t('deviceTransfer.cameraPermissionButton')}
+            </Text>
+          </AnimatedPressable>
+        </View>
+      ) : !device ? (
+        <View style={styles.permissionCard}>
+          <Text style={styles.permissionTitle}>
+            {t('deviceTransfer.cameraUnavailableTitle')}
+          </Text>
+          <Text style={styles.permissionText}>
+            {t('deviceTransfer.cameraUnavailableMessage')}
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.cameraContainer}>
+          <Camera
+            style={styles.camera}
+            device={device}
+            outputs={[photoOutput]}
+            isActive={open}
+          />
+
+          <View style={styles.overlay}>
+            <Text style={styles.overlayText}>
+              {processing
+                ? t('app.loading')
+                : chunkTotal > 0
+                  ? t('deviceTransfer.chunkProgress', {
+                      received: chunkPayloads.size,
+                      total: chunkTotal,
+                      defaultValue: 'Scan progress: {{received}}/{{total}}',
+                    })
+                  : t('deviceTransfer.scanDescription')}
+            </Text>
+            {scanError ? (
+              <Text style={styles.overlayErrorText}>{scanError}</Text>
+            ) : null}
+          </View>
+        </View>
+      )}
+    </View>
+  );
+
+  if (layout.isTablet) {
+    return (
+      <AnimatedModalShell
+        open={open}
+        onClose={onClose}
+        slideFrom="right"
+        containerStyle={styles.tabletPanelModalRoot}
+        backdropStyle={styles.tabletPanelBackdrop}
+        sheetStyle={styles.tabletPanelSheet}
+      >
+        {content}
+      </AnimatedModalShell>
+    );
+  }
+
   return (
     <AnimatedScreenModal open={open} onClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <AnimatedPressable style={styles.backButton} onPress={onClose}>
-            <ChevronLeft size={22} color={tokens.colors.textPrimary} />
-          </AnimatedPressable>
-          <Text style={styles.title}>{t('deviceTransfer.scanTitle')}</Text>
-          <View style={styles.backButtonPlaceholder} />
-        </View>
-
-        {!permissionGranted ? (
-          <View style={styles.permissionCard}>
-            <Text style={styles.permissionTitle}>
-              {t('deviceTransfer.cameraPermissionTitle')}
-            </Text>
-            <Text style={styles.permissionText}>
-              {t('deviceTransfer.cameraPermissionMessage')}
-            </Text>
-            <AnimatedPressable
-              style={styles.permissionButton}
-              onPress={() => void permission.requestPermission()}
-            >
-              <Text style={styles.permissionButtonText}>
-                {t('deviceTransfer.cameraPermissionButton')}
-              </Text>
-            </AnimatedPressable>
-          </View>
-        ) : !device ? (
-          <View style={styles.permissionCard}>
-            <Text style={styles.permissionTitle}>
-              {t('deviceTransfer.cameraUnavailableTitle')}
-            </Text>
-            <Text style={styles.permissionText}>
-              {t('deviceTransfer.cameraUnavailableMessage')}
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.cameraContainer}>
-            <Camera
-              style={styles.camera}
-              device={device}
-              outputs={[photoOutput]}
-              isActive={open}
-            />
-
-            <View style={styles.overlay}>
-              <Text style={styles.overlayText}>
-                {processing
-                  ? t('app.loading')
-                  : chunkTotal > 0
-                    ? t('deviceTransfer.chunkProgress', {
-                        received: chunkPayloads.size,
-                        total: chunkTotal,
-                        defaultValue: 'Scan progress: {{received}}/{{total}}',
-                      })
-                    : t('deviceTransfer.scanDescription')}
-              </Text>
-              {scanError ? (
-                <Text style={styles.overlayErrorText}>{scanError}</Text>
-              ) : null}
-            </View>
-          </View>
-        )}
-      </View>
+      {content}
     </AnimatedScreenModal>
   );
 }
@@ -331,11 +353,27 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: tokens.colors.bgBase,
+    },
+    tabletPanelModalRoot: {
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+    },
+    tabletPanelBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    },
+    tabletPanelSheet: {
+      width: layout.isLandscape ? 600 : 520,
+      height: '100%',
+      overflow: 'hidden',
+      borderTopLeftRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.xl,
     },
     header: {
       paddingTop: topInset + tokens.spacing.sm,
@@ -368,6 +406,9 @@ function createStyles(
     },
     permissionCard: {
       margin: tokens.spacing.lg,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isTablet ? 760 : undefined,
       borderRadius: tokens.radius.lg,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
@@ -402,6 +443,11 @@ function createStyles(
     cameraContainer: {
       flex: 1,
       backgroundColor: '#000000',
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isTablet ? 960 : undefined,
+      borderRadius: layout.isTablet ? tokens.radius.xl : 0,
+      overflow: 'hidden',
     },
     camera: {
       flex: 1,

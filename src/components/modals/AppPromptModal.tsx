@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import { AnimatedModalShell } from '../AnimatedModalShell';
@@ -26,7 +27,8 @@ export function AppPromptModal({
   actions,
   onClose,
 }: AppPromptModalProps) {
-  const styles = createStyles(tokens);
+  const layout = useResponsiveLayout();
+  const styles = createStyles(tokens, layout);
 
   const handleAction = (action: AppPromptAction) => {
     onClose();
@@ -73,7 +75,10 @@ export function AppPromptModal({
   );
 }
 
-function createStyles(tokens: ThemeTokens) {
+function createStyles(
+  tokens: ThemeTokens,
+  layout: ReturnType<typeof useResponsiveLayout>,
+) {
   return StyleSheet.create({
     modalRoot: {
       paddingHorizontal: tokens.spacing.lg,
@@ -84,7 +89,7 @@ function createStyles(tokens: ThemeTokens) {
     },
     sheet: {
       width: '100%',
-      maxWidth: 420,
+      maxWidth: layout.isTablet ? Math.min(layout.modalMaxWidth, 520) : 420,
       borderRadius: tokens.radius.xl,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
@@ -106,9 +111,11 @@ function createStyles(tokens: ThemeTokens) {
       flexDirection: 'row',
       justifyContent: 'flex-end',
       gap: tokens.spacing.sm,
+      flexWrap: 'wrap',
     },
     actionButton: {
       minHeight: 40,
+      minWidth: layout.isTablet ? 120 : 0,
       borderRadius: tokens.radius.md,
       backgroundColor: tokens.colors.primary,
       alignItems: 'center',

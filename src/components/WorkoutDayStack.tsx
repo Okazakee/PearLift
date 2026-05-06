@@ -17,6 +17,8 @@ interface WorkoutDayStackProps {
   weightUnit: WeightUnit;
   contentBottomPadding: number;
   fabBottom: number;
+  contentMaxWidth: number;
+  exerciseColumns: number;
   dayConfigs: DayConfig[];
   workouts: WorkoutSession[];
   selectedDay: WorkoutDay;
@@ -39,6 +41,8 @@ export function WorkoutDayStack({
   weightUnit,
   contentBottomPadding,
   fabBottom,
+  contentMaxWidth,
+  exerciseColumns,
   dayConfigs,
   workouts,
   selectedDay,
@@ -100,6 +104,8 @@ export function WorkoutDayStack({
               onReorderExercises={onReorderExercises}
               contentBottomPadding={contentBottomPadding}
               fabBottom={fabBottom}
+              contentMaxWidth={contentMaxWidth}
+              exerciseColumns={exerciseColumns}
             />
           </View>
         );

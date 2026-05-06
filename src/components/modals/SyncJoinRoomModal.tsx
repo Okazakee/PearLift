@@ -15,6 +15,7 @@ import {
   View,
 } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { SyncDataSummary } from '../../storage/types';
 import type { ThemeTokens } from '../../theme/tokens';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
@@ -41,15 +42,21 @@ export function SyncJoinRoomModal({
   onClose,
 }: SyncJoinRoomModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
 
   return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
+    <AnimatedScreenModal
+      open={open}
+      onClose={onClose}
+      presentation={layout.isTablet ? 'tablet-sheet' : 'fullscreen'}
+      maxWidth={layout.isLandscape ? 820 : 720}
+    >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>{t('sync.join.title')}</Text>
@@ -133,6 +140,7 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
@@ -142,6 +150,9 @@ function createStyles(
       paddingHorizontal: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.xl,
       gap: tokens.spacing.md,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isTablet ? 760 : undefined,
     },
     header: { gap: 4 },
     title: {
@@ -200,6 +211,7 @@ function createStyles(
     buttonRow: {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
+      flexWrap: 'wrap',
     },
     primaryButton: {
       minHeight: 48,

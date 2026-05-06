@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { muscleGroups } from '../../data/workouts';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { ThemeTokens } from '../../theme/tokens';
 import type { Exercise } from '../../types';
 import { AnimatedModalShell } from '../AnimatedModalShell';
@@ -48,9 +49,10 @@ export function AddExerciseModal({
   onSubmit,
 }: AddExerciseModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const [form, setForm] = useState<FormExercise>(blankState);
   const [error, setError] = useState<string | null>(null);
-  const styles = useMemo(() => createStyles(tokens), [tokens]);
+  const styles = useMemo(() => createStyles(tokens, layout), [tokens, layout]);
 
   useEffect(() => {
     if (!open) return;
@@ -91,6 +93,111 @@ export function AddExerciseModal({
     });
     onClose();
   };
+
+  if (layout.isTablet && mode === 'edit') {
+    return (
+      <AnimatedModalShell
+        open={open}
+        onClose={onClose}
+        slideFrom="right"
+        containerStyle={styles.tabletPanelModalRoot}
+        backdropStyle={styles.tabletPanelBackdrop}
+        sheetStyle={styles.tabletPanelSheet}
+      >
+        <View style={styles.tabletPanel}>
+          <View style={styles.titleRow}>
+            <Text style={styles.title}>{t('addExercise.titleEdit')}</Text>
+            <Pressable style={styles.closeButton} onPress={onClose}>
+              <X size={18} color={tokens.colors.textSecondary} />
+            </Pressable>
+          </View>
+
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={styles.content}
+          >
+            <Text style={styles.label}>{t('addExercise.name')}</Text>
+            <TextInput
+              value={form.name}
+              onChangeText={(text) =>
+                setForm((prev) => ({ ...prev, name: text }))
+              }
+              placeholder={t('addExercise.namePlaceholder')}
+              placeholderTextColor={tokens.colors.textMuted}
+              style={styles.input}
+            />
+
+            <Text style={styles.label}>{t('addExercise.muscleGroup')}</Text>
+            <View style={styles.chipsWrap}>
+              {muscleGroups.map((muscle) => {
+                const active = form.muscleGroup === muscle;
+                return (
+                  <Pressable
+                    key={muscle}
+                    onPress={() =>
+                      setForm((prev) => ({ ...prev, muscleGroup: muscle }))
+                    }
+                    style={[styles.chip, active && styles.chipActive]}
+                  >
+                    <Text
+                      style={[styles.chipText, active && styles.chipTextActive]}
+                    >
+                      {muscle}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={styles.row}>
+              <View style={styles.col}>
+                <Text style={styles.label}>{t('addExercise.sets')}</Text>
+                <TextInput
+                  value={form.sets}
+                  onChangeText={(text) =>
+                    setForm((prev) => ({ ...prev, sets: text }))
+                  }
+                  keyboardType="numeric"
+                  style={styles.input}
+                />
+              </View>
+              <View style={styles.col}>
+                <Text style={styles.label}>{t('addExercise.reps')}</Text>
+                <TextInput
+                  value={form.reps}
+                  onChangeText={(text) =>
+                    setForm((prev) => ({ ...prev, reps: text }))
+                  }
+                  style={styles.input}
+                />
+              </View>
+            </View>
+
+            <Text style={styles.label}>{t('addExercise.notes')}</Text>
+            <TextInput
+              value={form.notes}
+              onChangeText={(text) =>
+                setForm((prev) => ({ ...prev, notes: text }))
+              }
+              style={[styles.input, styles.textarea]}
+              placeholder={t('addExercise.notesPlaceholder')}
+              placeholderTextColor={tokens.colors.textMuted}
+              multiline
+            />
+
+            {error && <Text style={styles.error}>{error}</Text>}
+
+            <Pressable style={styles.submitButton} onPress={handleSubmit}>
+              <Text style={styles.submitText}>
+                {t('addExercise.submitEdit')}
+              </Text>
+            </Pressable>
+          </ScrollView>
+        </View>
+      </AnimatedModalShell>
+    );
+  }
 
   return (
     <AnimatedModalShell
@@ -195,18 +302,29 @@ export function AddExerciseModal({
   );
 }
 
-function createStyles(tokens: ThemeTokens) {
+function createStyles(
+  tokens: ThemeTokens,
+  layout: ReturnType<typeof useResponsiveLayout>,
+) {
   return StyleSheet.create({
     modalRoot: {
       paddingHorizontal: tokens.spacing.lg,
+    },
+    tabletPanelModalRoot: {
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
     },
     backdrop: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: 'rgba(0, 0, 0, 0.58)',
     },
+    tabletPanelBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    },
     sheet: {
       width: '100%',
-      maxWidth: 560,
+      maxWidth: layout.isTablet ? Math.min(layout.modalMaxWidth, 680) : 560,
       maxHeight: '86%',
       backgroundColor: tokens.colors.surfaceContainer,
       borderRadius: tokens.radius.xl,
@@ -215,6 +333,24 @@ function createStyles(tokens: ThemeTokens) {
       paddingHorizontal: tokens.spacing.lg,
       paddingTop: tokens.spacing.lg,
       paddingBottom: tokens.spacing.md,
+    },
+    tabletPanelSheet: {
+      width: layout.isLandscape ? 460 : 400,
+      height: '100%',
+      overflow: 'hidden',
+      borderTopLeftRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.xl,
+    },
+    tabletPanel: {
+      flex: 1,
+      backgroundColor: tokens.colors.surfaceContainer,
+      paddingHorizontal: tokens.spacing.lg,
+      paddingTop: tokens.spacing.xl,
+      paddingBottom: tokens.spacing.md,
+      borderTopLeftRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.xl,
+      borderLeftWidth: 1,
+      borderLeftColor: tokens.colors.outlineVariant,
     },
     titleRow: {
       flexDirection: 'row',
@@ -286,10 +422,12 @@ function createStyles(tokens: ThemeTokens) {
     row: {
       flexDirection: 'row',
       gap: tokens.spacing.sm,
+      flexWrap: layout.isTablet ? 'wrap' : 'nowrap',
     },
     col: {
       flex: 1,
       gap: tokens.spacing.xs,
+      minWidth: layout.isTablet ? 220 : 0,
     },
     error: {
       color: tokens.colors.accentDanger,

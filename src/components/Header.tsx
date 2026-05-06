@@ -5,45 +5,62 @@ import type { ThemeTokens } from '../theme/tokens';
 interface HeaderProps {
   tokens: ThemeTokens;
   topInset: number;
+  maxWidth?: number;
   onOpenSettings: () => void;
 }
 
-export function Header({ tokens, topInset, onOpenSettings }: HeaderProps) {
-  const styles = createStyles(tokens, topInset);
+export function Header({
+  tokens,
+  topInset,
+  maxWidth,
+  onOpenSettings,
+}: HeaderProps) {
+  const styles = createStyles(tokens, topInset, maxWidth);
 
   return (
     <View style={styles.container}>
-      <View style={styles.brandRow}>
-        <View style={styles.logoBadge}>
-          <Image
-            source={require('../../assets/pearlift_transparent.png')}
-            style={styles.logoImage}
-            resizeMode="contain"
-          />
+      <View style={styles.inner}>
+        <View style={styles.brandRow}>
+          <View style={styles.logoBadge}>
+            <Image
+              source={require('../../assets/pearlift_transparent.png')}
+              style={styles.logoImage}
+              resizeMode="contain"
+            />
+          </View>
+          <View>
+            <Text style={styles.title}>PearLift</Text>
+          </View>
         </View>
-        <View>
-          <Text style={styles.title}>PearLift</Text>
-        </View>
-      </View>
 
-      <View style={styles.actionsRow}>
-        <Pressable onPress={onOpenSettings} style={styles.iconButton}>
-          <Settings size={18} color={tokens.colors.textSecondary} />
-        </Pressable>
+        <View style={styles.actionsRow}>
+          <Pressable onPress={onOpenSettings} style={styles.iconButton}>
+            <Settings size={18} color={tokens.colors.textSecondary} />
+          </Pressable>
+        </View>
       </View>
     </View>
   );
 }
 
-function createStyles(tokens: ThemeTokens, topInset: number) {
+function createStyles(
+  tokens: ThemeTokens,
+  topInset: number,
+  maxWidth?: number,
+) {
   return StyleSheet.create({
     container: {
-      paddingHorizontal: tokens.spacing.lg,
       paddingTop: topInset + tokens.spacing.sm,
-      paddingBottom: tokens.spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: tokens.colors.borderSubtle,
       backgroundColor: tokens.colors.background,
+    },
+    inner: {
+      width: '100%',
+      maxWidth,
+      alignSelf: 'center',
+      paddingHorizontal: tokens.spacing.lg,
+      paddingBottom: tokens.spacing.md,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',

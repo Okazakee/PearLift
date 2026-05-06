@@ -25,6 +25,7 @@ import {
 import { SvgXml } from 'react-native-svg';
 import { AnimatedPressable } from '../../animation/primitives';
 import { useCachedSvg } from '../../hooks/useCachedSvg';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import { getLanguageNativeName } from '../../storage/workoutRepository';
 import type {
   ThemeMode,
@@ -33,6 +34,7 @@ import type {
 } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
 import type { WeightUnit } from '../../types';
+import { AnimatedModalShell } from '../AnimatedModalShell';
 import { AnimatedScreenModal } from '../AnimatedScreenModal';
 
 const HOLEPUNCH_LOGO_WIDTH = 88;
@@ -121,6 +123,7 @@ export function SettingsModal({
   onOpenGithub,
 }: SettingsModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
 
   const { svgContent: holepunchSvg } = useCachedSvg(
     'https://holepunch.to/images/holepunch-logo-short.svg',
@@ -128,8 +131,8 @@ export function SettingsModal({
   );
 
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
 
   const optionStyle = (value: ThemePreference) => {
@@ -170,325 +173,337 @@ export function SettingsModal({
     return [styles.segmentText, styles.segmentTextSelected];
   };
 
-  return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <AnimatedPressable style={styles.backButton} onPress={onClose}>
-            <ChevronLeft size={22} color={tokens.colors.textPrimary} />
-          </AnimatedPressable>
-          <Text style={styles.title}>{t('settings.title')}</Text>
-          <View style={styles.backButtonPlaceholder} />
-        </View>
+  const content = (
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <AnimatedPressable style={styles.backButton} onPress={onClose}>
+          <ChevronLeft size={22} color={tokens.colors.textPrimary} />
+        </AnimatedPressable>
+        <Text style={styles.title}>{t('settings.title')}</Text>
+        <View style={styles.backButtonPlaceholder} />
+      </View>
 
-        <ScrollView
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Sun size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('settings.appearance.title')}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Sun size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('settings.appearance.title')}
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>
+                {t('settings.appearance.theme')}
+              </Text>
+              <Text style={styles.rowSubtitle}>
+                {t('settings.appearance.themeSubtitle')}
               </Text>
             </View>
-            <View style={styles.row}>
-              <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>
-                  {t('settings.appearance.theme')}
+            <View style={styles.segmented}>
+              <AnimatedPressable
+                style={optionStyle('system')}
+                onPress={() => onThemePreferenceChange('system')}
+              >
+                <Text style={optionTextStyle('system')}>
+                  {t('settings.appearance.themeSystem')}
                 </Text>
-                <Text style={styles.rowSubtitle}>
-                  {t('settings.appearance.themeSubtitle')}
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={optionStyle('light')}
+                onPress={() => onThemePreferenceChange('light')}
+              >
+                <Text style={optionTextStyle('light')}>
+                  {t('settings.appearance.themeLight')}
                 </Text>
-              </View>
-              <View style={styles.segmented}>
-                <AnimatedPressable
-                  style={optionStyle('system')}
-                  onPress={() => onThemePreferenceChange('system')}
-                >
-                  <Text style={optionTextStyle('system')}>
-                    {t('settings.appearance.themeSystem')}
-                  </Text>
-                </AnimatedPressable>
-                <AnimatedPressable
-                  style={optionStyle('light')}
-                  onPress={() => onThemePreferenceChange('light')}
-                >
-                  <Text style={optionTextStyle('light')}>
-                    {t('settings.appearance.themeLight')}
-                  </Text>
-                </AnimatedPressable>
-                <AnimatedPressable
-                  style={optionStyle('dark')}
-                  onPress={() => onThemePreferenceChange('dark')}
-                >
-                  <Text style={optionTextStyle('dark')}>
-                    {t('settings.appearance.themeDark')}
-                  </Text>
-                </AnimatedPressable>
-              </View>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={optionStyle('dark')}
+                onPress={() => onThemePreferenceChange('dark')}
+              >
+                <Text style={optionTextStyle('dark')}>
+                  {t('settings.appearance.themeDark')}
+                </Text>
+              </AnimatedPressable>
             </View>
+          </View>
 
-            <View style={styles.row}>
-              <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>
-                  {t('settings.appearance.weightUnit')}
-                </Text>
-                <Text style={styles.rowSubtitle}>
-                  {t('settings.appearance.weightUnitSubtitle')}
-                </Text>
-              </View>
-              <View style={styles.segmented}>
-                <AnimatedPressable
-                  style={unitOptionStyle('kg')}
-                  onPress={() => onWeightUnitChange('kg')}
-                >
-                  <Text style={unitOptionTextStyle('kg')}>kg</Text>
-                </AnimatedPressable>
-                <AnimatedPressable
-                  style={unitOptionStyle('lb')}
-                  onPress={() => onWeightUnitChange('lb')}
-                >
-                  <Text style={unitOptionTextStyle('lb')}>lb</Text>
-                </AnimatedPressable>
-              </View>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>
+                {t('settings.appearance.weightUnit')}
+              </Text>
+              <Text style={styles.rowSubtitle}>
+                {t('settings.appearance.weightUnitSubtitle')}
+              </Text>
             </View>
+            <View style={styles.segmented}>
+              <AnimatedPressable
+                style={unitOptionStyle('kg')}
+                onPress={() => onWeightUnitChange('kg')}
+              >
+                <Text style={unitOptionTextStyle('kg')}>kg</Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={unitOptionStyle('lb')}
+                onPress={() => onWeightUnitChange('lb')}
+              >
+                <Text style={unitOptionTextStyle('lb')}>lb</Text>
+              </AnimatedPressable>
+            </View>
+          </View>
 
-            <View style={styles.row}>
-              <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>
-                  {t('settings.appearance.language')}
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>
+                {t('settings.appearance.language')}
+              </Text>
+            </View>
+            <View style={styles.segmented}>
+              <AnimatedPressable
+                style={languageOptionStyle('system')}
+                onPress={() => onLanguageChange('system')}
+              >
+                <Text style={languageOptionTextStyle('system')}>
+                  {t('settings.appearance.system')}
                 </Text>
-              </View>
-              <View style={styles.segmented}>
-                <AnimatedPressable
-                  style={languageOptionStyle('system')}
-                  onPress={() => onLanguageChange('system')}
-                >
-                  <Text style={languageOptionTextStyle('system')}>
-                    {t('settings.appearance.system')}
-                  </Text>
-                </AnimatedPressable>
-                <AnimatedPressable
-                  style={languageOptionStyle(
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={languageOptionStyle(
+                  language === 'system' ? 'manual' : language,
+                )}
+                onPress={onLanguageListOpen}
+              >
+                <Text
+                  style={languageOptionTextStyle(
                     language === 'system' ? 'manual' : language,
                   )}
-                  onPress={onLanguageListOpen}
                 >
-                  <Text
-                    style={languageOptionTextStyle(
-                      language === 'system' ? 'manual' : language,
-                    )}
-                  >
-                    {language === 'system'
-                      ? t('settings.appearance.manual')
-                      : getLanguageNativeName(language)}
-                  </Text>
-                </AnimatedPressable>
-              </View>
+                  {language === 'system'
+                    ? t('settings.appearance.manual')
+                    : getLanguageNativeName(language)}
+                </Text>
+              </AnimatedPressable>
             </View>
           </View>
+        </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Shield size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('settings.syncBackup.title')}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Shield size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('settings.syncBackup.title')}
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <View style={styles.rowText}>
+              <Text style={styles.rowTitle}>
+                {syncEnabled
+                  ? t('settings.syncStatus.enabled')
+                  : t('settings.syncStatus.disabled')}
+              </Text>
+              <Text style={styles.rowSubtitle}>
+                {syncEnabled
+                  ? t('settings.syncStatus.syncingWith', {
+                      count: Math.max(syncPeers, 0),
+                    })
+                  : t('settings.syncStatus.off')}
+              </Text>
+              <Text style={styles.rowSubtitle}>
+                {syncLastSyncedAt
+                  ? t('settings.syncStatus.lastSuccessfulSync', {
+                      at: new Date(syncLastSyncedAt).toLocaleString(),
+                    })
+                  : t('sync.quick.lastSyncNever')}
               </Text>
             </View>
-            <View style={styles.row}>
-              <View style={styles.rowText}>
-                <Text style={styles.rowTitle}>
-                  {syncEnabled
-                    ? t('settings.syncStatus.enabled')
-                    : t('settings.syncStatus.disabled')}
-                </Text>
-                <Text style={styles.rowSubtitle}>
-                  {syncEnabled
-                    ? t('settings.syncStatus.syncingWith', {
-                        count: Math.max(syncPeers, 0),
-                      })
-                    : t('settings.syncStatus.off')}
-                </Text>
-                <Text style={styles.rowSubtitle}>
-                  {syncLastSyncedAt
-                    ? t('settings.syncStatus.lastSuccessfulSync', {
-                        at: new Date(syncLastSyncedAt).toLocaleString(),
-                      })
-                    : t('sync.quick.lastSyncNever')}
-                </Text>
-              </View>
-            </View>
+          </View>
+          <AnimatedPressable style={styles.outlineButton} onPress={onOpenSync}>
+            <Shield size={15} color={tokens.colors.textSecondary} />
+            <Text style={styles.outlineButtonText}>
+              {t('settings.syncBackup.openSyncSetup')}
+            </Text>
+          </AnimatedPressable>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Download size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('settings.localBackup.title')}
+            </Text>
+          </View>
+          <Text style={styles.rowSubtitle}>
+            {t('backup.localJson.description')}
+          </Text>
+          <View style={styles.actionRow}>
             <AnimatedPressable
-              style={styles.outlineButton}
-              onPress={onOpenSync}
+              style={[styles.outlineButton, styles.fullWidthButton]}
+              onPress={onExportLocalBackup}
             >
-              <Shield size={15} color={tokens.colors.textSecondary} />
+              <Download size={15} color={tokens.colors.textSecondary} />
               <Text style={styles.outlineButtonText}>
-                {t('settings.syncBackup.openSyncSetup')}
+                {t('settings.localBackup.export')}
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={[styles.outlineButton, styles.fullWidthButton]}
+              onPress={onImportLocalBackup}
+            >
+              <Upload size={15} color={tokens.colors.textSecondary} />
+              <Text style={styles.outlineButtonText}>
+                {t('settings.localBackup.import')}
               </Text>
             </AnimatedPressable>
           </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Download size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('settings.localBackup.title')}
+          <View style={styles.actionRow}>
+            <AnimatedPressable
+              style={[styles.outlineButton, styles.fullWidthButton]}
+              onPress={onShareToDevice}
+            >
+              <Share2 size={15} color={tokens.colors.textSecondary} />
+              <Text style={styles.outlineButtonText}>
+                {t('settings.localBackup.shareToDevice')}
               </Text>
-            </View>
-            <Text style={styles.rowSubtitle}>
-              {t('backup.localJson.description')}
-            </Text>
-            <View style={styles.actionRow}>
-              <AnimatedPressable
-                style={[styles.outlineButton, styles.fullWidthButton]}
-                onPress={onExportLocalBackup}
-              >
-                <Download size={15} color={tokens.colors.textSecondary} />
-                <Text style={styles.outlineButtonText}>
-                  {t('settings.localBackup.export')}
-                </Text>
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={[styles.outlineButton, styles.fullWidthButton]}
-                onPress={onImportLocalBackup}
-              >
-                <Upload size={15} color={tokens.colors.textSecondary} />
-                <Text style={styles.outlineButtonText}>
-                  {t('settings.localBackup.import')}
-                </Text>
-              </AnimatedPressable>
-            </View>
-            <View style={styles.actionRow}>
-              <AnimatedPressable
-                style={[styles.outlineButton, styles.fullWidthButton]}
-                onPress={onShareToDevice}
-              >
-                <Share2 size={15} color={tokens.colors.textSecondary} />
-                <Text style={styles.outlineButtonText}>
-                  {t('settings.localBackup.shareToDevice')}
-                </Text>
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={[styles.outlineButton, styles.fullWidthButton]}
-                onPress={onScanFromDevice}
-              >
-                <ScanLine size={15} color={tokens.colors.textSecondary} />
-                <Text style={styles.outlineButtonText}>
-                  {t('settings.localBackup.scanFromDevice')}
-                </Text>
-              </AnimatedPressable>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <AlertTriangle size={16} color={tokens.colors.accentDanger} />
-              <Text style={styles.sectionTitle}>
-                {t('settings.data.title')}
-              </Text>
-            </View>
-            <Text style={styles.rowSubtitle}>
-              {t('settings.data.resetDescription')}
-            </Text>
-            <AnimatedPressable style={styles.resetButton} onPress={onResetData}>
-              <RefreshCw size={18} color={tokens.colors.accentDanger} />
-              <Text style={styles.resetButtonText}>
-                {t('settings.data.resetButton')}
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={[styles.outlineButton, styles.fullWidthButton]}
+              onPress={onScanFromDevice}
+            >
+              <ScanLine size={15} color={tokens.colors.textSecondary} />
+              <Text style={styles.outlineButtonText}>
+                {t('settings.localBackup.scanFromDevice')}
               </Text>
             </AnimatedPressable>
           </View>
+        </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Code size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('settings.developer.title')}
-              </Text>
-            </View>
-            <View style={styles.infoRowLast}>
-              <Text style={styles.infoLabel}>
-                {t('settings.developer.maintainer')}
-              </Text>
-              <Text style={styles.infoValue}>Okazakee</Text>
-            </View>
-            <View style={styles.developerButtons}>
-              <AnimatedPressable
-                style={styles.developerPrimaryButton}
-                onPress={onOpenGithub}
-              >
-                <CodeXml size={18} color={tokens.colors.onPrimary} />
-                <Text style={styles.githubButtonText}>
-                  {t('settings.developer.openRepo')}
-                </Text>
-              </AnimatedPressable>
-            </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <AlertTriangle size={16} color={tokens.colors.accentDanger} />
+            <Text style={styles.sectionTitle}>{t('settings.data.title')}</Text>
           </View>
+          <Text style={styles.rowSubtitle}>
+            {t('settings.data.resetDescription')}
+          </Text>
+          <AnimatedPressable style={styles.resetButton} onPress={onResetData}>
+            <RefreshCw size={18} color={tokens.colors.accentDanger} />
+            <Text style={styles.resetButtonText}>
+              {t('settings.data.resetButton')}
+            </Text>
+          </AnimatedPressable>
+        </View>
 
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Info size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('settings.appInfo.title')}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('settings.appInfo.name')}</Text>
-              <Text style={styles.infoValue}>{appName}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
-                {t('settings.appInfo.version')}
-              </Text>
-              <Text style={styles.infoValue}>{appVersion}</Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
-                {t('settings.appInfo.build')}
-              </Text>
-              <Text style={styles.infoValue}>{appBuild}</Text>
-            </View>
-            <View style={styles.infoRowLast}>
-              <Text style={styles.infoLabel}>
-                {t('settings.appInfo.buildType')}
-              </Text>
-              <Text style={styles.infoValue}>{buildType}</Text>
-            </View>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Code size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('settings.developer.title')}
+            </Text>
           </View>
+          <View style={styles.infoRowLast}>
+            <Text style={styles.infoLabel}>
+              {t('settings.developer.maintainer')}
+            </Text>
+            <Text style={styles.infoValue}>Okazakee</Text>
+          </View>
+          <View style={styles.developerButtons}>
+            <AnimatedPressable
+              style={styles.developerPrimaryButton}
+              onPress={onOpenGithub}
+            >
+              <CodeXml size={18} color={tokens.colors.onPrimary} />
+              <Text style={styles.githubButtonText}>
+                {t('settings.developer.openRepo')}
+              </Text>
+            </AnimatedPressable>
+          </View>
+        </View>
 
-          <View style={styles.poweredByFooter}>
-            <Text style={styles.poweredByText}>Powered by</Text>
-            <View style={styles.poweredByLogos}>
-              <Pressable
-                style={styles.poweredByLogoPressable}
-                onPress={() => Linking.openURL('https://holepunch.to')}
-              >
-                {holepunchSvg ? (
-                  <SvgXml
-                    xml={holepunchSvg}
-                    width={HOLEPUNCH_LOGO_WIDTH}
-                    height={HOLEPUNCH_LOGO_HEIGHT}
-                  />
-                ) : (
-                  <Text style={styles.poweredByText}>Holepunch</Text>
-                )}
-              </Pressable>
-              <Text style={styles.poweredByAmpersand}>&</Text>
-              <Pressable
-                style={styles.poweredByLogoPressable}
-                onPress={() => Linking.openURL('https://pears.com')}
-              >
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Info size={16} color={tokens.colors.primary} />
+            <Text style={styles.sectionTitle}>
+              {t('settings.appInfo.title')}
+            </Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{t('settings.appInfo.name')}</Text>
+            <Text style={styles.infoValue}>{appName}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>
+              {t('settings.appInfo.version')}
+            </Text>
+            <Text style={styles.infoValue}>{appVersion}</Text>
+          </View>
+          <View style={styles.infoRow}>
+            <Text style={styles.infoLabel}>{t('settings.appInfo.build')}</Text>
+            <Text style={styles.infoValue}>{appBuild}</Text>
+          </View>
+          <View style={styles.infoRowLast}>
+            <Text style={styles.infoLabel}>
+              {t('settings.appInfo.buildType')}
+            </Text>
+            <Text style={styles.infoValue}>{buildType}</Text>
+          </View>
+        </View>
+
+        <View style={styles.poweredByFooter}>
+          <Text style={styles.poweredByText}>Powered by</Text>
+          <View style={styles.poweredByLogos}>
+            <Pressable
+              style={styles.poweredByLogoPressable}
+              onPress={() => Linking.openURL('https://holepunch.to')}
+            >
+              {holepunchSvg ? (
                 <SvgXml
-                  xml={PEAR_LOGO_SVG}
-                  width={PEAR_LOGO_WIDTH}
-                  height={PEAR_LOGO_HEIGHT}
+                  xml={holepunchSvg}
+                  width={HOLEPUNCH_LOGO_WIDTH}
+                  height={HOLEPUNCH_LOGO_HEIGHT}
                 />
-              </Pressable>
-            </View>
+              ) : (
+                <Text style={styles.poweredByText}>Holepunch</Text>
+              )}
+            </Pressable>
+            <Text style={styles.poweredByAmpersand}>+</Text>
+            <Pressable
+              style={styles.poweredByLogoPressable}
+              onPress={() => Linking.openURL('https://pears.com')}
+            >
+              <SvgXml
+                xml={PEAR_LOGO_SVG}
+                width={PEAR_LOGO_WIDTH}
+                height={PEAR_LOGO_HEIGHT}
+              />
+            </Pressable>
           </View>
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
+    </View>
+  );
+
+  if (layout.isTablet) {
+    return (
+      <AnimatedModalShell
+        open={open}
+        onClose={onClose}
+        slideFrom="right"
+        containerStyle={styles.tabletPanelModalRoot}
+        backdropStyle={styles.tabletPanelBackdrop}
+        sheetStyle={styles.tabletPanelSheet}
+      >
+        {content}
+      </AnimatedModalShell>
+    );
+  }
+
+  return (
+    <AnimatedScreenModal open={open} onClose={onClose}>
+      {content}
     </AnimatedScreenModal>
   );
 }
@@ -497,11 +512,27 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: tokens.colors.bgBase,
+    },
+    tabletPanelModalRoot: {
+      justifyContent: 'flex-start',
+      alignItems: 'flex-end',
+    },
+    tabletPanelBackdrop: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: 'rgba(0, 0, 0, 0.34)',
+    },
+    tabletPanelSheet: {
+      width: layout.isLandscape ? 520 : 440,
+      height: '100%',
+      overflow: 'hidden',
+      borderTopLeftRadius: tokens.radius.xl,
+      borderBottomLeftRadius: tokens.radius.xl,
     },
     header: {
       paddingTop: topInset + tokens.spacing.sm,
@@ -534,6 +565,9 @@ function createStyles(
       padding: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.xxl,
       gap: tokens.spacing.md,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isLandscape ? 920 : undefined,
     },
     section: {
       borderRadius: tokens.radius.lg,
@@ -557,6 +591,7 @@ function createStyles(
       justifyContent: 'space-between',
       alignItems: 'center',
       gap: tokens.spacing.sm,
+      flexWrap: layout.isLandscape ? 'wrap' : 'nowrap',
     },
     rowText: {
       flex: 1,
@@ -607,6 +642,7 @@ function createStyles(
     },
     outlineButton: {
       minHeight: 44,
+      flex: layout.isLandscape ? 1 : 0,
       borderRadius: tokens.radius.md,
       borderWidth: 1,
       borderColor: tokens.colors.outlineVariant,
@@ -624,6 +660,7 @@ function createStyles(
     },
     fullWidthButton: {
       width: '100%',
+      minWidth: layout.isLandscape ? 220 : undefined,
     },
     resetButton: {
       marginTop: tokens.spacing.sm,

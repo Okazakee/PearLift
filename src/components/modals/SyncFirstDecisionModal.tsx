@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { AnimatedPressable } from '../../animation/primitives';
+import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
 import type { SyncConflictSummary, SyncDataSummary } from '../../storage/types';
 import type { ThemeTokens } from '../../theme/tokens';
 import { withAlpha } from '../../theme/tokens';
@@ -34,9 +35,10 @@ export function SyncFirstDecisionModal({
   onClose,
 }: SyncFirstDecisionModalProps) {
   const { t } = useTranslation();
+  const layout = useResponsiveLayout();
   const styles = useMemo(
-    () => createStyles(tokens, topInset, bottomInset),
-    [tokens, topInset, bottomInset],
+    () => createStyles(tokens, topInset, bottomInset, layout),
+    [tokens, topInset, bottomInset, layout],
   );
   const [busyChoice, setBusyChoice] = useState<'local' | 'remote' | null>(null);
 
@@ -54,7 +56,12 @@ export function SyncFirstDecisionModal({
   };
 
   return (
-    <AnimatedScreenModal open={open} onClose={onClose}>
+    <AnimatedScreenModal
+      open={open}
+      onClose={onClose}
+      presentation={layout.isTablet ? 'tablet-sheet' : 'fullscreen'}
+      maxWidth={layout.isLandscape ? 880 : 760}
+    >
       <View style={styles.container}>
         <Text style={styles.title}>{t('sync.decision.title')}</Text>
         <Text style={styles.subtitle}>{t('sync.decision.subtitle')}</Text>
@@ -147,6 +154,7 @@ function createStyles(
   tokens: ThemeTokens,
   topInset: number,
   bottomInset: number,
+  layout: ReturnType<typeof useResponsiveLayout>,
 ) {
   return StyleSheet.create({
     container: {
@@ -156,6 +164,9 @@ function createStyles(
       paddingHorizontal: tokens.spacing.lg,
       paddingBottom: bottomInset + tokens.spacing.xl,
       gap: tokens.spacing.md,
+      alignSelf: 'center',
+      width: '100%',
+      maxWidth: layout.isTablet ? 820 : undefined,
     },
     title: {
       color: tokens.colors.textPrimary,
