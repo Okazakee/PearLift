@@ -1270,15 +1270,8 @@ export class WorkoutRepository {
   }
 
   private async ensureSyncStateRow(db: SQLiteDatabase) {
-    const row = await db.getFirstAsync<{ id: number }>(
-      'SELECT id FROM sync_state WHERE id = 1',
-    );
-    if (row?.id === 1) {
-      return;
-    }
-
     await db.runAsync(
-      `INSERT INTO sync_state (
+      `INSERT OR IGNORE INTO sync_state (
         id,
         sync_enabled,
         device_id,

@@ -22,6 +22,7 @@
 - **Weight tracking** with kg/lb support and automatic overload adjustments
 - **Android background rest timer** support through a local foreground-service module
 - **Local backups** with export/import and QR-based device transfer
+- **P2P sync** with cross-device room invites using Holepunch (hyperswarm + autobase)
 - **No account required** — your data stays with you
 - **Privacy-first** — no proprietary analytics, ads, or tracking SDKs
 
