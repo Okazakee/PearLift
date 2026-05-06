@@ -6,7 +6,7 @@
     <title>PearLift</title>
     <meta
       name="description"
-      content="PearLift is a local-first workout tracker with resilient rest timers, progressive overload, and privacy-first backups."
+      content="PearLift is a local-first workout tracker with resilient rest timers, progressive overload, and privacy-first backups and direct device sync."
     />
     <link rel="icon" href="./assets/pearlift_icon.png" />
     <link rel="stylesheet" href="./styles.css" />
@@ -38,7 +38,7 @@
             <h1>Train hard. Keep your data local.</h1>
             <p class="lead">
               PearLift is a local-first workout tracker for fast logging, reliable
-              rest timers, and backups you control.
+              rest timers, encrypted device-to‑device sync, and backups you control.
             </p>
             <div class="cta-row">
               <a class="button button-primary" href="./privacy/">Read Privacy Policy</a>
@@ -54,9 +54,9 @@
                 <span>Background timing stays reliable on Android.</span>
               </div>
               <div class="note-chip">
-                <strong>Backups</strong>
-                <span>Export JSON or move data by QR.</span>
-              </div>
+                 <strong>Device sync</strong>
+                 <span>Encrypted direct sync via Holepunch.</span>
+               </div>
             </div>
           </div>
 
@@ -114,7 +114,7 @@
               <span class="eyebrow">Core workflow</span>
               <h2>Built for lifting</h2>
             </div>
-            <p>Logging, progression, rest, and backups.</p>
+            <p>Logging, progression, rest, backup & sync.</p>
           </div>
           <div class="feature-grid">
             <article class="feature-card">
@@ -135,6 +135,13 @@
                 On Android, the timer keeps running even when the app is backgrounded.
               </p>
             </article>
+            <article class="feature-card">
+              <h3>Device sync</h3>
+              <p>
+                Sync workout data directly between your devices using
+                Holepunch. End‑to‑end encrypted, no cloud account.
+              </p>
+            </article>
           </div>
         </div>
       </section>
@@ -146,7 +153,10 @@
               <span class="eyebrow">Privacy stance</span>
               <h2>No tracking stack attached</h2>
             </div>
-            <p>Local storage, explicit actions, no analytics baggage.</p>
+              <p>
+                Local storage, encrypted Holepunch transfers, and explicit user
+                actions – no analytics or tracking SDKs.
+              </p>
           </div>
           <div class="info-grid">
             <article class="info-card">
@@ -169,6 +179,7 @@
                 <li>Camera for backup QR scanning</li>
                 <li>Notifications for local timer completion and foreground timer status</li>
                 <li>Foreground service and wake lock for Android timer reliability</li>
+                <li>Internet for device sync (encrypted, no cloud storage)</li>
               </ul>
             </article>
           </div>
@@ -179,22 +190,26 @@
         <div class="site-shell">
           <div class="section-head">
             <div>
-              <span class="eyebrow">Backup flow</span>
-              <h2>Backups stay explicit</h2>
+              <span class="eyebrow">Backup & sync</span>
+              <h2>Backups and transfers you control</h2>
             </div>
-            <p>No hidden sync, no forced cloud.</p>
+            <p>
+              No hidden sync, no forced cloud. Export a file, scan a QR, or
+              start an encrypted Holepunch sync session.
+            </p>
           </div>
           <div class="info-grid">
             <article class="info-card">
               <h3>Local backup export and restore</h3>
               <p>
-                Export to JSON or restore when you choose to.
+                Export your data to a JSON file and restore whenever you want.
               </p>
             </article>
             <article class="info-card">
-              <h3>Device-to-device QR transfer</h3>
+              <h3>Device‑to‑device transfer</h3>
               <p>
-                Move a backup between devices with a user-initiated QR flow.
+                Use a QR code for one‑time backup or create a sync room via
+                 Holepunch to replicate workouts directly between devices.
               </p>
             </article>
           </div>
@@ -207,15 +222,19 @@
       </section>
     </main>
 
-    <footer class="site-footer">
-      <div class="site-shell footer-card">
-        <p>Local-first workout tracking for lifters.</p>
-        <nav aria-label="Footer">
-          <a href="./privacy/">Privacy Policy</a>
-          <a href="https://github.com/Okazakee/PearLift">Source</a>
-          <a href="https://github.com/Okazakee/PearLift/issues">Support</a>
-        </nav>
+    <footer class="site-footer powered-by">
+      <div class="site-shell powered-by-inner">
+        <p class="powered-by-text">Powered by</p>
+        <div class="powered-by-logos">
+          <a class="powered-by-link" href="https://holepunch.to" target="_blank" rel="noopener noreferrer" aria-label="Holepunch">
+            <img src="./assets/holepunch-logo.svg" alt="Holepunch" width="88" height="36" />
+          </a>
+          <span class="powered-by-ampersand">&</span>
+          <a class="powered-by-link" href="https://pears.com" target="_blank" rel="noopener noreferrer" aria-label="Pear">
+            <img src="./assets/pear-logo.svg" alt="Pear" width="120" height="29" />
+          </a>
+        </div>
       </div>
     </footer>
   </body>
-  </html>
+</html>

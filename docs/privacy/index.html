@@ -59,7 +59,9 @@
             <h3>What PearLift does not collect</h3>
             <p>
               PearLift does not require an account and does not bundle proprietary
-              analytics, ad, or tracking SDKs.
+              analytics, ad, or tracking SDKs. The device sync feature
+              does not change this: it still works without an account and does not
+              collect usage data.
             </p>
             <ul>
               <li>No advertising SDKs</li>
@@ -75,22 +77,40 @@
               PearLift only uses permissions that map to visible app features.
             </p>
             <ul>
-              <li>Camera: used to scan backup QR codes when you choose to import or transfer data.</li>
+              <li>Camera: used to scan backup QR codes and sync room invite QR codes when you choose to import or transfer data.</li>
               <li>Notifications: used for local timer completion alerts and Android foreground timer notifications.</li>
               <li>Foreground service and wake lock: used on Android to keep rest timers running reliably in the background.</li>
+              <li>Internet: used for device sync (Holepunch) to discover and connect to your other device. All data transmitted is end‑to‑end encrypted.</li>
+            </ul>
+          </article>
+
+          <article class="policy-card">
+            <h3>Device sync</h3>
+            <p>
+              PearLift offers an optional device‑to‑device sync feature powered by
+              Holepunch. It lets you keep workout data
+              consistent across your own devices without storing anything in the cloud.
+            </p>
+            <ul>
+              <li>Sync is initiated by you: you create a room (generates a 64‑character pairing secret) or join one by scanning a QR code or pasting the key.</li>
+              <li>Peer discovery uses Holepunch and, if needed, relay servers for NAT traversal. No central server coordinates the connection.</li>
+              <li>All data is encrypted end‑to‑end with the Noise protocol and libsodium secret‑stream. Relay servers cannot read your data.</li>
+              <li>Synced data includes workouts, exercises, weights, and program structure. Local preferences (theme, current day, rest duration, units, language) stay on each device and are not synced.</li>
+              <li>Sync is active only while the "Start Sync" session is running; you can stop it at any time.</li>
+              <li>The sync QR code format (<code>pearlift‑sync‑room:v1:</code>) is different from the backup QR format. The existing backup export/import feature remains available and unchanged.</li>
             </ul>
           </article>
 
           <article class="policy-card">
             <h3>Backups and sharing</h3>
             <p>
-              PearLift supports local backup export/import and QR-based device
+              PearLift supports local backup export/import and QR‑based device
               transfer. These actions are initiated by the user.
             </p>
             <ul>
               <li>Exported backup files are created only when you request them.</li>
               <li>Importing or restoring a backup happens only when you choose it.</li>
-              <li>QR transfer is intended for explicit device-to-device sharing started by the user.</li>
+              <li>The device sync feature uses a different QR code format and is also fully user‑initiated.</li>
             </ul>
           </article>
 
@@ -98,7 +118,10 @@
             <h3>Data sharing with third parties</h3>
             <p>
               PearLift does not intentionally transmit your workout data to third-party
-              analytics, advertising, or tracking services as part of its normal app flow.
+              analytics, advertising, or tracking services as part of its normal app
+              flow. During device sync, encrypted data may pass through
+              Holepunch nodes or relay servers, but these operators cannot
+              decrypt or access your data.
             </p>
           </article>
 
@@ -119,17 +142,21 @@
           </article>
         </div>
       </div>
-    </main>
+  </main>
 
-    <footer class="site-footer">
-      <div class="site-shell footer-card">
-        <p>PearLift keeps the privacy story aligned with the actual app behavior.</p>
-        <nav aria-label="Footer">
-          <a href="../">Home</a>
-          <a href="https://github.com/Okazakee/PearLift">Source</a>
-          <a href="https://github.com/Okazakee/PearLift/issues">Support</a>
-        </nav>
+  <footer class="site-footer powered-by">
+    <div class="site-shell powered-by-inner">
+      <p class="powered-by-text">Powered by</p>
+      <div class="powered-by-logos">
+        <a class="powered-by-link" href="https://holepunch.to" target="_blank" rel="noopener noreferrer" aria-label="Holepunch">
+          <img src="../assets/holepunch-logo.svg" alt="Holepunch" width="88" height="36" />
+        </a>
+        <span class="powered-by-ampersand">&</span>
+        <a class="powered-by-link" href="https://pears.com" target="_blank" rel="noopener noreferrer" aria-label="Pear">
+          <img src="../assets/pear-logo.svg" alt="Pear" width="120" height="29" />
+        </a>
       </div>
-    </footer>
+    </div>
+  </footer>
   </body>
   </html>
