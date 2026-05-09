@@ -19,24 +19,56 @@ const nestedModule = resolve(
 const nestedParent = resolve(projectRoot, 'node_modules/expo/node_modules');
 const relativeTarget = '../../expo-file-system';
 
-if (!existsSync(rootModule) || !existsSync(nestedParent)) {
-  process.exit(0);
-}
+// expo-file-system dedupe symlink — the expo package bundles its own copy
+// inside node_modules/expo/node_modules/. This symlink points it back to
+// the root copy so expo-doctor doesn't see a duplicate.
+if (existsSync(rootModule) && existsSync(nestedParent)) {
+  mkdirSync(nestedParent, { recursive: true });
 
-mkdirSync(nestedParent, { recursive: true });
-
-if (existsSync(nestedModule)) {
-  const stats = lstatSync(nestedModule);
-  if (stats.isSymbolicLink()) {
-    const currentTarget = readlinkSync(nestedModule);
-    if (currentTarget === relativeTarget) {
-      process.exit(0);
+  if (existsSync(nestedModule)) {
+    const stats = lstatSync(nestedModule);
+    if (
+      stats.isSymbolicLink() &&
+      readlinkSync(nestedModule) === relativeTarget
+    ) {
+      // already correct, skip
+    } else {
+      rmSync(nestedModule, { recursive: true, force: true });
+      symlinkSync(relativeTarget, nestedModule);
+      console.log(
+        '[postinstall] Linked expo/node_modules/expo-file-system -> ../../expo-file-system',
+      );
     }
+  } else {
+    symlinkSync(relativeTarget, nestedModule);
+    console.log(
+      '[postinstall] Linked expo/node_modules/expo-file-system -> ../../expo-file-system',
+    );
   }
-  rmSync(nestedModule, { recursive: true, force: true });
 }
 
-symlinkSync(relativeTarget, nestedModule);
-console.log(
-  '[postinstall] Linked expo/node_modules/expo-file-system -> ../../expo-file-system',
-);
+// Link local native modules from modules/ into node_modules/ so Metro can resolve
+// them. No file: dependency in package.json — just a symlink that expo autolinking
+// and Metro both understand as a single package.
+const nativeModuleDirs = ['pearlift-rest-timer-fgs'];
+
+for (const name of nativeModuleDirs) {
+  const linkPath = resolve(projectRoot, 'node_modules', name);
+  const targetPath = resolve(projectRoot, 'modules', name);
+
+  if (!existsSync(targetPath)) continue;
+
+  if (existsSync(linkPath)) {
+    const stats = lstatSync(linkPath);
+    if (
+      stats.isSymbolicLink() &&
+      readlinkSync(linkPath) === `../modules/${name}`
+    ) {
+      continue;
+    }
+    rmSync(linkPath, { recursive: true, force: true });
+  }
+
+  symlinkSync(`../modules/${name}`, linkPath);
+  console.log(`[postinstall] Linked node_modules/${name} -> modules/${name}`);
+}
