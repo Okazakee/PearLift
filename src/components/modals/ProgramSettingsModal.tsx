@@ -20,14 +20,14 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
-import { AnimatedPressable } from '../../animation/primitives';
-import { dayIconMap, dayIconOptions } from '../../data/workouts';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import type { DayConfig, WeekConfig } from '../../types';
-import { AnimatedModalShell } from '../AnimatedModalShell';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { dayIconMap, dayIconOptions } from '@/data/workouts';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
+import type { DayConfig, WeekConfig } from '@/types';
 
 interface ProgramSettingsModalProps {
   open: boolean;

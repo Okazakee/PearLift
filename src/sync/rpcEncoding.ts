@@ -9,9 +9,9 @@ import {
   RPC_SYNC_STATUS,
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
-} from './rpcCommands';
-import type { SyncRole } from '../storage/types';
-import type { SyncHealth, SyncOpEnvelope, SyncStatus } from './types';
+} from '@/sync/rpcCommands';
+import type { SyncRole } from '@/storage/types';
+import type { SyncHealth, SyncOpEnvelope, SyncStatus } from '@/sync/types';
 
 type Direction = 'request' | 'response' | 'event';
 

@@ -1,15 +1,15 @@
-import type { PearLiftRuntimeState } from '../backup/types';
+import type { PearLiftRuntimeState } from '@/backup/types';
 import {
   buildInitialWeights,
   defaultDayConfigs,
   defaultWeekConfigs,
   defaultWorkouts,
-} from '../data/workouts';
+} from '@/data/workouts';
 import type {
   SyncConflictSummary,
   SyncDataSummary,
-} from '../storage/types';
-import type { WorkoutMutation, WorkoutStoreSnapshot } from '../storage/types';
+} from '@/storage/types';
+import type { WorkoutMutation, WorkoutStoreSnapshot } from '@/storage/types';
 
 export type FirstSyncResolutionResult =
   | { kind: 'already_in_sync'; summary: SyncDataSummary }
@@ -228,10 +228,43 @@ function mergeWeights(
   };
 }
 
+function assertDisjointIds<T extends { id: string | number }>(
+  label: string,
+  a: T[],
+  b: T[],
+) {
+  const bIds = new Set(b.map((item) => item.id));
+  const overlap = a.filter((item) => bIds.has(item.id));
+  if (overlap.length > 0) {
+    throw new Error(
+      `mergeDisjointRuntime: overlapping ${label} IDs detected — ${overlap.map((item) => item.id).join(', ')}`,
+    );
+  }
+}
+
 export function mergeDisjointRuntime(
   local: PearLiftRuntimeState,
   remote: PearLiftRuntimeState,
 ): PearLiftRuntimeState {
+  assertDisjointIds('workout', local.workouts, remote.workouts);
+  assertDisjointIds('weekConfig', local.weekConfigs, remote.weekConfigs);
+  assertDisjointIds('dayConfig', local.dayConfigs, remote.dayConfigs);
+
+  const localExerciseIds = new Set(
+    local.workouts.flatMap((w) => w.exercises.map((e) => e.id)),
+  );
+  const remoteExerciseIds = new Set(
+    remote.workouts.flatMap((w) => w.exercises.map((e) => e.id)),
+  );
+  const overlappingExercises = [...localExerciseIds].filter((id) =>
+    remoteExerciseIds.has(id),
+  );
+  if (overlappingExercises.length > 0) {
+    throw new Error(
+      `mergeDisjointRuntime: overlapping exercise IDs detected — ${overlappingExercises.join(', ')}`,
+    );
+  }
+
   return {
     workouts: [...remote.workouts, ...local.workouts],
     userWeights: mergeWeights(local, remote),

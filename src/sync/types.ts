@@ -5,8 +5,8 @@ import type {
   SyncRole,
   WorkoutMutation,
   WorkoutStoreSnapshot,
-} from '../storage/types';
-import type { PearLiftRuntimeState } from '../backup/types';
+} from '@/storage/types';
+import type { PearLiftRuntimeState } from '@/backup/types';
 
 export const SYNC_OP_SCHEMA_VERSION = 1 as const;
 

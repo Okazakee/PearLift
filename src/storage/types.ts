@@ -1,12 +1,12 @@
-import type { PearLiftRuntimeState } from '../backup/types';
-import type { ThemePreference } from '../theme/tokens';
+import type { PearLiftRuntimeState } from '@/backup/types';
+import type { ThemePreference } from '@/theme/tokens';
 import type {
   DayConfig,
   Exercise,
   WeekConfig,
   WeightUnit,
   WorkoutDay,
-} from '../types';
+} from '@/types';
 
 export interface AppSettings {
   currentWeek: number;

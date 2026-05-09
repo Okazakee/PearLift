@@ -1,15 +1,22 @@
 import * as Clipboard from 'expo-clipboard';
-import { Copy, QrCode, Shield } from 'lucide-react-native';
+import { Copy, QrCode, Shield, X } from 'lucide-react-native';
 import QRCode from 'qrcode';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { AnimatedPressable } from '../../animation/primitives';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { SyncDataSummary } from '../../storage/types';
-import type { ThemeTokens } from '../../theme/tokens';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { SyncDataSummary } from '@/storage/types';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface SyncCreateRoomModalProps {
   open: boolean;
@@ -39,6 +46,7 @@ export function SyncCreateRoomModal({
     [tokens, topInset, bottomInset, layout],
   );
   const [qrSvg, setQrSvg] = useState<string | null>(null);
+  const [keyExpanded, setKeyExpanded] = useState(false);
 
   useEffect(() => {
     if (!open || !invitePayload) {
@@ -68,8 +76,13 @@ export function SyncCreateRoomModal({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('sync.create.title')}</Text>
-          <Text style={styles.subtitle}>{t('sync.create.subtitle')}</Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>{t('sync.create.title')}</Text>
+            <Text style={styles.subtitle}>{t('sync.create.subtitle')}</Text>
+          </View>
+          <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
+            <X size={20} color={tokens.colors.textSecondary} />
+          </Pressable>
         </View>
 
         <View style={styles.section}>
@@ -100,26 +113,36 @@ export function SyncCreateRoomModal({
               <SvgXml xml={qrSvg} width={180} height={180} />
             </View>
           ) : isStarting ? (
-            <ActivityIndicator color={tokens.colors.primary} />
-          ) : null}
-          <Text style={invitePayload ? styles.keyText : styles.helperText}>
-            {invitePayload ??
-              t(
-                isStarting
-                  ? 'sync.create.inviteStarting'
-                  : 'sync.create.invitePending',
-              )}
-          </Text>
-          {invitePayload ? (
-            <AnimatedPressable
-              style={styles.outlineButton}
-              onPress={() => void Clipboard.setStringAsync(invitePayload)}
-            >
-              <Copy size={15} color={tokens.colors.textPrimary} />
-              <Text style={styles.outlineButtonText}>
-                {t('sync.create.copy')}
+            <View style={styles.loadingWrap}>
+              <ActivityIndicator color={tokens.colors.primary} />
+              <Text style={styles.helperText}>
+                {t('sync.create.inviteStarting')}
               </Text>
-            </AnimatedPressable>
+            </View>
+          ) : (
+            <Text style={styles.helperText}>
+              {t('sync.create.invitePending')}
+            </Text>
+          )}
+          {invitePayload ? (
+            <>
+              <Pressable onPress={() => setKeyExpanded(!keyExpanded)}>
+                <Text style={styles.keyText}>
+                  {keyExpanded
+                    ? invitePayload
+                    : `${invitePayload.slice(0, 24)}...${invitePayload.slice(-12)}`}
+                </Text>
+              </Pressable>
+              <AnimatedPressable
+                style={styles.outlineButton}
+                onPress={() => void Clipboard.setStringAsync(invitePayload)}
+              >
+                <Copy size={15} color={tokens.colors.textPrimary} />
+                <Text style={styles.outlineButtonText}>
+                  {t('sync.create.copy')}
+                </Text>
+              </AnimatedPressable>
+            </>
           ) : null}
         </View>
       </View>
@@ -145,7 +168,16 @@ function createStyles(
       width: '100%',
       maxWidth: layout.isTablet ? 760 : undefined,
     },
-    header: { gap: 4 },
+    header: { gap: 4, flexDirection: 'row', alignItems: 'flex-start' },
+    headerLeft: { flex: 1 },
+    closeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: withAlpha(tokens.colors.textSecondary, 0.1),
+    },
     title: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.subtitle,
@@ -170,6 +202,10 @@ function createStyles(
     helperText: {
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.label,
+    },
+    loadingWrap: {
+      alignItems: 'center',
+      gap: 12,
     },
     qrWrap: {
       alignSelf: 'center',

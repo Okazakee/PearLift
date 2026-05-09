@@ -50,11 +50,13 @@ let rpcHandshakeLogged = false;
 let rejoinInFlight = false;
 let discoveryOnlyMode = false;
 let disableCursorOptimization = false;
+let retryTimer = null;
 
 const MAX_LOG_ENTRIES = 200;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
 const WAITING_STATUS_THRESHOLD_ATTEMPTS = 3;
+const RETRY_BACKOFF_SECS = [30, 60, 120, 300, 600];
 const logRing = [];
 const WORKLET_BOOT_AT = new Date().toISOString();
 const SOCKET_NO_DATA_TIMEOUT_MS = 10000;
@@ -361,10 +363,10 @@ async function flushRemoteOps() {
   isFlushing = true;
   try {
     const total = base.view.length;
+    const startIndex = sentViewLength;
     let flushed = 0;
-    for (let i = 0; i < total; i += 1) {
+    for (let i = startIndex; i < total; i += 1) {
       const op = await base.view.get(i);
-      // Don't ship our own ops back to the UI.
       if (op?.deviceId && localDeviceId && op.deviceId === localDeviceId) {
         continue;
       }
@@ -384,6 +386,8 @@ async function flushRemoteOps() {
       emitStatus('synced', null);
       logMajorEvent('backend', 'remote_flush', 'Remote ops flushed.', {
         count: flushed,
+        startIndex,
+        total,
       });
     }
     scheduleCursorPersist();
@@ -418,7 +422,7 @@ async function publishBackendPresence() {
       schemaVersion: 1,
       opId: `${localDeviceId}:presence:${Date.now()}`,
       deviceId: localDeviceId,
-      lamport: 0,
+      lamport: Date.now(),
       createdAt: new Date().toISOString(),
       payload: { kind: 'presence' },
     };
@@ -441,6 +445,29 @@ function updateStuckState() {
   } else {
     stuckSince = null;
   }
+}
+
+function scheduleRetry() {
+  if (retryTimer) {
+    clearTimeout(retryTimer);
+    retryTimer = null;
+  }
+  const index = Math.min(reconnectAttempts, RETRY_BACKOFF_SECS.length - 1);
+  const delayMs = RETRY_BACKOFF_SECS[index] * 1000;
+  logMajorEvent('watchdog', 'schedule_retry', 'Scheduling reconnect retry.', {
+    attempt: reconnectAttempts,
+    delayMs,
+  });
+  retryTimer = setTimeout(() => {
+    retryTimer = null;
+    void rejoinTopic();
+  }, delayMs);
+}
+
+function clearRetryTimer() {
+  if (!retryTimer) return;
+  clearTimeout(retryTimer);
+  retryTimer = null;
 }
 
 async function rejoinTopic() {
@@ -578,6 +605,7 @@ function startHeartbeat() {
       reconnectAttempts >= WAITING_STATUS_THRESHOLD_ATTEMPTS
     ) {
       emitStatus('waiting', lastBackendError);
+      scheduleRetry();
     }
     if (
       stuckSince !== null &&
@@ -668,6 +696,7 @@ async function ensureStopped() {
   discoveryOnlyMode = false;
   disableCursorOptimization = false;
   stopHeartbeat();
+  clearRetryTimer();
 }
 
 async function startSync(config) {
@@ -827,6 +856,7 @@ async function startSync(config) {
     trackConnectionOpen(remoteKey);
     reconnectAttempts = 0;
     rejoinInFlight = false;
+    clearRetryTimer();
 
     stuckSince = null;
     if (runtimeStatus !== 'error') {

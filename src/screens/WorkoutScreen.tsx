@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
 import {
@@ -28,54 +29,54 @@ import {
   parseAndMigrateBackup,
   serializePwaBackupV2,
   toPwaBackupV2,
-} from '../backup/localBackup';
+} from '@/backup/localBackup';
 import {
   assembleChunkedPackets,
   decodeQrPayload,
-} from '../backup/qrBackupCodec';
-import { BootstrapScreen } from '../components/BootstrapScreen';
-import { Header } from '../components/Header';
-import { AddExerciseModal } from '../components/modals/AddExerciseModal';
-import { AppPromptModal } from '../components/modals/AppPromptModal';
-import { ImportPreviewModal } from '../components/modals/ImportPreviewModal';
-import { LanguageListModal } from '../components/modals/LanguageListModal';
-import { ProgramSettingsModal } from '../components/modals/ProgramSettingsModal';
-import { ScanFromDeviceModal } from '../components/modals/ScanFromDeviceModal';
-import { SettingsModal } from '../components/modals/SettingsModal';
-import { ShareToDeviceModal } from '../components/modals/ShareToDeviceModal';
-import { SyncCreateRoomModal } from '../components/modals/SyncCreateRoomModal';
-import { SyncDebugInfoModal } from '../components/modals/SyncDebugInfoModal';
-import { SyncFirstDecisionModal } from '../components/modals/SyncFirstDecisionModal';
-import { SyncJoinRoomModal } from '../components/modals/SyncJoinRoomModal';
-import { SyncManagementModal } from '../components/modals/SyncManagementModal';
-import { SyncRoomKeyScanModal } from '../components/modals/SyncRoomKeyScanModal';
-import { Navigation } from '../components/Navigation';
-import { OnboardingScreen } from '../components/OnboardingScreen';
-import { RestTimer } from '../components/RestTimer';
-import { WorkoutDayStack } from '../components/WorkoutDayStack';
-import { APP_CONFIG } from '../config/app';
-import { defaultDayConfigs } from '../data/workouts';
-import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
-import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '../i18n';
-import { useSystemLanguage } from '../i18n/systemLanguage';
-import { useWorkoutStore } from '../store/workoutStore';
-import { summarizeRuntime } from '../sync/firstSync';
-import { decodeSyncRoomInvite, encodeSyncRoomInvite } from '../sync/roomInvite';
+} from '@/backup/qrBackupCodec';
+import { BootstrapScreen } from '@/components/BootstrapScreen';
+import { Header } from '@/components/Header';
+import { AddExerciseModal } from '@/components/modals/AddExerciseModal';
+import { AppPromptModal } from '@/components/modals/AppPromptModal';
+import { ImportPreviewModal } from '@/components/modals/ImportPreviewModal';
+import { LanguageListModal } from '@/components/modals/LanguageListModal';
+import { ProgramSettingsModal } from '@/components/modals/ProgramSettingsModal';
+import { ScanFromDeviceModal } from '@/components/modals/ScanFromDeviceModal';
+import { SettingsModal } from '@/components/modals/SettingsModal';
+import { ShareToDeviceModal } from '@/components/modals/ShareToDeviceModal';
+import { SyncCreateRoomModal } from '@/components/modals/SyncCreateRoomModal';
+import { SyncDebugInfoModal } from '@/components/modals/SyncDebugInfoModal';
+import { SyncFirstDecisionModal } from '@/components/modals/SyncFirstDecisionModal';
+import { SyncJoinRoomModal } from '@/components/modals/SyncJoinRoomModal';
+import { SyncManagementModal } from '@/components/modals/SyncManagementModal';
+import { SyncRoomKeyScanModal } from '@/components/modals/SyncRoomKeyScanModal';
+import { Navigation } from '@/components/Navigation';
+import { OnboardingScreen } from '@/components/OnboardingScreen';
+import { RestTimer } from '@/components/RestTimer';
+import { WorkoutDayStack } from '@/components/WorkoutDayStack';
+import { APP_CONFIG } from '@/config/app';
+import { defaultDayConfigs } from '@/data/workouts';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import i18n, { SUPPORTED_I18N_LANGUAGE_CODES } from '@/i18n';
+import { useSystemLanguage } from '@/i18n/systemLanguage';
+import { styles } from '@/screens/styles';
+import { useWorkoutStore } from '@/store/workoutStore';
+import { summarizeRuntime } from '@/sync/firstSync';
+import { decodeSyncRoomInvite, encodeSyncRoomInvite } from '@/sync/roomInvite';
 import {
   getPairingSecretPayload,
   setPairingSecretPayload,
-} from '../sync/syncManager';
-import type { ThemeMode, ThemePreference } from '../theme/tokens';
-import { getThemeTokens, resolveThemeMode } from '../theme/tokens';
-import type { Exercise, WeightUnit, WorkoutDay } from '../types';
-import { getErrorMessage, logError } from '../utils/errors';
-import { roundToHalf } from '../utils/math';
+} from '@/sync/syncManager';
+import type { ThemeMode, ThemePreference } from '@/theme/tokens';
+import { getThemeTokens, resolveThemeMode } from '@/theme/tokens';
+import type { Exercise, WeightUnit, WorkoutDay } from '@/types';
+import { getErrorMessage, logError } from '@/utils/errors';
+import { roundToHalf } from '@/utils/math';
 import {
   fromDisplayWeight,
   roundToIncrement,
   toDisplayWeight,
-} from '../utils/units';
-import { styles } from './styles';
+} from '@/utils/units';
 
 export function WorkoutScreen() {
   const insets = useSafeAreaInsets();
@@ -92,6 +93,7 @@ export function WorkoutScreen() {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
   const [joinRoomScanOpen, setJoinRoomScanOpen] = useState(false);
+  const [syncOnboardingDismissed, setSyncOnboardingDismissed] = useState(false);
 
   const {
     snapshot,
@@ -154,6 +156,14 @@ export function WorkoutScreen() {
         setSyncMasterKey(key);
       } catch {
         setSyncMasterKey(null);
+      }
+      try {
+        const dismissed =
+          (await AsyncStorage.getItem('pearlift.sync.onboardingDismissed')) ===
+          '1';
+        setSyncOnboardingDismissed(dismissed);
+      } catch {
+        // ignore
       }
     })();
   }, [syncManagementOpen]);
@@ -282,6 +292,24 @@ export function WorkoutScreen() {
     if (!snapshot) return null;
     return summarizeRuntime(snapshot);
   }, [snapshot]);
+
+  const workoutNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const workout of workouts) {
+      map[workout.id] = workout.name;
+    }
+    return map;
+  }, [workouts]);
+
+  const exerciseNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const workout of workouts) {
+      for (const exercise of workout.exercises) {
+        map[exercise.id] = exercise.name;
+      }
+    }
+    return map;
+  }, [workouts]);
 
   const getWeek = (weekId?: number) =>
     weekConfigs.find((week) => week.id === (weekId ?? currentWeek)) ??
@@ -775,6 +803,7 @@ export function WorkoutScreen() {
     setCreateRoomStarting(true);
     try {
       await startCreatorRoom(key);
+      setCreateRoomOpen(false);
     } finally {
       setCreateRoomStarting(false);
     }
@@ -924,9 +953,12 @@ export function WorkoutScreen() {
           tokens={tokens}
           topInset={insets.top}
           maxWidth={responsiveLayout.contentMaxWidth}
+          syncHealth={syncHealth}
+          syncEnabled={syncState?.syncEnabled ?? false}
           onOpenSettings={() => {
             setSettingsOpen(true);
           }}
+          onOpenSync={() => void handleOpenSyncManagement()}
         />
 
         <WorkoutDayStack
@@ -1076,6 +1108,11 @@ export function WorkoutScreen() {
           onClose={() => {
             setSyncManagementOpen(false);
           }}
+          showOnboarding={!syncOnboardingDismissed}
+          onDismissOnboarding={() => {
+            setSyncOnboardingDismissed(true);
+            void AsyncStorage.setItem('pearlift.sync.onboardingDismissed', '1');
+          }}
         />
 
         <SyncCreateRoomModal
@@ -1120,6 +1157,8 @@ export function WorkoutScreen() {
           localSummary={syncState?.pendingLocalSummary ?? localSyncSummary}
           remoteSummary={syncState?.pendingRemoteSummary ?? null}
           conflictSummary={syncState?.pendingConflictSummary ?? null}
+          workoutNameMap={workoutNameMap}
+          exerciseNameMap={exerciseNameMap}
           onChooseLocal={() => handleResolveFirstSyncDecision('local_chosen')}
           onChooseRemote={() => handleResolveFirstSyncDecision('remote_chosen')}
           onClose={() => {

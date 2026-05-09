@@ -1,4 +1,4 @@
-import type { ThemePreference } from '../theme/tokens';
+import type { ThemePreference } from '@/theme/tokens';
 import type {
   DayConfig,
   Exercise,
@@ -7,7 +7,7 @@ import type {
   WeightUnit,
   WorkoutDay,
   WorkoutSession,
-} from '../types';
+} from '@/types';
 
 export interface PwaBackupExercise
   extends Omit<Exercise, 'notes' | 'position'> {

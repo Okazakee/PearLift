@@ -1,4 +1,4 @@
-import type { PersistedRestTimerStateV1, RestTimerMode } from '../types/timer';
+import type { PersistedRestTimerStateV1, RestTimerMode } from '@/types/timer';
 
 export function formatSeconds(seconds: number): string {
   const mins = Math.floor(seconds / 60);

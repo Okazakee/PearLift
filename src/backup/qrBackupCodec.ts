@@ -1,18 +1,18 @@
 import { fromByteArray, toByteArray } from 'base64-js';
 import pako from 'pako';
 import type {
+  PearLiftRuntimeState,
+  PwaBackupExercise,
+  PwaBackupV2,
+  PwaBackupWorkout,
+} from '@/backup/types';
+import type {
   DayConfig,
   UserWeights,
   WeekConfig,
   WorkoutDay,
   WorkoutSession,
-} from '../types';
-import type {
-  PearLiftRuntimeState,
-  PwaBackupExercise,
-  PwaBackupV2,
-  PwaBackupWorkout,
-} from './types';
+} from '@/types';
 
 const QR_PREFIX = 'plqr1:';
 const QR_CODEC_VERSION = 1;

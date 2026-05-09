@@ -1,9 +1,9 @@
 import { Shield } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
-import { AnimatedPressable } from '../../../animation/primitives';
-import type { ThemeTokens } from '../../../theme/tokens';
-import type { SettingsStyles } from './SettingsModal.styles';
+import { AnimatedPressable } from '@/animation/primitives';
+import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
+import type { ThemeTokens } from '@/theme/tokens';
 
 interface SyncBackupSectionProps {
   tokens: ThemeTokens;

@@ -9,11 +9,11 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { muscleGroups } from '../../data/workouts';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../theme/tokens';
-import type { Exercise } from '../../types';
-import { AnimatedModalShell } from '../AnimatedModalShell';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { muscleGroups } from '@/data/workouts';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import type { Exercise } from '@/types';
 
 interface FormExercise {
   name: string;

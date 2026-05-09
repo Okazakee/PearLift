@@ -9,18 +9,18 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
-import { AnimatedPressable } from '../animation/primitives';
-import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
+import { AnimatedPressable } from '@/animation/primitives';
+import { ExerciseCard } from '@/components/ExerciseCard';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 import type {
   Exercise,
   UserWeights,
   WeekConfig,
   WeightUnit,
   WorkoutSession,
-} from '../types';
-import { ExerciseCard } from './ExerciseCard';
+} from '@/types';
 
 interface WorkoutViewProps {
   isActive: boolean;

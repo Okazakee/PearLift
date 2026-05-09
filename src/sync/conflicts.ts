@@ -1,11 +1,11 @@
-import type { PearLiftRuntimeState } from '../backup/types';
+import type { PearLiftRuntimeState } from '@/backup/types';
 import type {
   SyncDeviceProfilePayload,
   SyncMutation,
   SyncOpEnvelope,
   SyncPayload,
   SyncSnapshotReplacePayload,
-} from './types';
+} from '@/sync/types';
 
 export function getOpPayload(
   op: SyncOpEnvelope,

@@ -7,13 +7,13 @@ import {
   Text,
   View,
 } from 'react-native';
-import { AnimatedPressable } from '../../animation/primitives';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { SyncLogEntry } from '../../sync/logger';
-import type { SyncHealth } from '../../sync/types';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { SyncLogEntry } from '@/sync/logger';
+import type { SyncHealth } from '@/sync/types';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface SyncDebugInfoModalProps {
   open: boolean;

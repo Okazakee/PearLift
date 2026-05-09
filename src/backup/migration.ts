@@ -1,5 +1,3 @@
-import type { ThemePreference } from '../theme/tokens';
-import type { WeightUnit } from '../types';
 import {
   alignWorkoutsToDays,
   clampWeek,
@@ -11,14 +9,16 @@ import {
   normalizeWeights,
   normalizeWorkout,
   reconcileDayConfigs,
-} from './normalization';
+} from '@/backup/normalization';
 import type {
   MigratedBackupResult,
   PearLiftRuntimeState,
   PwaBackupAny,
   PwaBackupV2,
   PwaBackupWorkout,
-} from './types';
+} from '@/backup/types';
+import type { ThemePreference } from '@/theme/tokens';
+import type { WeightUnit } from '@/types';
 
 export function parseBackupJson(raw: string): PwaBackupAny {
   let parsed: unknown;

@@ -1,6 +1,6 @@
-import type { DayConfig, Exercise, WeekConfig } from '../types';
-import { normalizeExercise } from './normalization';
-import type { ChangeSummary, PwaBackupV2, SettingChange } from './types';
+import { normalizeExercise } from '@/backup/normalization';
+import type { ChangeSummary, PwaBackupV2, SettingChange } from '@/backup/types';
+import type { DayConfig, Exercise, WeekConfig } from '@/types';
 
 function serializeExerciseForDiff(exercise: Exercise, weight: number) {
   return [

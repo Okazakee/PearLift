@@ -1,7 +1,7 @@
 import { Linking, Pressable, Text, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
-import { useCachedSvg } from '../../../hooks/useCachedSvg';
-import type { SettingsStyles } from './SettingsModal.styles';
+import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
+import { useCachedSvg } from '@/hooks/useCachedSvg';
 
 const HOLEPUNCH_LOGO_WIDTH = 88;
 const HOLEPUNCH_LOGO_HEIGHT = 36;

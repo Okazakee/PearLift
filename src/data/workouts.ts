@@ -3,7 +3,7 @@ import type {
   UserWeights,
   WeekConfig,
   WorkoutSession,
-} from '../types';
+} from '@/types';
 
 export const defaultWeekConfigs: WeekConfig[] = [
   { id: 1, name: 'Week 1', loadModifier: 1, rir: 2 },

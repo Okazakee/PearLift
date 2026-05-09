@@ -11,15 +11,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { AnimatedPressable } from '../../animation/primitives';
-import { encodeBackupForQr } from '../../backup/qrBackupCodec';
-import type { PearLiftRuntimeState } from '../../backup/types';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { getErrorMessage, logError } from '../../utils/errors';
-import { AnimatedModalShell } from '../AnimatedModalShell';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { encodeBackupForQr } from '@/backup/qrBackupCodec';
+import type { PearLiftRuntimeState } from '@/backup/types';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
+import { getErrorMessage, logError } from '@/utils/errors';
 
 interface ShareToDeviceModalProps {
   open: boolean;

@@ -1,4 +1,4 @@
-import type { SyncMutation } from './types';
+import type { SyncMutation } from '@/sync/types';
 
 export function coalescePublishQueue(
   queue: SyncMutation[],

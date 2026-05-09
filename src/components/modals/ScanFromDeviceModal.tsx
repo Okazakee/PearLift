@@ -11,16 +11,16 @@ import {
   usePhotoOutput,
 } from 'react-native-vision-camera';
 import { decodeBase64 } from 'vision-camera-zxing';
-import { AnimatedPressable } from '../../animation/primitives';
+import { AnimatedPressable } from '@/animation/primitives';
 import {
   assembleChunkedPackets,
   decodeQrPayload,
-} from '../../backup/qrBackupCodec';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { AnimatedModalShell } from '../AnimatedModalShell';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+} from '@/backup/qrBackupCodec';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface ScanFromDeviceModalProps {
   open: boolean;

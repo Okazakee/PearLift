@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { AnimatedModalShell } from '../AnimatedModalShell';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 export interface AppPromptAction {
   label: string;

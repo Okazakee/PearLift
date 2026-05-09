@@ -2,27 +2,23 @@ import { ChevronLeft } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, Text, View } from 'react-native';
-import { AnimatedPressable } from '../../animation/primitives';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type {
-  ThemeMode,
-  ThemePreference,
-  ThemeTokens,
-} from '../../theme/tokens';
-import type { WeightUnit } from '../../types';
-import { AnimatedModalShell } from '../AnimatedModalShell';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
-import { AppearanceSection } from './settings/AppearanceSection';
-import { AppInfoSection } from './settings/AppInfoSection';
-import { DataResetSection } from './settings/DataResetSection';
-import { DeveloperSection } from './settings/DeveloperSection';
-import { LocalBackupSection } from './settings/LocalBackupSection';
-import { PoweredByFooter } from './settings/PoweredByFooter';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { AppearanceSection } from '@/components/modals/settings/AppearanceSection';
+import { AppInfoSection } from '@/components/modals/settings/AppInfoSection';
+import { DataResetSection } from '@/components/modals/settings/DataResetSection';
+import { DeveloperSection } from '@/components/modals/settings/DeveloperSection';
+import { LocalBackupSection } from '@/components/modals/settings/LocalBackupSection';
+import { PoweredByFooter } from '@/components/modals/settings/PoweredByFooter';
 import {
   createSettingsStyles,
   type SettingsStyles,
-} from './settings/SettingsModal.styles';
-import { SyncBackupSection } from './settings/SyncBackupSection';
+} from '@/components/modals/settings/SettingsModal.styles';
+import { SyncBackupSection } from '@/components/modals/settings/SyncBackupSection';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeMode, ThemePreference, ThemeTokens } from '@/theme/tokens';
+import type { WeightUnit } from '@/types';
 
 interface SettingsModalProps {
   open: boolean;

@@ -14,8 +14,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { MOTION } from './motion';
-import { useMotionEnabled } from './useMotionEnabled';
+import { MOTION } from '@/animation/motion';
+import { useMotionEnabled } from '@/animation/useMotionEnabled';
 
 interface AnimatedViewProps {
   children: ReactNode;

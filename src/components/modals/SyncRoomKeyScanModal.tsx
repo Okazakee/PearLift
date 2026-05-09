@@ -11,11 +11,11 @@ import {
   usePhotoOutput,
 } from 'react-native-vision-camera';
 import { decodeBase64 } from 'vision-camera-zxing';
-import { AnimatedPressable } from '../../animation/primitives';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface SyncRoomKeyScanModalProps {
   open: boolean;

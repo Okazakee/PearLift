@@ -2,12 +2,12 @@ import { ArrowLeftRight, ArrowUpFromLine } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import { AnimatedPressable } from '../../animation/primitives';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { SyncConflictSummary, SyncDataSummary } from '../../storage/types';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { SyncConflictSummary, SyncDataSummary } from '@/storage/types';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface SyncFirstDecisionModalProps {
   open: boolean;
@@ -17,6 +17,8 @@ interface SyncFirstDecisionModalProps {
   localSummary: SyncDataSummary | null;
   remoteSummary: SyncDataSummary | null;
   conflictSummary: SyncConflictSummary | null;
+  workoutNameMap: Record<string, string>;
+  exerciseNameMap: Record<string, string>;
   onChooseLocal: () => Promise<void>;
   onChooseRemote: () => Promise<void>;
   onClose: () => void;
@@ -30,6 +32,8 @@ export function SyncFirstDecisionModal({
   localSummary,
   remoteSummary,
   conflictSummary,
+  workoutNameMap,
+  exerciseNameMap,
   onChooseLocal,
   onChooseRemote,
   onClose,
@@ -99,6 +103,40 @@ export function SyncFirstDecisionModal({
             <Text style={styles.warningTitle}>
               {t('sync.decision.conflictTitle')}
             </Text>
+            {conflictSummary.overlappingWorkoutIds.length > 0 ? (
+              <>
+                <Text
+                  style={[
+                    styles.helperText,
+                    { fontWeight: '700', marginTop: 4 },
+                  ]}
+                >
+                  {t('sync.decision.conflictWorkouts')}:
+                </Text>
+                {conflictSummary.overlappingWorkoutIds.map((id) => (
+                  <Text key={id} style={styles.conflictItem}>
+                    {'\u2022'} {workoutNameMap[id] ?? id}
+                  </Text>
+                ))}
+              </>
+            ) : null}
+            {conflictSummary.overlappingExerciseIds.length > 0 ? (
+              <>
+                <Text
+                  style={[
+                    styles.helperText,
+                    { fontWeight: '700', marginTop: 4 },
+                  ]}
+                >
+                  {t('sync.decision.conflictExercises')}:
+                </Text>
+                {conflictSummary.overlappingExerciseIds.map((id) => (
+                  <Text key={id} style={styles.conflictItem}>
+                    {'\u2022'} {exerciseNameMap[id] ?? id}
+                  </Text>
+                ))}
+              </>
+            ) : null}
             <Text style={styles.helperText}>
               {t('sync.decision.conflictSummary', {
                 workouts: conflictSummary.overlappingWorkoutIds.length,
@@ -191,6 +229,11 @@ function createStyles(
     helperText: {
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.label,
+    },
+    conflictItem: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.label,
+      paddingLeft: tokens.spacing.sm,
     },
     warningPanel: {
       borderRadius: tokens.radius.md,

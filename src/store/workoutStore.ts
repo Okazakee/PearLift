@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import type { ChangeSummary, MigratedBackupResult } from '../backup/types';
-import type { AppPromptAction } from '../components/modals/AppPromptModal';
-import { REST_TIMER_PERSIST_KEY } from '../config/timer';
-import i18n from '../i18n';
-import { cancelRestTimerNotification } from '../native/localNotifications';
-import { RestTimerForegroundService } from '../native/restTimerForegroundService';
+import type { ChangeSummary, MigratedBackupResult } from '@/backup/types';
+import type { AppPromptAction } from '@/components/modals/AppPromptModal';
+import { REST_TIMER_PERSIST_KEY } from '@/config/timer';
+import i18n from '@/i18n';
+import { cancelRestTimerNotification } from '@/native/localNotifications';
+import { RestTimerForegroundService } from '@/native/restTimerForegroundService';
 import type {
   PairedDevice,
   SyncFirstSyncResolution,
@@ -13,19 +13,19 @@ import type {
   SyncStateRow,
   WorkoutMutation,
   WorkoutStoreSnapshot,
-} from '../storage/types';
-import type { WorkoutRepository } from '../storage/workoutRepository';
-import { WorkoutRepository as WorkoutRepoClass } from '../storage/workoutRepository';
-import { canonicalizeMutationForSync } from '../sync/canonicalize';
-import type { SyncLogEntry } from '../sync/logger';
-import { createSyncManager } from '../sync/syncManager';
+} from '@/storage/types';
+import type { WorkoutRepository } from '@/storage/workoutRepository';
+import { WorkoutRepository as WorkoutRepoClass } from '@/storage/workoutRepository';
+import { canonicalizeMutationForSync } from '@/sync/canonicalize';
+import type { SyncLogEntry } from '@/sync/logger';
+import { createSyncManager } from '@/sync/syncManager';
 import {
   INITIAL_SYNC_HEALTH,
   isSyncableMutation,
   type SyncHealth,
   type SyncManager,
-} from '../sync/types';
-import type { PersistedRestTimerStateV1 } from '../types/timer';
+} from '@/sync/types';
+import type { PersistedRestTimerStateV1 } from '@/types/timer';
 
 interface PromptConfig {
   title: string;

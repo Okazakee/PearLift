@@ -6,9 +6,9 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { MOTION } from '../animation/motion';
-import { AnimatedFadeInView } from '../animation/primitives';
-import { useMotionEnabled } from '../animation/useMotionEnabled';
+import { MOTION } from '@/animation/motion';
+import { AnimatedFadeInView } from '@/animation/primitives';
+import { useMotionEnabled } from '@/animation/useMotionEnabled';
 
 interface BootstrapScreenProps {
   backgroundColor: string;

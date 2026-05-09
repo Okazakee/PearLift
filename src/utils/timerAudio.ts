@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { AppState, Platform } from 'react-native';
 
-import { COMPLETION_SOUND } from '../config/timer';
+import { COMPLETION_SOUND } from '@/config/timer';
 
 let completionSoundRef: Audio.Sound | null = null;
 

@@ -2,8 +2,8 @@ import RPC from 'bare-rpc';
 import { documentDirectory } from 'expo-file-system/legacy';
 import { deleteAsync } from 'expo-file-system/legacy';
 import { Worklet } from 'react-native-bare-kit';
-import type { SyncLogEntry } from './logger';
-import { logSyncError, logSyncEvent } from './logger';
+import type { SyncLogEntry } from '@/sync/logger';
+import { logSyncError, logSyncEvent } from '@/sync/logger';
 import {
   RPC_SYNC_GET_LOGS,
   RPC_SYNC_LOG_EVENT,
@@ -13,16 +13,16 @@ import {
   RPC_SYNC_STATUS,
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
-} from './rpcCommands';
-import { decodeRpcPayload, encodeRpcPayload } from './rpcEncoding';
+} from '@/sync/rpcCommands';
+import { decodeRpcPayload, encodeRpcPayload } from '@/sync/rpcEncoding';
 import syncBundle from './sync.bundle.mjs';
 import type {
   StartSyncInput,
   SyncBridge,
   SyncHealth,
   SyncOpEnvelope,
-} from './types';
-import { INITIAL_SYNC_HEALTH } from './types';
+} from '@/sync/types';
+import { INITIAL_SYNC_HEALTH } from '@/sync/types';
 
 type RpcLike = {
   request: (command: number) => {
@@ -37,6 +37,8 @@ type RuntimeRpcMessage = {
 };
 
 const APP_LAUNCH_AT = new Date().toISOString();
+const HEARTBEAT_INTERVAL_MS = 10000;
+const HEARTBEAT_FAIL_THRESHOLD = 2;
 
 function hashSecretHex(secretHex: string) {
   let hash = 2166136261;
@@ -63,6 +65,8 @@ export class HolepunchWorkletBridge implements SyncBridge {
   private rpc: RpcLike | null = null;
   private readonly remoteListeners = new Set<(op: SyncOpEnvelope) => void>();
   private readonly statusListeners = new Set<(health: SyncHealth) => void>();
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private consecutiveHeartbeatFailures = 0;
 
   private normalizeStoragePath(pathOrUri: string) {
     // Expo FileSystem uses file:// URIs; Bare/Corestore expects a real path.
@@ -219,10 +223,14 @@ export class HolepunchWorkletBridge implements SyncBridge {
       throw new Error(response.error);
     }
 
+    this.startHeartbeat();
+
     return { bootstrapKeyHex: response.bootstrapKeyHex ?? '' };
   }
 
   async stop(): Promise<void> {
+    this.stopHeartbeat();
+
     if (!this.rpc) {
       this.worklet?.terminate();
       this.worklet = null;
@@ -307,12 +315,38 @@ export class HolepunchWorkletBridge implements SyncBridge {
         RPC_SYNC_STATUS,
         { now: Date.now() },
       );
+      this.consecutiveHeartbeatFailures = 0;
       const status: SyncHealth = { ...INITIAL_SYNC_HEALTH, ...raw };
       for (const listener of this.statusListeners) {
         listener(status);
       }
     } catch {
-      // Ignore status pull errors to keep sync startup resilient.
+      this.consecutiveHeartbeatFailures += 1;
+      if (this.consecutiveHeartbeatFailures >= HEARTBEAT_FAIL_THRESHOLD) {
+        const errorHealth: SyncHealth = {
+          ...INITIAL_SYNC_HEALTH,
+          status: 'error',
+          lastError: 'Sync worklet unresponsive',
+        };
+        for (const listener of this.statusListeners) {
+          listener(errorHealth);
+        }
+      }
     }
+  }
+
+  private startHeartbeat() {
+    this.stopHeartbeat();
+    this.consecutiveHeartbeatFailures = 0;
+    this.heartbeatTimer = setInterval(() => {
+      void this.pullStatus();
+    }, HEARTBEAT_INTERVAL_MS);
+  }
+
+  private stopHeartbeat() {
+    if (!this.heartbeatTimer) return;
+    clearInterval(this.heartbeatTimer);
+    this.heartbeatTimer = null;
+    this.consecutiveHeartbeatFailures = 0;
   }
 }

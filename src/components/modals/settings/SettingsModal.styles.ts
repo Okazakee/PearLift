@@ -1,7 +1,7 @@
 import { StyleSheet } from 'react-native';
-import type { useResponsiveLayout } from '../../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../../theme/tokens';
-import { withAlpha } from '../../../theme/tokens';
+import type { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 export function createSettingsStyles(
   tokens: ThemeTokens,

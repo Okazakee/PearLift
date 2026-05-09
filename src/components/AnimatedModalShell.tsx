@@ -7,12 +7,12 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { MOTION } from '../animation/motion';
+import { MOTION } from '@/animation/motion';
 import {
   AnimatedFadeInView,
   AnimatedSlideInRightView,
   AnimatedSlideInView,
-} from '../animation/primitives';
+} from '@/animation/primitives';
 
 interface AnimatedModalShellProps {
   open: boolean;

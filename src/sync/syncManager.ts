@@ -1,40 +1,40 @@
-import type { PearLiftRuntimeState } from '../backup/types';
-import type { SyncFirstSyncResolution, SyncRole } from '../storage/types';
+import type { PearLiftRuntimeState } from '@/backup/types';
+import type { SyncFirstSyncResolution, SyncRole } from '@/storage/types';
 import type {
   WorkoutMutation,
   WorkoutRepository,
   WorkoutStoreSnapshot,
-} from '../storage';
-import { logError } from '../utils/errors';
-import { createSyncBridge } from './bridge';
-import { canonicalizeMutationForSync } from './canonicalize';
-import { coalescePublishQueue } from './coalesce';
+} from '@/storage';
+import { logError } from '@/utils/errors';
+import { createSyncBridge } from '@/sync/bridge';
+import { canonicalizeMutationForSync } from '@/sync/canonicalize';
+import { coalescePublishQueue } from '@/sync/coalesce';
 import {
   cloneRuntime,
   getOpPayload,
   mutationsConflict,
   applyOpsToRuntimePreview,
-} from './conflicts';
+} from '@/sync/conflicts';
 import {
   buildConflictSummary,
   mergeDisjointRuntime,
   resolveFirstSync,
   summarizeRuntime,
-} from './firstSync';
-import type { SyncLogEntry } from './logger';
+} from '@/sync/firstSync';
+import type { SyncLogEntry } from '@/sync/logger';
 import {
   combineLogs,
   getRecentLogs,
   logSyncError,
   logSyncEvent,
-} from './logger';
+} from '@/sync/logger';
 import {
   clearPairingSecret,
   getPairingSecretPayload,
   loadOrCreatePairingSecret,
   setPairingSecretPayload,
   toHex,
-} from './secrets';
+} from '@/sync/secrets';
 import type {
   FirstSyncState,
   SyncBridge,
@@ -45,8 +45,8 @@ import type {
   SyncMutation,
   SyncOpEnvelope,
   SyncSnapshotReplacePayload,
-} from './types';
-import { INITIAL_SYNC_HEALTH } from './types';
+} from '@/sync/types';
+import { INITIAL_SYNC_HEALTH } from '@/sync/types';
 
 export { getPairingSecretPayload, setPairingSecretPayload, clearPairingSecret };
 
@@ -54,6 +54,7 @@ const EMPTY_ROOM_TIMEOUT_MS = 6000;
 const PENDING_RESOLVE_DEBOUNCE_MS = 1000;
 const PUBLISH_DEBOUNCE_MS = 200;
 const RECONNECT_RECONCILE_MS = 1500;
+const MAX_BUFFERED_REMOTE_OPS = 200;
 
 function nowIso() {
   return new Date().toISOString();
@@ -430,6 +431,7 @@ class SyncManagerImpl implements SyncManager {
         { opId: op.opId, kind: payload.kind },
       );
       this.schedulePendingJoinResolution();
+      this.checkBufferOverflow();
       return;
     }
 
@@ -446,6 +448,7 @@ class SyncManagerImpl implements SyncManager {
         'Buffered remote op pending active-room conflict resolution.',
         { opId: op.opId, kind: payload.kind },
       );
+      this.checkBufferOverflow();
       return;
     }
 
@@ -462,6 +465,23 @@ class SyncManagerImpl implements SyncManager {
     }
 
     await this.applyRemoteOp(op);
+  }
+
+  private checkBufferOverflow() {
+    if (this.bufferedRemoteOps.length <= MAX_BUFFERED_REMOTE_OPS) return;
+
+    logSyncEvent(
+      'warn',
+      'manager',
+      'buffer_overflow',
+      'Buffered remote ops exceeded limit. Forcing decision modal.',
+      {
+        bufferedCount: this.bufferedRemoteOps.length,
+        limit: MAX_BUFFERED_REMOTE_OPS,
+      },
+    );
+    this.clearResolveTimer();
+    void this.resolvePendingJoin(false);
   }
 
   async resolveFirstSyncChoice(choice: 'local' | 'remote') {
@@ -663,25 +683,47 @@ class SyncManagerImpl implements SyncManager {
         this.emitStateChanged();
         return;
       case 'auto_merge':
-        await this.repository.applyMutation(
-          {
-            type: 'restoreRuntimeState',
-            runtime: resolution.mergedRuntime,
-            source: 'migration',
-          },
-          { origin: 'local', suppressSyncEmit: true },
-        );
-        await this.publishSnapshotReplace(resolution.mergedRuntime, 'auto_merge');
-        await this.persistFirstSyncState({
-          roomBindingState: 'active',
-          firstSyncResolution: 'auto_merge',
-          pendingLocalSummary: null,
-          pendingRemoteSummary: null,
-          pendingConflictSummary: null,
-        });
-        this.bufferedRemoteOps = [];
-        this.emitRemoteApplied();
-        this.emitStateChanged();
+        try {
+          await this.repository.applyMutation(
+            {
+              type: 'restoreRuntimeState',
+              runtime: resolution.mergedRuntime,
+              source: 'migration',
+            },
+            { origin: 'local', suppressSyncEmit: true },
+          );
+          await this.publishSnapshotReplace(resolution.mergedRuntime, 'auto_merge');
+          await this.persistFirstSyncState({
+            roomBindingState: 'active',
+            firstSyncResolution: 'auto_merge',
+            pendingLocalSummary: null,
+            pendingRemoteSummary: null,
+            pendingConflictSummary: null,
+          });
+          this.bufferedRemoteOps = [];
+          this.emitRemoteApplied();
+          this.emitStateChanged();
+        } catch (error) {
+          logSyncError('manager', 'auto_merge_failed', error);
+          await this.persistFirstSyncState({
+            roomBindingState: 'conflict_requires_decision',
+            firstSyncResolution: 'unknown',
+            pendingLocalSummary: resolution.localSummary,
+            pendingRemoteSummary: resolution.remoteSummary,
+            pendingConflictSummary: buildConflictSummary(
+              resolution.localSummary,
+              resolution.remoteSummary,
+              remoteOpCount,
+            ),
+          });
+          logSyncEvent(
+            'warn',
+            'manager',
+            'auto_merge_fallback',
+            'Auto-merge assertion failed, falling back to user choice.',
+          );
+          this.emitStateChanged();
+        }
         return;
       case 'requires_user_choice':
         await this.persistFirstSyncState({

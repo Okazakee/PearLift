@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import type { ThemeTokens } from '../theme/tokens';
+import { WorkoutView } from '@/components/WorkoutView';
+import type { ThemeTokens } from '@/theme/tokens';
 import type {
   DayConfig,
   Exercise,
@@ -9,8 +10,7 @@ import type {
   WeightUnit,
   WorkoutDay,
   WorkoutSession,
-} from '../types';
-import { WorkoutView } from './WorkoutView';
+} from '@/types';
 
 interface WorkoutDayStackProps {
   tokens: ThemeTokens;

@@ -1,17 +1,17 @@
-import { MAX_DAY_CONFIGS } from '../config/constants';
+import type { PwaBackupExercise, PwaBackupWorkout } from '@/backup/types';
+import { MAX_DAY_CONFIGS } from '@/config/constants';
 import {
   defaultDayConfigs,
   defaultWeekConfigs,
   defaultWorkouts,
-} from '../data/workouts';
+} from '@/data/workouts';
 import type {
   DayConfig,
   Exercise,
   UserWeights,
   WeekConfig,
   WorkoutSession,
-} from '../types';
-import type { PwaBackupExercise, PwaBackupWorkout } from './types';
+} from '@/types';
 
 export const FALLBACK_DAY_ICON = 'FitnessCenter';
 

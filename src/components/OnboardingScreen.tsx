@@ -7,13 +7,13 @@ import Animated, {
   FadeOutUp,
   ReduceMotion,
 } from 'react-native-reanimated';
-import { MOTION } from '../animation/motion';
-import { AnimatedPressable } from '../animation/primitives';
-import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
-import { requestNotificationPermission } from '../native/localNotifications';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import type { WeightUnit } from '../types';
+import { MOTION } from '@/animation/motion';
+import { AnimatedPressable } from '@/animation/primitives';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import { requestNotificationPermission } from '@/native/localNotifications';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
+import type { WeightUnit } from '@/types';
 
 interface OnboardingScreenProps {
   tokens: ThemeTokens;
@@ -220,6 +220,7 @@ function createStyles(
       justifyContent: 'center',
     },
     panel: {
+      flex: 1,
       width: '100%',
       maxWidth: layout.isTablet ? 680 : undefined,
       alignSelf: 'center',

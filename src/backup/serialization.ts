@@ -1,4 +1,4 @@
-import type { PearLiftRuntimeState, PwaBackupV2 } from './types';
+import type { PearLiftRuntimeState, PwaBackupV2 } from '@/backup/types';
 
 export function toPwaBackupV2(state: PearLiftRuntimeState): PwaBackupV2 {
   return {

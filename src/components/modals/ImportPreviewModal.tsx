@@ -2,11 +2,11 @@ import { Eye, X } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import type { ChangeSummary } from '../../backup/types';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { AnimatedModalShell } from '../AnimatedModalShell';
+import type { ChangeSummary } from '@/backup/types';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface ImportPreviewModalProps {
   open: boolean;

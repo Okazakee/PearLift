@@ -1,24 +1,30 @@
 import * as Clipboard from 'expo-clipboard';
 import {
+  Check,
   ClipboardPaste,
   DoorOpen,
   KeyRound,
   QrCode,
+  X,
 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  Pressable,
+  Animated as RNAnimated,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { AnimatedPressable } from '../../animation/primitives';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { SyncDataSummary } from '../../storage/types';
-import type { ThemeTokens } from '../../theme/tokens';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { SyncDataSummary } from '@/storage/types';
+import { decodeSyncRoomInvite } from '@/sync/roomInvite';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface SyncJoinRoomModalProps {
   open: boolean;
@@ -49,6 +55,54 @@ export function SyncJoinRoomModal({
   );
   const [key, setKey] = useState('');
   const [busy, setBusy] = useState(false);
+  const [keyValid, setKeyValid] = useState<boolean | null>(null);
+  const [pasteFeedback, setPasteFeedback] = useState<'valid' | 'empty' | null>(
+    null,
+  );
+  const pasteFade = useRef(new RNAnimated.Value(0)).current;
+  const validateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (validateTimer.current) clearTimeout(validateTimer.current);
+    };
+  }, []);
+
+  const triggerPasteFeedback = (kind: 'valid' | 'empty') => {
+    setPasteFeedback(kind);
+    pasteFade.setValue(1);
+    RNAnimated.timing(pasteFade, {
+      toValue: 0,
+      duration: 1800,
+      useNativeDriver: true,
+    }).start(() => setPasteFeedback(null));
+  };
+
+  const handlePaste = () => {
+    void Clipboard.getStringAsync().then((value) => {
+      if (!value.trim()) {
+        triggerPasteFeedback('empty');
+        return;
+      }
+      setKey(value);
+      triggerPasteFeedback('valid');
+    });
+  };
+
+  const handleKeyChange = (value: string) => {
+    setKey(value);
+    setKeyValid(null);
+    if (validateTimer.current) clearTimeout(validateTimer.current);
+    if (!value.trim()) return;
+    validateTimer.current = setTimeout(() => {
+      try {
+        decodeSyncRoomInvite(value);
+        setKeyValid(true);
+      } catch {
+        setKeyValid(false);
+      }
+    }, 300);
+  };
 
   return (
     <AnimatedScreenModal
@@ -59,8 +113,13 @@ export function SyncJoinRoomModal({
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('sync.join.title')}</Text>
-          <Text style={styles.subtitle}>{t('sync.join.subtitle')}</Text>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>{t('sync.join.title')}</Text>
+            <Text style={styles.subtitle}>{t('sync.join.subtitle')}</Text>
+          </View>
+          <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
+            <X size={20} color={tokens.colors.textSecondary} />
+          </Pressable>
         </View>
 
         <View style={styles.section}>
@@ -86,18 +145,38 @@ export function SyncJoinRoomModal({
           </View>
           <TextInput
             value={key}
-            onChangeText={setKey}
+            onChangeText={handleKeyChange}
             autoCapitalize="none"
             autoCorrect={false}
             spellCheck={false}
             placeholder={t('sync.join.keyPlaceholder')}
             placeholderTextColor={tokens.colors.textSecondary}
-            style={styles.input}
+            style={[
+              styles.input,
+              keyValid === true && styles.inputValid,
+              keyValid === false && styles.inputInvalid,
+            ]}
           />
+          {keyValid === true ? (
+            <View style={styles.validationRow}>
+              <Check size={14} color={tokens.colors.primary} />
+              <Text
+                style={[styles.helperText, { color: tokens.colors.primary }]}
+              >
+                {t('sync.join.keyValid')}
+              </Text>
+            </View>
+          ) : keyValid === false ? (
+            <Text
+              style={[styles.helperText, { color: tokens.colors.accentDanger }]}
+            >
+              {t('sync.join.invalidKey')}
+            </Text>
+          ) : null}
           <View style={styles.buttonRow}>
             <AnimatedPressable
               style={styles.outlineButton}
-              onPress={() => void Clipboard.getStringAsync().then(setKey)}
+              onPress={handlePaste}
             >
               <ClipboardPaste size={15} color={tokens.colors.textPrimary} />
               <Text style={styles.outlineButtonText}>
@@ -114,6 +193,22 @@ export function SyncJoinRoomModal({
               </Text>
             </AnimatedPressable>
           </View>
+          {pasteFeedback ? (
+            <RNAnimated.View style={{ opacity: pasteFade }}>
+              <Text
+                style={[
+                  styles.helperText,
+                  pasteFeedback === 'valid'
+                    ? { color: tokens.colors.primary }
+                    : { color: tokens.colors.accentDanger },
+                ]}
+              >
+                {pasteFeedback === 'valid'
+                  ? t('sync.join.pasteSuccess')
+                  : t('sync.join.pasteEmpty')}
+              </Text>
+            </RNAnimated.View>
+          ) : null}
         </View>
 
         <AnimatedPressable
@@ -154,7 +249,16 @@ function createStyles(
       width: '100%',
       maxWidth: layout.isTablet ? 760 : undefined,
     },
-    header: { gap: 4 },
+    header: { gap: 4, flexDirection: 'row', alignItems: 'flex-start' },
+    headerLeft: { flex: 1 },
+    closeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: withAlpha(tokens.colors.textSecondary, 0.1),
+    },
     title: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.subtitle,
@@ -190,6 +294,17 @@ function createStyles(
       paddingVertical: tokens.spacing.sm,
       fontSize: 12,
       fontFamily: 'monospace',
+    },
+    inputValid: {
+      borderColor: tokens.colors.primary,
+    },
+    inputInvalid: {
+      borderColor: tokens.colors.accentDanger,
+    },
+    validationRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
     },
     outlineButton: {
       flex: 1,

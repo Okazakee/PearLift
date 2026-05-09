@@ -1,2 +1,2 @@
-export * from './types';
-export * from './workoutRepository';
+export * from '@/storage/types';
+export * from '@/storage/workoutRepository';

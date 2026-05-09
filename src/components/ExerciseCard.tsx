@@ -1,17 +1,17 @@
 import { Dumbbell, Edit2, Minus, Plus, Trash2 } from 'lucide-react-native';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
-import { AnimatedPressable } from '../animation/primitives';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import type { Exercise, WeightUnit } from '../types';
+import { AnimatedPressable } from '@/animation/primitives';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
+import type { Exercise, WeightUnit } from '@/types';
 import {
   formatWeight,
   formatWeightUnit,
   fromDisplayWeight,
   getWeightStep,
   toDisplayWeight,
-} from '../utils/units';
+} from '@/utils/units';
 
 interface ExerciseCardProps {
   tokens: ThemeTokens;

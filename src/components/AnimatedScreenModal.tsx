@@ -7,9 +7,9 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { MOTION } from '../animation/motion';
-import { AnimatedSlideInRightView } from '../animation/primitives';
-import { useResponsiveLayout } from '../hooks/useResponsiveLayout';
+import { MOTION } from '@/animation/motion';
+import { AnimatedSlideInRightView } from '@/animation/primitives';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 
 interface AnimatedScreenModalProps {
   open: boolean;

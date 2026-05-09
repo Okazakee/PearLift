@@ -1,5 +1,5 @@
-import { HolepunchWorkletBridge } from './holepunchBridge';
-import type { SyncBridge } from './types';
+import { HolepunchWorkletBridge } from '@/sync/holepunchBridge';
+import type { SyncBridge } from '@/sync/types';
 
 export function createSyncBridge(override?: SyncBridge): SyncBridge {
   if (override) {

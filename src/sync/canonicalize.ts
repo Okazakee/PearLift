@@ -1,5 +1,5 @@
-import type { WorkoutMutation, WorkoutStoreSnapshot } from '../storage/types';
-import type { SyncMutation } from './types';
+import type { WorkoutMutation, WorkoutStoreSnapshot } from '@/storage/types';
+import type { SyncMutation } from '@/sync/types';
 
 export function canonicalizeMutationForSync(
   mutation: WorkoutMutation,

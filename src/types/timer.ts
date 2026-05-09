@@ -1,4 +1,4 @@
-import type { ThemeTokens } from '../theme/tokens';
+import type { ThemeTokens } from '@/theme/tokens';
 
 export type RestTimerMode = 'idle' | 'running' | 'paused' | 'complete';
 

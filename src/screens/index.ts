@@ -1,2 +1,2 @@
-export { styles } from './styles';
-export { WorkoutScreen } from './WorkoutScreen';
+export { styles } from '@/screens/styles';
+export { WorkoutScreen } from '@/screens/WorkoutScreen';

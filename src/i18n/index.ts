@@ -1,5 +1,6 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
+import { getSystemLanguage } from '@/i18n/systemLanguage';
 import ar from './locales/ar.json';
 import bg from './locales/bg.json';
 import cs from './locales/cs.json';
@@ -33,8 +34,6 @@ import th from './locales/th.json';
 import tr from './locales/tr.json';
 import vi from './locales/vi.json';
 import zh from './locales/zh.json';
-
-import { getSystemLanguage } from './systemLanguage';
 
 export const I18N_RESOURCES = {
   en: { translation: en },

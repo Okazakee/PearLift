@@ -1,4 +1,6 @@
 import {
+  ChevronDown,
+  ChevronUp,
   Copy,
   KeyRound,
   Link2,
@@ -16,14 +18,14 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { AnimatedPressable } from '../../animation/primitives';
-import { useResponsiveLayout } from '../../hooks/useResponsiveLayout';
-import type { PairedDevice, SyncStateRow } from '../../storage/types';
-import type { SyncHealth } from '../../sync/types';
-import type { ThemeTokens } from '../../theme/tokens';
-import { withAlpha } from '../../theme/tokens';
-import { AnimatedModalShell } from '../AnimatedModalShell';
-import { AnimatedScreenModal } from '../AnimatedScreenModal';
+import { AnimatedPressable } from '@/animation/primitives';
+import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { PairedDevice, SyncStateRow } from '@/storage/types';
+import type { SyncHealth } from '@/sync/types';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface SyncManagementModalProps {
   open: boolean;
@@ -46,6 +48,8 @@ interface SyncManagementModalProps {
   onOpenDebug: () => void;
   onRefresh: () => Promise<void>;
   onClose: () => void;
+  showOnboarding: boolean;
+  onDismissOnboarding: () => void;
 }
 
 function getStatusTone(tokens: ThemeTokens, health: SyncHealth) {
@@ -76,6 +80,8 @@ export function SyncManagementModal({
   onOpenDebug,
   onRefresh,
   onClose,
+  showOnboarding,
+  onDismissOnboarding,
 }: SyncManagementModalProps) {
   const { t } = useTranslation();
   const layout = useResponsiveLayout();
@@ -91,6 +97,7 @@ export function SyncManagementModal({
     null | 'toggle' | 'key' | 'copy' | 'refresh' | 'rename' | 'leave'
   >(null);
   const [localError, setLocalError] = useState<string | null>(null);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -139,35 +146,92 @@ export function SyncManagementModal({
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Shield size={16} color={tokens.colors.primary} />
-            <Text style={styles.sectionTitle}>
-              {t('sync.manage.roomSetup')}
+        {showOnboarding && !syncEnabled ? (
+          <View style={styles.onboardingCard}>
+            <Text style={styles.onboardingTitle}>
+              {t('sync.manage.onboardingTitle')}
             </Text>
-          </View>
-          <Text style={styles.helperText}>
-            {t('sync.manage.roomSetupHint')}
-          </Text>
-          <View style={styles.actionRow}>
+            <Text style={styles.helperText}>
+              {t('sync.manage.onboardingMessage')}
+            </Text>
             <AnimatedPressable
-              style={styles.primaryButton}
-              onPress={onOpenCreateRoom}
+              style={styles.onboardingDismissButton}
+              onPress={onDismissOnboarding}
             >
-              <Text style={styles.primaryButtonText}>
-                {t('sync.manage.createRoom')}
-              </Text>
-            </AnimatedPressable>
-            <AnimatedPressable
-              style={styles.outlineButton}
-              onPress={onOpenJoinRoom}
-            >
-              <Text style={styles.outlineButtonText}>
-                {t('sync.manage.joinRoom')}
+              <Text style={styles.onboardingDismissText}>
+                {t('sync.manage.onboardingDismiss')}
               </Text>
             </AnimatedPressable>
           </View>
-        </View>
+        ) : null}
+        {!syncEnabled ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Shield size={16} color={tokens.colors.primary} />
+              <Text style={styles.sectionTitle}>
+                {t('sync.manage.roomSetup')}
+              </Text>
+            </View>
+            <Text style={styles.helperText}>
+              {t('sync.manage.roomSetupHint')}
+            </Text>
+            <View style={styles.actionRow}>
+              <AnimatedPressable
+                style={styles.primaryButton}
+                onPress={onOpenCreateRoom}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {t('sync.manage.createRoom')}
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={styles.outlineButton}
+                onPress={onOpenJoinRoom}
+              >
+                <Text style={styles.outlineButtonText}>
+                  {t('sync.manage.joinRoom')}
+                </Text>
+              </AnimatedPressable>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Shield size={16} color={tokens.colors.primary} />
+              <Text style={styles.sectionTitle}>
+                {t('sync.manage.roomSetup')}
+              </Text>
+            </View>
+            <View style={styles.activeBadge}>
+              <View
+                style={[
+                  styles.badgeDot,
+                  { backgroundColor: tokens.colors.primary },
+                ]}
+              />
+              <Text
+                style={[
+                  styles.helperText,
+                  { color: tokens.colors.primary, fontWeight: '700' },
+                ]}
+              >
+                {t('sync.manage.roomActive')}
+              </Text>
+            </View>
+            <AnimatedPressable
+              style={styles.leaveButton}
+              onPress={() => runBusy('leave', onLeaveRoom)}
+            >
+              {busy === 'leave' ? (
+                <ActivityIndicator color={tokens.colors.accentDanger} />
+              ) : (
+                <Text style={styles.leaveButtonText}>
+                  {t('sync.manage.leaveRoom')}
+                </Text>
+              )}
+            </AnimatedPressable>
+          </View>
+        )}
 
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -272,102 +336,110 @@ export function SyncManagementModal({
           ) : null}
         </View>
 
-        <View style={styles.section}>
+        <AnimatedPressable
+          style={styles.section}
+          onPress={() => setAdvancedOpen(!advancedOpen)}
+        >
           <View style={styles.sectionHeader}>
             <KeyRound size={16} color={tokens.colors.primary} />
             <Text style={styles.sectionTitle}>
               {t('sync.manage.masterKey')}
             </Text>
+            <View style={styles.sectionHeaderRight}>
+              {advancedOpen ? (
+                <ChevronUp size={16} color={tokens.colors.textSecondary} />
+              ) : (
+                <ChevronDown size={16} color={tokens.colors.textSecondary} />
+              )}
+            </View>
           </View>
           <Text style={styles.helperText}>
             {t('sync.manage.masterKeyHint')}
           </Text>
-          <TextInput
-            value={draftKey}
-            onChangeText={setDraftKey}
-            autoCapitalize="none"
-            autoCorrect={false}
-            spellCheck={false}
-            placeholder={t('sync.manage.masterKeyPlaceholder')}
-            placeholderTextColor={tokens.colors.textSecondary}
-            style={styles.keyInput}
-          />
-          <View style={styles.actionRow}>
-            <AnimatedPressable
-              style={styles.outlineButton}
-              onPress={() => runBusy('copy', onCopyMasterKey)}
-            >
-              {busy === 'copy' ? (
-                <ActivityIndicator color={tokens.colors.textPrimary} />
-              ) : (
-                <>
-                  <Copy size={16} color={tokens.colors.textPrimary} />
-                  <Text style={styles.outlineButtonText}>
-                    {t('sync.manage.copyKey')}
-                  </Text>
-                </>
-              )}
-            </AnimatedPressable>
-            <AnimatedPressable
-              style={styles.primaryButton}
-              onPress={() => runBusy('key', () => onApplyMasterKey(draftKey))}
-            >
-              {busy === 'key' ? (
-                <ActivityIndicator color={tokens.colors.onPrimary} />
-              ) : (
-                <Text style={styles.primaryButtonText}>
-                  {t('sync.manage.applyKey')}
-                </Text>
-              )}
-            </AnimatedPressable>
-          </View>
-          <AnimatedPressable
-            style={styles.leaveButton}
-            onPress={() => runBusy('leave', onLeaveRoom)}
-          >
-            {busy === 'leave' ? (
-              <ActivityIndicator color={tokens.colors.accentDanger} />
-            ) : (
-              <Text style={styles.leaveButtonText}>
-                {t('sync.manage.leaveRoom')}
-              </Text>
-            )}
-          </AnimatedPressable>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Shield size={16} color={tokens.colors.primary} />
-            <Text style={styles.sectionTitle}>
-              {t('sync.manage.syncedDevicesTitle')}
-            </Text>
-          </View>
-          {pairedDevices.length === 0 ? (
-            <Text style={styles.helperText}>{t('sync.manage.noDevices')}</Text>
-          ) : (
-            pairedDevices.map((device) => (
-              <View key={device.deviceId} style={styles.deviceRow}>
-                <View style={styles.deviceMeta}>
-                  <Text style={styles.deviceName}>{device.displayName}</Text>
-                  <Text style={styles.deviceId}>
-                    {t('sync.manage.deviceCode', { code: device.deviceCode })}
-                  </Text>
-                  <Text style={styles.helperText}>
-                    {t('sync.manage.lastSeen', {
-                      at: new Date(device.lastSeen).toLocaleString(),
-                    })}
-                  </Text>
-                </View>
+          {advancedOpen ? (
+            <>
+              <TextInput
+                value={draftKey}
+                onChangeText={setDraftKey}
+                autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
+                placeholder={t('sync.manage.masterKeyPlaceholder')}
+                placeholderTextColor={tokens.colors.textSecondary}
+                style={styles.keyInput}
+              />
+              <View style={styles.actionRow}>
                 <AnimatedPressable
-                  style={styles.forgetButton}
-                  onPress={() => void onForgetDevice(device.deviceId)}
+                  style={styles.outlineButton}
+                  onPress={() => runBusy('copy', onCopyMasterKey)}
                 >
-                  <Trash2 size={14} color={tokens.colors.accentDanger} />
+                  {busy === 'copy' ? (
+                    <ActivityIndicator color={tokens.colors.textPrimary} />
+                  ) : (
+                    <>
+                      <Copy size={16} color={tokens.colors.textPrimary} />
+                      <Text style={styles.outlineButtonText}>
+                        {t('sync.manage.copyKey')}
+                      </Text>
+                    </>
+                  )}
+                </AnimatedPressable>
+                <AnimatedPressable
+                  style={styles.primaryButton}
+                  onPress={() =>
+                    runBusy('key', () => onApplyMasterKey(draftKey))
+                  }
+                >
+                  {busy === 'key' ? (
+                    <ActivityIndicator color={tokens.colors.onPrimary} />
+                  ) : (
+                    <Text style={styles.primaryButtonText}>
+                      {t('sync.manage.applyKey')}
+                    </Text>
+                  )}
                 </AnimatedPressable>
               </View>
-            ))
-          )}
-        </View>
+            </>
+          ) : null}
+        </AnimatedPressable>
+
+        {syncEnabled ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Shield size={16} color={tokens.colors.primary} />
+              <Text style={styles.sectionTitle}>
+                {t('sync.manage.syncedDevicesTitle')}
+              </Text>
+            </View>
+            {pairedDevices.length === 0 ? (
+              <Text style={styles.helperText}>
+                {t('sync.manage.noDevices')}
+              </Text>
+            ) : (
+              pairedDevices.map((device) => (
+                <View key={device.deviceId} style={styles.deviceRow}>
+                  <View style={styles.deviceMeta}>
+                    <Text style={styles.deviceName}>{device.displayName}</Text>
+                    <Text style={styles.deviceId}>
+                      {t('sync.manage.deviceCode', { code: device.deviceCode })}
+                    </Text>
+                    <Text style={styles.helperText}>
+                      {t('sync.manage.lastSeen', {
+                        at: new Date(device.lastSeen).toLocaleString(),
+                      })}
+                    </Text>
+                  </View>
+                  <AnimatedPressable
+                    style={styles.forgetButton}
+                    onPress={() => void onForgetDevice(device.deviceId)}
+                  >
+                    <Trash2 size={14} color={tokens.colors.accentDanger} />
+                  </AnimatedPressable>
+                </View>
+              ))
+            )}
+          </View>
+        ) : null}
 
         {localError || syncHealth.lastError ? (
           <View style={styles.errorPanel}>
@@ -481,10 +553,24 @@ function createStyles(
       alignItems: 'center',
       gap: tokens.spacing.sm,
     },
+    sectionHeaderRight: {
+      marginLeft: 'auto',
+    },
     sectionTitle: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.body,
       fontWeight: '700',
+    },
+    activeBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingVertical: 4,
+    },
+    badgeDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
     },
     statusRow: {
       flexDirection: 'row',
@@ -584,6 +670,33 @@ function createStyles(
       color: tokens.colors.onPrimary,
       fontSize: tokens.type.label,
       fontWeight: '800',
+    },
+    onboardingCard: {
+      borderRadius: tokens.radius.lg,
+      backgroundColor: tokens.colors.primaryContainer,
+      padding: tokens.spacing.md,
+      gap: tokens.spacing.sm,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.2),
+    },
+    onboardingTitle: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
+    onboardingDismissButton: {
+      alignSelf: 'flex-end',
+      minHeight: 36,
+      borderRadius: tokens.radius.md,
+      backgroundColor: tokens.colors.primary,
+      paddingHorizontal: tokens.spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    onboardingDismissText: {
+      color: tokens.colors.onPrimary,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
     },
     keyInput: {
       borderRadius: tokens.radius.md,

@@ -25,8 +25,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
-import { MOTION } from '../animation/motion';
-import { AnimatedPressable } from '../animation/primitives';
+import { MOTION } from '@/animation/motion';
+import { AnimatedPressable } from '@/animation/primitives';
 import {
   KEEP_AWAKE_TAG,
   MAX_DURATION,
@@ -37,29 +37,29 @@ import {
   RING_SIZE,
   RING_STROKE,
   STEP,
-} from '../config/timer';
+} from '@/config/timer';
 import {
   cancelRestTimerNotification,
   scheduleRestTimerCompletionNotification,
-} from '../native/localNotifications';
+} from '@/native/localNotifications';
 import {
   RestTimerForegroundService,
   type RestTimerNotificationText,
-} from '../native/restTimerForegroundService';
-import type { ThemeTokens } from '../theme/tokens';
-import { withAlpha } from '../theme/tokens';
-import type { PersistedRestTimerStateV1, RestTimerMode } from '../types/timer';
+} from '@/native/restTimerForegroundService';
+import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
+import type { PersistedRestTimerStateV1, RestTimerMode } from '@/types/timer';
 import {
   playCompletionSound,
   safeActivateKeepAwake,
   safeDeactivateKeepAwake,
   triggerCompletionFeedback,
-} from '../utils/timerAudio';
+} from '@/utils/timerAudio';
 import {
   computeRemainingSeconds,
   formatSeconds,
   safeParsePersistedState,
-} from '../utils/timerHelpers';
+} from '@/utils/timerHelpers';
 
 interface RestTimerProps {
   tokens: ThemeTokens;

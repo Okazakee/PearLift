@@ -1,4 +1,4 @@
-import { getErrorMessage } from '../utils/errors';
+import { getErrorMessage } from '@/utils/errors';
 
 export type SyncLogLevel = 'info' | 'warn' | 'error';
 

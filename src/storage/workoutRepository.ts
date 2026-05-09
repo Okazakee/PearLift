@@ -4,26 +4,17 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 import {
   LOCAL_STATE_STORAGE_KEY,
   parseAndMigrateBackup,
-} from '../backup/localBackup';
-import { alignWorkoutsToDays } from '../backup/normalization';
-import type { PearLiftRuntimeState } from '../backup/types';
-import { MAX_DAY_CONFIGS } from '../config/constants';
+} from '@/backup/localBackup';
+import { alignWorkoutsToDays } from '@/backup/normalization';
+import type { PearLiftRuntimeState } from '@/backup/types';
+import { MAX_DAY_CONFIGS } from '@/config/constants';
 import {
   buildInitialWeights,
   defaultDayConfigs,
   defaultWeekConfigs,
   defaultWorkouts,
-} from '../data/workouts';
-import type { SyncDeviceProfile, SyncMutation } from '../sync/types';
-import type {
-  DayConfig,
-  Exercise,
-  UserWeights,
-  WeightUnit,
-  WorkoutSession,
-} from '../types';
-import { roundToPrecision } from '../utils/math';
-import { getDatabase } from './database';
+} from '@/data/workouts';
+import { getDatabase } from '@/storage/database';
 import type {
   MutationContext,
   PairedDevice,
@@ -35,7 +26,16 @@ import type {
   SyncStateRow,
   WorkoutMutation,
   WorkoutStoreSnapshot,
-} from './types';
+} from '@/storage/types';
+import type { SyncDeviceProfile, SyncMutation } from '@/sync/types';
+import type {
+  DayConfig,
+  Exercise,
+  UserWeights,
+  WeightUnit,
+  WorkoutSession,
+} from '@/types';
+import { roundToPrecision } from '@/utils/math';
 
 const WEEK_CONFIG_REVISION_SETTING = 'syncWeekConfigsRevisionAt';
 const DAY_CONFIG_REVISION_SETTING = 'syncDayConfigsRevisionAt';
