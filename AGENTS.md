@@ -91,6 +91,13 @@ Husky enforces:
 - `pre-commit`: `bun run lint` — must pass before commit
 - `pre-push`: `bun run typecheck` — must pass before push
 
+### MCP tools
+
+The following MCP servers are configured in `opencode.json`:
+
+- **context7**: Use to search current documentation for Expo, React Native, Biome, Reanimated, Bare Kit, Holepunch, Zustand, or any other dependency. Always prefer this over training-data knowledge when unsure about an API.
+- **gh_grep**: Use to find real-world usage examples from GitHub repositories when documentation is sparse (e.g., `bare-rpc`, `hyperswarm`, `autobase`, `react-native-bare-kit`).
+
 ## 6. Code Formatting
 
 > **Repo-wide:** Biome is configured as the formatter and linter. Config lives at `biome.json`. Always generate code that matches these conventions — do not rely on biome to fix formatting after the fact.
