@@ -1,1 +1,1 @@
-export const ACTION_DEBOUNCE_MS = 96;
+export const MAX_DAY_CONFIGS = 7;

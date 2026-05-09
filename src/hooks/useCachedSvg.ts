@@ -52,6 +52,7 @@ export function useCachedSvg(
         }
       } catch (err) {
         if (!cancelled) {
+          // eslint-disable-next-line no-console
           console.warn('[useCachedSvg] Failed to load SVG:', err);
         }
       } finally {

@@ -137,6 +137,5 @@ export interface PairedDevice {
 }
 
 export interface WorkoutStoreSnapshot extends PearLiftRuntimeState {
-  isHydrating: boolean;
   isSetupDone: boolean;
 }

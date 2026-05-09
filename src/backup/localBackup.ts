@@ -1,3 +1,4 @@
+import { MAX_DAY_CONFIGS } from '../config/constants';
 import {
   defaultDayConfigs,
   defaultWeekConfigs,
@@ -26,7 +27,6 @@ import type {
 const FALLBACK_DAY_ICON = 'FitnessCenter';
 const LOCAL_STATE_SCHEMA_VERSION = 2;
 export const LOCAL_STATE_STORAGE_KEY = `pearlift-local-backup-v${LOCAL_STATE_SCHEMA_VERSION}`;
-const MAX_DAY_CONFIGS = 7;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);

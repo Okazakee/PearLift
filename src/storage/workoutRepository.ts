@@ -6,13 +6,13 @@ import {
   parseAndMigrateBackup,
 } from '../backup/localBackup';
 import type { PearLiftRuntimeState } from '../backup/types';
+import { MAX_DAY_CONFIGS } from '../config/constants';
 import {
   buildInitialWeights,
   defaultDayConfigs,
   defaultWeekConfigs,
   defaultWorkouts,
 } from '../data/workouts';
-import { getSystemLanguage } from '../i18n/systemLanguage';
 import type { SyncDeviceProfile, SyncMutation } from '../sync/types';
 import type {
   DayConfig,
@@ -36,7 +36,6 @@ import type {
   WorkoutStoreSnapshot,
 } from './types';
 
-const MAX_DAY_CONFIGS = 7;
 const WEEK_CONFIG_REVISION_SETTING = 'syncWeekConfigsRevisionAt';
 const DAY_CONFIG_REVISION_SETTING = 'syncDayConfigsRevisionAt';
 const DEVICE_DISPLAY_NAME_SETTING = 'syncDeviceDisplayName';
@@ -156,25 +155,9 @@ function coerceLanguage(value: string | null | undefined): string {
   return lang ? value : 'system';
 }
 
-function detectOsLanguage(): string {
-  try {
-    return getSystemLanguage(
-      SUPPORTED_LANGUAGES.map((lang) => lang.code),
-      'en',
-    );
-  } catch {
-    return 'en';
-  }
-}
-
 export const getLanguageNativeName = (code: string): string => {
   const lang = SUPPORTED_LANGUAGES.find((l) => l.code === code);
   return lang?.native ?? code;
-};
-
-export const resolveLanguage = (stored: string | null | undefined): string => {
-  const coerced = coerceLanguage(stored);
-  return coerced === 'system' ? detectOsLanguage() : coerced;
 };
 
 function normalizeDayConfigs(
@@ -369,7 +352,6 @@ export class WorkoutRepository {
     return {
       ...runtime,
       isSetupDone,
-      isHydrating: false,
     };
   }
 
@@ -848,22 +830,6 @@ export class WorkoutRepository {
       const db = await getDatabase();
       await db.runAsync(
         'UPDATE sync_devices SET is_hidden = 1 WHERE device_id = ?',
-        deviceId,
-      );
-    });
-  }
-
-  async renamePairedDevice(
-    deviceId: string,
-    displayName: string,
-  ): Promise<void> {
-    await this.initialize();
-    await this.enqueueWrite(async () => {
-      const db = await getDatabase();
-      await db.runAsync(
-        'UPDATE sync_devices SET display_name = ?, is_hidden = 0, updated_at = ? WHERE device_id = ?',
-        displayName.trim(),
-        nowIso(),
         deviceId,
       );
     });
