@@ -5,6 +5,7 @@ import {
   LOCAL_STATE_STORAGE_KEY,
   parseAndMigrateBackup,
 } from '../backup/localBackup';
+import { alignWorkoutsToDays } from '../backup/normalization';
 import type { PearLiftRuntimeState } from '../backup/types';
 import { MAX_DAY_CONFIGS } from '../config/constants';
 import {
@@ -189,23 +190,6 @@ function normalizeDayConfigs(
 
   if (merged.length > 0) return merged;
   return fallbackToDefault ? defaultDayConfigs : [];
-}
-
-function alignWorkoutsToDays(
-  workouts: WorkoutSession[],
-  dayConfigs: DayConfig[],
-): WorkoutSession[] {
-  const byId = new Map(workouts.map((workout) => [workout.id, workout]));
-  return dayConfigs.slice(0, MAX_DAY_CONFIGS).map((day, index) => {
-    const existing = byId.get(day.id);
-    if (existing) return existing;
-    return {
-      id: day.id,
-      name: `${day.name} Day`,
-      description: `Custom session ${index + 1}`,
-      exercises: [],
-    };
-  });
 }
 
 type WorkoutRow = {

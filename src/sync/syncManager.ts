@@ -1,5 +1,3 @@
-import * as Crypto from 'expo-crypto';
-import * as SecureStore from 'expo-secure-store';
 import type { PearLiftRuntimeState } from '../backup/types';
 import type { SyncFirstSyncResolution, SyncRole } from '../storage/types';
 import type {
@@ -10,6 +8,13 @@ import type {
 import { logError } from '../utils/errors';
 import { createSyncBridge } from './bridge';
 import { canonicalizeMutationForSync } from './canonicalize';
+import { coalescePublishQueue } from './coalesce';
+import {
+  cloneRuntime,
+  getOpPayload,
+  mutationsConflict,
+  applyOpsToRuntimePreview,
+} from './conflicts';
 import {
   buildConflictSummary,
   mergeDisjointRuntime,
@@ -23,6 +28,13 @@ import {
   logSyncError,
   logSyncEvent,
 } from './logger';
+import {
+  clearPairingSecret,
+  getPairingSecretPayload,
+  loadOrCreatePairingSecret,
+  setPairingSecretPayload,
+  toHex,
+} from './secrets';
 import type {
   FirstSyncState,
   SyncBridge,
@@ -36,7 +48,8 @@ import type {
 } from './types';
 import { INITIAL_SYNC_HEALTH } from './types';
 
-const SYNC_SECRET_KEY = 'pearlift.sync.secret';
+export { getPairingSecretPayload, setPairingSecretPayload, clearPairingSecret };
+
 const EMPTY_ROOM_TIMEOUT_MS = 6000;
 const PENDING_RESOLVE_DEBOUNCE_MS = 1000;
 const PUBLISH_DEBOUNCE_MS = 200;
@@ -44,12 +57,6 @@ const RECONNECT_RECONCILE_MS = 1500;
 
 function nowIso() {
   return new Date().toISOString();
-}
-
-function toHex(bytes: Uint8Array) {
-  return Array.from(bytes)
-    .map((value) => value.toString(16).padStart(2, '0'))
-    .join('');
 }
 
 function createOpId(deviceId: string, lamport: number) {
@@ -84,40 +91,6 @@ function preserveLocalPreferences(
     weightUnit: local.weightUnit,
     language: local.language,
   };
-}
-
-function getOpPayload(
-  op: SyncOpEnvelope,
-):
-  | { kind: 'presence' }
-  | { kind: 'mutation'; mutation: SyncMutation }
-  | SyncSnapshotReplacePayload
-  | SyncDeviceProfilePayload {
-  if (op.payload) {
-    return op.payload;
-  }
-
-  if (op.mutation) {
-    return {
-      kind: 'mutation',
-      mutation: op.mutation,
-    };
-  }
-
-  throw new Error(`Sync op ${op.opId} is missing payload.`);
-}
-
-async function loadOrCreatePairingSecret() {
-  const existing = await SecureStore.getItemAsync(SYNC_SECRET_KEY);
-  if (existing) return existing;
-  const bytes = await Crypto.getRandomBytesAsync(32);
-  const generated = toHex(bytes);
-  await SecureStore.setItemAsync(SYNC_SECRET_KEY, generated);
-  return generated;
-}
-
-function normalizePairingSecretHex(secretHex: string) {
-  return secretHex.trim().toLowerCase();
 }
 
 class SyncManagerImpl implements SyncManager {
@@ -749,7 +722,7 @@ class SyncManagerImpl implements SyncManager {
     const remoteRuntime =
       payload.kind === 'snapshot_replace'
         ? payload.runtime
-        : applyOpsToRuntimePreview(localRuntime, this.bufferedRemoteOps);
+        : applyOpsToRuntimePreview(localRuntime, this.bufferedRemoteOps, getOpPayload);
     const localSummary = summarizeRuntime(localRuntime);
     const remoteSummary = summarizeRuntime(remoteRuntime);
     const conflictSummary = buildConflictSummary(
@@ -980,211 +953,9 @@ class SyncManagerImpl implements SyncManager {
   }
 }
 
-function coalescePublishQueue(
-  queue: SyncMutation[],
-  mutation: SyncMutation,
-): SyncMutation[] {
-  switch (mutation.type) {
-    case 'setExerciseWeight':
-      return [
-        ...queue.filter(
-          (item) =>
-            item.type !== 'setExerciseWeight' ||
-            item.exerciseId !== mutation.exerciseId,
-        ),
-        mutation,
-      ];
-    case 'reorderExercises':
-      return [
-        ...queue.filter(
-          (item) =>
-            item.type !== 'reorderExercises' ||
-            item.workoutId !== mutation.workoutId,
-        ),
-        mutation,
-      ];
-    case 'replaceWeekConfigs':
-      return [
-        ...queue.filter((item) => item.type !== 'replaceWeekConfigs'),
-        mutation,
-      ];
-    case 'replaceDayConfigs':
-      return [
-        ...queue.filter((item) => item.type !== 'replaceDayConfigs'),
-        mutation,
-      ];
-    default:
-      return [...queue, mutation];
-  }
-}
-
-function mutationsConflict(local: SyncMutation, remote: SyncMutation) {
-  if (
-    local.type === 'replaceWeekConfigs' &&
-    remote.type === 'replaceWeekConfigs'
-  ) {
-    return true;
-  }
-  if (
-    local.type === 'replaceDayConfigs' &&
-    remote.type === 'replaceDayConfigs'
-  ) {
-    return true;
-  }
-  if (
-    local.type === 'setExerciseWeight' &&
-    remote.type === 'setExerciseWeight' &&
-    local.exerciseId === remote.exerciseId
-  ) {
-    return true;
-  }
-  if (
-    local.type === 'editExercise' &&
-    remote.type === 'editExercise' &&
-    local.exerciseId === remote.exerciseId
-  ) {
-    return true;
-  }
-  if (
-    local.type === 'deleteExercise' &&
-    (remote.type === 'deleteExercise' ||
-      remote.type === 'editExercise' ||
-      remote.type === 'setExerciseWeight') &&
-    'exerciseId' in remote &&
-    local.exerciseId === remote.exerciseId
-  ) {
-    return true;
-  }
-  if (
-    remote.type === 'deleteExercise' &&
-    (local.type === 'editExercise' ||
-      local.type === 'setExerciseWeight' ||
-      local.type === 'deleteExercise') &&
-    local.exerciseId === remote.exerciseId
-  ) {
-    return true;
-  }
-  if (
-    local.type === 'reorderExercises' &&
-    (remote.type === 'reorderExercises' ||
-      remote.type === 'addExercise' ||
-      remote.type === 'deleteExercise') &&
-    remote.workoutId === local.workoutId
-  ) {
-    return true;
-  }
-  if (
-    remote.type === 'reorderExercises' &&
-    (local.type === 'reorderExercises' ||
-      local.type === 'addExercise' ||
-      local.type === 'deleteExercise') &&
-    local.workoutId === remote.workoutId
-  ) {
-    return true;
-  }
-  return false;
-}
-
-function cloneRuntime(runtime: PearLiftRuntimeState): PearLiftRuntimeState {
-  return JSON.parse(JSON.stringify(runtime)) as PearLiftRuntimeState;
-}
-
-function applyOpsToRuntimePreview(
-  runtime: PearLiftRuntimeState,
-  ops: SyncOpEnvelope[],
-) {
-  let next = cloneRuntime(runtime);
-  for (const op of ops) {
-    const payload = getOpPayload(op);
-    if (payload.kind === 'snapshot_replace') {
-      next = cloneRuntime(payload.runtime);
-      continue;
-    }
-    if (payload.kind !== 'mutation') {
-      continue;
-    }
-    next = applyMutationPreview(next, payload.mutation);
-  }
-  return next;
-}
-
-function applyMutationPreview(
-  runtime: PearLiftRuntimeState,
-  mutation: SyncMutation,
-): PearLiftRuntimeState {
-  const next = cloneRuntime(runtime);
-  switch (mutation.type) {
-    case 'setExerciseWeight':
-      next.userWeights[mutation.exerciseId] = mutation.value;
-      return next;
-    case 'addExercise': {
-      const workout = next.workouts.find((item) => item.id === mutation.workoutId);
-      if (!workout) return next;
-      workout.exercises.push({
-        id: `${mutation.workoutId}-${workout.exercises.length + 1}`,
-        ...mutation.exercise,
-        baseWeight: 0,
-        position: workout.exercises.length,
-      });
-      return next;
-    }
-    case 'editExercise': {
-      for (const workout of next.workouts) {
-        const exercise = workout.exercises.find(
-          (item) => item.id === mutation.exerciseId,
-        );
-        if (!exercise) continue;
-        Object.assign(exercise, mutation.updates);
-        return next;
-      }
-      return next;
-    }
-    case 'deleteExercise':
-      for (const workout of next.workouts) {
-        workout.exercises = workout.exercises
-          .filter((item) => item.id !== mutation.exerciseId)
-          .map((item, index) => ({ ...item, position: index }));
-      }
-      delete next.userWeights[mutation.exerciseId];
-      return next;
-    case 'reorderExercises': {
-      const workout = next.workouts.find((item) => item.id === mutation.workoutId);
-      if (!workout) return next;
-      const byId = new Map(workout.exercises.map((item) => [item.id, item]));
-      workout.exercises = mutation.orderedExerciseIds
-        .map((id) => byId.get(id))
-        .filter((item): item is NonNullable<typeof item> => !!item)
-        .map((item, index) => ({ ...item, position: index }));
-      return next;
-    }
-    case 'replaceWeekConfigs':
-      next.weekConfigs = mutation.weekConfigs;
-      return next;
-    case 'replaceDayConfigs':
-      next.dayConfigs = mutation.dayConfigs;
-      return next;
-  }
-}
-
 export function createSyncManager(
   repository: WorkoutRepository,
   bridge?: SyncBridge,
 ): SyncManager {
   return new SyncManagerImpl(repository, bridge);
-}
-
-export async function getPairingSecretPayload(): Promise<string> {
-  return loadOrCreatePairingSecret();
-}
-
-export async function setPairingSecretPayload(secretHex: string): Promise<void> {
-  const normalized = normalizePairingSecretHex(secretHex);
-  if (!/^[0-9a-f]{64}$/.test(normalized)) {
-    throw new Error('Pairing secret must be 64 hex characters.');
-  }
-  await SecureStore.setItemAsync(SYNC_SECRET_KEY, normalized);
-}
-
-export async function clearPairingSecret(): Promise<void> {
-  await SecureStore.deleteItemAsync(SYNC_SECRET_KEY);
 }
