@@ -5,6 +5,7 @@ import {
   ScanLine,
   Share2,
   Upload,
+  X,
 } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -101,36 +102,38 @@ export function BackupActionModal({
       backdropStyle={styles.backdrop}
       sheetStyle={styles.sheet}
     >
-      <Text style={styles.title}>
-        {mode === 'qr'
-          ? t('backup.deviceSync.title')
-          : t('settings.localBackup.title')}
-      </Text>
+      <View style={styles.header}>
+        <Text style={styles.title}>
+          {mode === 'qr'
+            ? t('backup.deviceSync.title')
+            : t('settings.localBackup.title')}
+        </Text>
+        <Pressable style={styles.closeButton} onPress={onClose}>
+          <X size={18} color={tokens.colors.textSecondary} />
+        </Pressable>
+      </View>
       <Text style={styles.message}>
         {mode === 'qr'
           ? t('deviceTransfer.shareDescription')
           : t('backup.localJson.description')}
       </Text>
       <View style={styles.actionsGrid}>
-        {actions.map((action) => (
-          <Pressable
-            key={action.id}
-            style={styles.actionButton}
-            onPress={() => handleAction(action)}
-          >
-            <View style={styles.actionIcon}>
-              {(() => {
-                const Icon = action.icon;
-                return <Icon size={22} color={tokens.colors.primary} />;
-              })()}
-            </View>
-            <Text style={styles.actionLabel}>{action.label}</Text>
-          </Pressable>
-        ))}
+        {actions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <Pressable
+              key={action.id}
+              style={styles.actionButton}
+              onPress={() => handleAction(action)}
+            >
+              <View style={styles.actionIcon}>
+                <Icon size={20} color={tokens.colors.primary} />
+              </View>
+              <Text style={styles.actionLabel}>{action.label}</Text>
+            </Pressable>
+          );
+        })}
       </View>
-      <Pressable style={styles.cancelButton} onPress={onClose}>
-        <Text style={styles.cancelText}>{t('common.cancel')}</Text>
-      </Pressable>
     </AnimatedModalShell>
   );
 }
@@ -141,31 +144,45 @@ function createStyles(
 ) {
   return StyleSheet.create({
     modalRoot: {
-      justifyContent: 'center',
-      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.lg,
     },
     backdrop: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: 'rgba(0, 0, 0, 0.34)',
+      backgroundColor: 'rgba(0, 0, 0, 0.58)',
     },
     sheet: {
-      width: layout.isTablet ? 340 : 300,
+      width: '100%',
+      maxWidth: layout.isTablet ? Math.min(layout.modalMaxWidth, 520) : 420,
       borderRadius: tokens.radius.xl,
-      backgroundColor: tokens.colors.bgBase,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainer,
       padding: tokens.spacing.lg,
       gap: tokens.spacing.md,
+    },
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
     },
     title: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.subtitle,
       fontWeight: '700',
-      textAlign: 'center',
+    },
+    closeButton: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     message: {
       color: tokens.colors.textSecondary,
-      fontSize: tokens.type.label,
-      lineHeight: 18,
-      textAlign: 'center',
+      fontSize: tokens.type.body,
+      lineHeight: 20,
     },
     actionsGrid: {
       gap: tokens.spacing.sm,
@@ -176,29 +193,21 @@ function createStyles(
       gap: tokens.spacing.md,
       minHeight: 52,
       borderRadius: tokens.radius.md,
-      backgroundColor: tokens.colors.surfaceContainer,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
       paddingHorizontal: tokens.spacing.md,
     },
     actionIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      backgroundColor: withAlpha(tokens.colors.primary, 0.12),
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.1),
       alignItems: 'center',
       justifyContent: 'center',
     },
     actionLabel: {
       color: tokens.colors.textPrimary,
-      fontSize: tokens.type.body,
-      fontWeight: '600',
-    },
-    cancelButton: {
-      minHeight: 44,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    cancelText: {
-      color: tokens.colors.textSecondary,
       fontSize: tokens.type.body,
       fontWeight: '600',
     },

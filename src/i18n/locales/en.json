@@ -181,6 +181,7 @@
       "deviceCode": "Code {{code}}",
       "deviceNamePlaceholder": "Name this device",
       "saveDeviceName": "Save device name",
+      "deviceNameSyncPending": "Device name was saved locally. Sync will retry sharing it with peers shortly.",
       "masterKey": "Sync code",
       "masterKeyHint": "Use the same 64-character sync code on every device that should share data.",
       "masterKeyPlaceholder": "Paste or edit the 64-character sync code",

@@ -7,15 +7,13 @@ import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
 import { AppearanceSection } from '@/components/modals/settings/AppearanceSection';
 import { AppInfoSection } from '@/components/modals/settings/AppInfoSection';
-import { DataResetSection } from '@/components/modals/settings/DataResetSection';
+import { DataSection } from '@/components/modals/settings/DataSection';
 import { DeveloperSection } from '@/components/modals/settings/DeveloperSection';
-import { LocalBackupSection } from '@/components/modals/settings/LocalBackupSection';
 import { PoweredByFooter } from '@/components/modals/settings/PoweredByFooter';
 import {
   createSettingsStyles,
   type SettingsStyles,
 } from '@/components/modals/settings/SettingsModal.styles';
-import { SyncBackupSection } from '@/components/modals/settings/SyncBackupSection';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeMode, ThemePreference, ThemeTokens } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
@@ -106,24 +104,14 @@ export function SettingsModal({
           onLanguageListOpen={onLanguageListOpen}
         />
 
-        <SyncBackupSection
+        <DataSection
           tokens={tokens}
           styles={styles}
           syncEnabled={syncEnabled}
           syncLastSyncedAt={syncLastSyncedAt}
           onOpenSync={onOpenSync}
-        />
-
-        <LocalBackupSection
-          tokens={tokens}
-          styles={styles}
           onOpenLocalBackup={onOpenLocalBackup}
           onOpenQRBackup={onOpenQRBackup}
-        />
-
-        <DataResetSection
-          tokens={tokens}
-          styles={styles}
           onResetData={onResetData}
         />
 

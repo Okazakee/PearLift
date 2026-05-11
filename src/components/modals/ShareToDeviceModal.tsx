@@ -414,18 +414,15 @@ function createStyles(
     },
     modeBadge: {
       borderRadius: 999,
-      borderWidth: 1,
       paddingHorizontal: tokens.spacing.sm,
       minHeight: 26,
       alignItems: 'center',
       justifyContent: 'center',
     },
     modeBadgeSingle: {
-      borderColor: withAlpha(tokens.colors.primary, 0.35),
       backgroundColor: withAlpha(tokens.colors.primary, 0.1),
     },
     modeBadgeChunked: {
-      borderColor: withAlpha(tokens.colors.accentWarning, 0.35),
       backgroundColor: withAlpha(tokens.colors.accentWarning, 0.12),
     },
     modeBadgeText: {

@@ -458,8 +458,6 @@ function createStyles(
       right: tokens.spacing.lg,
       bottom: bottomInset + tokens.spacing.lg,
       borderRadius: tokens.radius.lg,
-      borderWidth: 1,
-      borderColor: withAlpha(tokens.colors.outlineVariant, 0.9),
       backgroundColor: withAlpha('#000000', 0.6),
       padding: tokens.spacing.md,
       gap: tokens.spacing.xs,
