@@ -6,6 +6,7 @@ type SyncLogDetails = Record<string, unknown> | undefined;
 
 export interface SyncLogEntry {
   ts: number;
+  deviceTag: string;
   level: SyncLogLevel;
   scope: string;
   key: string;
@@ -16,6 +17,13 @@ export interface SyncLogEntry {
 const MAX_LOG_ENTRIES = 200;
 const logRing: SyncLogEntry[] = [];
 let diagnosticsSink: ((entry: SyncLogEntry) => void) | null = null;
+let currentDeviceTag = createRuntimeDeviceTag();
+
+function createRuntimeDeviceTag() {
+  return `run-${Math.floor(Math.random() * 0x10000)
+    .toString(16)
+    .padStart(4, '0')}`;
+}
 
 function appendToRing(entry: SyncLogEntry) {
   logRing.push(entry);
@@ -96,10 +104,18 @@ export function logSyncEvent(
   event: string,
   message: string,
   details?: SyncLogDetails,
+  deviceTagOverride?: string,
 ) {
-  logWithLevel(level, `[pearlift-sync/${scope}:${event}]`, message, details);
+  const deviceTag = deviceTagOverride ?? currentDeviceTag;
+  logWithLevel(
+    level,
+    `[pearlift-sync][dev:${deviceTag}][${scope}:${event}]`,
+    message,
+    details,
+  );
   appendToRing({
     ts: Date.now(),
+    deviceTag,
     level,
     scope,
     key: event,
@@ -113,11 +129,19 @@ export function logSyncError(
   event: string,
   error: unknown,
   details?: SyncLogDetails,
+  deviceTagOverride?: string,
 ) {
   const message = getErrorMessage(error);
-  logWithLevel('error', `[pearlift-sync/${scope}:${event}]`, message, details);
+  const deviceTag = deviceTagOverride ?? currentDeviceTag;
+  logWithLevel(
+    'error',
+    `[pearlift-sync][dev:${deviceTag}][${scope}:${event}]`,
+    message,
+    details,
+  );
   appendToRing({
     ts: Date.now(),
+    deviceTag,
     level: 'error',
     scope,
     key: event,
@@ -138,6 +162,20 @@ export function setSyncDiagnosticsSink(
   sink: ((entry: SyncLogEntry) => void) | null,
 ) {
   diagnosticsSink = sink;
+}
+
+export function setSyncLogDeviceTag(tag: string) {
+  const normalized = tag.trim();
+  if (!normalized) return;
+  currentDeviceTag = normalized;
+}
+
+export function getSyncLogDeviceTag() {
+  return currentDeviceTag;
+}
+
+export function resetSyncLogDeviceTagToRuntime() {
+  currentDeviceTag = createRuntimeDeviceTag();
 }
 
 export function combineLogs(

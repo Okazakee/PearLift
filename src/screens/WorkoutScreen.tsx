@@ -803,7 +803,6 @@ export function WorkoutScreen() {
     setCreateRoomStarting(true);
     try {
       await startCreatorRoom(key);
-      setCreateRoomOpen(false);
     } finally {
       setCreateRoomStarting(false);
     }

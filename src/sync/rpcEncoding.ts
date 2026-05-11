@@ -19,6 +19,7 @@ const FRAME_ANY = cenc.frame(cenc.any);
 
 type RuntimeLogMessage = {
   level?: 'error' | 'warn' | 'info' | 'debug';
+  deviceTag?: string;
   scope?: string;
   event?: string;
   message?: string;
@@ -240,6 +241,7 @@ function normalizeRuntimeLogMessage(value: unknown): RuntimeLogMessage {
       value.level === 'debug'
         ? value.level
         : undefined,
+    deviceTag: toStringOrNull(value.deviceTag) ?? undefined,
     scope: toStringOrNull(value.scope) ?? undefined,
     event: toStringOrNull(value.event) ?? undefined,
     message: toStringOrNull(value.message) ?? undefined,

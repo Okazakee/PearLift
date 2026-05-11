@@ -22,7 +22,11 @@
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "plugins": [
       "expo-sharing",
@@ -49,6 +53,9 @@
       "./plugins/withSyncBackendBundle",
       "./plugins/with-optional-release-signing",
       "./plugins/with-pearlift-abi-splits"
-    ]
+    ],
+    "ios": {
+      "bundleIdentifier": "dev.okazakee.pearlift"
+    }
   }
 }

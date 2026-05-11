@@ -8,6 +8,7 @@ import RPC from 'bare-rpc';
 import Corestore from 'corestore';
 import goodbye from 'graceful-goodbye';
 import Hyperswarm from 'hyperswarm';
+import { getStreamError } from 'streamx';
 import {
   RPC_SYNC_GET_LOGS,
   RPC_SYNC_LOG_EVENT,
@@ -51,6 +52,9 @@ let rejoinInFlight = false;
 let discoveryOnlyMode = false;
 let disableCursorOptimization = false;
 let retryTimer = null;
+let lifecycleQueue = Promise.resolve();
+let lifecyclePhase = 'idle';
+let activeStartFingerprint = null;
 
 const MAX_LOG_ENTRIES = 200;
 const HEARTBEAT_INTERVAL_MS = 5000;
@@ -67,6 +71,11 @@ const PING_FRAME = 'PL_SYNC_PING';
 const PONG_FRAME = 'PL_SYNC_PONG';
 const socketStates = new Set();
 let socketSeq = 0;
+let outboundDialSeq = 0;
+const runtimeDeviceTag = `run-${Math.floor(Math.random() * 0x10000)
+  .toString(16)
+  .padStart(4, '0')}`;
+let activeDeviceTag = runtimeDeviceTag;
 
 function hashSecretHex(secretHex) {
   let hash = 2166136261;
@@ -92,6 +101,7 @@ function getErrorMessage(error) {
 function appendLogRing(level, scope, eventName, message, details) {
   logRing.push({
     ts: Date.now(),
+    deviceTag: activeDeviceTag,
     level: level || 'info',
     scope: scope || 'unknown',
     key: eventName || 'event',
@@ -112,6 +122,7 @@ function emitLog(level, scope, eventName, payload, details = null) {
     const rpcEvent = rpc.event(RPC_SYNC_LOG_EVENT);
     const payload = {
       level: level || 'error',
+      deviceTag: activeDeviceTag,
       scope: scope || 'unknown',
       event: eventName || 'event',
       message,
@@ -134,7 +145,10 @@ function logBackendError(scope, error) {
   emitLog('error', scope, 'error', error);
   try {
     // eslint-disable-next-line no-console
-    console.error(`[pearlift-sync/${scope}]`, error?.stack ?? error);
+    console.error(
+      `[pearlift-sync][dev:${activeDeviceTag}][${scope}]`,
+      error?.stack ?? error,
+    );
   } catch {
     // ignore
   }
@@ -161,6 +175,190 @@ function getPeerKeys() {
   return Array.from(peerConnectionCounts.entries())
     .filter(([, count]) => count > 0)
     .map(([key]) => key);
+}
+
+function currentBootstrapKeyHex() {
+  return base?.key ? b4a.toString(base.key, 'hex') : '';
+}
+
+function hasActiveBackendResources() {
+  return !!(store || base || swarm || discovery);
+}
+
+function getSwarmDiagnostics() {
+  return {
+    connecting: swarm?.connecting ?? null,
+    totalConnections: swarm?.connections?.size ?? null,
+    knownPeers: swarm?.peers?.size ?? null,
+    explicitPeers: swarm?.explicitPeers?.size ?? null,
+    queuedPeers: swarm?._queue?.length ?? null,
+    clientConnections: swarm?._clientConnections ?? null,
+    serverConnections: swarm?._serverConnections ?? null,
+    maxPeers: swarm?.maxPeers ?? null,
+    stats: swarm?.stats
+      ? {
+          updates: swarm.stats.updates,
+          bannedPeers: swarm.stats.bannedPeers,
+          clientAttempted: swarm.stats.connects?.client?.attempted ?? null,
+          clientOpened: swarm.stats.connects?.client?.opened ?? null,
+          clientClosed: swarm.stats.connects?.client?.closed ?? null,
+          serverOpened: swarm.stats.connects?.server?.opened ?? null,
+          serverClosed: swarm.stats.connects?.server?.closed ?? null,
+        }
+      : null,
+  };
+}
+
+function getDiscoveryDiagnostics() {
+  const internalDiscovery = discovery?.discovery ?? discovery ?? null;
+  return {
+    sessionClient: discovery?.isClient ?? null,
+    sessionServer: discovery?.isServer ?? null,
+    destroyed: !!discovery?.destroyed,
+    internalIsClient: internalDiscovery?.isClient ?? null,
+    internalIsServer: internalDiscovery?.isServer ?? null,
+    suspended: internalDiscovery?.suspended ?? null,
+    refreshes: internalDiscovery?._refreshes ?? null,
+    discoveredCacheSize: internalDiscovery?._discovered?.size ?? null,
+    clientSessions: internalDiscovery?._clientSessions ?? null,
+    serverSessions: internalDiscovery?._serverSessions ?? null,
+    needsUnannounce: internalDiscovery?._needsUnannounce ?? null,
+    closestNodesCount: Array.isArray(internalDiscovery?._closestNodes)
+      ? internalDiscovery._closestNodes.length
+      : 0,
+    hasActiveQuery: !!internalDiscovery?._activeQuery,
+    hasCurrentRefresh: !!internalDiscovery?._currentRefresh,
+  };
+}
+
+function attachOutboundDialDebug(conn, context) {
+  if (!conn || !context) return conn;
+  outboundDialSeq += 1;
+  const dialId = outboundDialSeq;
+  const startedAtMs = Date.now();
+  let opened = false;
+
+  logMajorEvent(
+    'dial',
+    'attempt_started',
+    'Outbound peer dial attempt started.',
+    {
+      dialId,
+      peerKey: context.peerKey,
+      queued: context.queued,
+      attempts: context.attempts,
+      priority: context.priority,
+      forceRelaying: context.forceRelaying,
+      relayAddressesCount: context.relayAddressesCount,
+      topics: context.topics,
+    },
+  );
+
+  conn.on?.('open', () => {
+    opened = true;
+    logMajorEvent('dial', 'attempt_opened', 'Outbound peer dial opened.', {
+      dialId,
+      peerKey: context.peerKey,
+      elapsedMs: Date.now() - startedAtMs,
+      rawBytesRead: conn.rawBytesRead ?? null,
+      rawBytesWritten: conn.rawBytesWritten ?? null,
+    });
+  });
+
+  conn.on?.('error', (error) => {
+    logMajorWarning('dial', 'attempt_error', getErrorMessage(error), {
+      dialId,
+      peerKey: context.peerKey,
+      elapsedMs: Date.now() - startedAtMs,
+      code: error?.code ?? null,
+      forceRelaying: context.forceRelaying,
+    });
+  });
+
+  conn.on?.('close', () => {
+    const error = getStreamError(conn);
+    logMajorWarning(
+      'dial',
+      opened ? 'attempt_closed_after_open' : 'attempt_closed_before_open',
+      opened
+        ? 'Outbound peer dial closed after open.'
+        : 'Outbound peer dial closed before open.',
+      {
+        dialId,
+        peerKey: context.peerKey,
+        elapsedMs: Date.now() - startedAtMs,
+        error: error ? getErrorMessage(error) : null,
+        errorCode: error?.code ?? null,
+        rawBytesRead: conn.rawBytesRead ?? null,
+        rawBytesWritten: conn.rawBytesWritten ?? null,
+        attempts: context.attempts,
+        forceRelaying: context.forceRelaying,
+      },
+    );
+  });
+
+  return conn;
+}
+
+function instrumentSwarmOutboundDialing() {
+  if (!swarm?.dht?.connect || !swarm?._connect) return;
+  const originalSwarmConnect = swarm._connect.bind(swarm);
+  const originalDhtConnect = swarm.dht.connect.bind(swarm.dht);
+  let currentConnectContext = null;
+
+  swarm.dht.connect = (...args) => {
+    const conn = originalDhtConnect(...args);
+    return attachOutboundDialDebug(conn, currentConnectContext);
+  };
+
+  swarm._connect = (peerInfo, queued) => {
+    currentConnectContext = {
+      peerKey: peerInfo?.publicKey
+        ? b4a.toString(peerInfo.publicKey, 'hex')
+        : null,
+      queued: !!queued,
+      attempts: peerInfo?.attempts ?? null,
+      priority: peerInfo?.priority ?? null,
+      forceRelaying: !!peerInfo?.forceRelaying,
+      relayAddressesCount: Array.isArray(peerInfo?.relayAddresses)
+        ? peerInfo.relayAddresses.length
+        : 0,
+      topics: Array.isArray(peerInfo?.topics)
+        ? peerInfo.topics.map((topic) => b4a.toString(topic, 'hex'))
+        : [],
+    };
+    try {
+      return originalSwarmConnect(peerInfo, queued);
+    } finally {
+      currentConnectContext = null;
+    }
+  };
+}
+
+function createStartFingerprint(config) {
+  return JSON.stringify({
+    pairingSecretHex: config?.pairingSecretHex ?? null,
+    deviceId: config?.deviceId ?? null,
+    role: config?.role ?? null,
+    bootstrapKeyHex: config?.bootstrapKeyHex ?? null,
+    storagePath: config?.storagePath ?? null,
+    discoveryOnly: !!config?.debug?.discoveryOnly,
+    disableCursorOptimization: !!config?.debug?.disableCursorOptimization,
+  });
+}
+
+async function withLifecycleLock(_opName, fn) {
+  const previous = lifecycleQueue;
+  let release = null;
+  lifecycleQueue = new Promise((resolve) => {
+    release = resolve;
+  });
+  await previous;
+  try {
+    return await fn();
+  } finally {
+    release?.();
+  }
 }
 
 function getPeerCount() {
@@ -221,6 +419,7 @@ function emitSocketStatus(status, state) {
     remoteKey: state?.remoteKey ?? null,
     peers: getPeerCount(),
     connections: activeConnections,
+    swarm: getSwarmDiagnostics(),
   });
 }
 
@@ -491,9 +690,18 @@ async function rejoinTopic() {
     attempt: reconnectAttempts,
     peers: getPeerCount(),
     connections: activeConnections,
+    topicHex,
+    bootstrapped: isDhtBootstrapped(),
+    swarm: getSwarmDiagnostics(),
+    discovery: getDiscoveryDiagnostics(),
   });
   try {
     if (discovery) {
+      logMajorEvent(
+        'swarm',
+        'discovery_destroy_before_rejoin',
+        'Destroying current discovery handle before rejoin.',
+      );
       try {
         await discovery.destroy();
       } catch {
@@ -501,7 +709,14 @@ async function rejoinTopic() {
       }
       discovery = null;
     }
-    discovery = swarm.join(currentTopic, { server: true, client: true });
+    const joinOptions = { server: true, client: true };
+    discovery = swarm.join(currentTopic, joinOptions);
+    logMajorEvent('swarm', 'join_reissued', 'Re-issued swarm join.', {
+      topicHex,
+      joinOptions,
+      swarm: getSwarmDiagnostics(),
+      discovery: getDiscoveryDiagnostics(),
+    });
     await discovery.flushed();
     emitStatus('dht_ready', null);
     logMajorEvent(
@@ -545,6 +760,8 @@ function startHeartbeat() {
       elapsedMs: elapsed,
       status: runtimeStatus,
       reconnectAttempts,
+      swarm: getSwarmDiagnostics(),
+      discovery: getDiscoveryDiagnostics(),
     });
 
     const now = Date.now();
@@ -633,6 +850,11 @@ async function ensureStopped() {
   }
 
   if (discovery) {
+    logMajorEvent(
+      'shutdown',
+      'discovery_destroy',
+      'Destroying discovery handle.',
+    );
     try {
       await discovery.destroy();
     } catch {
@@ -642,6 +864,7 @@ async function ensureStopped() {
   }
 
   if (swarm) {
+    logMajorEvent('shutdown', 'swarm_destroy', 'Destroying swarm.');
     try {
       swarm.removeAllListeners?.();
       await swarm.destroy();
@@ -652,6 +875,7 @@ async function ensureStopped() {
   }
 
   if (base) {
+    logMajorEvent('shutdown', 'autobase_close', 'Closing autobase.');
     try {
       base.removeAllListeners?.();
       await base.close();
@@ -662,6 +886,7 @@ async function ensureStopped() {
   }
 
   if (store) {
+    logMajorEvent('shutdown', 'corestore_close', 'Closing corestore.');
     try {
       await store.close();
     } catch {
@@ -695,6 +920,7 @@ async function ensureStopped() {
   rejoinInFlight = false;
   discoveryOnlyMode = false;
   disableCursorOptimization = false;
+  activeDeviceTag = runtimeDeviceTag;
   stopHeartbeat();
   clearRetryTimer();
 }
@@ -704,6 +930,7 @@ async function startSync(config) {
   runtimeStatus = 'idle';
   lastBackendError = null;
   lastSyncedAt = null;
+  activeDeviceTag = runtimeDeviceTag;
 
   discoveryOnlyMode = !!config?.debug?.discoveryOnly;
   disableCursorOptimization = !!config?.debug?.disableCursorOptimization;
@@ -717,6 +944,7 @@ async function startSync(config) {
   storageRoot = join(basePath, 'pearlift-sync');
   await mkdir(storageRoot, { recursive: true });
   localDeviceId = config.deviceId ?? null;
+  activeDeviceTag = localDeviceId ?? runtimeDeviceTag;
   logMajorEvent('startup', 'snapshot', 'Worklet startup snapshot.', {
     appLaunchAt: WORKLET_BOOT_AT,
     workletStartAt: WORKLET_BOOT_AT,
@@ -727,6 +955,7 @@ async function startSync(config) {
     topicHex,
     bootstrapKeyHexState: config.bootstrapKeyHex ? 'present' : 'absent',
     bootstrapKeyHex: config.bootstrapKeyHex ?? null,
+    role: config.role ?? null,
     discoveryOnlyMode,
     disableCursorOptimization,
   });
@@ -827,11 +1056,13 @@ async function startSync(config) {
   }
 
   swarm = new Hyperswarm();
+  instrumentSwarmOutboundDialing();
   const swarmPublicKey = swarm?.keyPair?.publicKey
     ? b4a.toString(swarm.keyPair.publicKey, 'hex')
     : null;
   logMajorEvent('swarm', 'keypair', 'Swarm keypair initialized.', {
     swarmPublicKey,
+    swarm: getSwarmDiagnostics(),
   });
 
   swarm.on('error', (error) => {
@@ -839,11 +1070,51 @@ async function startSync(config) {
     emitStatus('error', getErrorMessage(error));
   });
 
+  swarm.on('ban', (peerInfo, error) => {
+    logMajorWarning('swarm', 'peer_banned', 'Swarm peer banned.', {
+      peerKey: peerInfo?.publicKey
+        ? b4a.toString(peerInfo.publicKey, 'hex')
+        : null,
+      reason: getErrorMessage(error),
+      swarm: getSwarmDiagnostics(),
+    });
+  });
+
   swarm.on('update', () => {
     logMajorEvent('swarm', 'update', 'Swarm peer discovery updated.', {
       peers: getPeerCount(),
       connections: activeConnections,
+      topicHex,
+      bootstrapped: isDhtBootstrapped(),
+      swarm: getSwarmDiagnostics(),
+      discovery: getDiscoveryDiagnostics(),
     });
+  });
+
+  swarm.dht?.on?.('network-change', () => {
+    logMajorEvent(
+      'dht',
+      'network_change',
+      'DHT network-change event observed.',
+      {
+        bootstrapped: isDhtBootstrapped(),
+        swarm: getSwarmDiagnostics(),
+        discovery: getDiscoveryDiagnostics(),
+      },
+    );
+  });
+
+  swarm.dht?.on?.('network-update', () => {
+    logMajorEvent(
+      'dht',
+      'network_update',
+      'DHT network-update event observed.',
+      {
+        bootstrapped: isDhtBootstrapped(),
+        swarm: getSwarmDiagnostics(),
+        discovery: getDiscoveryDiagnostics(),
+      },
+    );
   });
 
   swarm.on('connection', (socket, peerInfo) => {
@@ -869,6 +1140,13 @@ async function startSync(config) {
       peers: getPeerCount(),
       connections: activeConnections,
       remoteKey,
+      peerClient: peerInfo?.client ?? null,
+      peerServer: peerInfo?.server ?? null,
+      socketRemotePublicKey: socket.remotePublicKey
+        ? b4a.toString(socket.remotePublicKey, 'hex')
+        : null,
+      socketRemoteHost: socket.remoteHost ?? null,
+      socketRemotePort: socket.remotePort ?? null,
     });
 
     socket.once('close', () => {
@@ -909,6 +1187,7 @@ async function startSync(config) {
             socketId: socketState.socketId,
             remoteKey,
             bytes: chunk?.byteLength ?? chunk?.length ?? null,
+            sinceOpenMs: now - socketState.openedAt,
           },
         );
       }
@@ -950,7 +1229,27 @@ async function startSync(config) {
           },
         );
         const connection = base.replicate(socket);
+        logMajorEvent(
+          'socket',
+          'replicate_invoked',
+          'Called base.replicate on socket.',
+          {
+            socketId: socketState.socketId,
+            remoteKey,
+          },
+        );
         connection.on('remote-core', (core, peerKey) => {
+          logMajorEvent(
+            'replication',
+            'remote_core',
+            'Replication remote-core event.',
+            {
+              socketId: socketState.socketId,
+              remoteKey,
+              peerKey: peerKey ? b4a.toString(peerKey, 'hex') : null,
+              writable: !!core?.writable,
+            },
+          );
           if (!core.writable && peerKey) {
             base.ackWriter(peerKey).catch((err) => {
               logMajorWarning('ack', 'ack_writer_failed', getErrorMessage(err));
@@ -1007,13 +1306,25 @@ async function startSync(config) {
   currentTopic = topic;
   logMajorEvent('swarm', 'join_requested', 'Joining swarm topic.', {
     topicHex,
+    role: config.role ?? null,
   });
-  discovery = swarm.join(topic, { server: true, client: true });
+  const joinOptions = { server: true, client: true };
+  discovery = swarm.join(topic, joinOptions);
+  logMajorEvent('swarm', 'join_called', 'Called swarm.join.', {
+    topicHex,
+    joinOptions,
+    swarm: getSwarmDiagnostics(),
+    discovery: getDiscoveryDiagnostics(),
+  });
   await discovery.flushed();
   emitStatus('dht_ready', null);
   logMajorEvent('dht', 'dht_ready', 'Discovery flush completed.', {
     topicHex,
     bootstrapped: isDhtBootstrapped(),
+    activeConnections,
+    peers: getPeerCount(),
+    swarm: getSwarmDiagnostics(),
+    discovery: getDiscoveryDiagnostics(),
   });
 
   startedAt = Date.now();
@@ -1033,7 +1344,7 @@ async function startSync(config) {
   startHeartbeat();
 
   return {
-    bootstrapKeyHex: base?.key ? b4a.toString(base.key, 'hex') : '',
+    bootstrapKeyHex: currentBootstrapKeyHex(),
   };
 }
 
@@ -1048,13 +1359,62 @@ rpc = new RPC(IPC, async (req) => {
 
     if (req.command === RPC_SYNC_START) {
       const config = decodeRequest(req);
-      const result = await startSync(config);
+      const requestFingerprint = createStartFingerprint(config);
+      const result = await withLifecycleLock('start', async () => {
+        const previousPhase = lifecyclePhase;
+        if (
+          activeStartFingerprint === requestFingerprint &&
+          (lifecyclePhase === 'starting' ||
+            lifecyclePhase === 'running' ||
+            hasActiveBackendResources())
+        ) {
+          logMajorWarning(
+            'lifecycle',
+            'start_deduped',
+            'Ignoring duplicate SYNC_START while backend is already active.',
+            {
+              lifecyclePhase,
+              runtimeStatus,
+              hasResources: hasActiveBackendResources(),
+              hasBootstrapKey: !!currentBootstrapKeyHex(),
+            },
+          );
+          return { bootstrapKeyHex: currentBootstrapKeyHex() };
+        }
+
+        lifecyclePhase = 'starting';
+        activeStartFingerprint = requestFingerprint;
+        logMajorEvent(
+          'lifecycle',
+          'start_begin',
+          'Beginning serialized SYNC_START.',
+          {
+            previousPhase,
+            runtimeStatus,
+            hasResources: hasActiveBackendResources(),
+          },
+        );
+        try {
+          const startResult = await startSync(config);
+          lifecyclePhase = 'running';
+          return startResult;
+        } catch (error) {
+          lifecyclePhase = 'idle';
+          activeStartFingerprint = null;
+          throw error;
+        }
+      });
       safeReply(req, result);
       return;
     }
 
     if (req.command === RPC_SYNC_STOP) {
-      await ensureStopped();
+      await withLifecycleLock('stop', async () => {
+        lifecyclePhase = 'stopping';
+        await ensureStopped();
+        lifecyclePhase = 'idle';
+        activeStartFingerprint = null;
+      });
       emitStatus('idle', null);
       logMajorEvent('backend', 'stopped', 'Sync backend stopped.');
       safeReply(req, { ok: true });

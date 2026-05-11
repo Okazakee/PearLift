@@ -142,6 +142,7 @@ export interface SyncBridge {
 
 export interface SyncBridgeLogEntry {
   ts: number;
+  deviceTag: string;
   level: 'info' | 'warn' | 'error';
   scope: string;
   key: string;

@@ -127,6 +127,18 @@ export class HolepunchWorkletBridge implements SyncBridge {
             'event',
             message.data,
           ) as SyncOpEnvelope;
+          logSyncEvent(
+            'info',
+            'bridge',
+            'remote_op_event',
+            'Received remote op event from backend.',
+            {
+              opId: op.opId,
+              deviceId: op.deviceId,
+              lamport: op.lamport,
+              payloadKind: op.payload?.kind ?? null,
+            },
+          );
           for (const listener of this.remoteListeners) {
             listener(op);
           }
@@ -140,6 +152,21 @@ export class HolepunchWorkletBridge implements SyncBridge {
             message.data,
           ) as Partial<SyncHealth>;
           const health: SyncHealth = { ...INITIAL_SYNC_HEALTH, ...raw };
+          logSyncEvent(
+            'info',
+            'bridge',
+            'status_event',
+            'Received status event from backend.',
+            {
+              status: health.status,
+              peers: health.peers,
+              connections: health.connections,
+              bootstrapped: health.bootstrapped,
+              reconnectAttempts: health.reconnectAttempts,
+              lastError: health.lastError,
+              topicHex: health.topicHex,
+            },
+          );
           for (const listener of this.statusListeners) {
             listener(health);
           }
@@ -153,6 +180,7 @@ export class HolepunchWorkletBridge implements SyncBridge {
             message.data,
           ) as {
             level?: 'error' | 'warn' | 'info' | 'debug';
+            deviceTag?: string;
             scope?: string;
             event?: string;
             message?: string;
@@ -170,6 +198,7 @@ export class HolepunchWorkletBridge implements SyncBridge {
             payload.event ?? 'event',
             payload.message ?? '',
             payload.details,
+            payload.deviceTag,
           );
         }
       } catch (error) {

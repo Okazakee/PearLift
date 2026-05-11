@@ -27,6 +27,8 @@ import {
   getRecentLogs,
   logSyncError,
   logSyncEvent,
+  resetSyncLogDeviceTagToRuntime,
+  setSyncLogDeviceTag,
 } from '@/sync/logger';
 import {
   clearPairingSecret,
@@ -62,6 +64,19 @@ function nowIso() {
 
 function createOpId(deviceId: string, lamport: number) {
   return `${deviceId}:${lamport}`;
+}
+
+function summarizeRoomBindingState(
+  state: Awaited<ReturnType<WorkoutRepository['getSyncState']>>,
+) {
+  return {
+    roomBindingState: state.roomBindingState,
+    firstSyncResolution: state.firstSyncResolution,
+    autobaseBootstrapKey: state.autobaseBootstrapKey,
+    hasPendingLocalSummary: Boolean(state.pendingLocalSummary),
+    hasPendingRemoteSummary: Boolean(state.pendingRemoteSummary),
+    hasPendingConflictSummary: Boolean(state.pendingConflictSummary),
+  };
 }
 
 function toRuntime(snapshot: WorkoutStoreSnapshot | PearLiftRuntimeState) {
@@ -120,6 +135,7 @@ class SyncManagerImpl implements SyncManager {
   private startTask: Promise<void> | null = null;
   private stopTask: Promise<void> | null = null;
   private health: SyncHealth = { ...INITIAL_SYNC_HEALTH };
+  private lastLoggedHealthSignature: string | null = null;
 
   constructor(repository: WorkoutRepository, bridge?: SyncBridge) {
     this.repository = repository;
@@ -163,6 +179,13 @@ class SyncManagerImpl implements SyncManager {
     if (this.stopTask) await this.stopTask;
 
     this.startTask = (async () => {
+      resetSyncLogDeviceTagToRuntime();
+      logSyncEvent(
+        'info',
+        'manager',
+        'start_init',
+        'Initializing sync start sequence.',
+      );
       this.setHealth({ ...this.health, status: 'connecting', lastError: null });
 
       try {
@@ -175,6 +198,7 @@ class SyncManagerImpl implements SyncManager {
         const syncState = await this.repository.getSyncState();
 
         this.deviceId = deviceId;
+        setSyncLogDeviceTag(deviceId);
         this.currentRole = input.role;
         this.currentBootstrapKeyHex =
           input.bootstrapKeyHex ?? syncState.autobaseBootstrapKey ?? null;
@@ -188,11 +212,19 @@ class SyncManagerImpl implements SyncManager {
 
         this.clearBridgeSubscriptions();
         this.unsubscribeStatus = this.bridge.onStatus((health) => {
-          this.setHealth({ ...this.health, ...health });
+          const mergedHealth = { ...this.health, ...health };
+          this.logHealthFromBridge(this.health, mergedHealth);
+          this.setHealth(mergedHealth);
         });
         this.unsubscribeRemoteOp = this.bridge.onRemoteOp((op) => {
           void this.handleRemoteOp(op);
         });
+        logSyncEvent(
+          'info',
+          'manager',
+          'bridge_subscriptions_ready',
+          'Bridge subscriptions established.',
+        );
 
         const requestedBootstrapKey =
           input.bootstrapKeyHex ?? syncState.autobaseBootstrapKey ?? null;
@@ -219,6 +251,18 @@ class SyncManagerImpl implements SyncManager {
         }
 
         this.active = true;
+        logSyncEvent(
+          'info',
+          'manager',
+          'start_backend_ready',
+          'Sync backend accepted start request.',
+          {
+            role: input.role,
+            requestedBootstrapKey,
+            openedBootstrapKey: started.bootstrapKeyHex || null,
+            deviceId,
+          },
+        );
         await this.repository.setSyncState({
           syncEnabled: true,
           syncRole: input.role,
@@ -226,6 +270,9 @@ class SyncManagerImpl implements SyncManager {
             requestedBootstrapKey ?? started.bootstrapKeyHex,
           lastError: null,
         });
+
+        const openedBootstrapKey =
+          requestedBootstrapKey ?? started.bootstrapKeyHex ?? null;
 
         await this.publishDeviceProfile(
           await this.repository.getLocalDeviceDisplayName(),
@@ -250,14 +297,52 @@ class SyncManagerImpl implements SyncManager {
             );
           }
         } else {
-          await this.persistFirstSyncState({
-            roomBindingState: 'pending_first_sync',
-            firstSyncResolution: 'unknown',
-            pendingLocalSummary: summarizeRuntime(localRuntime),
-            pendingRemoteSummary: null,
-            pendingConflictSummary: null,
-          });
-          this.scheduleEmptyRoomFallback();
+          const shouldPreserveJoinState =
+            syncState.autobaseBootstrapKey &&
+            openedBootstrapKey &&
+            syncState.autobaseBootstrapKey === openedBootstrapKey &&
+            syncState.roomBindingState !== 'unconfigured';
+
+          if (shouldPreserveJoinState) {
+            logSyncEvent(
+              'info',
+              'manager',
+              'join_state_resumed',
+              'Resuming existing join room state.',
+              {
+                roomBindingState: syncState.roomBindingState,
+                firstSyncResolution: syncState.firstSyncResolution,
+                openedBootstrapKey,
+              },
+            );
+
+            if (
+              syncState.roomBindingState === 'pending_first_sync' ||
+              syncState.roomBindingState === 'conflict_requires_decision'
+            ) {
+              this.scheduleEmptyRoomFallback();
+            }
+          } else {
+            await this.persistFirstSyncState({
+              roomBindingState: 'pending_first_sync',
+              firstSyncResolution: 'unknown',
+              pendingLocalSummary: summarizeRuntime(localRuntime),
+              pendingRemoteSummary: null,
+              pendingConflictSummary: null,
+            });
+            logSyncEvent(
+              'info',
+              'manager',
+              'join_state_initialized',
+              'Initialized join room state for first sync.',
+              {
+                openedBootstrapKey,
+                previousRoomBindingState: syncState.roomBindingState,
+                previousBootstrapKey: syncState.autobaseBootstrapKey,
+              },
+            );
+            this.scheduleEmptyRoomFallback();
+          }
         }
 
         this.scheduleReconnectPublish();
@@ -428,7 +513,12 @@ class SyncManagerImpl implements SyncManager {
         'manager',
         'remote_buffered',
         'Buffered remote op pending first-sync resolution.',
-        { opId: op.opId, kind: payload.kind },
+        {
+          opId: op.opId,
+          kind: payload.kind,
+          bufferedCount: this.bufferedRemoteOps.length,
+          ...summarizeRoomBindingState(syncState),
+        },
       );
       this.schedulePendingJoinResolution();
       this.checkBufferOverflow();
@@ -446,7 +536,12 @@ class SyncManagerImpl implements SyncManager {
         'manager',
         'remote_buffered_active_conflict',
         'Buffered remote op pending active-room conflict resolution.',
-        { opId: op.opId, kind: payload.kind },
+        {
+          opId: op.opId,
+          kind: payload.kind,
+          bufferedCount: this.bufferedRemoteOps.length,
+          ...summarizeRoomBindingState(syncState),
+        },
       );
       this.checkBufferOverflow();
       return;
@@ -553,11 +648,27 @@ class SyncManagerImpl implements SyncManager {
         logSyncError('manager', 'pull_logs_failed', error);
       }
     }
-    return combineLogs(local, backend as SyncLogEntry[]);
+    return combineLogs(
+      local,
+      backend.map((entry) => ({
+        ...entry,
+        deviceTag: entry.deviceTag || 'unknown',
+      })),
+    );
   }
 
   private schedulePendingJoinResolution() {
     this.clearResolveTimer();
+    logSyncEvent(
+      'info',
+      'manager',
+      'join_resolution_scheduled',
+      'Scheduled pending join resolution.',
+      {
+        bufferedCount: this.bufferedRemoteOps.length,
+        debounceMs: PENDING_RESOLVE_DEBOUNCE_MS,
+      },
+    );
     this.resolveTimer = setTimeout(() => {
       void this.resolvePendingJoin(false);
     }, PENDING_RESOLVE_DEBOUNCE_MS);
@@ -598,6 +709,7 @@ class SyncManagerImpl implements SyncManager {
   private async resolvePendingJoin(allowEmptyRoomPublish: boolean) {
     const localRuntime =
       this.pendingLocalRuntime ?? (await this.repository.getRuntimeState());
+    const syncState = await this.repository.getSyncState();
     const latestSnapshotOp = [...this.bufferedRemoteOps]
       .reverse()
       .find((op) => getOpPayload(op).kind === 'snapshot_replace');
@@ -606,6 +718,22 @@ class SyncManagerImpl implements SyncManager {
       latestSnapshotOp && getOpPayload(latestSnapshotOp).kind === 'snapshot_replace'
         ? (getOpPayload(latestSnapshotOp) as SyncSnapshotReplacePayload)
         : null;
+
+    logSyncEvent(
+      'info',
+      'manager',
+      'join_resolution_attempt',
+      'Attempting pending join resolution.',
+      {
+        allowEmptyRoomPublish,
+        currentRole: this.currentRole,
+        currentBootstrapKeyHex: this.currentBootstrapKeyHex,
+        bufferedCount: this.bufferedRemoteOps.length,
+        latestSnapshotOpId: latestSnapshotOp?.opId ?? null,
+        remoteOpKinds: this.bufferedRemoteOps.map((op) => getOpPayload(op).kind),
+        ...summarizeRoomBindingState(syncState),
+      },
+    );
 
     if (!remoteSnapshotPayload) {
       if (allowEmptyRoomPublish) {
@@ -620,6 +748,17 @@ class SyncManagerImpl implements SyncManager {
             roomBindingState: 'pending_first_sync',
             pendingLocalSummary: summarizeRuntime(localRuntime),
           });
+          logSyncEvent(
+            'info',
+            'manager',
+            'join_resolution_deferred',
+            'Join resolution deferred because no remote snapshot is available yet.',
+            {
+              allowEmptyRoomPublish,
+              reason: 'joiner_waiting_for_snapshot',
+              bufferedCount: this.bufferedRemoteOps.length,
+            },
+          );
           this.emitStateChanged();
           return;
         }
@@ -631,12 +770,32 @@ class SyncManagerImpl implements SyncManager {
           pendingRemoteSummary: null,
           pendingConflictSummary: null,
         });
+        logSyncEvent(
+          'info',
+          'manager',
+          'join_resolution_auto_publish_local',
+          'Published local snapshot because room appeared empty.',
+          {
+            allowEmptyRoomPublish,
+            bufferedCount: this.bufferedRemoteOps.length,
+          },
+        );
         this.emitStateChanged();
       } else {
         await this.persistFirstSyncState({
           roomBindingState: 'pending_first_sync',
           pendingLocalSummary: summarizeRuntime(localRuntime),
         });
+        logSyncEvent(
+          'info',
+          'manager',
+          'join_resolution_waiting',
+          'Pending join resolution is still waiting for a remote snapshot.',
+          {
+            allowEmptyRoomPublish,
+            bufferedCount: this.bufferedRemoteOps.length,
+          },
+        );
       }
       return;
     }
@@ -651,9 +810,22 @@ class SyncManagerImpl implements SyncManager {
       remoteOpCount,
     );
 
+    logSyncEvent(
+      'info',
+      'manager',
+      'join_resolution_decided',
+      'Resolved pending join strategy.',
+      {
+        resolution: resolution.kind,
+        remoteOpCount,
+        bufferedCount: this.bufferedRemoteOps.length,
+        snapshotOpId: latestSnapshotOp?.opId ?? null,
+      },
+    );
+
     switch (resolution.kind) {
       case 'already_in_sync':
-        if (remoteOpCount > 1) {
+        if (remoteOpCount > 0) {
           await this.applyBufferedRemoteOps('auto_import_remote');
           return;
         }
@@ -801,6 +973,17 @@ class SyncManagerImpl implements SyncManager {
       'unknown' | 'auto_publish_local' | 'auto_merge' | 'local_chosen'
     >,
   ) {
+    logSyncEvent(
+      'info',
+      'manager',
+      'buffer_drain_begin',
+      'Applying buffered remote ops.',
+      {
+        resolution,
+        bufferedCount: this.bufferedRemoteOps.length,
+        opIds: this.bufferedRemoteOps.map((op) => op.opId),
+      },
+    );
     for (const op of this.bufferedRemoteOps) {
       await this.applyRemoteOp(op);
     }
@@ -812,6 +995,15 @@ class SyncManagerImpl implements SyncManager {
       pendingRemoteSummary: null,
       pendingConflictSummary: null,
     });
+    logSyncEvent(
+      'info',
+      'manager',
+      'buffer_drain_complete',
+      'Buffered remote ops applied.',
+      {
+        resolution,
+      },
+    );
     this.emitStateChanged();
   }
 
@@ -937,6 +1129,38 @@ class SyncManagerImpl implements SyncManager {
     for (const listener of this.healthListeners) {
       listener(next);
     }
+  }
+
+  private logHealthFromBridge(previous: SyncHealth, next: SyncHealth) {
+    const signature = [
+      next.status,
+      next.peers,
+      next.connections,
+      next.bootstrapped ? '1' : '0',
+      next.reconnectAttempts,
+      next.lastError ?? '',
+    ].join('|');
+    if (signature === this.lastLoggedHealthSignature) {
+      return;
+    }
+    this.lastLoggedHealthSignature = signature;
+    logSyncEvent(
+      'info',
+      'manager',
+      'health_update',
+      'Sync health updated from bridge.',
+      {
+        fromStatus: previous.status,
+        toStatus: next.status,
+        peers: next.peers,
+        connections: next.connections,
+        bootstrapped: next.bootstrapped,
+        reconnectAttempts: next.reconnectAttempts,
+        topicHex: next.topicHex,
+        peerKeys: next.peerKeys,
+        lastError: next.lastError,
+      },
+    );
   }
 
   private emitRemoteApplied() {

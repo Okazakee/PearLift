@@ -198,6 +198,7 @@ function normalizeRuntimeLogMessage(value) {
       value.level === 'debug'
         ? value.level
         : undefined,
+    deviceTag: toStringOrNull(value.deviceTag) ?? undefined,
     scope: toStringOrNull(value.scope) ?? undefined,
     event: toStringOrNull(value.event) ?? undefined,
     message: toStringOrNull(value.message) ?? undefined,
