@@ -1,10 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Crypto from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
-import {
-  LOCAL_STATE_STORAGE_KEY,
-  parseAndMigrateBackup,
-} from '@/backup/localBackup';
 import { alignWorkoutsToDays } from '@/backup/normalization';
 import type { PearLiftRuntimeState } from '@/backup/types';
 import { MAX_DAY_CONFIGS } from '@/config/constants';
@@ -1021,20 +1016,6 @@ export class WorkoutRepository {
   }
 
   private async seedInitialState(db: SQLiteDatabase) {
-    const migrated = await AsyncStorage.getItem(LOCAL_STATE_STORAGE_KEY);
-    if (migrated) {
-      try {
-        const parsed = parseAndMigrateBackup(migrated);
-        await db.withTransactionAsync(async () => {
-          await this.replaceAllState(db, parsed.runtime);
-          await this.writeSetting(db, 'setupDone', 'true');
-        });
-        return;
-      } catch {
-        // Fall back to defaults if the legacy cache is invalid.
-      }
-    }
-
     await db.withTransactionAsync(async () => {
       await this.replaceAllState(db, buildDefaultRuntimeState());
     });

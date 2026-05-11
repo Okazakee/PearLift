@@ -35,6 +35,9 @@ export function parseBackupJson(raw: string): PwaBackupAny {
   if (!('version' in parsed) || typeof parsed.version !== 'number') {
     throw new Error('Missing backup version.');
   }
+  if (parsed.version !== 2) {
+    throw new Error('Unsupported backup version.');
+  }
 
   if (!('data' in parsed) || !isRecord(parsed.data)) {
     throw new Error('Backup data field is missing or invalid.');
@@ -46,7 +49,7 @@ export function parseBackupJson(raw: string): PwaBackupAny {
 export function migrateToCurrentState(
   parsed: PwaBackupAny,
 ): MigratedBackupResult {
-  const version = Number(parsed.version ?? 2);
+  const version = 2;
   const exportedAt =
     typeof parsed.exportedAt === 'string'
       ? parsed.exportedAt
@@ -92,9 +95,7 @@ export function migrateToCurrentState(
     requestedTheme === 'light' ||
     requestedTheme === 'dark'
       ? requestedTheme
-      : settings.darkMode === false
-        ? 'light'
-        : 'dark';
+      : 'system';
   const weightUnit: WeightUnit = settings.weightUnit === 'lb' ? 'lb' : 'kg';
 
   const backup: PwaBackupV2 = {

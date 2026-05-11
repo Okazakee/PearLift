@@ -1,6 +1,8 @@
 import RPC from 'bare-rpc';
-import { documentDirectory } from 'expo-file-system/legacy';
 import { deleteAsync } from 'expo-file-system/legacy';
+import { documentDirectory } from 'expo-file-system/legacy';
+import { getInfoAsync } from 'expo-file-system/legacy';
+import { readDirectoryAsync } from 'expo-file-system/legacy';
 import { Worklet } from 'react-native-bare-kit';
 import type { SyncLogEntry } from '@/sync/logger';
 import { logSyncError, logSyncEvent } from '@/sync/logger';
@@ -36,9 +38,18 @@ type RuntimeRpcMessage = {
   data: Uint8Array | null;
 };
 
+type LifecycleOperation = 'start' | 'stop' | 'clear_storage';
+
 const APP_LAUNCH_AT = new Date().toISOString();
 const HEARTBEAT_INTERVAL_MS = 10000;
 const HEARTBEAT_FAIL_THRESHOLD = 2;
+const START_TIMEOUT_MS = 12000;
+const LIFECYCLE_OPERATION_TIMEOUT_MS = 3000;
+const STALE_RUNTIME_FILES = [
+  'worklet-runtime.lock',
+  'worklet-runtime.tmp',
+  'worklet-starting.marker',
+];
 
 function hashSecretHex(secretHex: string) {
   let hash = 2166136261;
@@ -67,6 +78,9 @@ export class HolepunchWorkletBridge implements SyncBridge {
   private readonly statusListeners = new Set<(health: SyncHealth) => void>();
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private consecutiveHeartbeatFailures = 0;
+  private startTask: Promise<{ bootstrapKeyHex: string }> | null = null;
+  private lifecycleQueue: Promise<void> = Promise.resolve();
+  private lastLifecycleErrorKey: string | null = null;
 
   private normalizeStoragePath(pathOrUri: string) {
     // Expo FileSystem uses file:// URIs; Bare/Corestore expects a real path.
@@ -90,6 +104,96 @@ export class HolepunchWorkletBridge implements SyncBridge {
       throw new Error('expo-file-system documentDirectory is unavailable.');
     }
     return `${dir}pearlift-sync`;
+  }
+
+  private async withTimeout<T>(
+    promise: Promise<T>,
+    ms: number,
+    label: string,
+  ): Promise<T> {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const timeout = new Promise<T>((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new Error(`${label}_timeout`));
+      }, ms);
+    });
+    return Promise.race([promise, timeout]).finally(() => {
+      if (timer) clearTimeout(timer);
+    });
+  }
+
+  private async withLifecycleLock<T>(
+    operation: LifecycleOperation,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    const previous = this.lifecycleQueue;
+    const waitStartedAt = Date.now();
+    const run = (async () => {
+      await previous;
+      const waitedMs = Date.now() - waitStartedAt;
+      if (waitedMs > LIFECYCLE_OPERATION_TIMEOUT_MS) {
+        this.lastLifecycleErrorKey = 'worklet_lifecycle_conflict';
+        logSyncError(
+          'bridge',
+          'worklet_lifecycle_conflict',
+          new Error('lifecycle_operation_waited'),
+          {
+            operation,
+            waitedMs,
+          },
+        );
+      }
+      return fn();
+    })();
+
+    this.lifecycleQueue = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  }
+
+  private cleanupRuntime() {
+    this.stopHeartbeat();
+    this.rpc = null;
+    if (this.worklet) {
+      try {
+        this.worklet.terminate();
+      } catch (error) {
+        this.lastLifecycleErrorKey = 'worklet_cleanup_failed';
+        logSyncError('bridge', 'worklet_cleanup_failed', error);
+      }
+    }
+    this.worklet = null;
+  }
+
+  private async runStartupHygiene() {
+    const roomStorageUri = this.getRoomStorageUri();
+    try {
+      const info = await getInfoAsync(roomStorageUri);
+      if (!info.exists) return;
+
+      const entries = await readDirectoryAsync(roomStorageUri);
+      const staleEntries = entries.filter((entry) =>
+        STALE_RUNTIME_FILES.includes(entry),
+      );
+
+      for (const entry of staleEntries) {
+        await deleteAsync(`${roomStorageUri}/${entry}`, { idempotent: true });
+      }
+
+      if (staleEntries.length > 0) {
+        logSyncEvent(
+          'info',
+          'bridge',
+          'worklet_startup_hygiene',
+          'Removed stale sync runtime artifacts before startup.',
+          { removedEntries: staleEntries },
+        );
+      }
+    } catch (error) {
+      logSyncError('bridge', 'worklet_startup_hygiene_failed', error);
+    }
   }
 
   private ensureRuntime() {
@@ -213,74 +317,130 @@ export class HolepunchWorkletBridge implements SyncBridge {
   }
 
   async start(input: StartSyncInput): Promise<{ bootstrapKeyHex: string }> {
-    this.ensureRuntime();
-    if (!this.rpc) {
-      logSyncError('bridge', 'start_unavailable', 'Holepunch RPC unavailable');
-      throw new Error('Holepunch RPC unavailable');
-    }
+    if (this.startTask) return this.startTask;
 
-    const storagePath = this.getStoragePath();
-    logSyncEvent(
-      'info',
-      'bridge',
-      'start_request',
-      'Sending SYNC_START to worklet backend.',
-      {
-        appLaunchAt: APP_LAUNCH_AT,
-        startRequestAt: new Date().toISOString(),
-        storagePath,
-        deviceId: input.deviceId,
-        pairingSecretHash: hashSecretHex(input.pairingSecretHex),
-        bootstrapKeyHexState: input.bootstrapKeyHex ? 'present' : 'absent',
-        bootstrapKeyHex: input.bootstrapKeyHex ?? null,
-        discoveryOnly: !!input.debug?.discoveryOnly,
-        disableCursorOptimization: !!input.debug?.disableCursorOptimization,
-      },
-    );
+    this.startTask = this.withLifecycleLock('start', async () => {
+      const startedAt = Date.now();
+      await this.runStartupHygiene();
+      this.ensureRuntime();
 
-    const response = await requestJson<
-      StartSyncInput & { storagePath: string },
-      { bootstrapKeyHex?: string; ok?: boolean; error?: string }
-    >(this.rpc, RPC_SYNC_START, {
-      ...input,
-      storagePath,
+      if (!this.rpc) {
+        this.lastLifecycleErrorKey = 'worklet_start_failed';
+        logSyncError(
+          'bridge',
+          'worklet_start_failed',
+          'Holepunch RPC unavailable',
+        );
+        throw new Error('Holepunch RPC unavailable');
+      }
+
+      const storagePath = this.getStoragePath();
+      logSyncEvent(
+        'info',
+        'bridge',
+        'start_request',
+        'Sending SYNC_START to worklet backend.',
+        {
+          appLaunchAt: APP_LAUNCH_AT,
+          startRequestAt: new Date().toISOString(),
+          storagePath,
+          deviceId: input.deviceId,
+          pairingSecretHash: hashSecretHex(input.pairingSecretHex),
+          bootstrapKeyHexState: input.bootstrapKeyHex ? 'present' : 'absent',
+          bootstrapKeyHex: input.bootstrapKeyHex ?? null,
+          discoveryOnly: !!input.debug?.discoveryOnly,
+          disableCursorOptimization: !!input.debug?.disableCursorOptimization,
+        },
+      );
+
+      try {
+        const response = await this.withTimeout(
+          requestJson<
+            StartSyncInput & { storagePath: string },
+            { bootstrapKeyHex?: string; ok?: boolean; error?: string }
+          >(this.rpc, RPC_SYNC_START, {
+            ...input,
+            storagePath,
+          }),
+          START_TIMEOUT_MS,
+          'worklet_start',
+        );
+
+        if (response.error) {
+          throw new Error(response.error);
+        }
+
+        this.startHeartbeat();
+        this.lastLifecycleErrorKey = null;
+        return { bootstrapKeyHex: response.bootstrapKeyHex ?? '' };
+      } catch (error) {
+        const elapsedMs = Date.now() - startedAt;
+        const message =
+          error instanceof Error ? error.message : String(error);
+        const isTimeout = message === 'worklet_start_timeout';
+        this.lastLifecycleErrorKey = isTimeout
+          ? 'worklet_start_timeout'
+          : 'worklet_start_failed';
+        logSyncError(
+          'bridge',
+          isTimeout ? 'worklet_start_timeout' : 'worklet_start_failed',
+          error,
+          { elapsedMs },
+        );
+        this.cleanupRuntime();
+        throw error;
+      }
+    }).finally(() => {
+      this.startTask = null;
     });
 
-    if (response.error) {
-      logSyncError('bridge', 'start_failed', response.error);
-      throw new Error(response.error);
-    }
-
-    this.startHeartbeat();
-
-    return { bootstrapKeyHex: response.bootstrapKeyHex ?? '' };
+    return this.startTask;
   }
 
   async stop(): Promise<void> {
-    this.stopHeartbeat();
+    await this.withLifecycleLock('stop', async () => {
+      if (!this.rpc) {
+        this.cleanupRuntime();
+        return;
+      }
 
-    if (!this.rpc) {
-      this.worklet?.terminate();
-      this.worklet = null;
-      return;
-    }
-
-    try {
-      await requestJson(this.rpc, RPC_SYNC_STOP, { stop: true });
-    } finally {
-      this.worklet?.terminate();
-      this.worklet = null;
-      this.rpc = null;
-    }
+      try {
+        await this.withTimeout(
+          requestJson(this.rpc, RPC_SYNC_STOP, { stop: true }),
+          START_TIMEOUT_MS,
+          'worklet_stop',
+        );
+      } catch (error) {
+        logSyncError('bridge', 'worklet_stop_failed', error);
+      } finally {
+        this.cleanupRuntime();
+      }
+    });
   }
 
   async clearStorage(): Promise<void> {
-    await this.stop();
-    try {
-      await deleteAsync(this.getRoomStorageUri(), { idempotent: true });
-    } catch {
-      // Ignore missing or already-cleared room storage.
-    }
+    await this.withLifecycleLock('clear_storage', async () => {
+      if (!this.rpc) {
+        this.cleanupRuntime();
+      } else {
+        try {
+          await this.withTimeout(
+            requestJson(this.rpc, RPC_SYNC_STOP, { stop: true }),
+            START_TIMEOUT_MS,
+            'worklet_stop',
+          );
+        } catch (error) {
+          logSyncError('bridge', 'worklet_stop_failed', error);
+        } finally {
+          this.cleanupRuntime();
+        }
+      }
+      try {
+        await deleteAsync(this.getRoomStorageUri(), { idempotent: true });
+      } catch {
+        // Ignore missing or already-cleared room storage.
+      }
+    });
   }
 
   async publish(op: SyncOpEnvelope): Promise<void> {
@@ -349,6 +509,9 @@ export class HolepunchWorkletBridge implements SyncBridge {
         listener(status);
       }
     } catch {
+      if (this.lastLifecycleErrorKey === 'worklet_start_timeout') {
+        return;
+      }
       this.consecutiveHeartbeatFailures += 1;
       if (this.consecutiveHeartbeatFailures >= HEARTBEAT_FAIL_THRESHOLD) {
         const errorHealth: SyncHealth = {

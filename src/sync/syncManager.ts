@@ -135,6 +135,7 @@ class SyncManagerImpl implements SyncManager {
   private startTask: Promise<void> | null = null;
   private stopTask: Promise<void> | null = null;
   private pendingDeviceProfileFlushInFlight = false;
+  private bridgeStartResolved = false;
   private health: SyncHealth = { ...INITIAL_SYNC_HEALTH };
   private lastLoggedHealthSignature: string | null = null;
 
@@ -241,12 +242,14 @@ class SyncManagerImpl implements SyncManager {
           requestedBootstrapKey,
         });
 
+        this.bridgeStartResolved = false;
         const started = await this.bridge.start({
           pairingSecretHex: secret,
           deviceId,
           role: input.role,
           bootstrapKeyHex: requestedBootstrapKey,
         });
+        this.bridgeStartResolved = true;
 
         if (
           requestedBootstrapKey &&
@@ -370,9 +373,26 @@ class SyncManagerImpl implements SyncManager {
 
         this.emitStateChanged();
       } catch (error) {
+        this.bridgeStartResolved = false;
         this.active = false;
-        const message =
+        const rawMessage =
           error instanceof Error ? error.message : 'Sync start failed';
+        const startCategory = rawMessage.includes('worklet_start_timeout')
+          ? 'timeout'
+          : rawMessage.includes('validation') ||
+              rawMessage.includes('mismatch')
+            ? 'validation'
+            : 'runtime';
+        const message =
+          startCategory === 'timeout'
+            ? 'Sync startup timed out. Retry to reconnect.'
+            : startCategory === 'validation'
+              ? rawMessage
+              : `Sync start failed: ${rawMessage}`;
+        logSyncError('manager', 'start_failed', error, {
+          startCategory,
+          rawMessage,
+        });
         await this.repository.setSyncState({ lastError: message });
         this.setHealth({
           ...this.health,
@@ -399,6 +419,7 @@ class SyncManagerImpl implements SyncManager {
         });
         await this.bridge.stop();
       } finally {
+        this.bridgeStartResolved = false;
         this.clearBridgeSubscriptions();
         this.active = false;
         this.currentRole = null;
@@ -681,6 +702,7 @@ class SyncManagerImpl implements SyncManager {
     if (
       !this.active ||
       !this.deviceId ||
+      !this.bridgeStartResolved ||
       this.pendingDeviceProfileFlushInFlight
     ) {
       return;
