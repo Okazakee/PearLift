@@ -19,24 +19,11 @@ function getDhtStatus(
   t: ReturnType<typeof useTranslation>['t'],
   health: SyncHealth,
 ) {
-  switch (health.status) {
-    case 'dht_ready':
-    case 'peer_connected':
-    case 'handshake_ok':
-    case 'replicating':
-    case 'synced':
-      return t('sync.quick.dhtReady');
-    case 'connecting':
-      return t('sync.quick.dhtBootstrapping');
-    case 'error':
-      return t('sync.quick.dhtError');
-    case 'idle':
-      return t('sync.quick.dhtInactive');
-    case 'waiting':
-      return t('sync.quick.dhtWaiting');
-    default:
-      return t('sync.quick.dhtInactive');
-  }
+  if (health.status === 'error') return t('sync.quick.dhtError');
+  if (health.status === 'idle') return t('sync.quick.dhtInactive');
+  if (health.status === 'waiting') return t('sync.quick.dhtWaiting');
+  if (health.bootstrapped) return t('sync.quick.dhtReady');
+  return t('sync.quick.dhtBootstrapping');
 }
 
 function getSyncStatusLabel(
