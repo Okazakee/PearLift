@@ -11,7 +11,7 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, Platform, StyleSheet, Text, View } from 'react-native';
+import { AppState, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -97,6 +97,9 @@ export function RestTimer({
   const endAtMsRef = useRef<number | null>(null);
   const scheduledIdRef = useRef<string | null>(null);
   const restoredFromNativeRef = useRef(false);
+  const backgroundTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const scheduleTokenRef = useRef(0);
   const panelMountRafRef = useRef<number | null>(null);
   const panelUnmountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
@@ -245,7 +248,7 @@ export function RestTimer({
     // Prevent late schedule() calls from reintroducing a notification id after completion.
     scheduleTokenRef.current += 1;
     await cancelScheduledNotificationIfAny();
-    if (Platform.OS === 'android' && RestTimerForegroundService.isAvailable()) {
+    if (RestTimerForegroundService.isAvailable()) {
       await RestTimerForegroundService.cancel();
     }
     setEndAtMs(null);
@@ -349,7 +352,6 @@ export function RestTimer({
   }, []);
 
   useEffect(() => {
-    if (Platform.OS !== 'android') return;
     if (!RestTimerForegroundService.isAvailable()) return;
 
     let cancelled = false;
@@ -489,33 +491,53 @@ export function RestTimer({
       if (prev === next) return;
 
       if (next !== 'active') {
-        clearIntervalIfAny();
+        // Cancel any still-pending handoff from a prior bounce.
+        if (backgroundTimeoutRef.current) {
+          clearTimeout(backgroundTimeoutRef.current);
+          backgroundTimeoutRef.current = null;
+        }
         const latestEnd = endAtMsRef.current;
         if (mode === 'running' && latestEnd) {
-          if (
-            Platform.OS === 'android' &&
-            RestTimerForegroundService.isAvailable()
-          ) {
-            // Hand off to the foreground service while backgrounded.
-            void (async () => {
-              await cancelScheduledNotificationIfAny();
-              await RestTimerForegroundService.start(
-                latestEnd,
-                startedDurationSec,
-                nativeNotificationText,
-              );
-            })();
+          if (RestTimerForegroundService.isAvailable()) {
+            // Delay FGS handoff to avoid needless transitions on short-lived
+            // background events (notification shade, heads-up, etc.).
+            backgroundTimeoutRef.current = setTimeout(() => {
+              backgroundTimeoutRef.current = null;
+              clearIntervalIfAny();
+              const endAtNow = endAtMsRef.current;
+              if (endAtNow) {
+                void (async () => {
+                  await cancelScheduledNotificationIfAny();
+                  await RestTimerForegroundService.start(
+                    endAtNow,
+                    startedDurationSec,
+                    nativeNotificationText,
+                  );
+                })();
+              }
+            }, 600);
           } else {
-            // iOS/web fallback: rely on completion notifications only (no running notification).
+            clearIntervalIfAny();
           }
+          return;
+        }
+        clearIntervalIfAny();
+        return;
+      }
+
+      // Returned to active: cancel any pending handoff — we came back
+      // before the timeout fired (spurious transition).
+      if (backgroundTimeoutRef.current) {
+        clearTimeout(backgroundTimeoutRef.current);
+        backgroundTimeoutRef.current = null;
+        if (mode === 'running' && endAtMsRef.current) {
+          refreshRemainingFromEndAt(endAtMsRef.current);
+          if (!intervalRef.current) startTicking();
         }
         return;
       }
 
-      if (
-        Platform.OS === 'android' &&
-        RestTimerForegroundService.isAvailable()
-      ) {
+      if (RestTimerForegroundService.isAvailable()) {
         void (async () => {
           // Stop the foreground service to avoid a persistent notification in-app,
           // then reconcile from the stored native state.
@@ -556,10 +578,14 @@ export function RestTimer({
 
           if (state.mode === 'running' && typeof state.endAtMs === 'number') {
             // If the service was still running, reconcile endAt.
+            const reconciledEndAt = Math.round(state.endAtMs);
+            endAtMsRef.current = reconciledEndAt;
             setMode('running');
-            setEndAtMs(Math.round(state.endAtMs));
+            setEndAtMs(reconciledEndAt);
+            setRemainingSec(computeRemainingSeconds(reconciledEndAt));
             setScheduledNotificationId(null);
             scheduledIdRef.current = null;
+            startTicking();
             return;
           }
         })();
@@ -580,7 +606,13 @@ export function RestTimer({
         startTicking();
       }
     });
-    return () => sub.remove();
+    return () => {
+      sub.remove();
+      if (backgroundTimeoutRef.current) {
+        clearTimeout(backgroundTimeoutRef.current);
+        backgroundTimeoutRef.current = null;
+      }
+    };
     // mode intentionally included so we only restart ticking for running timers.
   }, [
     cancelScheduledNotificationIfAny,
@@ -592,6 +624,14 @@ export function RestTimer({
     startedDurationSec,
     nativeNotificationText,
   ]);
+
+  // Defensive: restart ticking if the JS interval was lost for any reason
+  // while the timer is still running (covers all edge cases).
+  useEffect(() => {
+    if (mode === 'running' && endAtMs && !intervalRef.current) {
+      startTicking();
+    }
+  }, [mode, endAtMs, startTicking]);
 
   useEffect(() => {
     if (isRunning) {
@@ -720,7 +760,7 @@ export function RestTimer({
     setRemainingSec(duration);
     setStartedDurationSec(duration);
     void cancelScheduledNotificationIfAny();
-    if (Platform.OS === 'android' && RestTimerForegroundService.isAvailable()) {
+    if (RestTimerForegroundService.isAvailable()) {
       void RestTimerForegroundService.cancel();
     }
   };

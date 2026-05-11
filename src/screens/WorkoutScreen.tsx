@@ -11,13 +11,7 @@ import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  AppState,
-  Linking,
-  Platform,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { AppState, Linking, useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -439,7 +433,7 @@ export function WorkoutScreen() {
       const fileName = getBackupFileName();
       const payload = serializePwaBackupV2(snapshot);
 
-      if (mode === 'save' && Platform.OS === 'android') {
+      if (mode === 'save') {
         const permissions =
           await StorageAccessFramework.requestDirectoryPermissionsAsync();
         if (!permissions.granted) {
@@ -493,7 +487,7 @@ export function WorkoutScreen() {
         } else {
           logError('backup/export share unavailable', {
             mode,
-            platform: Platform.OS,
+            platform: 'android',
           });
           showPrompt(
             t('prompts.exportBackup.sharingUnavailableTitle'),
@@ -510,26 +504,21 @@ export function WorkoutScreen() {
   const handleExportBackup = () => {
     if (!snapshot) return;
 
-    if (Platform.OS === 'android') {
-      showPrompt(
-        t('prompts.exportBackup.chooserTitle'),
-        t('prompts.exportBackup.chooserMessage'),
-        [
-          {
-            label: t('prompts.exportBackup.actions.saveToDevice'),
-            onPress: () => void exportBackup('save'),
-          },
-          {
-            label: t('prompts.exportBackup.actions.share'),
-            onPress: () => void exportBackup('share'),
-          },
-          { label: t('common.cancel'), tone: 'cancel' },
-        ],
-      );
-      return;
-    }
-
-    void exportBackup('share');
+    showPrompt(
+      t('prompts.exportBackup.chooserTitle'),
+      t('prompts.exportBackup.chooserMessage'),
+      [
+        {
+          label: t('prompts.exportBackup.actions.saveToDevice'),
+          onPress: () => void exportBackup('save'),
+        },
+        {
+          label: t('prompts.exportBackup.actions.share'),
+          onPress: () => void exportBackup('share'),
+        },
+        { label: t('common.cancel'), tone: 'cancel' },
+      ],
+    );
   };
 
   const handleImportBackup = async () => {

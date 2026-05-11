@@ -2,14 +2,12 @@ import {
   RestTimerForegroundService as Native,
   type RestTimerNotificationText,
 } from 'pearlift-rest-timer-fgs';
-import { Platform } from 'react-native';
 
 export type RestTimerForegroundServiceState = Awaited<
   ReturnType<NonNullable<typeof Native>['getState']>
 >;
 
 function getNative() {
-  if (Platform.OS !== 'android') return null;
   return Native;
 }
 

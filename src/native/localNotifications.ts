@@ -1,4 +1,3 @@
-import { Platform } from 'react-native';
 import notifee, {
   AlarmType,
   AndroidImportance,
@@ -13,8 +12,6 @@ export async function requestNotificationPermission() {
 }
 
 export async function ensureRestTimerChannels(channelName: string) {
-  if (Platform.OS !== 'android') return;
-
   await Promise.all([
     notifee.createChannel({
       id: 'rest-timer',
@@ -43,23 +40,17 @@ export async function scheduleRestTimerCompletionNotification(
   const trigger: TimestampTrigger = {
     type: TriggerType.TIMESTAMP,
     timestamp,
-    alarmManager:
-      Platform.OS === 'android'
-        ? { type: AlarmType.SET_EXACT_AND_ALLOW_WHILE_IDLE }
-        : undefined,
+    alarmManager: { type: AlarmType.SET_EXACT_AND_ALLOW_WHILE_IDLE },
   };
 
   return await notifee.createTriggerNotification(
     {
       title,
       body,
-      android:
-        Platform.OS === 'android'
-          ? {
-              channelId: 'rest-timer-v2',
-              pressAction: { id: DEFAULT_PRESS_ACTION_ID },
-            }
-          : undefined,
+      android: {
+        channelId: 'rest-timer-v2',
+        pressAction: { id: DEFAULT_PRESS_ACTION_ID },
+      },
     },
     trigger,
   );

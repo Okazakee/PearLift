@@ -1,7 +1,7 @@
 import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { AppState, Platform } from 'react-native';
+import { AppState } from 'react-native';
 
 import { COMPLETION_SOUND } from '@/config/timer';
 
@@ -41,11 +41,7 @@ export async function playCompletionSound(): Promise<void> {
 
 export function triggerCompletionFeedback(): void {
   void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-  if (Platform.OS === 'web') {
-    navigator.vibrate([200, 100, 200, 100, 200]);
-  } else {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-  }
+  void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 }
 
 export function safeDeactivateKeepAwake(tag: string): void {
