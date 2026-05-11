@@ -82,20 +82,22 @@ function logWithLevel(
 ) {
   const payload = details && Object.keys(details).length > 0 ? details : null;
 
-  if (level === 'warn') {
-    // eslint-disable-next-line no-console
-    console.warn(prefix, message, ...(payload ? [payload] : []));
-    return;
-  }
+  if (__DEV__) {
+    if (level === 'warn') {
+      // eslint-disable-next-line no-console
+      console.warn(prefix, message, ...(payload ? [payload] : []));
+      return;
+    }
 
-  if (level === 'error') {
-    // eslint-disable-next-line no-console
-    console.error(prefix, message, ...(payload ? [payload] : []));
-    return;
-  }
+    if (level === 'error') {
+      // eslint-disable-next-line no-console
+      console.error(prefix, message, ...(payload ? [payload] : []));
+      return;
+    }
 
-  // eslint-disable-next-line no-console
-  console.log(prefix, message, ...(payload ? [payload] : []));
+    // eslint-disable-next-line no-console
+    console.log(prefix, message, ...(payload ? [payload] : []));
+  }
 }
 
 export function logSyncEvent(
