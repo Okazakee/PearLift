@@ -231,7 +231,6 @@ export class HolepunchWorkletBridge implements SyncBridge {
         storagePath,
         deviceId: input.deviceId,
         pairingSecretHash: hashSecretHex(input.pairingSecretHex),
-        topicHex: input.pairingSecretHex,
         bootstrapKeyHexState: input.bootstrapKeyHex ? 'present' : 'absent',
         bootstrapKeyHex: input.bootstrapKeyHex ?? null,
         discoveryOnly: !!input.debug?.discoveryOnly,

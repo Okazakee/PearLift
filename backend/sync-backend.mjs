@@ -33,6 +33,7 @@ let activeConnections = 0;
 let rpc = null;
 let sentViewLength = 0;
 let sentRemoteOpIds = new Set();
+let sentRemoteOpOrder = [];
 let isFlushing = false;
 let runtimeStatus = 'idle';
 let lastBackendError = null;
@@ -57,6 +58,7 @@ let lifecyclePhase = 'idle';
 let activeStartFingerprint = null;
 
 const MAX_LOG_ENTRIES = 100;
+const MAX_SENT_REMOTE_OP_IDS = 5000;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
 const WAITING_STATUS_THRESHOLD_ATTEMPTS = 3;
@@ -495,6 +497,18 @@ function emitStatus(status = 'synced', lastError = null) {
   );
 }
 
+function rememberSentRemoteOpId(opKey) {
+  if (sentRemoteOpIds.has(opKey)) return;
+  sentRemoteOpIds.add(opKey);
+  sentRemoteOpOrder.push(opKey);
+  if (sentRemoteOpOrder.length <= MAX_SENT_REMOTE_OP_IDS) return;
+  const overflow = sentRemoteOpOrder.length - MAX_SENT_REMOTE_OP_IDS;
+  const evicted = sentRemoteOpOrder.splice(0, overflow);
+  for (const key of evicted) {
+    sentRemoteOpIds.delete(key);
+  }
+}
+
 function isTransientSocketError(error) {
   const message = getErrorMessage(error).toLowerCase();
   return (
@@ -574,7 +588,7 @@ async function flushRemoteOps() {
       if (sentRemoteOpIds.has(opKey)) {
         continue;
       }
-      sentRemoteOpIds.add(opKey);
+      rememberSentRemoteOpId(opKey);
       const rpcEvent = rpc.event(RPC_SYNC_REMOTE_OP_EVENT);
       rpcEvent.send(encodeRpcPayload(RPC_SYNC_REMOTE_OP_EVENT, 'event', op));
       flushed += 1;
@@ -903,6 +917,7 @@ async function ensureStopped() {
   activeConnections = 0;
   sentViewLength = 0;
   sentRemoteOpIds = new Set();
+  sentRemoteOpOrder = [];
   isFlushing = false;
   runtimeStatus = 'idle';
   lastBackendError = null;
@@ -936,7 +951,7 @@ async function startSync(config) {
   disableCursorOptimization = !!config?.debug?.disableCursorOptimization;
 
   const topic = topicFromSecretHex(config.pairingSecretHex);
-  topicHex = b4a.toString(topic, 'hex');
+  topicHex = hashSecretHex(config.pairingSecretHex);
   const basePath = normalizeStoragePath(config.storagePath);
   if (!basePath) {
     throw new Error('Missing storagePath');

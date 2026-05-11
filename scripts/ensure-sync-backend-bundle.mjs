@@ -9,6 +9,7 @@ const bundlePath = resolve(projectRoot, 'src/sync/sync.bundle.mjs');
 const sourcePaths = [
   resolve(projectRoot, 'backend/sync-backend.mjs'),
   resolve(projectRoot, 'backend/sync-rpc-commands.mjs'),
+  resolve(projectRoot, 'backend/sync-rpc-encoding.mjs'),
 ];
 const force = process.argv.includes('--force');
 

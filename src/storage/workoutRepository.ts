@@ -41,6 +41,7 @@ const WEEK_CONFIG_REVISION_SETTING = 'syncWeekConfigsRevisionAt';
 const DAY_CONFIG_REVISION_SETTING = 'syncDayConfigsRevisionAt';
 const DEVICE_DISPLAY_NAME_SETTING = 'syncDeviceDisplayName';
 const PENDING_LOCAL_MUTATIONS_SETTING = 'syncPendingLocalMutations';
+const PENDING_DEVICE_PROFILE_NAME_SETTING = 'syncPendingDeviceProfileName';
 
 function toDeviceCode(deviceId: string) {
   return deviceId.replace(/-/g, '').slice(-4).toUpperCase();
@@ -848,6 +849,35 @@ export class WorkoutRepository {
         displayName.trim(),
       );
     });
+  }
+
+  async setPendingDeviceProfileDisplayName(
+    displayName: string | null,
+  ): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await this.writeSetting(
+        db,
+        PENDING_DEVICE_PROFILE_NAME_SETTING,
+        displayName?.trim() ?? '',
+      );
+    });
+  }
+
+  async getPendingDeviceProfileDisplayName(): Promise<string | null> {
+    await this.initialize();
+    const db = await getDatabase();
+    const value = await this.readSetting(
+      db,
+      PENDING_DEVICE_PROFILE_NAME_SETTING,
+    );
+    const normalized = value?.trim() ?? '';
+    return normalized || null;
+  }
+
+  async clearPendingDeviceProfileDisplayName(): Promise<void> {
+    await this.setPendingDeviceProfileDisplayName(null);
   }
 
   async queuePendingLocalSyncMutation(mutation: SyncMutation): Promise<void> {

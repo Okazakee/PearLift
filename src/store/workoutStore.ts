@@ -321,7 +321,19 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
     await repository.setLocalDeviceDisplayName(normalized);
     if (syncManager?.isActive()) {
-      await syncManager.publishDeviceProfile(normalized);
+      try {
+        await syncManager.publishDeviceProfile(normalized);
+        await repository.clearPendingDeviceProfileDisplayName();
+      } catch {
+        await repository.setPendingDeviceProfileDisplayName(normalized);
+        set({
+          promptConfig: {
+            title: i18n.t('sync.manage.saveDeviceName'),
+            message: i18n.t('sync.manage.deviceNameSyncPending'),
+            actions: [{ label: i18n.t('common.ok') }],
+          },
+        });
+      }
     }
     await get().refreshSyncState();
   },

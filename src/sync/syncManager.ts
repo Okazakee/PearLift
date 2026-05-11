@@ -134,6 +134,7 @@ class SyncManagerImpl implements SyncManager {
   private lastLoggedBackendError: string | null = null;
   private startTask: Promise<void> | null = null;
   private stopTask: Promise<void> | null = null;
+  private pendingDeviceProfileFlushInFlight = false;
   private health: SyncHealth = { ...INITIAL_SYNC_HEALTH };
   private lastLoggedHealthSignature: string | null = null;
 
@@ -215,6 +216,13 @@ class SyncManagerImpl implements SyncManager {
           const mergedHealth = { ...this.health, ...health };
           this.logHealthFromBridge(this.health, mergedHealth);
           this.setHealth(mergedHealth);
+          if (
+            mergedHealth.status === 'synced' ||
+            mergedHealth.status === 'peer_connected' ||
+            mergedHealth.status === 'replicating'
+          ) {
+            void this.flushPendingDeviceProfilePublish('status');
+          }
         });
         this.unsubscribeRemoteOp = this.bridge.onRemoteOp((op) => {
           void this.handleRemoteOp(op);
@@ -274,9 +282,22 @@ class SyncManagerImpl implements SyncManager {
         const openedBootstrapKey =
           requestedBootstrapKey ?? started.bootstrapKeyHex ?? null;
 
-        await this.publishDeviceProfile(
-          await this.repository.getLocalDeviceDisplayName(),
-        );
+        try {
+          await this.publishDeviceProfile(
+            await this.repository.getLocalDeviceDisplayName(),
+          );
+          await this.repository.clearPendingDeviceProfileDisplayName();
+        } catch (error) {
+          const localDisplayName =
+            await this.repository.getLocalDeviceDisplayName();
+          await this.repository.setPendingDeviceProfileDisplayName(
+            localDisplayName,
+          );
+          logSyncError('manager', 'profile_publish_on_start_failed', error, {
+            displayName: localDisplayName,
+          });
+        }
+        void this.flushPendingDeviceProfilePublish('start');
 
         if (input.role === 'creator') {
           await this.persistFirstSyncState({
@@ -654,6 +675,38 @@ class SyncManagerImpl implements SyncManager {
         },
       },
     });
+  }
+
+  async flushPendingDeviceProfilePublish(reason: 'start' | 'status') {
+    if (
+      !this.active ||
+      !this.deviceId ||
+      this.pendingDeviceProfileFlushInFlight
+    ) {
+      return;
+    }
+    this.pendingDeviceProfileFlushInFlight = true;
+    try {
+      const pending = await this.repository.getPendingDeviceProfileDisplayName();
+      if (!pending) {
+        return;
+      }
+      await this.publishDeviceProfile(pending);
+      await this.repository.clearPendingDeviceProfileDisplayName();
+      logSyncEvent(
+        'info',
+        'manager',
+        'profile_publish_retry_success',
+        'Pending device profile publish flushed.',
+        { reason },
+      );
+    } catch (error) {
+      logSyncError('manager', 'profile_publish_retry_failed', error, {
+        reason,
+      });
+    } finally {
+      this.pendingDeviceProfileFlushInFlight = false;
+    }
   }
 
   async leaveRoom() {
