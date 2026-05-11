@@ -32,8 +32,6 @@ const result = spawnSync(
   resolve(projectRoot, 'node_modules/.bin/bare-pack'),
   [
     '--host',
-    'ios',
-    '--host',
     'android',
     '--linked',
     '--out',

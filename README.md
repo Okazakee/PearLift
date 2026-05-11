@@ -47,7 +47,6 @@ bun run start
 
 Useful commands:
 - `bun run android` — run on Android device/emulator
-- `bun run ios` — run on iOS device/emulator
 - `bun run lint` — lint the codebase
 - `bun run typecheck` — run TypeScript checks
 - `bun run site:preview` — preview the website

@@ -1,17 +1,11 @@
 import Constants from 'expo-constants';
-import { Platform } from 'react-native';
 
 const expoConfig = Constants.expoConfig;
 
-const iosBuildNumber = expoConfig?.ios?.buildNumber;
 const androidVersionCode = expoConfig?.android?.versionCode;
 
 function resolveBuildNumber() {
-  if (Platform.OS === 'ios' && typeof iosBuildNumber === 'string') {
-    return iosBuildNumber;
-  }
   if (
-    Platform.OS === 'android' &&
     typeof androidVersionCode === 'number' &&
     Number.isFinite(androidVersionCode)
   ) {

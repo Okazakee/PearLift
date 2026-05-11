@@ -11,14 +11,6 @@
       "resizeMode": "contain",
       "backgroundColor": "#111113"
     },
-    "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "CADisableMinimumFrameDurationOnPhone": true,
-        "NSCameraUsageDescription": "Allow PearLift to scan a backup QR code."
-      },
-      "bundleIdentifier": "dev.okazakee.pearlift"
-    },
     "android": {
       "package": "dev.okazakee.pearlift",
       "versionCode": 6,

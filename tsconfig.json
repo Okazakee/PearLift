@@ -18,7 +18,6 @@
   "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts", "App.tsx", "index.ts"],
   "exclude": [
     "android/**",
-    "ios/**",
     "node_modules/**",
     ".expo/**",
     "dist/**",

@@ -50,10 +50,15 @@ node "${ROOT_DIR}/scripts/ensure-android-release-signing.mjs"
 
 cd "${ANDROID_DIR}"
 
-./gradlew \
-  assembleRelease \
-  -PpearliftAbiSplits=true \
-  -PreactNativeArchitectures="${RELEASE_ABIS}"
+if command -v bunx >/dev/null 2>&1; then
+  bunx expo run:android \
+    --variant release \
+    --gradle-args "-PreactNativeArchitectures=${RELEASE_ABIS}"
+else
+  npx --yes expo run:android \
+    --variant release \
+    --gradle-args "-PreactNativeArchitectures=${RELEASE_ABIS}"
+fi
 
 echo
 echo "APK ready:"
