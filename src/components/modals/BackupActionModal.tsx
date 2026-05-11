@@ -65,7 +65,7 @@ export function BackupActionModal({
     {
       id: 'share',
       icon: Share2,
-      label: t('backup.localJson.export'),
+      label: t('settings.localBackup.shareBackup'),
       onPress: onShareBackup,
     },
   ];

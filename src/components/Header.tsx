@@ -9,7 +9,7 @@ interface HeaderProps {
   maxWidth?: number;
   syncHealth?: SyncHealth | null;
   onOpenSettings: () => void;
-  onOpenSync?: () => void;
+  onOpenSyncQuickInfo?: () => void;
 }
 
 export function Header({
@@ -18,7 +18,7 @@ export function Header({
   maxWidth,
   syncHealth,
   onOpenSettings,
-  onOpenSync,
+  onOpenSyncQuickInfo,
 }: HeaderProps) {
   const styles = createStyles(tokens, topInset, maxWidth);
 
@@ -56,7 +56,7 @@ export function Header({
         <View style={styles.actionsRow}>
           {syncHealth ? (
             <Pressable
-              onPress={onOpenSync ?? onOpenSettings}
+              onPress={onOpenSyncQuickInfo ?? onOpenSettings}
               style={styles.syncDotButton}
             >
               <View style={[styles.syncDot, { backgroundColor: statusTone }]} />

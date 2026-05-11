@@ -42,7 +42,7 @@ import { SyncCreateRoomModal } from '@/components/modals/SyncCreateRoomModal';
 import { SyncDebugInfoModal } from '@/components/modals/SyncDebugInfoModal';
 import { SyncFirstDecisionModal } from '@/components/modals/SyncFirstDecisionModal';
 import { SyncJoinRoomModal } from '@/components/modals/SyncJoinRoomModal';
-import { SyncManagementModal } from '@/components/modals/SyncManagementModal';
+import { SyncQuickInfoModal } from '@/components/modals/SyncQuickInfoModal';
 import { SyncRoomKeyScanModal } from '@/components/modals/SyncRoomKeyScanModal';
 import { Navigation } from '@/components/Navigation';
 import { OnboardingScreen } from '@/components/OnboardingScreen';
@@ -91,6 +91,8 @@ export function WorkoutScreen() {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
   const [joinRoomScanOpen, setJoinRoomScanOpen] = useState(false);
+  const [syncQuickInfoOpen, setSyncQuickInfoOpen] = useState(false);
+  const [settingsSyncExpanded, setSettingsSyncExpanded] = useState(false);
 
   const {
     snapshot,
@@ -125,8 +127,6 @@ export function WorkoutScreen() {
     setProgramSettingsOpen,
     settingsOpen,
     setSettingsOpen,
-    syncManagementOpen,
-    setSyncManagementOpen,
     syncDebugOpen,
     setSyncDebugOpen,
     languageListOpen,
@@ -146,7 +146,7 @@ export function WorkoutScreen() {
   }, [initialize]);
 
   useEffect(() => {
-    if (!syncManagementOpen) return;
+    if (!settingsOpen) return;
     void (async () => {
       try {
         const key = await getPairingSecretPayload();
@@ -155,7 +155,7 @@ export function WorkoutScreen() {
         setSyncMasterKey(null);
       }
     })();
-  }, [syncManagementOpen]);
+  }, [settingsOpen]);
 
   useEffect(() => {
     if (!syncDebugOpen) return;
@@ -656,12 +656,6 @@ export function WorkoutScreen() {
     void applyMutation({ type: 'setExerciseWeight', exerciseId, value });
   };
 
-  const handleOpenSyncManagement = async () => {
-    setSettingsOpen(false);
-    setSyncManagementOpen(true);
-    await refreshSyncState();
-  };
-
   const handleToggleSync = async (nextEnabled: boolean) => {
     if (nextEnabled) {
       const existingKey = syncMasterKey ?? (await getPairingSecretPayload());
@@ -1010,7 +1004,7 @@ export function WorkoutScreen() {
           onOpenSettings={() => {
             setSettingsOpen(true);
           }}
-          onOpenSync={() => void handleOpenSyncManagement()}
+          onOpenSyncQuickInfo={() => setSyncQuickInfoOpen(true)}
         />
 
         <WorkoutDayStack
@@ -1118,25 +1112,6 @@ export function WorkoutScreen() {
           language={currentLanguage}
           onLanguageChange={handleLanguageChange}
           onLanguageListOpen={() => setLanguageListOpen(true)}
-          syncEnabled={syncState?.syncEnabled ?? false}
-          syncLastSyncedAt={syncState?.lastSyncedAt ?? null}
-          onOpenSync={() => void handleOpenSyncManagement()}
-          onOpenLocalBackup={handleOpenLocalBackup}
-          onOpenQRBackup={handleOpenQRBackup}
-          onResetData={handleResetData}
-          onClose={() => {
-            setSettingsOpen(false);
-          }}
-          onOpenGithub={handleOpenGithub}
-        />
-
-        {sharedSyncModals}
-
-        <SyncManagementModal
-          open={syncManagementOpen}
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
           syncState={syncState}
           syncHealth={syncHealth}
           pairedDevices={pairedDevices}
@@ -1156,11 +1131,32 @@ export function WorkoutScreen() {
           onOpenDebug={() => {
             setSyncDebugOpen(true);
           }}
-          onRefresh={handleRefreshSync}
+          onOpenLocalBackup={handleOpenLocalBackup}
+          onOpenQRBackup={handleOpenQRBackup}
+          onResetData={handleResetData}
           onClose={() => {
-            setSyncManagementOpen(false);
+            setSettingsOpen(false);
+            setSettingsSyncExpanded(false);
+          }}
+          onOpenGithub={handleOpenGithub}
+          defaultSyncExpanded={settingsSyncExpanded}
+        />
+
+        <SyncQuickInfoModal
+          open={syncQuickInfoOpen}
+          tokens={tokens}
+          syncHealth={syncHealth}
+          onMore={() => {
+            setSyncQuickInfoOpen(false);
+            setSettingsSyncExpanded(true);
+            setSettingsOpen(true);
+          }}
+          onClose={() => {
+            setSyncQuickInfoOpen(false);
           }}
         />
+
+        {sharedSyncModals}
 
         <SyncDebugInfoModal
           open={syncDebugOpen}

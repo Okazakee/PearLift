@@ -4,7 +4,8 @@
     "delete": "Delete",
     "back": "Back",
     "next": "Next",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Close"
   },
   "app": {
     "loading": "Preparing your training data"
@@ -139,6 +140,19 @@
         "connecting": "Searching for your sync group.",
         "off": "Sync is currently disabled on this device."
       },
+      "dht": "DHT",
+      "dhtReady": "Ready",
+      "dhtBootstrapping": "Bootstrapping…",
+      "dhtError": "Error",
+      "dhtInactive": "Inactive",
+      "dhtWaiting": "Waiting",
+      "status": "Status",
+      "peers": "Peers",
+      "peersConnected": "{{count}} connected",
+      "peersNone": "None",
+      "connectionsActive": "{{count}} active",
+      "connectionsNone": "None",
+      "more": "More",
       "lastSyncAt": "Last sync: {{at}}",
       "lastSyncNever": "Last sync: never",
       "actions": {
@@ -194,6 +208,7 @@
       "syncedDevices": "{{count}} devices",
       "syncedDevicesTitle": "Devices",
       "noDevices": "No devices have synced yet.",
+      "showMore": "Show {{count}} more",
       "lastSeen": "Last seen {{at}}",
       "lastSyncAt": "Last sync {{at}}",
       "removeDevice": "Remove from list",
@@ -380,6 +395,7 @@
       "title": "Backup",
       "export": "Save backup to device",
       "import": "Restore from backup",
+      "shareBackup": "Share backup",
       "shareToDevice": "Share to another device",
       "scanFromDevice": "Scan from another device",
       "localSaveRestore": "Local Save / Restore",

@@ -14,7 +14,10 @@ import {
   createSettingsStyles,
   type SettingsStyles,
 } from '@/components/modals/settings/SettingsModal.styles';
+import { SyncSection } from '@/components/modals/settings/SyncSection';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
+import type { PairedDevice, SyncStateRow } from '@/storage/types';
+import type { SyncHealth } from '@/sync/types';
 import type { ThemeMode, ThemePreference, ThemeTokens } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
 
@@ -35,14 +38,27 @@ interface SettingsModalProps {
   language: string;
   onLanguageChange: (next: string) => void;
   onLanguageListOpen: () => void;
-  syncEnabled: boolean;
-  syncLastSyncedAt: string | null;
-  onOpenSync: () => void;
+  syncState: SyncStateRow | null;
+  syncHealth: SyncHealth;
+  pairedDevices: PairedDevice[];
+  localDeviceDisplayName: string;
+  masterKey: string | null;
+  onToggleSync: (nextEnabled: boolean) => Promise<void>;
+  onOpenCreateRoom: () => void;
+  onOpenJoinRoom: () => void;
+  onShowSyncQR: () => void;
+  onApplyMasterKey: (nextKey: string) => Promise<void>;
+  onRenameLocalDevice: (displayName: string) => Promise<void>;
+  onCopyMasterKey: () => Promise<void>;
+  onForgetDevice: (deviceId: string) => Promise<void>;
+  onLeaveRoom: () => Promise<void>;
+  onOpenDebug: () => void;
   onOpenLocalBackup: () => void;
   onOpenQRBackup: () => void;
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
+  defaultSyncExpanded?: boolean;
 }
 
 export function SettingsModal({
@@ -61,14 +77,27 @@ export function SettingsModal({
   language,
   onLanguageChange,
   onLanguageListOpen,
-  syncEnabled,
-  syncLastSyncedAt,
-  onOpenSync,
+  syncState,
+  syncHealth,
+  pairedDevices,
+  localDeviceDisplayName,
+  masterKey,
+  onToggleSync,
+  onOpenCreateRoom,
+  onOpenJoinRoom,
+  onShowSyncQR,
+  onApplyMasterKey,
+  onRenameLocalDevice,
+  onCopyMasterKey,
+  onForgetDevice,
+  onLeaveRoom,
+  onOpenDebug,
   onOpenLocalBackup,
   onOpenQRBackup,
   onClose,
   onResetData,
   onOpenGithub,
+  defaultSyncExpanded = false,
 }: SettingsModalProps) {
   const { t } = useTranslation();
   const layout = useResponsiveLayout();
@@ -107,12 +136,30 @@ export function SettingsModal({
         <DataSection
           tokens={tokens}
           styles={styles}
-          syncEnabled={syncEnabled}
-          syncLastSyncedAt={syncLastSyncedAt}
-          onOpenSync={onOpenSync}
           onOpenLocalBackup={onOpenLocalBackup}
           onOpenQRBackup={onOpenQRBackup}
           onResetData={onResetData}
+        />
+
+        <SyncSection
+          tokens={tokens}
+          styles={styles}
+          syncState={syncState}
+          syncHealth={syncHealth}
+          pairedDevices={pairedDevices}
+          localDeviceDisplayName={localDeviceDisplayName}
+          masterKey={masterKey}
+          defaultExpanded={defaultSyncExpanded}
+          onToggleSync={onToggleSync}
+          onOpenCreateRoom={onOpenCreateRoom}
+          onOpenJoinRoom={onOpenJoinRoom}
+          onShowSyncQR={onShowSyncQR}
+          onApplyMasterKey={onApplyMasterKey}
+          onRenameLocalDevice={onRenameLocalDevice}
+          onCopyMasterKey={onCopyMasterKey}
+          onForgetDevice={onForgetDevice}
+          onLeaveRoom={onLeaveRoom}
+          onOpenDebug={onOpenDebug}
         />
 
         <DeveloperSection
