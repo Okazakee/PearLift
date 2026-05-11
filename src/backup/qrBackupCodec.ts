@@ -1,10 +1,10 @@
 import { fromByteArray, toByteArray } from 'base64-js';
 import pako from 'pako';
 import type {
+  PearLiftBackupExercise,
+  PearLiftBackupV3,
+  PearLiftBackupWorkout,
   PearLiftRuntimeState,
-  PwaBackupExercise,
-  PwaBackupV2,
-  PwaBackupWorkout,
 } from '@/backup/types';
 import type {
   DayConfig,
@@ -124,7 +124,7 @@ function coerceThemeMode(value: unknown): CompactSettings[3] {
 }
 
 function toCompactExercise(
-  exercise: PwaBackupExercise,
+  exercise: PearLiftBackupExercise,
   index: number,
 ): CompactExercise {
   const notes = typeof exercise.notes === 'string' ? exercise.notes : '';
@@ -221,7 +221,7 @@ function toCompactBackup(state: PearLiftRuntimeState): CompactBackupV1 {
 function fromCompactExercise(
   compact: unknown,
   fallbackIndex: number,
-): PwaBackupExercise {
+): PearLiftBackupExercise {
   if (!Array.isArray(compact)) {
     throw new Error('Invalid compact exercise payload.');
   }
@@ -255,7 +255,7 @@ function fromCompactExercise(
   };
 }
 
-function fromCompactWorkout(compact: unknown): PwaBackupWorkout {
+function fromCompactWorkout(compact: unknown): PearLiftBackupWorkout {
   if (!Array.isArray(compact)) {
     throw new Error('Invalid compact workout payload.');
   }
@@ -330,7 +330,7 @@ function fromCompactDayConfigs(compact: unknown): DayConfig[] {
   return dayConfigs;
 }
 
-function fromCompactBackup(compact: unknown): PwaBackupV2 {
+function fromCompactBackup(compact: unknown): PearLiftBackupV3 {
   if (!isRecord(compact) || compact.v !== 1) {
     throw new Error('Unsupported compact backup version.');
   }
@@ -347,7 +347,7 @@ function fromCompactBackup(compact: unknown): PwaBackupV2 {
   const weightUnit = settings[4] === 'lb' ? 'lb' : 'kg';
 
   return {
-    version: 2,
+    version: 3,
     exportedAt:
       typeof compact.e === 'string' ? compact.e : new Date().toISOString(),
     data: {
@@ -361,9 +361,9 @@ function fromCompactBackup(compact: unknown): PwaBackupV2 {
         currentWeek,
         currentDay,
         restDuration,
-        darkMode: themeMode === 'dark',
         themeMode,
         weightUnit,
+        language: 'system',
       },
     },
   };

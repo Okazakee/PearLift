@@ -1,8 +1,10 @@
-import type { PearLiftRuntimeState, PwaBackupV2 } from '@/backup/types';
+import type { PearLiftBackupV3, PearLiftRuntimeState } from '@/backup/types';
 
-export function toPwaBackupV2(state: PearLiftRuntimeState): PwaBackupV2 {
+export function toPearLiftBackupV3(
+  state: PearLiftRuntimeState,
+): PearLiftBackupV3 {
   return {
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     data: {
       workouts: state.workouts.map((workout) => ({
@@ -22,14 +24,14 @@ export function toPwaBackupV2(state: PearLiftRuntimeState): PwaBackupV2 {
         currentWeek: state.currentWeek,
         currentDay: state.currentDay,
         restDuration: state.restDuration,
-        darkMode: state.themeMode === 'dark',
         themeMode: state.themeMode,
         weightUnit: state.weightUnit,
+        language: state.language,
       },
     },
   };
 }
 
-export function serializePwaBackupV2(state: PearLiftRuntimeState): string {
-  return JSON.stringify(toPwaBackupV2(state), null, 2);
+export function serializePearLiftBackupV3(state: PearLiftRuntimeState): string {
+  return JSON.stringify(toPearLiftBackupV3(state), null, 2);
 }

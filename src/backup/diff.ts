@@ -1,5 +1,9 @@
 import { normalizeExercise } from '@/backup/normalization';
-import type { ChangeSummary, PwaBackupV2, SettingChange } from '@/backup/types';
+import type {
+  ChangeSummary,
+  PearLiftBackupV3,
+  SettingChange,
+} from '@/backup/types';
 import type { DayConfig, Exercise, WeekConfig } from '@/types';
 
 function serializeExerciseForDiff(exercise: Exercise, weight: number) {
@@ -14,13 +18,13 @@ function serializeExerciseForDiff(exercise: Exercise, weight: number) {
   ].join('|');
 }
 
-function getWorkoutMap(workouts: PwaBackupV2['data']['workouts']) {
+function getWorkoutMap(workouts: PearLiftBackupV3['data']['workouts']) {
   return new Map(workouts.map((workout) => [workout.id, workout]));
 }
 
 function buildSettingDiff(
-  current: PwaBackupV2,
-  incoming: PwaBackupV2,
+  current: PearLiftBackupV3,
+  incoming: PearLiftBackupV3,
 ): SettingChange[] {
   const changes: SettingChange[] = [];
   const a = current.data.settings;
@@ -50,8 +54,8 @@ function buildSettingDiff(
     });
   }
 
-  const aTheme = a.themeMode ?? (a.darkMode ? 'dark' : 'light');
-  const bTheme = b.themeMode ?? (b.darkMode ? 'dark' : 'light');
+  const aTheme = a.themeMode;
+  const bTheme = b.themeMode;
   if (aTheme !== bTheme) {
     const label = (value: typeof aTheme) => {
       if (value === 'system') return 'System';
@@ -85,8 +89,8 @@ function formatWeekConfig(value: WeekConfig) {
 }
 
 function buildWeekConfigDiff(
-  current: PwaBackupV2,
-  incoming: PwaBackupV2,
+  current: PearLiftBackupV3,
+  incoming: PearLiftBackupV3,
 ): SettingChange[] {
   const a = current.data.weekConfigs ?? [];
   const b = incoming.data.weekConfigs ?? [];
@@ -130,8 +134,8 @@ function formatDayConfig(value: DayConfig) {
 }
 
 function buildDayConfigDiff(
-  current: PwaBackupV2,
-  incoming: PwaBackupV2,
+  current: PearLiftBackupV3,
+  incoming: PearLiftBackupV3,
 ): SettingChange[] {
   const a = current.data.dayConfigs ?? [];
   const b = incoming.data.dayConfigs ?? [];
@@ -167,8 +171,8 @@ function buildDayConfigDiff(
 }
 
 export function computeImportDiff(
-  current: PwaBackupV2,
-  incoming: PwaBackupV2,
+  current: PearLiftBackupV3,
+  incoming: PearLiftBackupV3,
 ): ChangeSummary {
   const changes: ChangeSummary = {
     workouts: [],

@@ -101,6 +101,7 @@ export function RestTimer({
     null,
   );
   const scheduleTokenRef = useRef(0);
+  const previousDurationRef = useRef(duration);
   const panelMountRafRef = useRef<number | null>(null);
   const panelUnmountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -167,6 +168,9 @@ export function RestTimer({
   }, []);
 
   useEffect(() => {
+    const previousDuration = previousDurationRef.current;
+    previousDurationRef.current = duration;
+
     // Keep the "configured duration" and the "displayed remaining time" aligned when not running.
     // For paused timers, changes should reflect immediately like typical timer apps.
     if (mode === 'idle') {
@@ -174,7 +178,7 @@ export function RestTimer({
       setStartedDurationSec(duration);
       return;
     }
-    if (mode === 'paused') {
+    if (mode === 'paused' && duration !== previousDuration) {
       // Paused timers should reflect the new configured duration immediately.
       // This also resets the progress baseline for the next resume to match the edited value.
       setRemainingSec(duration);
@@ -499,10 +503,7 @@ export function RestTimer({
         const latestEnd = endAtMsRef.current;
         if (mode === 'running' && latestEnd) {
           if (RestTimerForegroundService.isAvailable()) {
-            // Delay FGS handoff to avoid needless transitions on short-lived
-            // background events (notification shade, heads-up, etc.).
-            backgroundTimeoutRef.current = setTimeout(() => {
-              backgroundTimeoutRef.current = null;
+            const handoffToForegroundService = () => {
               clearIntervalIfAny();
               const endAtNow = endAtMsRef.current;
               if (endAtNow) {
@@ -515,7 +516,20 @@ export function RestTimer({
                   );
                 })();
               }
-            }, 600);
+            };
+
+            if (next === 'background') {
+              // On a real background transition we must hand off immediately,
+              // otherwise JS can be suspended before a delayed task runs.
+              handoffToForegroundService();
+            } else {
+              // Delay handoff for transient non-active states to avoid churn
+              // (notification shade, heads-up, etc.).
+              backgroundTimeoutRef.current = setTimeout(() => {
+                backgroundTimeoutRef.current = null;
+                handoffToForegroundService();
+              }, 600);
+            }
           } else {
             clearIntervalIfAny();
           }
@@ -525,24 +539,34 @@ export function RestTimer({
         return;
       }
 
-      // Returned to active: cancel any pending handoff — we came back
-      // before the timeout fired (spurious transition).
+      // Returned to active: cancel any pending handoff.
       if (backgroundTimeoutRef.current) {
         clearTimeout(backgroundTimeoutRef.current);
         backgroundTimeoutRef.current = null;
-        if (mode === 'running' && endAtMsRef.current) {
-          refreshRemainingFromEndAt(endAtMsRef.current);
-          if (!intervalRef.current) startTicking();
-        }
-        return;
       }
 
       if (RestTimerForegroundService.isAvailable()) {
         void (async () => {
-          // Stop the foreground service to avoid a persistent notification in-app,
-          // then reconcile from the stored native state.
-          await RestTimerForegroundService.stop();
-          const state = await RestTimerForegroundService.getState();
+          // Read native state first. Stopping first can race with
+          // notification actions (pause/resume/cancel) queued by the OS.
+          const wait = (ms: number) =>
+            new Promise<void>((resolve) => {
+              setTimeout(resolve, ms);
+            });
+
+          let state = await RestTimerForegroundService.getState();
+          if (!state) {
+            await wait(90);
+            state = await RestTimerForegroundService.getState();
+          } else if (state.mode === 'running') {
+            // Pause/cancel action from notification can race with foreground resume.
+            // Give native state one short settle window before accepting "running".
+            await wait(120);
+            const settled = await RestTimerForegroundService.getState();
+            if (settled) {
+              state = settled;
+            }
+          }
           if (!state) return;
 
           if (state.completedAtMs) {
@@ -550,6 +574,9 @@ export function RestTimer({
             setEndAtMs(null);
             setRemainingSec(0);
             void RestTimerForegroundService.clearCompletion();
+            await RestTimerForegroundService.stop().catch(() => {
+              // ignore
+            });
             return;
           }
 
@@ -562,17 +589,41 @@ export function RestTimer({
             setRemainingSec(Math.max(0, Math.round(state.remainingSec)));
             setScheduledNotificationId(null);
             scheduledIdRef.current = null;
+            await RestTimerForegroundService.stop().catch(() => {
+              // ignore
+            });
             return;
           }
 
           if (state.mode === 'idle') {
-            // If the user stopped from the notification, reset.
-            setMode('idle');
-            setEndAtMs(null);
-            setRemainingSec(duration);
-            setStartedDurationSec(duration);
+            const knownEndAt = endAtMsRef.current;
+            const fallbackRemaining = knownEndAt
+              ? computeRemainingSeconds(knownEndAt)
+              : 0;
+            const shouldKeepPausedSnapshot =
+              mode === 'running' && fallbackRemaining > 0;
+
+            if (shouldKeepPausedSnapshot) {
+              // Treat ambiguous idle as a recoverable handoff race and keep
+              // a paused snapshot instead of resetting to full duration.
+              setMode('paused');
+              setEndAtMs(null);
+              setRemainingSec(fallbackRemaining);
+              if (!intervalRef.current) {
+                clearIntervalIfAny();
+              }
+            } else {
+              // Explicit stop/cancel path.
+              setMode('idle');
+              setEndAtMs(null);
+              setRemainingSec(duration);
+              setStartedDurationSec(duration);
+            }
             setScheduledNotificationId(null);
             scheduledIdRef.current = null;
+            await RestTimerForegroundService.stop().catch(() => {
+              // ignore
+            });
             return;
           }
 
@@ -586,6 +637,9 @@ export function RestTimer({
             setScheduledNotificationId(null);
             scheduledIdRef.current = null;
             startTicking();
+            await RestTimerForegroundService.stop().catch(() => {
+              // ignore
+            });
             return;
           }
         })();

@@ -99,7 +99,7 @@ class RestTimerForegroundServiceModule : Module() {
     }
 
     AsyncFunction("getState") {
-      val ctx = appContext.reactContext ?: return@AsyncFunction mapOf("mode" to RestTimerService.MODE_IDLE)
+      val ctx = appContext.reactContext ?: return@AsyncFunction null
       val p = ctx.getSharedPreferences(RestTimerService.PREFS_NAME, Context.MODE_PRIVATE)
       val mode = p.getString("mode", RestTimerService.MODE_IDLE) ?: RestTimerService.MODE_IDLE
       val endAtElapsedMs = p.getLong("endAtElapsedMs", 0L).takeIf { it > 0L }

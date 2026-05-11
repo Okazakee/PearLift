@@ -1,6 +1,9 @@
 export { computeImportDiff } from '@/backup/diff';
 export { parseAndMigrateBackup, parseBackupJson } from '@/backup/migration';
-export { serializePwaBackupV2, toPwaBackupV2 } from '@/backup/serialization';
+export {
+  serializePearLiftBackupV3,
+  toPearLiftBackupV3,
+} from '@/backup/serialization';
 
 export function getBackupFileName(date = new Date()) {
   const day = date.toISOString().split('T')[0];

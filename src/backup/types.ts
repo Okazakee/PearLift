@@ -9,21 +9,22 @@ import type {
   WorkoutSession,
 } from '@/types';
 
-export interface PwaBackupExercise
+export interface PearLiftBackupExercise
   extends Omit<Exercise, 'notes' | 'position'> {
   notes?: string;
   position?: number;
 }
 
-export interface PwaBackupWorkout extends Omit<WorkoutSession, 'exercises'> {
-  exercises: PwaBackupExercise[];
+export interface PearLiftBackupWorkout
+  extends Omit<WorkoutSession, 'exercises'> {
+  exercises: PearLiftBackupExercise[];
 }
 
-export interface PwaBackupV2 {
+export interface PearLiftBackupV3 {
   version: number;
   exportedAt: string;
   data: {
-    workouts: PwaBackupWorkout[];
+    workouts: PearLiftBackupWorkout[];
     userWeights: UserWeights;
     weekConfigs?: WeekConfig[];
     dayConfigs?: DayConfig[];
@@ -31,14 +32,14 @@ export interface PwaBackupV2 {
       currentWeek: number;
       currentDay?: WorkoutDay;
       restDuration: number;
-      darkMode: boolean;
-      themeMode?: ThemePreference;
-      weightUnit?: WeightUnit;
+      themeMode: ThemePreference;
+      weightUnit: WeightUnit;
+      language: string;
     };
   };
 }
 
-export type PwaBackupAny = Record<string, unknown>;
+export type PearLiftBackupAny = Record<string, unknown>;
 
 export interface PearLiftRuntimeState {
   workouts: WorkoutSession[];
@@ -54,7 +55,7 @@ export interface PearLiftRuntimeState {
 }
 
 export interface MigratedBackupResult {
-  backup: PwaBackupV2;
+  backup: PearLiftBackupV3;
   runtime: PearLiftRuntimeState;
 }
 

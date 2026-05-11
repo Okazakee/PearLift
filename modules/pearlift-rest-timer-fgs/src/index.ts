@@ -31,7 +31,7 @@ type NativeApi = {
   resume(): Promise<void>;
   stop(): Promise<void>; // handoff: stop FGS + notification, keep state
   cancel(): Promise<void>; // cancel/reset
-  getState(): Promise<RestTimerForegroundServiceState>;
+  getState(): Promise<RestTimerForegroundServiceState | null>;
   clearCompletion(): Promise<void>;
 };
 

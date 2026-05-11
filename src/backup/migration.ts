@@ -12,15 +12,15 @@ import {
 } from '@/backup/normalization';
 import type {
   MigratedBackupResult,
+  PearLiftBackupAny,
+  PearLiftBackupV3,
+  PearLiftBackupWorkout,
   PearLiftRuntimeState,
-  PwaBackupAny,
-  PwaBackupV2,
-  PwaBackupWorkout,
 } from '@/backup/types';
 import type { ThemePreference } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
 
-export function parseBackupJson(raw: string): PwaBackupAny {
+export function parseBackupJson(raw: string): PearLiftBackupAny {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -35,7 +35,7 @@ export function parseBackupJson(raw: string): PwaBackupAny {
   if (!('version' in parsed) || typeof parsed.version !== 'number') {
     throw new Error('Missing backup version.');
   }
-  if (parsed.version !== 2) {
+  if (parsed.version !== 3) {
     throw new Error('Unsupported backup version.');
   }
 
@@ -47,9 +47,9 @@ export function parseBackupJson(raw: string): PwaBackupAny {
 }
 
 export function migrateToCurrentState(
-  parsed: PwaBackupAny,
+  parsed: PearLiftBackupAny,
 ): MigratedBackupResult {
-  const version = 2;
+  const version = 3;
   const exportedAt =
     typeof parsed.exportedAt === 'string'
       ? parsed.exportedAt
@@ -61,7 +61,7 @@ export function migrateToCurrentState(
     ? data.workouts.filter(isRecord)
     : cloneDefaultWorkouts();
   const normalizedWorkouts = rawWorkouts
-    .map((workout) => normalizeWorkout(workout as PwaBackupWorkout))
+    .map((workout) => normalizeWorkout(workout as PearLiftBackupWorkout))
     .map((workout) => ({
       ...workout,
       exercises: workout.exercises
@@ -97,8 +97,12 @@ export function migrateToCurrentState(
       ? requestedTheme
       : 'system';
   const weightUnit: WeightUnit = settings.weightUnit === 'lb' ? 'lb' : 'kg';
+  const language =
+    typeof settings.language === 'string' && settings.language.trim().length > 0
+      ? settings.language
+      : 'system';
 
-  const backup: PwaBackupV2 = {
+  const backup: PearLiftBackupV3 = {
     version,
     exportedAt,
     data: {
@@ -110,9 +114,9 @@ export function migrateToCurrentState(
         currentWeek,
         currentDay,
         restDuration,
-        darkMode: themeMode === 'dark',
         themeMode,
         weightUnit,
+        language,
       },
     },
   };
@@ -127,7 +131,7 @@ export function migrateToCurrentState(
     restDuration,
     themeMode,
     weightUnit,
-    language: 'en',
+    language,
   };
 
   return { backup, runtime };

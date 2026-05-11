@@ -1,4 +1,7 @@
-import type { PwaBackupExercise, PwaBackupWorkout } from '@/backup/types';
+import type {
+  PearLiftBackupExercise,
+  PearLiftBackupWorkout,
+} from '@/backup/types';
 import { MAX_DAY_CONFIGS } from '@/config/constants';
 import {
   defaultDayConfigs,
@@ -24,7 +27,7 @@ export function cloneDefaultWorkouts() {
 }
 
 export function normalizeExercise(
-  exercise: PwaBackupExercise,
+  exercise: PearLiftBackupExercise,
   fallbackPosition: number,
 ): Exercise {
   return {
@@ -43,7 +46,9 @@ export function normalizeExercise(
   };
 }
 
-export function normalizeWorkout(workout: PwaBackupWorkout): WorkoutSession {
+export function normalizeWorkout(
+  workout: PearLiftBackupWorkout,
+): WorkoutSession {
   const rawExercises = Array.isArray(workout.exercises)
     ? workout.exercises
     : [];

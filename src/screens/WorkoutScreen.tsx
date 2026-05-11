@@ -20,8 +20,8 @@ import {
   computeImportDiff,
   getBackupFileName,
   parseAndMigrateBackup,
-  serializePwaBackupV2,
-  toPwaBackupV2,
+  serializePearLiftBackupV3,
+  toPearLiftBackupV3,
 } from '@/backup/localBackup';
 import {
   assembleChunkedPackets,
@@ -426,7 +426,7 @@ export function WorkoutScreen() {
     if (!snapshot) return;
     try {
       const fileName = getBackupFileName();
-      const payload = serializePwaBackupV2(snapshot);
+      const payload = serializePearLiftBackupV3(snapshot);
 
       if (mode === 'save') {
         const permissions =
@@ -544,7 +544,7 @@ export function WorkoutScreen() {
 
       const migrated = parseAndMigrateBackup(decodedPayload);
       const summary = computeImportDiff(
-        toPwaBackupV2(snapshot),
+        toPearLiftBackupV3(snapshot),
         migrated.backup,
       );
 

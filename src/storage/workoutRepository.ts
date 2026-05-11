@@ -35,9 +35,9 @@ import { roundToPrecision } from '@/utils/math';
 const WEEK_CONFIG_REVISION_SETTING = 'syncWeekConfigsRevisionAt';
 const DAY_CONFIG_REVISION_SETTING = 'syncDayConfigsRevisionAt';
 const DEVICE_DISPLAY_NAME_SETTING = 'syncDeviceDisplayName';
-const PENDING_LOCAL_MUTATIONS_SETTING = 'syncPendingLocalMutations';
-const PENDING_DEVICE_PROFILE_NAME_SETTING = 'syncPendingDeviceProfileName';
 const SYNC_APPLIED_OP_RETENTION_LIMIT = 4000;
+const DEFAULT_PROGRAM_ID = 'main-program';
+const DEFAULT_ROOM_ID = 'default';
 
 function toDeviceCode(deviceId: string) {
   return deviceId.replace(/-/g, '').slice(-4).toUpperCase();
@@ -189,23 +189,29 @@ function normalizeDayConfigs(
   return fallbackToDefault ? defaultDayConfigs : [];
 }
 
-type WorkoutRow = {
+type ProgramDayRow = {
   id: string;
-  name: string;
-  description: string;
+  day_label: string;
+  icon: string;
+  workout_name: string;
+  workout_description: string;
   sort_order: number;
 };
 
 type ExerciseRow = {
   id: string;
-  workout_id: string;
+  program_day_id: string;
   name: string;
+  muscle_group: string;
+  notes: string;
+  sort_order: number;
+};
+
+type ExerciseTargetRow = {
+  exercise_id: string;
   sets: number;
   reps: string;
   base_weight: number;
-  muscle_group: string;
-  notes: string;
-  position: number;
 };
 
 type WeightRow = {
@@ -218,13 +224,6 @@ type WeekConfigRow = {
   name: string;
   load_modifier: number;
   rir: number;
-  sort_order: number;
-};
-
-type DayConfigRow = {
-  id: string;
-  name: string;
-  icon: string;
   sort_order: number;
 };
 
@@ -242,29 +241,24 @@ type SyncDeviceRow = {
   is_hidden: number;
 };
 
-type SyncStateDbRow = {
+type SyncIdentityDbRow = {
   sync_enabled: number;
   device_id: string | null;
   pairing_secret_ciphertext: string | null;
   pairing_secret_iv: string | null;
   pairing_secret_tag: string | null;
-  autobase_bootstrap_key: string | null;
   lamport_counter: number;
-  sync_role: SyncRole | null;
-  room_binding_state: SyncRoomBindingState | null;
-  first_sync_resolution: SyncFirstSyncResolution | null;
-  pending_local_summary: string | null;
-  pending_remote_summary: string | null;
-  pending_conflict_summary: string | null;
   last_error: string | null;
   last_synced_at: string | null;
   updated_at: string;
 };
 
 type SyncRoomStateDbRow = {
+  room_id: string;
   sync_role: SyncRole | null;
   room_binding_state: SyncRoomBindingState | null;
   first_sync_resolution: SyncFirstSyncResolution | null;
+  autobase_bootstrap_key: string | null;
   pending_local_summary: string | null;
   pending_remote_summary: string | null;
   pending_conflict_summary: string | null;
@@ -329,7 +323,7 @@ export class WorkoutRepository {
     this.initPromise = (async () => {
       const db = await getDatabase();
       const row = await db.getFirstAsync<{ total: number }>(
-        'SELECT COUNT(*) as total FROM workouts WHERE deleted_at IS NULL',
+        'SELECT COUNT(*) as total FROM program_days WHERE deleted_at IS NULL',
       );
       const total = row?.total ?? 0;
 
@@ -358,7 +352,7 @@ export class WorkoutRepository {
   async isSetupDone(): Promise<boolean> {
     const db = await getDatabase();
     const row = await db.getFirstAsync<{ value: string }>(
-      "SELECT value FROM app_settings WHERE key = 'setupDone'",
+      "SELECT value FROM user_preferences WHERE key = 'setupDone'",
     );
     return row?.value === 'true';
   }
@@ -434,7 +428,7 @@ export class WorkoutRepository {
           case 'setExerciseWeight': {
             const timestamp = nowIso();
             await db.runAsync(
-              `INSERT INTO user_weights (exercise_id, value, updated_at)
+              `INSERT INTO exercise_weights (exercise_id, value, updated_at)
              VALUES (?, ?, ?)
              ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
               mutation.exerciseId,
@@ -445,13 +439,13 @@ export class WorkoutRepository {
           }
           case 'adjustExerciseWeight': {
             const existingWeight = await db.getFirstAsync<{ value: number }>(
-              'SELECT value FROM user_weights WHERE exercise_id = ?',
+              'SELECT value FROM exercise_weights WHERE exercise_id = ?',
               mutation.exerciseId,
             );
             const exerciseBase = await db.getFirstAsync<{
               base_weight: number;
             }>(
-              'SELECT base_weight FROM exercises WHERE id = ? AND deleted_at IS NULL',
+              'SELECT base_weight FROM exercise_targets WHERE exercise_id = ?',
               mutation.exerciseId,
             );
             const currentWeight =
@@ -462,7 +456,7 @@ export class WorkoutRepository {
             );
             const timestamp = nowIso();
             await db.runAsync(
-              `INSERT INTO user_weights (exercise_id, value, updated_at)
+              `INSERT INTO exercise_weights (exercise_id, value, updated_at)
              VALUES (?, ?, ?)
              ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
               mutation.exerciseId,
@@ -478,28 +472,35 @@ export class WorkoutRepository {
             );
             const nextPosition =
               existing.length > 0
-                ? Math.max(...existing.map((exercise) => exercise.position)) + 1
+                ? Math.max(...existing.map((exercise) => exercise.sort_order)) +
+                  1
                 : 0;
             const exerciseId = createExerciseId(mutation.exercise.name);
             const timestamp = nowIso();
             await db.runAsync(
               `INSERT INTO exercises (
-              id, workout_id, name, sets, reps, base_weight,
-              muscle_group, notes, position, updated_at, deleted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+              id, program_day_id, name, muscle_group, notes, sort_order, updated_at, deleted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
               exerciseId,
               mutation.workoutId,
               mutation.exercise.name,
-              mutation.exercise.sets,
-              mutation.exercise.reps,
-              0,
               mutation.exercise.muscleGroup,
               mutation.exercise.notes,
               nextPosition,
               timestamp,
             );
             await db.runAsync(
-              `INSERT INTO user_weights (exercise_id, value, updated_at)
+              `INSERT INTO exercise_targets (exercise_id, sets, reps, base_weight, updated_at)
+             VALUES (?, ?, ?, ?, ?)
+             ON CONFLICT(exercise_id) DO UPDATE SET sets = excluded.sets, reps = excluded.reps, base_weight = excluded.base_weight, updated_at = excluded.updated_at`,
+              exerciseId,
+              mutation.exercise.sets,
+              mutation.exercise.reps,
+              0,
+              timestamp,
+            );
+            await db.runAsync(
+              `INSERT INTO exercise_weights (exercise_id, value, updated_at)
              VALUES (?, ?, ?)
              ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
               exerciseId,
@@ -510,39 +511,55 @@ export class WorkoutRepository {
           }
           case 'editExercise': {
             const current = await db.getFirstAsync<ExerciseRow>(
-              `SELECT id, workout_id, name, sets, reps, base_weight, muscle_group, notes, position
+              `SELECT id, program_day_id, name, muscle_group, notes, sort_order
              FROM exercises WHERE id = ? AND deleted_at IS NULL`,
               mutation.exerciseId,
             );
             if (!current) {
               break;
             }
+            const currentTarget = await db.getFirstAsync<ExerciseTargetRow>(
+              `SELECT exercise_id, sets, reps, base_weight
+               FROM exercise_targets WHERE exercise_id = ?`,
+              mutation.exerciseId,
+            );
             const next = {
               ...current,
               name: mutation.updates.name ?? current.name,
-              sets: mutation.updates.sets ?? current.sets,
-              reps: mutation.updates.reps ?? current.reps,
-              base_weight: mutation.updates.baseWeight ?? current.base_weight,
               muscle_group:
                 mutation.updates.muscleGroup ?? current.muscle_group,
               notes: mutation.updates.notes ?? current.notes,
-              position: mutation.updates.position ?? current.position,
+              sort_order: mutation.updates.position ?? current.sort_order,
             };
             const timestamp = nowIso();
             await db.runAsync(
               `UPDATE exercises
-             SET name = ?, sets = ?, reps = ?, base_weight = ?, muscle_group = ?, notes = ?, position = ?, updated_at = ?
+             SET name = ?, muscle_group = ?, notes = ?, sort_order = ?, updated_at = ?
              WHERE id = ?`,
               next.name,
-              next.sets,
-              next.reps,
-              next.base_weight,
               next.muscle_group,
               next.notes,
-              next.position,
+              next.sort_order,
               timestamp,
               mutation.exerciseId,
             );
+            if (
+              currentTarget &&
+              (mutation.updates.sets != null ||
+                mutation.updates.reps != null ||
+                mutation.updates.baseWeight != null)
+            ) {
+              await db.runAsync(
+                `UPDATE exercise_targets
+                 SET sets = ?, reps = ?, base_weight = ?, updated_at = ?
+                 WHERE exercise_id = ?`,
+                mutation.updates.sets ?? currentTarget.sets,
+                mutation.updates.reps ?? currentTarget.reps,
+                mutation.updates.baseWeight ?? currentTarget.base_weight,
+                timestamp,
+                mutation.exerciseId,
+              );
+            }
             break;
           }
           case 'deleteExercise': {
@@ -554,7 +571,11 @@ export class WorkoutRepository {
               mutation.exerciseId,
             );
             await db.runAsync(
-              'DELETE FROM user_weights WHERE exercise_id = ?',
+              'DELETE FROM exercise_weights WHERE exercise_id = ?',
+              mutation.exerciseId,
+            );
+            await db.runAsync(
+              'DELETE FROM exercise_targets WHERE exercise_id = ?',
               mutation.exerciseId,
             );
             await this.reindexExercises(db, mutation.workoutId);
@@ -580,7 +601,7 @@ export class WorkoutRepository {
             const timestamp = nowIso();
             for (const [position, id] of nextOrder.entries()) {
               await db.runAsync(
-                'UPDATE exercises SET position = ?, updated_at = ? WHERE id = ?',
+                'UPDATE exercises SET sort_order = ?, updated_at = ? WHERE id = ?',
                 position,
                 timestamp,
                 id,
@@ -600,12 +621,16 @@ export class WorkoutRepository {
             ) {
               break;
             }
-            await db.runAsync('DELETE FROM week_configs');
+            await db.runAsync(
+              'DELETE FROM training_blocks WHERE program_id = ?',
+              DEFAULT_PROGRAM_ID,
+            );
             for (const [index, week] of mutation.weekConfigs.entries()) {
               await db.runAsync(
-                `INSERT INTO week_configs (id, name, load_modifier, rir, sort_order, updated_at)
-               VALUES (?, ?, ?, ?, ?, ?)`,
+                `INSERT INTO training_blocks (id, program_id, name, load_modifier, rir, sort_order, updated_at, deleted_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
                 index + 1,
+                DEFAULT_PROGRAM_ID,
                 week.name,
                 week.loadModifier,
                 week.rir,
@@ -646,31 +671,64 @@ export class WorkoutRepository {
               nextDayConfigs,
             );
 
-            await db.runAsync('DELETE FROM day_configs');
-            for (const [index, day] of nextDayConfigs.entries()) {
-              await db.runAsync(
-                `INSERT INTO day_configs (id, name, icon, sort_order, updated_at)
-               VALUES (?, ?, ?, ?, ?)`,
-                day.id,
-                day.name,
-                day.icon,
-                index,
-                timestamp,
-              );
-            }
             await this.writeSetting(
               db,
               DAY_CONFIG_REVISION_SETTING,
               timestamp,
               timestamp,
             );
+            const keepDayIds = new Set(nextDayConfigs.map((day) => day.id));
+            const existingDays = await db.getAllAsync<{ id: string }>(
+              `SELECT id FROM program_days
+               WHERE deleted_at IS NULL AND program_id = ?`,
+              DEFAULT_PROGRAM_ID,
+            );
+            for (const day of existingDays) {
+              if (keepDayIds.has(day.id)) continue;
+              await db.runAsync(
+                'UPDATE program_days SET deleted_at = ?, updated_at = ? WHERE id = ?',
+                timestamp,
+                timestamp,
+                day.id,
+              );
+              await db.runAsync(
+                'UPDATE exercises SET deleted_at = ?, updated_at = ? WHERE program_day_id = ?',
+                timestamp,
+                timestamp,
+                day.id,
+              );
+            }
 
             for (const [index, workout] of alignedWorkouts.entries()) {
+              const dayConfig = nextDayConfigs.find(
+                (day) => day.id === workout.id,
+              );
               await db.runAsync(
-                `INSERT INTO workouts (id, name, description, sort_order, updated_at, deleted_at)
-               VALUES (?, ?, ?, ?, ?, NULL)
-               ON CONFLICT(id) DO UPDATE SET name = excluded.name, description = excluded.description, sort_order = excluded.sort_order, updated_at = excluded.updated_at, deleted_at = NULL`,
+                `INSERT INTO program_days (
+                  id,
+                  program_id,
+                  day_label,
+                  icon,
+                  workout_name,
+                  workout_description,
+                  sort_order,
+                  updated_at,
+                  deleted_at
+                )
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
+               ON CONFLICT(id) DO UPDATE SET
+                 program_id = excluded.program_id,
+                 day_label = excluded.day_label,
+                 icon = excluded.icon,
+                 workout_name = excluded.workout_name,
+                 workout_description = excluded.workout_description,
+                 sort_order = excluded.sort_order,
+                 updated_at = excluded.updated_at,
+                 deleted_at = NULL`,
                 workout.id,
+                DEFAULT_PROGRAM_ID,
+                dayConfig?.name ?? workout.name,
+                dayConfig?.icon ?? 'FitnessCenter',
                 workout.name,
                 workout.description,
                 index,
@@ -863,13 +921,20 @@ export class WorkoutRepository {
       await db.runAsync('DELETE FROM sync_profile_outbox');
       if (normalized) {
         await db.runAsync(
-          `INSERT INTO sync_profile_outbox (display_name, created_at)
-           VALUES (?, ?)`,
+          `INSERT INTO sync_profile_outbox (
+             room_id,
+             display_name,
+             status,
+             created_at,
+             updated_at
+           )
+           VALUES (?, ?, 'pending', ?, ?)`,
+          DEFAULT_ROOM_ID,
           normalized,
+          nowIso(),
           nowIso(),
         );
       }
-      await this.writeSetting(db, PENDING_DEVICE_PROFILE_NAME_SETTING, '');
     });
   }
 
@@ -879,18 +944,15 @@ export class WorkoutRepository {
     const row = await db.getFirstAsync<SyncProfileOutboxRow>(
       `SELECT id, display_name
        FROM sync_profile_outbox
+       WHERE room_id = ? AND status = 'pending'
        ORDER BY id ASC
        LIMIT 1`,
+      DEFAULT_ROOM_ID,
     );
     if (row?.display_name?.trim()) {
       return row.display_name.trim();
     }
-    const legacy = await this.readSetting(
-      db,
-      PENDING_DEVICE_PROFILE_NAME_SETTING,
-    );
-    const normalized = legacy?.trim() ?? '';
-    return normalized || null;
+    return null;
   }
 
   async clearPendingDeviceProfileDisplayName(): Promise<void> {
@@ -906,9 +968,17 @@ export class WorkoutRepository {
         return;
       }
       await db.runAsync(
-        `INSERT INTO sync_outbox (payload_json, created_at)
-         VALUES (?, ?)`,
+        `INSERT INTO sync_outbox (
+           room_id,
+           payload_json,
+           status,
+           created_at,
+           updated_at
+         )
+         VALUES (?, ?, 'pending', ?, ?)`,
+        DEFAULT_ROOM_ID,
         JSON.stringify(mutation),
+        nowIso(),
         nowIso(),
       );
     });
@@ -920,30 +990,29 @@ export class WorkoutRepository {
     const rows = await db.getAllAsync<SyncOutboxRow>(
       `SELECT id, payload_json
        FROM sync_outbox
+       WHERE room_id = ? AND status = 'pending'
        ORDER BY id ASC`,
+      DEFAULT_ROOM_ID,
     );
-    if (rows.length > 0) {
-      return rows
-        .map((row) => {
-          try {
-            return JSON.parse(row.payload_json) as SyncMutation;
-          } catch {
-            return null;
-          }
-        })
-        .filter((mutation): mutation is SyncMutation => mutation != null);
-    }
-    return this.parsePendingLocalMutations(
-      await this.readSetting(db, PENDING_LOCAL_MUTATIONS_SETTING),
-    );
+    return rows
+      .map((row) => {
+        try {
+          return JSON.parse(row.payload_json) as SyncMutation;
+        } catch {
+          return null;
+        }
+      })
+      .filter((mutation): mutation is SyncMutation => mutation != null);
   }
 
   async clearPendingLocalSyncMutations(): Promise<void> {
     await this.initialize();
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
-      await db.runAsync('DELETE FROM sync_outbox');
-      await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
+      await db.runAsync(
+        'DELETE FROM sync_outbox WHERE room_id = ?',
+        DEFAULT_ROOM_ID,
+      );
     });
   }
 
@@ -953,11 +1022,15 @@ export class WorkoutRepository {
       const db = await getDatabase();
       await db.runAsync(
         `DELETE FROM sync_applied_ops
-         WHERE op_id IN (
+         WHERE room_id = ?
+           AND op_id IN (
            SELECT op_id FROM sync_applied_ops
+           WHERE room_id = ?
            ORDER BY applied_at DESC, op_id DESC
            LIMIT -1 OFFSET ?
          )`,
+        DEFAULT_ROOM_ID,
+        DEFAULT_ROOM_ID,
         limit,
       );
     });
@@ -970,9 +1043,14 @@ export class WorkoutRepository {
       await db.withTransactionAsync(async () => {
         await db.runAsync('DELETE FROM sync_applied_ops');
         await db.runAsync('DELETE FROM sync_devices');
-        await db.runAsync('DELETE FROM sync_outbox');
-        await db.runAsync('DELETE FROM sync_profile_outbox');
-        await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
+        await db.runAsync(
+          'DELETE FROM sync_outbox WHERE room_id = ?',
+          DEFAULT_ROOM_ID,
+        );
+        await db.runAsync(
+          'DELETE FROM sync_profile_outbox WHERE room_id = ?',
+          DEFAULT_ROOM_ID,
+        );
         await this.writeSyncStatePatch(db, {
           autobaseBootstrapKey: null,
           syncRole: null,
@@ -995,9 +1073,14 @@ export class WorkoutRepository {
       await db.withTransactionAsync(async () => {
         await db.runAsync('DELETE FROM sync_applied_ops');
         await db.runAsync('DELETE FROM sync_devices');
-        await db.runAsync('DELETE FROM sync_outbox');
-        await db.runAsync('DELETE FROM sync_profile_outbox');
-        await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
+        await db.runAsync(
+          'DELETE FROM sync_outbox WHERE room_id = ?',
+          DEFAULT_ROOM_ID,
+        );
+        await db.runAsync(
+          'DELETE FROM sync_profile_outbox WHERE room_id = ?',
+          DEFAULT_ROOM_ID,
+        );
         await this.writeSyncStatePatch(db, {
           syncEnabled: false,
           autobaseBootstrapKey: null,
@@ -1053,9 +1136,14 @@ export class WorkoutRepository {
   private async resetSyncState(db: SQLiteDatabase) {
     await db.runAsync('DELETE FROM sync_applied_ops');
     await db.runAsync('DELETE FROM sync_devices');
-    await db.runAsync('DELETE FROM sync_outbox');
-    await db.runAsync('DELETE FROM sync_profile_outbox');
-    await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
+    await db.runAsync(
+      'DELETE FROM sync_outbox WHERE room_id = ?',
+      DEFAULT_ROOM_ID,
+    );
+    await db.runAsync(
+      'DELETE FROM sync_profile_outbox WHERE room_id = ?',
+      DEFAULT_ROOM_ID,
+    );
     await this.writeSyncStatePatch(db, {
       syncEnabled: false,
       deviceId: null,
@@ -1101,19 +1189,51 @@ export class WorkoutRepository {
       : (normalizedDayConfigs[0]?.id ?? 'push');
 
     await db.execAsync(`
-      DELETE FROM user_weights;
+      DELETE FROM exercise_weights;
+      DELETE FROM exercise_targets;
       DELETE FROM exercises;
-      DELETE FROM workouts;
-      DELETE FROM week_configs;
-      DELETE FROM day_configs;
-      DELETE FROM app_settings;
+      DELETE FROM training_blocks;
+      DELETE FROM program_days;
+      DELETE FROM programs;
+      DELETE FROM user_preferences;
     `);
 
+    await db.runAsync(
+      `INSERT INTO programs (
+        id,
+        name,
+        description,
+        is_active,
+        sort_order,
+        updated_at,
+        deleted_at
+      ) VALUES (?, ?, ?, 1, 0, ?, NULL)`,
+      DEFAULT_PROGRAM_ID,
+      'Main Program',
+      'Primary training program',
+      timestamp,
+    );
+
     for (const [index, workout] of alignedWorkouts.entries()) {
+      const dayConfig =
+        normalizedDayConfigs.find((day) => day.id === workout.id) ?? null;
       await db.runAsync(
-        `INSERT INTO workouts (id, name, description, sort_order, updated_at, deleted_at)
-         VALUES (?, ?, ?, ?, ?, NULL)`,
+        `INSERT INTO program_days (
+          id,
+          program_id,
+          day_label,
+          icon,
+          workout_name,
+          workout_description,
+          sort_order,
+          updated_at,
+          deleted_at
+        )
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
         workout.id,
+        DEFAULT_PROGRAM_ID,
+        dayConfig?.name ?? workout.name,
+        dayConfig?.icon ?? 'FitnessCenter',
         workout.name,
         workout.description,
         index,
@@ -1126,22 +1246,32 @@ export class WorkoutRepository {
       for (const [position, exercise] of orderedExercises.entries()) {
         await db.runAsync(
           `INSERT INTO exercises (
-            id, workout_id, name, sets, reps, base_weight,
-            muscle_group, notes, position, updated_at, deleted_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+            id, program_day_id, name, muscle_group, notes, sort_order, updated_at, deleted_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
           exercise.id,
           workout.id,
           exercise.name,
-          exercise.sets,
-          exercise.reps,
-          exercise.baseWeight,
           exercise.muscleGroup,
           exercise.notes,
           position,
           timestamp,
         );
         await db.runAsync(
-          `INSERT INTO user_weights (exercise_id, value, updated_at)
+          `INSERT INTO exercise_targets (
+            exercise_id,
+            sets,
+            reps,
+            base_weight,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?)`,
+          exercise.id,
+          exercise.sets,
+          exercise.reps,
+          exercise.baseWeight,
+          timestamp,
+        );
+        await db.runAsync(
+          `INSERT INTO exercise_weights (exercise_id, value, updated_at)
            VALUES (?, ?, ?)`,
           exercise.id,
           runtime.userWeights[exercise.id] ?? exercise.baseWeight ?? 0,
@@ -1152,24 +1282,22 @@ export class WorkoutRepository {
 
     for (const [index, week] of runtime.weekConfigs.entries()) {
       await db.runAsync(
-        `INSERT INTO week_configs (id, name, load_modifier, rir, sort_order, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO training_blocks (
+          id,
+          program_id,
+          name,
+          load_modifier,
+          rir,
+          sort_order,
+          updated_at,
+          deleted_at
+        )
+         VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
         week.id,
+        DEFAULT_PROGRAM_ID,
         week.name,
         week.loadModifier,
         week.rir,
-        index,
-        timestamp,
-      );
-    }
-
-    for (const [index, day] of normalizedDayConfigs.entries()) {
-      await db.runAsync(
-        `INSERT INTO day_configs (id, name, icon, sort_order, updated_at)
-         VALUES (?, ?, ?, ?, ?)`,
-        day.id,
-        day.name,
-        day.icon,
         index,
         timestamp,
       );
@@ -1202,43 +1330,59 @@ export class WorkoutRepository {
     dbArg?: SQLiteDatabase,
   ): Promise<PearLiftRuntimeState> {
     const db = dbArg ?? (await getDatabase());
-    const workouts = await db.getAllAsync<WorkoutRow>(
-      `SELECT id, name, description, sort_order FROM workouts
-       WHERE deleted_at IS NULL ORDER BY sort_order ASC`,
-    );
-    const exercises = await db.getAllAsync<ExerciseRow>(
-      `SELECT id, workout_id, name, sets, reps, base_weight, muscle_group, notes, position
-       FROM exercises WHERE deleted_at IS NULL ORDER BY workout_id ASC, position ASC`,
-    );
-    const weights = await db.getAllAsync<WeightRow>(
-      'SELECT exercise_id, value FROM user_weights',
-    );
-    const weekConfigs = await db.getAllAsync<WeekConfigRow>(
-      `SELECT id, name, load_modifier, rir, sort_order FROM week_configs
-       ORDER BY sort_order ASC, id ASC`,
-    );
-    const dayConfigs = await db.getAllAsync<DayConfigRow>(
-      `SELECT id, name, icon, sort_order FROM day_configs
+    const workouts = await db.getAllAsync<ProgramDayRow>(
+      `SELECT
+         id,
+         day_label,
+         icon,
+         workout_name,
+         workout_description,
+         sort_order
+       FROM program_days
+       WHERE deleted_at IS NULL
        ORDER BY sort_order ASC`,
     );
+    const exercises = await db.getAllAsync<ExerciseRow>(
+      `SELECT id, program_day_id, name, muscle_group, notes, sort_order
+       FROM exercises
+       WHERE deleted_at IS NULL
+       ORDER BY program_day_id ASC, sort_order ASC`,
+    );
+    const exerciseTargets = await db.getAllAsync<ExerciseTargetRow>(
+      `SELECT exercise_id, sets, reps, base_weight
+       FROM exercise_targets`,
+    );
+    const weights = await db.getAllAsync<WeightRow>(
+      'SELECT exercise_id, value FROM exercise_weights',
+    );
+    const weekConfigs = await db.getAllAsync<WeekConfigRow>(
+      `SELECT id, name, load_modifier, rir, sort_order FROM training_blocks
+       WHERE deleted_at IS NULL AND program_id = ?
+       ORDER BY sort_order ASC, id ASC`,
+      DEFAULT_PROGRAM_ID,
+    );
     const settings = await db.getAllAsync<AppSettingRow>(
-      'SELECT key, value FROM app_settings',
+      'SELECT key, value FROM user_preferences',
     );
 
+    const targetMap = new Map(
+      exerciseTargets.map((target) => [target.exercise_id, target]),
+    );
     const exerciseMap = new Map<string, Exercise[]>();
     for (const exercise of exercises) {
-      const list = exerciseMap.get(exercise.workout_id) ?? [];
+      const target = targetMap.get(exercise.id);
+      const list = exerciseMap.get(exercise.program_day_id) ?? [];
       list.push({
         id: exercise.id,
         name: exercise.name,
-        sets: exercise.sets,
-        reps: exercise.reps,
-        baseWeight: exercise.base_weight,
+        sets: target?.sets ?? 2,
+        reps: target?.reps ?? '8-10',
+        baseWeight: target?.base_weight ?? 0,
         muscleGroup: exercise.muscle_group,
         notes: exercise.notes,
-        position: exercise.position,
+        position: exercise.sort_order,
       });
-      exerciseMap.set(exercise.workout_id, list);
+      exerciseMap.set(exercise.program_day_id, list);
     }
 
     const userWeights: UserWeights = {};
@@ -1248,8 +1392,8 @@ export class WorkoutRepository {
 
     const runtimeWorkouts = workouts.map((workout) => ({
       id: workout.id,
-      name: workout.name,
-      description: workout.description,
+      name: workout.workout_name,
+      description: workout.workout_description,
       exercises: (exerciseMap.get(workout.id) ?? []).sort(
         (a, b) => a.position - b.position,
       ),
@@ -1273,10 +1417,10 @@ export class WorkoutRepository {
             }))
           : defaultWeekConfigs,
       dayConfigs:
-        dayConfigs.length > 0
-          ? dayConfigs.map((day) => ({
+        workouts.length > 0
+          ? workouts.map((day) => ({
               id: day.id,
-              name: day.name,
+              name: day.day_label,
               icon: day.icon,
             }))
           : defaultDayConfigs,
@@ -1290,27 +1434,20 @@ export class WorkoutRepository {
     };
   }
 
-  private async ensureSyncStateRow(db: SQLiteDatabase) {
+  private async ensureSyncIdentityStateRow(db: SQLiteDatabase) {
     await db.runAsync(
-      `INSERT OR IGNORE INTO sync_state (
+      `INSERT OR IGNORE INTO sync_identity_state (
         id,
         sync_enabled,
         device_id,
         pairing_secret_ciphertext,
         pairing_secret_iv,
         pairing_secret_tag,
-        autobase_bootstrap_key,
         lamport_counter,
-        sync_role,
-        room_binding_state,
-        first_sync_resolution,
-        pending_local_summary,
-        pending_remote_summary,
-        pending_conflict_summary,
         last_error,
         last_synced_at,
         updated_at
-      ) VALUES (1, 0, NULL, NULL, NULL, NULL, NULL, 0, NULL, 'unconfigured', 'unknown', NULL, NULL, NULL, NULL, NULL, ?)`,
+      ) VALUES (1, 0, NULL, NULL, NULL, NULL, 0, NULL, NULL, ?)`,
       nowIso(),
     );
   }
@@ -1319,54 +1456,51 @@ export class WorkoutRepository {
     await db.runAsync(
       `INSERT OR IGNORE INTO sync_room_state (
         id,
+        room_id,
         sync_role,
         room_binding_state,
         first_sync_resolution,
+        autobase_bootstrap_key,
         pending_local_summary,
         pending_remote_summary,
         pending_conflict_summary,
         updated_at
-      ) VALUES (1, NULL, 'unconfigured', 'unknown', NULL, NULL, NULL, ?)`,
+      ) VALUES (1, ?, NULL, 'unconfigured', 'unknown', NULL, NULL, NULL, NULL, ?)`,
+      DEFAULT_ROOM_ID,
       nowIso(),
     );
   }
 
   private async readSyncState(db: SQLiteDatabase): Promise<SyncStateRow> {
-    await this.ensureSyncStateRow(db);
+    await this.ensureSyncIdentityStateRow(db);
     await this.ensureSyncRoomStateRow(db);
-    const row = await db.getFirstAsync<SyncStateDbRow>(
+    const identity = await db.getFirstAsync<SyncIdentityDbRow>(
       `SELECT
         sync_enabled,
         device_id,
         pairing_secret_ciphertext,
         pairing_secret_iv,
         pairing_secret_tag,
-        autobase_bootstrap_key,
         lamport_counter,
-        sync_role,
-        room_binding_state,
-        first_sync_resolution,
-        pending_local_summary,
-        pending_remote_summary,
-        pending_conflict_summary,
         last_error,
         last_synced_at,
         updated_at
-      FROM sync_state WHERE id = 1`,
+      FROM sync_identity_state WHERE id = 1`,
     );
-    const roomRow = await db.getFirstAsync<SyncRoomStateDbRow>(
+    const room = await db.getFirstAsync<SyncRoomStateDbRow>(
       `SELECT
+        room_id,
         sync_role,
         room_binding_state,
         first_sync_resolution,
+        autobase_bootstrap_key,
         pending_local_summary,
         pending_remote_summary,
         pending_conflict_summary
       FROM sync_room_state WHERE id = 1`,
     );
 
-    if (!row) {
-      const now = nowIso();
+    if (!identity || !room) {
       return {
         syncEnabled: false,
         deviceId: null,
@@ -1375,51 +1509,41 @@ export class WorkoutRepository {
         pairingSecretTag: null,
         autobaseBootstrapKey: null,
         lamportCounter: 0,
-        syncRole: roomRow?.sync_role ?? null,
-        roomBindingState: roomRow?.room_binding_state ?? 'unconfigured',
-        firstSyncResolution: roomRow?.first_sync_resolution ?? 'unknown',
-        pendingLocalSummary: parseJsonColumn<SyncDataSummary>(
-          roomRow?.pending_local_summary ?? null,
-        ),
-        pendingRemoteSummary: parseJsonColumn<SyncDataSummary>(
-          roomRow?.pending_remote_summary ?? null,
-        ),
-        pendingConflictSummary: parseJsonColumn<SyncConflictSummary>(
-          roomRow?.pending_conflict_summary ?? null,
-        ),
+        syncRole: null,
+        roomBindingState: 'unconfigured',
+        firstSyncResolution: 'unknown',
+        pendingLocalSummary: null,
+        pendingRemoteSummary: null,
+        pendingConflictSummary: null,
         lastError: null,
         lastSyncedAt: null,
-        updatedAt: now,
+        updatedAt: nowIso(),
       };
     }
 
     return {
-      syncEnabled: row.sync_enabled === 1,
-      deviceId: row.device_id,
-      pairingSecretCiphertext: row.pairing_secret_ciphertext,
-      pairingSecretIv: row.pairing_secret_iv,
-      pairingSecretTag: row.pairing_secret_tag,
-      autobaseBootstrapKey: row.autobase_bootstrap_key,
-      lamportCounter: row.lamport_counter,
-      syncRole: roomRow?.sync_role ?? row.sync_role,
-      roomBindingState:
-        roomRow?.room_binding_state ?? row.room_binding_state ?? 'unconfigured',
-      firstSyncResolution:
-        roomRow?.first_sync_resolution ??
-        row.first_sync_resolution ??
-        'unknown',
+      syncEnabled: identity.sync_enabled === 1,
+      deviceId: identity.device_id,
+      pairingSecretCiphertext: identity.pairing_secret_ciphertext,
+      pairingSecretIv: identity.pairing_secret_iv,
+      pairingSecretTag: identity.pairing_secret_tag,
+      autobaseBootstrapKey: room.autobase_bootstrap_key,
+      lamportCounter: identity.lamport_counter,
+      syncRole: room.sync_role,
+      roomBindingState: room.room_binding_state ?? 'unconfigured',
+      firstSyncResolution: room.first_sync_resolution ?? 'unknown',
       pendingLocalSummary: parseJsonColumn<SyncDataSummary>(
-        roomRow?.pending_local_summary ?? row.pending_local_summary,
+        room.pending_local_summary,
       ),
       pendingRemoteSummary: parseJsonColumn<SyncDataSummary>(
-        roomRow?.pending_remote_summary ?? row.pending_remote_summary,
+        room.pending_remote_summary,
       ),
       pendingConflictSummary: parseJsonColumn<SyncConflictSummary>(
-        roomRow?.pending_conflict_summary ?? row.pending_conflict_summary,
+        room.pending_conflict_summary,
       ),
-      lastError: row.last_error,
-      lastSyncedAt: row.last_synced_at,
-      updatedAt: row.updated_at,
+      lastError: identity.last_error,
+      lastSyncedAt: identity.last_synced_at,
+      updatedAt: identity.updated_at,
     };
   }
 
@@ -1427,95 +1551,105 @@ export class WorkoutRepository {
     db: SQLiteDatabase,
     patch: Partial<SyncStateRow>,
   ) {
-    await this.ensureSyncStateRow(db);
+    await this.ensureSyncIdentityStateRow(db);
     await this.ensureSyncRoomStateRow(db);
+    const updatedAt = patch.updatedAt ?? nowIso();
 
-    const keys: Array<keyof SyncStateRow> = Object.keys(patch) as Array<
-      keyof SyncStateRow
-    >;
-    if (keys.length === 0) {
-      return;
-    }
-
-    const columnMap: Record<keyof SyncStateRow, string> = {
-      syncEnabled: 'sync_enabled',
-      deviceId: 'device_id',
-      pairingSecretCiphertext: 'pairing_secret_ciphertext',
-      pairingSecretIv: 'pairing_secret_iv',
-      pairingSecretTag: 'pairing_secret_tag',
-      autobaseBootstrapKey: 'autobase_bootstrap_key',
-      lamportCounter: 'lamport_counter',
-      syncRole: 'sync_role',
-      roomBindingState: 'room_binding_state',
-      firstSyncResolution: 'first_sync_resolution',
-      pendingLocalSummary: 'pending_local_summary',
-      pendingRemoteSummary: 'pending_remote_summary',
-      pendingConflictSummary: 'pending_conflict_summary',
-      lastError: 'last_error',
-      lastSyncedAt: 'last_synced_at',
-      updatedAt: 'updated_at',
-    };
-
-    const stateSetClauses: string[] = [];
-    const stateValues: Array<number | string | null> = [];
-    const roomSetClauses: string[] = [];
+    const identitySet: string[] = [];
+    const identityValues: Array<string | number | null> = [];
+    const roomSet: string[] = [];
     const roomValues: Array<string | number | null> = [];
 
-    for (const key of keys) {
-      if (key === 'updatedAt') {
-        continue;
-      }
-      const column = columnMap[key];
-      if (!column) continue;
-      const isRoomColumn =
-        key === 'syncRole' ||
-        key === 'roomBindingState' ||
-        key === 'firstSyncResolution' ||
-        key === 'pendingLocalSummary' ||
-        key === 'pendingRemoteSummary' ||
-        key === 'pendingConflictSummary';
-      if (isRoomColumn) {
-        roomSetClauses.push(`${column} = ?`);
-        if (
-          key === 'pendingLocalSummary' ||
-          key === 'pendingRemoteSummary' ||
-          key === 'pendingConflictSummary'
-        ) {
-          roomValues.push(
-            patch[key] == null ? null : JSON.stringify(patch[key]),
-          );
-        } else {
-          roomValues.push(
-            (patch[key] as string | number | null | undefined)?.toString() ??
-              null,
-          );
-        }
-      } else {
-        stateSetClauses.push(`${column} = ?`);
-        if (key === 'syncEnabled') {
-          stateValues.push(patch[key] ? 1 : 0);
-        } else {
-          stateValues.push(
-            (patch[key] as string | number | null | undefined) ?? null,
-          );
-        }
-      }
+    if (patch.syncEnabled != null) {
+      identitySet.push('sync_enabled = ?');
+      identityValues.push(patch.syncEnabled ? 1 : 0);
     }
-    const updatedAt = patch.updatedAt ?? nowIso();
-    stateSetClauses.push('updated_at = ?');
-    stateValues.push(updatedAt);
-    stateValues.push(1);
+    if (patch.deviceId !== undefined) {
+      identitySet.push('device_id = ?');
+      identityValues.push(patch.deviceId);
+    }
+    if (patch.pairingSecretCiphertext !== undefined) {
+      identitySet.push('pairing_secret_ciphertext = ?');
+      identityValues.push(patch.pairingSecretCiphertext);
+    }
+    if (patch.pairingSecretIv !== undefined) {
+      identitySet.push('pairing_secret_iv = ?');
+      identityValues.push(patch.pairingSecretIv);
+    }
+    if (patch.pairingSecretTag !== undefined) {
+      identitySet.push('pairing_secret_tag = ?');
+      identityValues.push(patch.pairingSecretTag);
+    }
+    if (patch.lamportCounter !== undefined) {
+      identitySet.push('lamport_counter = ?');
+      identityValues.push(patch.lamportCounter);
+    }
+    if (patch.lastError !== undefined) {
+      identitySet.push('last_error = ?');
+      identityValues.push(patch.lastError);
+    }
+    if (patch.lastSyncedAt !== undefined) {
+      identitySet.push('last_synced_at = ?');
+      identityValues.push(patch.lastSyncedAt);
+    }
 
-    await db.runAsync(
-      `UPDATE sync_state SET ${stateSetClauses.join(', ')} WHERE id = ?`,
-      ...stateValues,
-    );
-    if (roomSetClauses.length > 0) {
-      roomSetClauses.push('updated_at = ?');
+    if (patch.syncRole !== undefined) {
+      roomSet.push('sync_role = ?');
+      roomValues.push(patch.syncRole);
+    }
+    if (patch.roomBindingState !== undefined) {
+      roomSet.push('room_binding_state = ?');
+      roomValues.push(patch.roomBindingState);
+    }
+    if (patch.firstSyncResolution !== undefined) {
+      roomSet.push('first_sync_resolution = ?');
+      roomValues.push(patch.firstSyncResolution);
+    }
+    if (patch.autobaseBootstrapKey !== undefined) {
+      roomSet.push('autobase_bootstrap_key = ?');
+      roomValues.push(patch.autobaseBootstrapKey);
+    }
+    if (patch.pendingLocalSummary !== undefined) {
+      roomSet.push('pending_local_summary = ?');
+      roomValues.push(
+        patch.pendingLocalSummary == null
+          ? null
+          : JSON.stringify(patch.pendingLocalSummary),
+      );
+    }
+    if (patch.pendingRemoteSummary !== undefined) {
+      roomSet.push('pending_remote_summary = ?');
+      roomValues.push(
+        patch.pendingRemoteSummary == null
+          ? null
+          : JSON.stringify(patch.pendingRemoteSummary),
+      );
+    }
+    if (patch.pendingConflictSummary !== undefined) {
+      roomSet.push('pending_conflict_summary = ?');
+      roomValues.push(
+        patch.pendingConflictSummary == null
+          ? null
+          : JSON.stringify(patch.pendingConflictSummary),
+      );
+    }
+
+    if (identitySet.length > 0) {
+      identitySet.push('updated_at = ?');
+      identityValues.push(updatedAt);
+      identityValues.push(1);
+      await db.runAsync(
+        `UPDATE sync_identity_state SET ${identitySet.join(', ')} WHERE id = ?`,
+        ...identityValues,
+      );
+    }
+
+    if (roomSet.length > 0) {
+      roomSet.push('updated_at = ?');
       roomValues.push(updatedAt);
       roomValues.push(1);
       await db.runAsync(
-        `UPDATE sync_room_state SET ${roomSetClauses.join(', ')} WHERE id = ?`,
+        `UPDATE sync_room_state SET ${roomSet.join(', ')} WHERE id = ?`,
         ...roomValues,
       );
     }
@@ -1523,7 +1657,10 @@ export class WorkoutRepository {
 
   private async hasAppliedSyncOpInDb(db: SQLiteDatabase, opId: string) {
     const row = await db.getFirstAsync<{ total: number }>(
-      'SELECT COUNT(*) as total FROM sync_applied_ops WHERE op_id = ?',
+      `SELECT COUNT(*) as total
+       FROM sync_applied_ops
+       WHERE room_id = ? AND op_id = ?`,
+      DEFAULT_ROOM_ID,
       opId,
     );
     return (row?.total ?? 0) > 0;
@@ -1538,8 +1675,14 @@ export class WorkoutRepository {
     },
   ) {
     await db.runAsync(
-      `INSERT OR IGNORE INTO sync_applied_ops (op_id, device_id, lamport, applied_at)
-       VALUES (?, ?, ?, ?)`,
+      `INSERT OR IGNORE INTO sync_applied_ops (
+        room_id,
+        op_id,
+        device_id,
+        lamport,
+        applied_at
+      ) VALUES (?, ?, ?, ?, ?)`,
+      DEFAULT_ROOM_ID,
       meta.opId,
       meta.deviceId,
       meta.lamport,
@@ -1597,7 +1740,7 @@ export class WorkoutRepository {
     updatedAt = nowIso(),
   ) {
     await db.runAsync(
-      `INSERT INTO app_settings (key, value, updated_at)
+      `INSERT INTO user_preferences (key, value, updated_at)
        VALUES (?, ?, ?)
        ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
       key,
@@ -1608,20 +1751,10 @@ export class WorkoutRepository {
 
   private async readSetting(db: SQLiteDatabase, key: string) {
     const row = await db.getFirstAsync<{ value: string }>(
-      'SELECT value FROM app_settings WHERE key = ?',
+      'SELECT value FROM user_preferences WHERE key = ?',
       key,
     );
     return row?.value ?? null;
-  }
-
-  private parsePendingLocalMutations(value: string | null): SyncMutation[] {
-    if (!value) return [];
-    try {
-      const parsed = JSON.parse(value) as unknown;
-      return Array.isArray(parsed) ? (parsed as SyncMutation[]) : [];
-    } catch {
-      return [];
-    }
   }
 
   private async shouldApplyConfigRevision(
@@ -1635,9 +1768,9 @@ export class WorkoutRepository {
 
   private async getExercisesForWorkout(db: SQLiteDatabase, workoutId: string) {
     return db.getAllAsync<ExerciseRow>(
-      `SELECT id, workout_id, name, sets, reps, base_weight, muscle_group, notes, position
-       FROM exercises WHERE workout_id = ? AND deleted_at IS NULL
-       ORDER BY position ASC`,
+      `SELECT id, program_day_id, name, muscle_group, notes, sort_order
+       FROM exercises WHERE program_day_id = ? AND deleted_at IS NULL
+       ORDER BY sort_order ASC`,
       workoutId,
     );
   }
@@ -1647,7 +1780,7 @@ export class WorkoutRepository {
     const timestamp = nowIso();
     for (const [position, exercise] of ordered.entries()) {
       await db.runAsync(
-        'UPDATE exercises SET position = ?, updated_at = ? WHERE id = ?',
+        'UPDATE exercises SET sort_order = ?, updated_at = ? WHERE id = ?',
         position,
         timestamp,
         exercise.id,
