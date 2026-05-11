@@ -31,6 +31,7 @@ import { BootstrapScreen } from '@/components/BootstrapScreen';
 import { Header } from '@/components/Header';
 import { AddExerciseModal } from '@/components/modals/AddExerciseModal';
 import { AppPromptModal } from '@/components/modals/AppPromptModal';
+import { BackupActionModal } from '@/components/modals/BackupActionModal';
 import { ImportPreviewModal } from '@/components/modals/ImportPreviewModal';
 import { LanguageListModal } from '@/components/modals/LanguageListModal';
 import { ProgramSettingsModal } from '@/components/modals/ProgramSettingsModal';
@@ -81,6 +82,9 @@ export function WorkoutScreen() {
 
   const [shareToDeviceOpen, setShareToDeviceOpen] = useState(false);
   const [scanFromDeviceOpen, setScanFromDeviceOpen] = useState(false);
+  const [backupActionMode, setBackupActionMode] = useState<
+    'local' | 'qr' | null
+  >(null);
   const [syncMasterKey, setSyncMasterKey] = useState<string | null>(null);
   const [syncRoomInvite, setSyncRoomInvite] = useState<string | null>(null);
   const [createRoomStarting, setCreateRoomStarting] = useState(false);
@@ -492,26 +496,6 @@ export function WorkoutScreen() {
     }
   };
 
-  const handleExportBackup = () => {
-    if (!snapshot) return;
-
-    showPrompt(
-      t('prompts.exportBackup.chooserTitle'),
-      t('prompts.exportBackup.chooserMessage'),
-      [
-        {
-          label: t('prompts.exportBackup.actions.saveToDevice'),
-          onPress: () => void exportBackup('save'),
-        },
-        {
-          label: t('prompts.exportBackup.actions.share'),
-          onPress: () => void exportBackup('share'),
-        },
-        { label: t('common.cancel'), tone: 'cancel' },
-      ],
-    );
-  };
-
   const handleImportBackup = async () => {
     if (!snapshot) return;
     try {
@@ -527,6 +511,14 @@ export function WorkoutScreen() {
       logError('backup/import failed', error);
       showPrompt(t('prompts.importBackup.failedTitle'), getErrorMessage(error));
     }
+  };
+
+  const handleOpenLocalBackup = () => {
+    setBackupActionMode('local');
+  };
+
+  const handleOpenQRBackup = () => {
+    setBackupActionMode('qr');
   };
 
   const beginImportFromPayload = async (payload: string) => {
@@ -1129,10 +1121,8 @@ export function WorkoutScreen() {
           syncEnabled={syncState?.syncEnabled ?? false}
           syncLastSyncedAt={syncState?.lastSyncedAt ?? null}
           onOpenSync={() => void handleOpenSyncManagement()}
-          onShareToDevice={() => setShareToDeviceOpen(true)}
-          onScanFromDevice={() => setScanFromDeviceOpen(true)}
-          onExportLocalBackup={handleExportBackup}
-          onImportLocalBackup={() => void handleImportBackup()}
+          onOpenLocalBackup={handleOpenLocalBackup}
+          onOpenQRBackup={handleOpenQRBackup}
           onResetData={handleResetData}
           onClose={() => {
             setSettingsOpen(false);
@@ -1205,6 +1195,18 @@ export function WorkoutScreen() {
           bottomInset={insets.bottom}
           onScanPayload={handleScanPayload}
           onClose={() => setScanFromDeviceOpen(false)}
+        />
+
+        <BackupActionModal
+          open={backupActionMode != null}
+          mode={backupActionMode}
+          tokens={tokens}
+          onExportLocalBackup={() => void exportBackup('save')}
+          onImportLocalBackup={() => void handleImportBackup()}
+          onShareBackup={() => void exportBackup('share')}
+          onShareToDevice={() => setShareToDeviceOpen(true)}
+          onScanFromDevice={() => setScanFromDeviceOpen(true)}
+          onClose={() => setBackupActionMode(null)}
         />
 
         <LanguageListModal

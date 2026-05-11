@@ -380,7 +380,9 @@
       "export": "Save backup to device",
       "import": "Restore from backup",
       "shareToDevice": "Share to another device",
-      "scanFromDevice": "Scan from another device"
+      "scanFromDevice": "Scan from another device",
+      "localSaveRestore": "Local Save / Restore",
+      "qrShareRestore": "QR Share / Restore"
     },
     "pairingDevices": {
       "title": "Devices",

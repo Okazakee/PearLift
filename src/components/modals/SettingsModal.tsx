@@ -40,10 +40,8 @@ interface SettingsModalProps {
   syncEnabled: boolean;
   syncLastSyncedAt: string | null;
   onOpenSync: () => void;
-  onShareToDevice: () => void;
-  onScanFromDevice: () => void;
-  onExportLocalBackup: () => void;
-  onImportLocalBackup: () => void;
+  onOpenLocalBackup: () => void;
+  onOpenQRBackup: () => void;
   onClose: () => void;
   onResetData: () => void;
   onOpenGithub: () => void;
@@ -68,10 +66,8 @@ export function SettingsModal({
   syncEnabled,
   syncLastSyncedAt,
   onOpenSync,
-  onShareToDevice,
-  onScanFromDevice,
-  onExportLocalBackup,
-  onImportLocalBackup,
+  onOpenLocalBackup,
+  onOpenQRBackup,
   onClose,
   onResetData,
   onOpenGithub,
@@ -121,10 +117,8 @@ export function SettingsModal({
         <LocalBackupSection
           tokens={tokens}
           styles={styles}
-          onExportLocalBackup={onExportLocalBackup}
-          onImportLocalBackup={onImportLocalBackup}
-          onShareToDevice={onShareToDevice}
-          onScanFromDevice={onScanFromDevice}
+          onOpenLocalBackup={onOpenLocalBackup}
+          onOpenQRBackup={onOpenQRBackup}
         />
 
         <DataResetSection
