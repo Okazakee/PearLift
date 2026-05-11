@@ -56,7 +56,7 @@ let lifecycleQueue = Promise.resolve();
 let lifecyclePhase = 'idle';
 let activeStartFingerprint = null;
 
-const MAX_LOG_ENTRIES = 200;
+const MAX_LOG_ENTRIES = 100;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
 const WAITING_STATUS_THRESHOLD_ATTEMPTS = 3;

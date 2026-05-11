@@ -1,4 +1,4 @@
-import { Activity, Bell, Sliders } from 'lucide-react-native';
+import { Activity, Bell, Sliders, Smartphone } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, View } from 'react-native';
@@ -21,6 +21,8 @@ interface OnboardingScreenProps {
   bottomInset: number;
   weightUnit: WeightUnit;
   onWeightUnitChange: (next: WeightUnit) => void;
+  onOpenSyncCreate: () => void;
+  onOpenSyncJoin: () => void;
   onComplete: () => void;
 }
 
@@ -38,6 +40,12 @@ const PAGE_CONTENT = [
     kind: 'units' as const,
   },
   {
+    icon: Smartphone,
+    titleKey: 'onboarding.pages.sync.title',
+    descriptionKey: 'onboarding.pages.sync.description',
+    kind: 'sync' as const,
+  },
+  {
     icon: Bell,
     titleKey: 'onboarding.pages.notifications.title',
     descriptionKey: 'onboarding.pages.notifications.description',
@@ -51,6 +59,8 @@ export function OnboardingScreen({
   bottomInset,
   weightUnit,
   onWeightUnitChange,
+  onOpenSyncCreate,
+  onOpenSyncJoin,
   onComplete,
 }: OnboardingScreenProps) {
   const { t } = useTranslation();
@@ -164,6 +174,32 @@ export function OnboardingScreen({
                   ]}
                 >
                   lb
+                </Text>
+              </AnimatedPressable>
+            </View>
+          )}
+
+          {content.kind === 'sync' && (
+            <View style={styles.syncActionRow}>
+              <AnimatedPressable
+                style={styles.primaryButton}
+                onPress={onOpenSyncCreate}
+              >
+                <Text style={styles.primaryButtonText}>
+                  {t('sync.manage.createRoom')}
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable
+                style={styles.outlineButton}
+                onPress={onOpenSyncJoin}
+              >
+                <Text style={styles.outlineButtonText}>
+                  {t('sync.manage.joinRoom')}
+                </Text>
+              </AnimatedPressable>
+              <AnimatedPressable style={styles.skipButton} onPress={handleNext}>
+                <Text style={styles.skipButtonText}>
+                  {t('onboarding.skipSync')}
                 </Text>
               </AnimatedPressable>
             </View>
@@ -302,6 +338,49 @@ function createStyles(
     },
     unitOptionTextActive: {
       color: tokens.colors.primary,
+    },
+    syncActionRow: {
+      flexDirection: 'column',
+      gap: tokens.spacing.sm,
+      marginTop: tokens.spacing.xl,
+      width: '100%',
+      maxWidth: 280,
+    },
+    primaryButton: {
+      minHeight: 48,
+      borderRadius: tokens.radius.md,
+      backgroundColor: tokens.colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    primaryButtonText: {
+      color: tokens.colors.onPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
+    outlineButton: {
+      minHeight: 48,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    outlineButtonText: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
+    skipButton: {
+      minHeight: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    skipButtonText: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '600',
     },
     footer: {
       flexDirection: 'row',

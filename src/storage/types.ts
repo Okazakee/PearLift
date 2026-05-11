@@ -69,7 +69,8 @@ export type SyncFirstSyncResolution =
   | 'auto_publish_local'
   | 'auto_merge'
   | 'local_chosen'
-  | 'remote_chosen';
+  | 'remote_chosen'
+  | 'merge_chosen';
 
 export interface SyncDataSummary {
   workoutCount: number;

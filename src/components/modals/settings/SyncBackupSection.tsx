@@ -4,12 +4,12 @@ import { Text, View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
 import type { ThemeTokens } from '@/theme/tokens';
+import { withAlpha } from '@/theme/tokens';
 
 interface SyncBackupSectionProps {
   tokens: ThemeTokens;
   styles: SettingsStyles;
   syncEnabled: boolean;
-  syncPeers: number;
   syncLastSyncedAt: string | null;
   onOpenSync: () => void;
 }
@@ -18,11 +18,14 @@ export function SyncBackupSection({
   tokens,
   styles,
   syncEnabled,
-  syncPeers,
   syncLastSyncedAt,
   onOpenSync,
 }: SyncBackupSectionProps) {
   const { t } = useTranslation();
+
+  const statusColor = syncEnabled
+    ? tokens.colors.primary
+    : tokens.colors.textSecondary;
 
   return (
     <View style={styles.section}>
@@ -34,33 +37,45 @@ export function SyncBackupSection({
       </View>
       <View style={styles.row}>
         <View style={styles.rowText}>
-          <Text style={styles.rowTitle}>
-            {syncEnabled
-              ? t('settings.syncStatus.enabled')
-              : t('settings.syncStatus.disabled')}
-          </Text>
-          <Text style={styles.rowSubtitle}>
-            {syncEnabled
-              ? t('settings.syncStatus.syncingWith', {
-                  count: Math.max(syncPeers, 0),
-                })
-              : t('settings.syncStatus.off')}
-          </Text>
-          <Text style={styles.rowSubtitle}>
-            {syncLastSyncedAt
-              ? t('settings.syncStatus.lastSuccessfulSync', {
-                  at: new Date(syncLastSyncedAt).toLocaleString(),
-                })
-              : t('sync.quick.lastSyncNever')}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 4,
+                backgroundColor: statusColor,
+              }}
+            />
+            <Text style={styles.rowTitle}>
+              {syncEnabled
+                ? t('settings.syncStatus.enabled')
+                : t('settings.syncStatus.disabled')}
+            </Text>
+          </View>
+          {syncEnabled && syncLastSyncedAt ? (
+            <Text style={styles.rowSubtitle}>
+              {t('settings.syncStatus.lastSuccessfulSync', {
+                at: new Date(syncLastSyncedAt).toLocaleString(),
+              })}
+            </Text>
+          ) : null}
         </View>
+        <AnimatedPressable
+          style={[
+            styles.outlineButton,
+            {
+              minWidth: 120,
+              flex: 0,
+              borderColor: withAlpha(statusColor, 0.35),
+            },
+          ]}
+          onPress={onOpenSync}
+        >
+          <Text style={[styles.outlineButtonText, { color: statusColor }]}>
+            {t('settings.syncStatus.manage')}
+          </Text>
+        </AnimatedPressable>
       </View>
-      <AnimatedPressable style={styles.outlineButton} onPress={onOpenSync}>
-        <Shield size={15} color={tokens.colors.textSecondary} />
-        <Text style={styles.outlineButtonText}>
-          {t('settings.syncBackup.openSyncSetup')}
-        </Text>
-      </AnimatedPressable>
     </View>
   );
 }

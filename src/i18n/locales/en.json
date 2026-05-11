@@ -20,8 +20,8 @@
         "description": "Pick your preferred weight unit. You can change this later."
       },
       "sync": {
-        "title": "Device-to-Device Sync",
-        "description": "Sync your workouts directly between devices. Set it up anytime in Settings. Works locally without cloud services."
+        "title": "Sync your devices",
+        "description": "Keep your workouts in sync across all your devices. No account needed — your data stays between your devices only."
       },
       "notifications": {
         "title": "Stay on Track",
@@ -44,15 +44,15 @@
       "subtitle": "Each device creates its own identity automatically. To pair devices, share the same Sync Code.",
       "create": "Create",
       "join": "Join",
-      "yourCode": "Your Sync Code",
-      "shareHint": "Share this Sync Code (or QR) with your other device. That device must enter the same code to join your sync group.",
-      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
+      "yourCode": "Your Sync code",
+      "shareHint": "Share this Sync code (or QR) with your other device. That device must enter the same code to join your sync group.",
+      "startSyncFirst": "Press Start Sync first, then share this QR with your other device to join your sync group.",
       "enterCode": "Enter Sync Code",
       "scanQr": "Scan QR code",
       "scanEnableCamera": "Enable camera",
       "scanHelp": "Point your camera at the QR code on your other device.",
       "waitForConnection": "Connection in progress. Scanner paused for stability.",
-      "codePlaceholder": "Enter your share code",
+      "codePlaceholder": "Enter your sync code",
       "replaceJoinLabel": "Replace my data with their data",
       "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
       "copy": "Copy code",
@@ -61,7 +61,7 @@
       "start": "Start sync",
       "stop": "Stop sync",
       "invalidCode": "Invalid code. It must be 64 hex characters.",
-      "connecting": "Searching for peers…",
+      "connecting": "Searching for devices…",
       "connectedTitle": "Connected",
       "connectedSubtitle_one": "{{count}} device in sync group.",
       "connectedSubtitle_other": "{{count}} devices in sync group.",
@@ -82,11 +82,11 @@
         "synced": "Connected",
         "error": "Error"
       },
-      "peers": "Peers",
+      "peers": "Devices",
       "bootstrapped": "DHT",
       "bootstrappedYes": "Reachable",
       "bootstrappedNo": "Waiting",
-      "lastSync": "Last peer sync",
+      "lastSync": "Last device sync",
       "never": "Never",
       "thisDevice": "This device",
       "deviceId": "Device ID",
@@ -94,8 +94,8 @@
       "syncGroup": "Sync group",
       "autobaseKey": "Autobase key",
       "topic": "Topic",
-      "connectedPeers": "Connected peers",
-      "noPeers": "No peers connected.",
+      "connectedPeers": "Connected devices",
+      "noPeers": "No devices connected.",
       "storagePath": "Storage",
       "copy": "Copy",
       "copied": "Copied",
@@ -109,7 +109,7 @@
     },
     "toast": {
       "newPeerTitle": "New device connected",
-      "newPeerMessage": "A paired device joined the sync group."
+      "newPeerMessage": "A device joined the sync group."
     },
     "quick": {
       "title": "Sync Status",
@@ -152,23 +152,23 @@
     },
     "manage": {
       "title": "Device sync",
-      "subtitle": "Keep room setup and sync maintenance in one place.",
-      "roomSetup": "Room setup",
-      "roomSetupHint": "Pick whether this device starts a new room or joins one that already exists.",
+      "subtitle": "Keep group setup and sync maintenance in one place.",
+      "roomSetup": "Group setup",
+      "roomSetupHint": "Choose whether this device starts a new group or joins one that already exists.",
       "onboardingTitle": "No cloud. No account.",
       "onboardingMessage": "PearLift syncs your workouts directly between your devices — peer-to-peer. Your data never touches a server. All you need is to be on the same Wi‑Fi or nearby for the first connection.",
       "onboardingDismiss": "Got it",
-      "createRoom": "Create room",
-      "joinRoom": "Join room",
-      "roomActive": "Room active",
+      "createRoom": "Create group",
+      "joinRoom": "Join group",
+      "roomActive": "Group active",
       "status": "Sync status",
       "turnOn": "Turn on",
       "turnOff": "Turn off",
       "refresh": "Refresh",
       "roleState": "{{role}} · {{state}}",
       "roles": {
-        "creator": "Room creator",
-        "joiner": "Room joiner"
+        "creator": "Group owner",
+        "joiner": "Member"
       },
       "binding": {
         "unconfigured": "Not configured",
@@ -181,69 +181,73 @@
       "deviceCode": "Code {{code}}",
       "deviceNamePlaceholder": "Name this device",
       "saveDeviceName": "Save device name",
-      "masterKey": "Master key",
-      "masterKeyHint": "Use the same 64-character key on every device that should share data.",
-      "masterKeyPlaceholder": "Paste or edit the 64-character key",
-      "copyKey": "Copy key",
-      "applyKey": "Apply key",
-      "leaveRoom": "Leave room",
-      "leaveRoomConfirmTitle": "Leave this room?",
-      "leaveRoomConfirmMessage": "This turns sync off, clears the current room binding on this device, and removes local room connection history.",
-      "syncedDevices": "{{count}} paired devices",
-      "syncedDevicesTitle": "Paired devices",
+      "masterKey": "Sync code",
+      "masterKeyHint": "Use the same 64-character sync code on every device that should share data.",
+      "masterKeyPlaceholder": "Paste or edit the 64-character sync code",
+      "showQR": "Show QR code",
+      "copyKey": "Copy code",
+      "applyKey": "Apply code",
+      "leaveRoom": "Leave group",
+      "leaveRoomConfirmTitle": "Leave this group?",
+      "leaveRoomConfirmMessage": "This turns sync off, clears the current group binding on this device, and removes local group connection history.",
+      "syncedDevices": "{{count}} devices",
+      "syncedDevicesTitle": "Devices",
       "noDevices": "No devices have synced yet.",
       "lastSeen": "Last seen {{at}}",
       "lastSyncAt": "Last sync {{at}}",
       "removeDevice": "Remove from list",
       "removeDeviceConfirmTitle": "Remove this device from the list?",
-      "removeDeviceConfirmMessage": "This hides the device from this list on this device only. It can appear again if it syncs with this room later.",
+      "removeDeviceConfirmMessage": "This hides the device from this list on this device only. It can appear again if it syncs with this group later.",
       "debug": "Debug info",
       "never": "Never"
     },
     "create": {
-      "title": "Create room",
-      "subtitle": "This device starts a new sync room and can share the master key with other devices.",
-      "room": "New room",
-      "explainer": "Use this when this device should define the initial room and invite the others.",
+      "title": "Create group",
+      "subtitle": "This device starts a new sync group and can share the sync code with other devices.",
+      "room": "New group",
+      "explainer": "Use this when this device should define the initial group and invite the others.",
       "datasetSummary": "This device currently has {{workouts}} workouts and {{exercises}} exercises.",
-      "masterKey": "Master key",
-      "inviteStarting": "Starting room and generating the QR invite…",
-      "invitePending": "Start the room to generate the QR invite.",
-      "copy": "Copy key",
-      "startRoom": "Start this room"
+      "masterKey": "Sync code",
+      "inviteStarting": "Starting group and generating the QR invite…",
+      "invitePending": "Start the group to generate the QR invite.",
+      "copy": "Copy code",
+      "startRoom": "Start this group"
     },
     "join": {
-      "title": "Join room",
-      "subtitle": "Use the room key from another device to connect this device to the same sync room.",
+      "title": "Join group",
+      "subtitle": "Use the sync code from another device to connect this device to the same sync group.",
       "preflight": "Before joining",
       "localSummary": "This device currently has {{workouts}} workouts and {{exercises}} exercises.",
       "remoteSummaryHint": "If both devices already have a lot of overlapping changes, PearLift will ask which dataset to keep.",
-      "masterKey": "Room key",
-      "keyPlaceholder": "Paste the 64-character room key",
+      "masterKey": "Sync code",
+      "keyPlaceholder": "Paste the 64-character sync code",
       "paste": "Paste",
       "scanQr": "Scan QR",
-      "scanHelp": "Point the camera at the QR code that contains the room key.",
-      "invalidKey": "Invalid room key. It must be 64 hex characters.",
+      "scanHelp": "Point the camera at the QR code that contains the sync code.",
+      "invalidKey": "Invalid sync code. It must be 64 hex characters.",
       "keyValid": "Valid invite code",
       "pasteSuccess": "Pasted from clipboard",
       "pasteEmpty": "Clipboard is empty",
-      "joinRoom": "Join room"
+      "joinRoom": "Join group"
     },
     "decision": {
       "title": "Choose first sync data",
-      "subtitle": "Both sides already contain meaningful data. Pick which baseline this room should keep.",
+      "subtitle": "Both sides already contain meaningful data. Pick which baseline this group should keep.",
       "thisDevice": "This device",
-      "roomData": "Room data",
+      "roomData": "Group data",
       "datasetSummary": "{{workouts}} workouts · {{exercises}} exercises",
       "conflictTitle": "Overlapping changes detected",
       "conflictWorkouts": "Workouts",
       "conflictExercises": "Exercises",
       "conflictSummary": "{{workouts}} workout overlaps and {{exercises}} exercise overlaps were detected.",
-      "configConflictSummary": "{{weeks}} week config overlaps, {{days}} day config overlaps, {{backlog}} room updates waiting.",
-      "useThisDeviceHint": "This publishes this device as the room baseline.",
+      "configConflictSummary": "{{weeks}} week config overlaps, {{days}} day config overlaps, {{backlog}} group updates waiting.",
+      "useThisDeviceHint": "This publishes this device as the group baseline.",
       "useRoomDataHint": "This replaces workout data on this device while keeping app preferences.",
+      "useMerge": "Merge both",
+      "useMergeHint": "Combine data from this device and the group when there are no overlaps.",
+      "mergeUnavailableHint": "Some workouts or exercises exist on both devices with different values, so merging isn't possible.",
       "useThisDevice": "Use this device's data",
-      "useRoomData": "Use room data"
+      "useRoomData": "Use group data"
     },
     "debug": {
       "title": "Sync debug info",
@@ -252,7 +256,8 @@
       "connections": "Connections",
       "lastError": "Last error",
       "logs": "Recent logs",
-      "logCount": "Showing {{shown}} of {{total}} log entries"
+      "logCount": "Showing {{shown}} of {{total}} log entries",
+      "clear": "Clear"
     }
   },
   "workout": {
@@ -347,14 +352,14 @@
       "pairNewDevice": "Pair New Device",
       "copyCode": "Copy Code",
       "shareCode": "Share Code",
-      "pairedDevices": "Paired Devices",
-      "noDevices": "No devices paired yet",
+      "pairedDevices": "Devices",
+      "noDevices": "No devices yet",
       "lastSeen": "Last seen",
       "forgetDevice": "Forget",
       "forgetConfirmTitle": "Forget this device?",
       "forgetConfirmMessage": "This removes the pairing record locally. The device can still reconnect if it has the same sync code.",
-      "peers_one": "{{count}} peer connected",
-      "peers_other": "{{count}} peers connected",
+      "peers_one": "{{count}} device connected",
+      "peers_other": "{{count}} devices connected",
       "stopSync": "Stop Sync",
       "connectionInfo": "Connection info",
       "openSyncHub": "Open Sync Hub"
@@ -378,9 +383,9 @@
       "scanFromDevice": "Scan from another device"
     },
     "pairingDevices": {
-      "title": "Pairing & Devices",
-      "count_one": "{{count}} paired device",
-      "count_other": "{{count}} paired devices"
+      "title": "Devices",
+      "count_one": "{{count}} device",
+      "count_other": "{{count}} devices"
     },
     "syncAdvanced": {
       "title": "Sync Hub",
@@ -456,7 +461,7 @@
     "cameraUnavailableTitle": "Camera unavailable",
     "cameraUnavailableMessage": "PearLift could not access a usable back camera on this device.",
     "invalidQr": "That QR code doesn't look like a PearLift backup.",
-    "tooLarge": "Backup is too large to fit in a single QR code. Use “Save backup to device” instead."
+    "tooLarge": "Backup is too large to fit in a single QR code. Use 'Save backup to device' instead."
   },
   "prompts": {
     "deleteExercise": {
@@ -465,7 +470,7 @@
     },
     "resetAllData": {
       "title": "Reset all data?",
-      "message": "This will reset exercises, weights, weeks, days, timer settings, and all sync data (paired devices and sync code).",
+      "message": "This will reset exercises, weights, weeks, days, timer settings, and all sync data (devices and sync code).",
       "actions": {
         "confirm": "Reset"
       },
@@ -476,8 +481,8 @@
     },
     "pairNewDevice": {
       "title": "Pair a new device?",
-      "message": "This will show your Sync Code and QR so another device can connect.",
-      "authPromptMessage": "Confirm to show Sync Code",
+      "message": "This will show your Sync code and QR so another device can connect.",
+      "authPromptMessage": "Confirm to show Sync code",
       "canceledTitle": "Pairing canceled",
       "canceledMessage": "System authentication did not confirm the action.",
       "failedTitle": "Pairing failed"

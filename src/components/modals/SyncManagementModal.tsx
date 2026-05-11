@@ -3,8 +3,6 @@ import {
   ChevronUp,
   Copy,
   KeyRound,
-  Link2,
-  RefreshCw,
   Shield,
   Trash2,
 } from 'lucide-react-native';
@@ -12,6 +10,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -40,6 +39,7 @@ interface SyncManagementModalProps {
   onToggleSync: (nextEnabled: boolean) => Promise<void>;
   onOpenCreateRoom: () => void;
   onOpenJoinRoom: () => void;
+  onShowSyncQR?: () => void;
   onApplyMasterKey: (nextKey: string) => Promise<void>;
   onRenameLocalDevice: (displayName: string) => Promise<void>;
   onCopyMasterKey: () => Promise<void>;
@@ -48,8 +48,6 @@ interface SyncManagementModalProps {
   onOpenDebug: () => void;
   onRefresh: () => Promise<void>;
   onClose: () => void;
-  showOnboarding: boolean;
-  onDismissOnboarding: () => void;
 }
 
 function getStatusTone(tokens: ThemeTokens, health: SyncHealth) {
@@ -72,6 +70,7 @@ export function SyncManagementModal({
   onToggleSync,
   onOpenCreateRoom,
   onOpenJoinRoom,
+  onShowSyncQR,
   onApplyMasterKey,
   onRenameLocalDevice,
   onCopyMasterKey,
@@ -80,8 +79,6 @@ export function SyncManagementModal({
   onOpenDebug,
   onRefresh,
   onClose,
-  showOnboarding,
-  onDismissOnboarding,
 }: SyncManagementModalProps) {
   const { t } = useTranslation();
   const layout = useResponsiveLayout();
@@ -109,7 +106,6 @@ export function SyncManagementModal({
 
   const syncEnabled = syncState?.syncEnabled ?? false;
   const roomRole = syncState?.syncRole ?? null;
-  const bindingState = syncState?.roomBindingState ?? 'unconfigured';
   const statusTone = getStatusTone(tokens, syncHealth);
   const lastSyncedLabel = syncState?.lastSyncedAt
     ? new Date(syncState.lastSyncedAt).toLocaleString()
@@ -145,79 +141,104 @@ export function SyncManagementModal({
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={busy === 'refresh'}
+            onRefresh={() => runBusy('refresh', onRefresh)}
+            tintColor={tokens.colors.primary}
+          />
+        }
       >
-        {showOnboarding && !syncEnabled ? (
-          <View style={styles.onboardingCard}>
-            <Text style={styles.onboardingTitle}>
-              {t('sync.manage.onboardingTitle')}
-            </Text>
-            <Text style={styles.helperText}>
-              {t('sync.manage.onboardingMessage')}
+        {localError || syncHealth.lastError ? (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorBannerText}>
+              {localError ?? syncHealth.lastError}
             </Text>
             <AnimatedPressable
-              style={styles.onboardingDismissButton}
-              onPress={onDismissOnboarding}
+              style={styles.troubleshootButton}
+              onPress={onOpenDebug}
             >
-              <Text style={styles.onboardingDismissText}>
-                {t('sync.manage.onboardingDismiss')}
+              <Text style={styles.troubleshootButtonText}>
+                {t('sync.quick.actions.troubleshoot')}
               </Text>
             </AnimatedPressable>
           </View>
         ) : null}
-        {!syncEnabled ? (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Shield size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('sync.manage.roomSetup')}
+
+        <View style={styles.statusCard}>
+          <View style={styles.statusCardMain}>
+            <View style={styles.statusLine}>
+              <View
+                style={[styles.statusDotLarge, { backgroundColor: statusTone }]}
+              />
+              <Text style={[styles.statusValueLarge, { color: statusTone }]}>
+                {t(`sync.info.status.${syncHealth.status}`)}
               </Text>
             </View>
-            <Text style={styles.helperText}>
-              {t('sync.manage.roomSetupHint')}
+            <Text style={styles.statusCardMeta}>
+              {syncEnabled
+                ? t('sync.manage.syncedDevices', {
+                    count: pairedDevices.length,
+                  })
+                : t('sync.quick.state.off')}
             </Text>
-            <View style={styles.actionRow}>
-              <AnimatedPressable
-                style={styles.primaryButton}
-                onPress={onOpenCreateRoom}
+            {syncEnabled && syncState?.lastSyncedAt ? (
+              <Text style={styles.statusCardMeta}>
+                {t('sync.manage.lastSyncAt', { at: lastSyncedLabel })}
+              </Text>
+            ) : null}
+          </View>
+          <AnimatedPressable
+            style={syncEnabled ? styles.stopButton : styles.startButton}
+            onPress={() => runBusy('toggle', () => onToggleSync(!syncEnabled))}
+          >
+            {busy === 'toggle' ? (
+              <ActivityIndicator color={tokens.colors.onPrimary} />
+            ) : (
+              <Text
+                style={
+                  syncEnabled ? styles.stopButtonText : styles.startButtonText
+                }
               >
-                <Text style={styles.primaryButtonText}>
-                  {t('sync.manage.createRoom')}
-                </Text>
-              </AnimatedPressable>
-              <AnimatedPressable
-                style={styles.outlineButton}
-                onPress={onOpenJoinRoom}
-              >
-                <Text style={styles.outlineButtonText}>
-                  {t('sync.manage.joinRoom')}
-                </Text>
-              </AnimatedPressable>
-            </View>
+                {syncEnabled
+                  ? t('sync.manage.turnOff')
+                  : t('sync.manage.turnOn')}
+              </Text>
+            )}
+          </AnimatedPressable>
+        </View>
+
+        {!syncEnabled ? (
+          <View style={styles.actionRow}>
+            <AnimatedPressable
+              style={styles.primaryButton}
+              onPress={onOpenCreateRoom}
+            >
+              <Text style={styles.primaryButtonText}>
+                {t('sync.manage.createRoom')}
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={styles.outlineButton}
+              onPress={onOpenJoinRoom}
+            >
+              <Text style={styles.outlineButtonText}>
+                {t('sync.manage.joinRoom')}
+              </Text>
+            </AnimatedPressable>
           </View>
         ) : (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Shield size={16} color={tokens.colors.primary} />
-              <Text style={styles.sectionTitle}>
-                {t('sync.manage.roomSetup')}
-              </Text>
-            </View>
-            <View style={styles.activeBadge}>
-              <View
-                style={[
-                  styles.badgeDot,
-                  { backgroundColor: tokens.colors.primary },
-                ]}
-              />
-              <Text
-                style={[
-                  styles.helperText,
-                  { color: tokens.colors.primary, fontWeight: '700' },
-                ]}
+          <View style={styles.actionRow}>
+            {roomRole === 'creator' ? (
+              <AnimatedPressable
+                style={styles.outlineButton}
+                onPress={onShowSyncQR}
               >
-                {t('sync.manage.roomActive')}
-              </Text>
-            </View>
+                <Text style={styles.outlineButtonText}>
+                  {t('sync.manage.showQR')}
+                </Text>
+              </AnimatedPressable>
+            ) : null}
             <AnimatedPressable
               style={styles.leaveButton}
               onPress={() => runBusy('leave', onLeaveRoom)}
@@ -233,81 +254,17 @@ export function SyncManagementModal({
           </View>
         )}
 
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Link2 size={16} color={tokens.colors.primary} />
-            <Text style={styles.sectionTitle}>{t('sync.manage.status')}</Text>
-          </View>
-          <View style={styles.statusRow}>
-            <View style={styles.statusMeta}>
-              <View style={styles.statusLine}>
-                <View
-                  style={[styles.statusDot, { backgroundColor: statusTone }]}
-                />
-                <Text style={[styles.statusValue, { color: statusTone }]}>
-                  {t(`sync.info.status.${syncHealth.status}`)}
-                </Text>
-              </View>
-              <Text style={styles.helperText}>
-                {t('sync.manage.syncedDevices', {
-                  count: pairedDevices.length,
-                })}
-              </Text>
-              <Text style={styles.helperText}>
-                {t('sync.manage.lastSyncAt', { at: lastSyncedLabel })}
-              </Text>
-              <Text style={styles.helperText}>
-                {t('sync.manage.roleState', {
-                  role: roomRole ? t(`sync.manage.roles.${roomRole}`) : '—',
-                  state: t(`sync.manage.binding.${bindingState}`),
-                })}
-              </Text>
-            </View>
-            <AnimatedPressable
-              style={syncEnabled ? styles.stopButton : styles.startButton}
-              onPress={() =>
-                runBusy('toggle', () => onToggleSync(!syncEnabled))
-              }
-            >
-              {busy === 'toggle' ? (
-                <ActivityIndicator color={tokens.colors.onPrimary} />
-              ) : (
-                <Text
-                  style={
-                    syncEnabled ? styles.stopButtonText : styles.startButtonText
-                  }
-                >
-                  {syncEnabled
-                    ? t('sync.manage.turnOff')
-                    : t('sync.manage.turnOn')}
-                </Text>
-              )}
-            </AnimatedPressable>
-          </View>
-
-          <AnimatedPressable
-            style={styles.outlineButton}
-            onPress={() => runBusy('refresh', onRefresh)}
-          >
-            {busy === 'refresh' ? (
-              <ActivityIndicator color={tokens.colors.textPrimary} />
-            ) : (
-              <>
-                <RefreshCw size={16} color={tokens.colors.textPrimary} />
-                <Text style={styles.outlineButtonText}>
-                  {t('sync.manage.refresh')}
-                </Text>
-              </>
-            )}
-          </AnimatedPressable>
-
-          {syncState?.deviceId ? (
-            <>
-              <Text style={styles.helperText}>
+        {syncState?.deviceId ? (
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Shield size={16} color={tokens.colors.primary} />
+              <Text style={styles.sectionTitle}>
                 {t('sync.manage.thisDeviceCode', {
                   code: syncState.deviceId.slice(-4).toUpperCase(),
                 })}
               </Text>
+            </View>
+            <View style={styles.inlineRow}>
               <TextInput
                 value={draftDeviceName}
                 onChangeText={setDraftDeviceName}
@@ -316,10 +273,10 @@ export function SyncManagementModal({
                 spellCheck={false}
                 placeholder={t('sync.manage.deviceNamePlaceholder')}
                 placeholderTextColor={tokens.colors.textSecondary}
-                style={styles.keyInput}
+                style={[styles.keyInput, { flex: 1 }]}
               />
               <AnimatedPressable
-                style={styles.outlineButton}
+                style={styles.smallButton}
                 onPress={() =>
                   runBusy('rename', () => onRenameLocalDevice(draftDeviceName))
                 }
@@ -327,14 +284,14 @@ export function SyncManagementModal({
                 {busy === 'rename' ? (
                   <ActivityIndicator color={tokens.colors.textPrimary} />
                 ) : (
-                  <Text style={styles.outlineButtonText}>
+                  <Text style={styles.smallButtonText}>
                     {t('sync.manage.saveDeviceName')}
                   </Text>
                 )}
               </AnimatedPressable>
-            </>
-          ) : null}
-        </View>
+            </View>
+          </View>
+        ) : null}
 
         <AnimatedPressable
           style={styles.section}
@@ -440,14 +397,6 @@ export function SyncManagementModal({
             )}
           </View>
         ) : null}
-
-        {localError || syncHealth.lastError ? (
-          <View style={styles.errorPanel}>
-            <Text style={styles.errorText}>
-              {localError ?? syncHealth.lastError}
-            </Text>
-          </View>
-        ) : null}
       </ScrollView>
     </View>
   );
@@ -542,6 +491,65 @@ function createStyles(
       width: '100%',
       maxWidth: layout.isLandscape ? 920 : undefined,
     },
+    statusCard: {
+      borderRadius: tokens.radius.lg,
+      backgroundColor: tokens.colors.surfaceContainer,
+      padding: tokens.spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: tokens.spacing.md,
+    },
+    statusCardMain: {
+      flex: 1,
+      gap: 4,
+    },
+    statusLine: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.sm,
+    },
+    statusDotLarge: {
+      width: 12,
+      height: 12,
+      borderRadius: 6,
+    },
+    statusValueLarge: {
+      fontSize: tokens.type.body,
+      fontWeight: '800',
+    },
+    statusCardMeta: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      lineHeight: 18,
+    },
+    errorBanner: {
+      borderRadius: tokens.radius.lg,
+      backgroundColor: withAlpha(tokens.colors.accentDanger, 0.08),
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.accentDanger, 0.25),
+      padding: tokens.spacing.md,
+      gap: tokens.spacing.sm,
+    },
+    errorBannerText: {
+      color: tokens.colors.accentDanger,
+      fontSize: tokens.type.label,
+      lineHeight: 18,
+    },
+    troubleshootButton: {
+      alignSelf: 'flex-start',
+      minHeight: 36,
+      borderRadius: tokens.radius.md,
+      paddingHorizontal: tokens.spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: withAlpha(tokens.colors.accentDanger, 0.12),
+    },
+    troubleshootButtonText: {
+      color: tokens.colors.accentDanger,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
+    },
     section: {
       borderRadius: tokens.radius.lg,
       backgroundColor: tokens.colors.surfaceContainer,
@@ -561,41 +569,25 @@ function createStyles(
       fontSize: tokens.type.body,
       fontWeight: '700',
     },
-    activeBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      paddingVertical: 4,
-    },
-    badgeDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-    },
-    statusRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: tokens.spacing.md,
-      flexWrap: layout.isLandscape ? 'wrap' : 'nowrap',
-    },
-    statusMeta: {
-      flex: 1,
-      gap: 4,
-    },
-    statusLine: {
+    inlineRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: tokens.spacing.sm,
     },
-    statusDot: {
-      width: 9,
-      height: 9,
-      borderRadius: 5,
+    smallButton: {
+      minHeight: 42,
+      borderRadius: tokens.radius.md,
+      paddingHorizontal: tokens.spacing.md,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: tokens.colors.surfaceContainerHigh,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
     },
-    statusValue: {
-      fontSize: tokens.type.body,
-      fontWeight: '800',
+    smallButtonText: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
     },
     helperText: {
       color: tokens.colors.textSecondary,
@@ -671,33 +663,6 @@ function createStyles(
       fontSize: tokens.type.label,
       fontWeight: '800',
     },
-    onboardingCard: {
-      borderRadius: tokens.radius.lg,
-      backgroundColor: tokens.colors.primaryContainer,
-      padding: tokens.spacing.md,
-      gap: tokens.spacing.sm,
-      borderWidth: 1,
-      borderColor: withAlpha(tokens.colors.primary, 0.2),
-    },
-    onboardingTitle: {
-      color: tokens.colors.textPrimary,
-      fontSize: tokens.type.body,
-      fontWeight: '700',
-    },
-    onboardingDismissButton: {
-      alignSelf: 'flex-end',
-      minHeight: 36,
-      borderRadius: tokens.radius.md,
-      backgroundColor: tokens.colors.primary,
-      paddingHorizontal: tokens.spacing.md,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    onboardingDismissText: {
-      color: tokens.colors.onPrimary,
-      fontSize: tokens.type.label,
-      fontWeight: '700',
-    },
     keyInput: {
       borderRadius: tokens.radius.md,
       borderWidth: 1,
@@ -755,18 +720,6 @@ function createStyles(
       color: tokens.colors.accentDanger,
       fontSize: tokens.type.label,
       fontWeight: '800',
-    },
-    errorPanel: {
-      borderRadius: tokens.radius.md,
-      backgroundColor: withAlpha(tokens.colors.accentDanger, 0.08),
-      borderWidth: 1,
-      borderColor: withAlpha(tokens.colors.accentDanger, 0.25),
-      padding: tokens.spacing.md,
-    },
-    errorText: {
-      color: tokens.colors.accentDanger,
-      fontSize: tokens.type.label,
-      lineHeight: 18,
     },
   });
 }

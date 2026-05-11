@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Clipboard from 'expo-clipboard';
 import { File, Paths } from 'expo-file-system';
 import {
@@ -56,6 +55,7 @@ import { useSystemLanguage } from '@/i18n/systemLanguage';
 import { styles } from '@/screens/styles';
 import { useWorkoutStore } from '@/store/workoutStore';
 import { summarizeRuntime } from '@/sync/firstSync';
+import { clearRecentLogs } from '@/sync/logger';
 import { decodeSyncRoomInvite, encodeSyncRoomInvite } from '@/sync/roomInvite';
 import {
   getPairingSecretPayload,
@@ -87,7 +87,6 @@ export function WorkoutScreen() {
   const [createRoomOpen, setCreateRoomOpen] = useState(false);
   const [joinRoomOpen, setJoinRoomOpen] = useState(false);
   const [joinRoomScanOpen, setJoinRoomScanOpen] = useState(false);
-  const [syncOnboardingDismissed, setSyncOnboardingDismissed] = useState(false);
 
   const {
     snapshot,
@@ -150,14 +149,6 @@ export function WorkoutScreen() {
         setSyncMasterKey(key);
       } catch {
         setSyncMasterKey(null);
-      }
-      try {
-        const dismissed =
-          (await AsyncStorage.getItem('pearlift.sync.onboardingDismissed')) ===
-          '1';
-        setSyncOnboardingDismissed(dismissed);
-      } catch {
-        // ignore
       }
     })();
   }, [syncManagementOpen]);
@@ -834,7 +825,7 @@ export function WorkoutScreen() {
   };
 
   const handleResolveFirstSyncDecision = async (
-    choice: 'local_chosen' | 'remote_chosen',
+    choice: 'local_chosen' | 'remote_chosen' | 'merge_chosen',
   ) => {
     await resolveFirstSyncChoice(choice);
   };
@@ -873,28 +864,110 @@ export function WorkoutScreen() {
     );
   };
 
+  const handleShowSyncQRCode = async () => {
+    if (!syncState?.autobaseBootstrapKey) return;
+    const key = syncMasterKey ?? (await getPairingSecretPayload());
+    setSyncMasterKey(key);
+    setSyncRoomInvite(
+      encodeSyncRoomInvite({
+        pairingSecretHex: key,
+        bootstrapKeyHex: syncState.autobaseBootstrapKey,
+      }),
+    );
+    setCreateRoomOpen(true);
+  };
+
+  const handleOnboardingOpenCreate = () => {
+    void handleOpenCreateRoom();
+  };
+
+  const handleOnboardingOpenJoin = () => {
+    setJoinRoomOpen(true);
+  };
+
   const onboardingBlocking = snapshot?.isSetupDone === false;
+
+  const sharedSyncModals = (
+    <>
+      <SyncCreateRoomModal
+        open={createRoomOpen}
+        tokens={tokens}
+        topInset={insets.top}
+        bottomInset={insets.bottom}
+        invitePayload={syncRoomInvite}
+        isStarting={createRoomStarting}
+        localSummary={localSyncSummary}
+        onClose={() => setCreateRoomOpen(false)}
+      />
+
+      <SyncJoinRoomModal
+        open={joinRoomOpen}
+        tokens={tokens}
+        topInset={insets.top}
+        bottomInset={insets.bottom}
+        localSummary={localSyncSummary}
+        onJoinRoom={handleJoinRoom}
+        onScanRoomKey={() => setJoinRoomScanOpen(true)}
+        onClose={() => setJoinRoomOpen(false)}
+      />
+
+      <SyncRoomKeyScanModal
+        open={joinRoomScanOpen}
+        tokens={tokens}
+        topInset={insets.top}
+        bottomInset={insets.bottom}
+        onScanPayload={(payload) => handleJoinRoom(payload, false)}
+        onClose={() => setJoinRoomScanOpen(false)}
+      />
+
+      <SyncFirstDecisionModal
+        open={
+          syncState?.roomBindingState === 'conflict_requires_decision' ||
+          syncState?.roomBindingState === 'active_conflict_requires_decision'
+        }
+        tokens={tokens}
+        topInset={insets.top}
+        bottomInset={insets.bottom}
+        localSummary={syncState?.pendingLocalSummary ?? localSyncSummary}
+        remoteSummary={syncState?.pendingRemoteSummary ?? null}
+        conflictSummary={syncState?.pendingConflictSummary ?? null}
+        workoutNameMap={workoutNameMap}
+        exerciseNameMap={exerciseNameMap}
+        onChooseLocal={() => handleResolveFirstSyncDecision('local_chosen')}
+        onChooseRemote={() => handleResolveFirstSyncDecision('remote_chosen')}
+        onChooseMerge={() => handleResolveFirstSyncDecision('merge_chosen')}
+        onClose={() => {
+          void handleRefreshSync();
+        }}
+      />
+    </>
+  );
 
   if (onboardingBlocking) {
     return (
-      <SafeAreaView
-        edges={['left', 'right']}
-        style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
-      >
-        <StatusBar
-          style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
-          backgroundColor={tokens.colors.bgBase}
-          translucent={false}
-        />
-        <OnboardingScreen
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
-          weightUnit={weightUnit}
-          onWeightUnitChange={handleWeightUnitChange}
-          onComplete={finishOnboarding}
-        />
-      </SafeAreaView>
+      <>
+        {sharedSyncModals}
+        <SafeAreaView
+          edges={['left', 'right']}
+          style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
+        >
+          <StatusBar
+            style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
+            backgroundColor={tokens.colors.bgBase}
+            translucent={false}
+          />
+          <OnboardingScreen
+            tokens={tokens}
+            topInset={insets.top}
+            bottomInset={insets.bottom}
+            weightUnit={weightUnit}
+            onWeightUnitChange={handleWeightUnitChange}
+            onOpenSyncCreate={handleOnboardingOpenCreate}
+            onOpenSyncJoin={handleOnboardingOpenJoin}
+            onComplete={finishOnboarding}
+          />
+        </SafeAreaView>
+      </>
     );
   }
 
@@ -942,7 +1015,6 @@ export function WorkoutScreen() {
           topInset={insets.top}
           maxWidth={responsiveLayout.contentMaxWidth}
           syncHealth={syncHealth}
-          syncEnabled={syncState?.syncEnabled ?? false}
           onOpenSettings={() => {
             setSettingsOpen(true);
           }}
@@ -1055,7 +1127,6 @@ export function WorkoutScreen() {
           onLanguageChange={handleLanguageChange}
           onLanguageListOpen={() => setLanguageListOpen(true)}
           syncEnabled={syncState?.syncEnabled ?? false}
-          syncPeers={pairedDevices.length}
           syncLastSyncedAt={syncState?.lastSyncedAt ?? null}
           onOpenSync={() => void handleOpenSyncManagement()}
           onShareToDevice={() => setShareToDeviceOpen(true)}
@@ -1068,6 +1139,8 @@ export function WorkoutScreen() {
           }}
           onOpenGithub={handleOpenGithub}
         />
+
+        {sharedSyncModals}
 
         <SyncManagementModal
           open={syncManagementOpen}
@@ -1084,6 +1157,7 @@ export function WorkoutScreen() {
             void handleOpenCreateRoom();
           }}
           onOpenJoinRoom={() => setJoinRoomOpen(true)}
+          onShowSyncQR={() => void handleShowSyncQRCode()}
           onApplyMasterKey={handleApplyMasterKey}
           onRenameLocalDevice={renameLocalDevice}
           onCopyMasterKey={handleCopyMasterKey}
@@ -1096,62 +1170,6 @@ export function WorkoutScreen() {
           onClose={() => {
             setSyncManagementOpen(false);
           }}
-          showOnboarding={!syncOnboardingDismissed}
-          onDismissOnboarding={() => {
-            setSyncOnboardingDismissed(true);
-            void AsyncStorage.setItem('pearlift.sync.onboardingDismissed', '1');
-          }}
-        />
-
-        <SyncCreateRoomModal
-          open={createRoomOpen}
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
-          invitePayload={syncRoomInvite}
-          isStarting={createRoomStarting}
-          localSummary={localSyncSummary}
-          onClose={() => setCreateRoomOpen(false)}
-        />
-
-        <SyncJoinRoomModal
-          open={joinRoomOpen}
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
-          localSummary={localSyncSummary}
-          onJoinRoom={handleJoinRoom}
-          onScanRoomKey={() => setJoinRoomScanOpen(true)}
-          onClose={() => setJoinRoomOpen(false)}
-        />
-
-        <SyncRoomKeyScanModal
-          open={joinRoomScanOpen}
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
-          onScanPayload={(payload) => handleJoinRoom(payload, false)}
-          onClose={() => setJoinRoomScanOpen(false)}
-        />
-
-        <SyncFirstDecisionModal
-          open={
-            syncState?.roomBindingState === 'conflict_requires_decision' ||
-            syncState?.roomBindingState === 'active_conflict_requires_decision'
-          }
-          tokens={tokens}
-          topInset={insets.top}
-          bottomInset={insets.bottom}
-          localSummary={syncState?.pendingLocalSummary ?? localSyncSummary}
-          remoteSummary={syncState?.pendingRemoteSummary ?? null}
-          conflictSummary={syncState?.pendingConflictSummary ?? null}
-          workoutNameMap={workoutNameMap}
-          exerciseNameMap={exerciseNameMap}
-          onChooseLocal={() => handleResolveFirstSyncDecision('local_chosen')}
-          onChooseRemote={() => handleResolveFirstSyncDecision('remote_chosen')}
-          onClose={() => {
-            void handleRefreshSync();
-          }}
         />
 
         <SyncDebugInfoModal
@@ -1162,6 +1180,10 @@ export function WorkoutScreen() {
           syncHealth={syncHealth}
           logEntries={syncLogs}
           onRefresh={handleRefreshSync}
+          onClearLogs={() => {
+            clearRecentLogs();
+            void refreshSyncLogs();
+          }}
           onClose={() => {
             setSyncDebugOpen(false);
           }}

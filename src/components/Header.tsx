@@ -8,7 +8,6 @@ interface HeaderProps {
   topInset: number;
   maxWidth?: number;
   syncHealth?: SyncHealth | null;
-  syncEnabled?: boolean;
   onOpenSettings: () => void;
   onOpenSync?: () => void;
 }
@@ -18,7 +17,6 @@ export function Header({
   topInset,
   maxWidth,
   syncHealth,
-  syncEnabled,
   onOpenSettings,
   onOpenSync,
 }: HeaderProps) {
@@ -56,7 +54,7 @@ export function Header({
         </View>
 
         <View style={styles.actionsRow}>
-          {syncEnabled && syncHealth ? (
+          {syncHealth ? (
             <Pressable
               onPress={onOpenSync ?? onOpenSettings}
               style={styles.syncDotButton}

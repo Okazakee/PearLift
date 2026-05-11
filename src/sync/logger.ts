@@ -14,7 +14,7 @@ export interface SyncLogEntry {
   data?: Record<string, unknown>;
 }
 
-const MAX_LOG_ENTRIES = 200;
+const MAX_LOG_ENTRIES = 100;
 const logRing: SyncLogEntry[] = [];
 let diagnosticsSink: ((entry: SyncLogEntry) => void) | null = null;
 let currentDeviceTag = createRuntimeDeviceTag();
@@ -183,7 +183,7 @@ export function resetSyncLogDeviceTagToRuntime() {
 export function combineLogs(
   a: SyncLogEntry[],
   b: SyncLogEntry[],
-  cap = 400,
+  cap = 100,
 ): SyncLogEntry[] {
   const merged = [...a, ...b];
   merged.sort((x, y) => y.ts - x.ts);

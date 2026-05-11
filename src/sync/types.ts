@@ -167,7 +167,7 @@ export interface SyncManager {
   onHealth(cb: (health: SyncHealth) => void): () => void;
   onRemoteApplied(cb: () => void): () => void;
   onStateChanged(cb: () => void): () => void;
-  resolveFirstSyncChoice(choice: 'local' | 'remote'): Promise<void>;
+  resolveFirstSyncChoice(choice: 'local' | 'remote' | 'merge'): Promise<void>;
   publishDeviceProfile(displayName: string): Promise<void>;
   leaveRoom(): Promise<void>;
   isActive(): boolean;

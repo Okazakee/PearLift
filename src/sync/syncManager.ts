@@ -579,9 +579,35 @@ class SyncManagerImpl implements SyncManager {
     void this.resolvePendingJoin(false);
   }
 
-  async resolveFirstSyncChoice(choice: 'local' | 'remote') {
+  async resolveFirstSyncChoice(choice: 'local' | 'remote' | 'merge') {
     const localRuntime =
       this.pendingLocalRuntime ?? (await this.repository.getRuntimeState());
+
+    if (choice === 'merge') {
+      const latestSnapshotOp = [...this.bufferedRemoteOps]
+        .reverse()
+        .find((op) => getOpPayload(op).kind === 'snapshot_replace');
+      const remoteSnapshotPayload =
+        latestSnapshotOp && getOpPayload(latestSnapshotOp).kind === 'snapshot_replace'
+          ? (getOpPayload(latestSnapshotOp) as SyncSnapshotReplacePayload)
+          : null;
+      const remoteRuntime = remoteSnapshotPayload!.runtime;
+      const merged = mergeDisjointRuntime(localRuntime, remoteRuntime);
+      await this.repository.applyMutation(
+        {
+          type: 'restoreRuntimeState',
+          runtime: merged,
+          source: 'migration',
+        },
+        { origin: 'local', suppressSyncEmit: true },
+      );
+      await this.publishSnapshotReplace(merged, 'merge_chosen');
+      await this.repository.clearPendingLocalSyncMutations();
+      this.pendingReconnectLocalMutations = [];
+      this.bufferedRemoteOps = [];
+      this.emitStateChanged();
+      return;
+    }
 
     if (choice === 'local') {
       await this.publishSnapshotReplace(localRuntime, 'local_chosen');

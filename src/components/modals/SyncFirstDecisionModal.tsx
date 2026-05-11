@@ -21,6 +21,7 @@ interface SyncFirstDecisionModalProps {
   exerciseNameMap: Record<string, string>;
   onChooseLocal: () => Promise<void>;
   onChooseRemote: () => Promise<void>;
+  onChooseMerge?: () => Promise<void>;
   onClose: () => void;
 }
 
@@ -36,6 +37,7 @@ export function SyncFirstDecisionModal({
   exerciseNameMap,
   onChooseLocal,
   onChooseRemote,
+  onChooseMerge,
   onClose,
 }: SyncFirstDecisionModalProps) {
   const { t } = useTranslation();
@@ -44,10 +46,21 @@ export function SyncFirstDecisionModal({
     () => createStyles(tokens, topInset, bottomInset, layout),
     [tokens, topInset, bottomInset, layout],
   );
-  const [busyChoice, setBusyChoice] = useState<'local' | 'remote' | null>(null);
+  const [busyChoice, setBusyChoice] = useState<
+    'local' | 'remote' | 'merge' | null
+  >(null);
+
+  const canMerge =
+    onChooseMerge != null &&
+    conflictSummary != null &&
+    conflictSummary.overlappingWorkoutIds.length === 0 &&
+    conflictSummary.overlappingExerciseIds.length === 0 &&
+    conflictSummary.overlappingWeekConfigIds.length === 0 &&
+    conflictSummary.overlappingDayConfigIds.length === 0 &&
+    conflictSummary.remoteOpCount <= 24;
 
   const runChoice = async (
-    choice: 'local' | 'remote',
+    choice: 'local' | 'remote' | 'merge',
     action: () => Promise<void>,
   ) => {
     if (busyChoice) return;
@@ -150,7 +163,39 @@ export function SyncFirstDecisionModal({
                 backlog: conflictSummary.remoteOpCount,
               })}
             </Text>
+            {!canMerge && onChooseMerge != null ? (
+              <Text
+                style={[
+                  styles.helperText,
+                  {
+                    color: tokens.colors.accentWarning,
+                    fontWeight: '600',
+                    marginTop: 4,
+                  },
+                ]}
+              >
+                {t('sync.decision.mergeUnavailableHint')}
+              </Text>
+            ) : null}
           </View>
+        ) : null}
+
+        {canMerge && onChooseMerge != null ? (
+          <AnimatedPressable
+            style={styles.mergeButton}
+            onPress={() => void runChoice('merge', onChooseMerge)}
+          >
+            {busyChoice === 'merge' ? (
+              <ActivityIndicator color={tokens.colors.onPrimary} />
+            ) : (
+              <>
+                <ArrowLeftRight size={16} color={tokens.colors.onPrimary} />
+                <Text style={styles.mergeButtonText}>
+                  {t('sync.decision.useMerge')}
+                </Text>
+              </>
+            )}
+          </AnimatedPressable>
         ) : null}
 
         <AnimatedPressable
@@ -247,6 +292,22 @@ function createStyles(
       fontSize: tokens.type.label,
       fontWeight: '800',
       marginBottom: 4,
+    },
+    mergeButton: {
+      minHeight: 48,
+      borderRadius: tokens.radius.md,
+      backgroundColor: tokens.colors.primaryContainer,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: tokens.spacing.sm,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.2),
+    },
+    mergeButtonText: {
+      color: tokens.colors.primary,
+      fontSize: tokens.type.label,
+      fontWeight: '800',
     },
     primaryButton: {
       minHeight: 48,

@@ -76,7 +76,10 @@ interface WorkoutStore {
   renameLocalDevice: (displayName: string) => Promise<void>;
   leaveSyncRoom: () => Promise<void>;
   resolveFirstSyncChoice: (
-    choice: Extract<SyncFirstSyncResolution, 'local_chosen' | 'remote_chosen'>,
+    choice: Extract<
+      SyncFirstSyncResolution,
+      'local_chosen' | 'remote_chosen' | 'merge_chosen'
+    >,
   ) => Promise<void>;
 
   showPrompt: (
@@ -215,6 +218,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     }
 
     try {
+      if (mutation.type === 'resetAllData') {
+        const { syncManager: manager } = get();
+        if (manager) {
+          await manager.leaveRoom();
+        }
+      }
+
       await repository.applyMutation(mutation);
 
       let persistedSnapshot: WorkoutStoreSnapshot | null = null;
@@ -331,9 +341,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
   resolveFirstSyncChoice: async (choice) => {
     const { syncManager } = get();
     if (!syncManager) return;
-    await syncManager.resolveFirstSyncChoice(
-      choice === 'local_chosen' ? 'local' : 'remote',
-    );
+    const normalizedChoice =
+      choice === 'local_chosen'
+        ? 'local'
+        : choice === 'remote_chosen'
+          ? 'remote'
+          : 'merge';
+    await syncManager.resolveFirstSyncChoice(normalizedChoice);
     await get().reload();
     await get().refreshSyncState();
     await get().refreshSyncLogs();

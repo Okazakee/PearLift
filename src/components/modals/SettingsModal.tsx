@@ -38,7 +38,6 @@ interface SettingsModalProps {
   onLanguageChange: (next: string) => void;
   onLanguageListOpen: () => void;
   syncEnabled: boolean;
-  syncPeers: number;
   syncLastSyncedAt: string | null;
   onOpenSync: () => void;
   onShareToDevice: () => void;
@@ -67,7 +66,6 @@ export function SettingsModal({
   onLanguageChange,
   onLanguageListOpen,
   syncEnabled,
-  syncPeers,
   syncLastSyncedAt,
   onOpenSync,
   onShareToDevice,
@@ -116,7 +114,6 @@ export function SettingsModal({
           tokens={tokens}
           styles={styles}
           syncEnabled={syncEnabled}
-          syncPeers={syncPeers}
           syncLastSyncedAt={syncLastSyncedAt}
           onOpenSync={onOpenSync}
         />
