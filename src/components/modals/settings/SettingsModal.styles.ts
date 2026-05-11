@@ -221,7 +221,9 @@ export function createSettingsStyles(
       textAlign: 'right',
     },
     poweredByFooter: {
+      flexDirection: 'row',
       alignItems: 'center',
+      justifyContent: 'center',
       paddingVertical: tokens.spacing.lg,
       gap: tokens.spacing.sm,
     },

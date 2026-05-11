@@ -1,10 +1,7 @@
 import { Linking, Pressable, Text, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
-import { useCachedSvg } from '@/hooks/useCachedSvg';
 
-const HOLEPUNCH_LOGO_WIDTH = 88;
-const HOLEPUNCH_LOGO_HEIGHT = 36;
 const PEAR_LOGO_WIDTH = 120;
 const PEAR_LOGO_HEIGHT = 29;
 const PEAR_LOGO_SVG = `
@@ -35,41 +32,19 @@ interface PoweredByFooterProps {
 }
 
 export function PoweredByFooter({ styles }: PoweredByFooterProps) {
-  const { svgContent: holepunchSvg } = useCachedSvg(
-    'https://holepunch.to/images/holepunch-logo-short.svg',
-    'holepunch-logo.svg',
-  );
-
   return (
     <View style={styles.poweredByFooter}>
       <Text style={styles.poweredByText}>Powered by</Text>
-      <View style={styles.poweredByLogos}>
-        <Pressable
-          style={styles.poweredByLogoPressable}
-          onPress={() => Linking.openURL('https://holepunch.to')}
-        >
-          {holepunchSvg ? (
-            <SvgXml
-              xml={holepunchSvg}
-              width={HOLEPUNCH_LOGO_WIDTH}
-              height={HOLEPUNCH_LOGO_HEIGHT}
-            />
-          ) : (
-            <Text style={styles.poweredByText}>Holepunch</Text>
-          )}
-        </Pressable>
-        <Text style={styles.poweredByAmpersand}>+</Text>
-        <Pressable
-          style={styles.poweredByLogoPressable}
-          onPress={() => Linking.openURL('https://pears.com')}
-        >
-          <SvgXml
-            xml={PEAR_LOGO_SVG}
-            width={PEAR_LOGO_WIDTH}
-            height={PEAR_LOGO_HEIGHT}
-          />
-        </Pressable>
-      </View>
+      <Pressable
+        style={styles.poweredByLogoPressable}
+        onPress={() => Linking.openURL('https://pears.com')}
+      >
+        <SvgXml
+          xml={PEAR_LOGO_SVG}
+          width={PEAR_LOGO_WIDTH}
+          height={PEAR_LOGO_HEIGHT}
+        />
+      </Pressable>
     </View>
   );
 }
