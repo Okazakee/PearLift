@@ -37,6 +37,7 @@ const DAY_CONFIG_REVISION_SETTING = 'syncDayConfigsRevisionAt';
 const DEVICE_DISPLAY_NAME_SETTING = 'syncDeviceDisplayName';
 const PENDING_LOCAL_MUTATIONS_SETTING = 'syncPendingLocalMutations';
 const PENDING_DEVICE_PROFILE_NAME_SETTING = 'syncPendingDeviceProfileName';
+const SYNC_APPLIED_OP_RETENTION_LIMIT = 4000;
 
 function toDeviceCode(deviceId: string) {
   return deviceId.replace(/-/g, '').slice(-4).toUpperCase();
@@ -258,6 +259,25 @@ type SyncStateDbRow = {
   last_error: string | null;
   last_synced_at: string | null;
   updated_at: string;
+};
+
+type SyncRoomStateDbRow = {
+  sync_role: SyncRole | null;
+  room_binding_state: SyncRoomBindingState | null;
+  first_sync_resolution: SyncFirstSyncResolution | null;
+  pending_local_summary: string | null;
+  pending_remote_summary: string | null;
+  pending_conflict_summary: string | null;
+};
+
+type SyncOutboxRow = {
+  id: number;
+  payload_json: string;
+};
+
+type SyncProfileOutboxRow = {
+  id: number;
+  display_name: string;
 };
 
 function parseJsonColumn<T>(value: string | null): T | null {
@@ -682,20 +702,7 @@ export class WorkoutRepository {
           }
           case 'restoreRuntimeState': {
             await this.replaceAllState(db, mutation.runtime);
-            if (ctx.origin === 'remote' && ctx.createdAt) {
-              await this.writeSetting(
-                db,
-                WEEK_CONFIG_REVISION_SETTING,
-                ctx.createdAt,
-                ctx.createdAt,
-              );
-              await this.writeSetting(
-                db,
-                DAY_CONFIG_REVISION_SETTING,
-                ctx.createdAt,
-                ctx.createdAt,
-              );
-            }
+            await this.resetSyncState(db);
             await this.writeSetting(db, 'setupDone', 'true');
             break;
           }
@@ -852,22 +859,37 @@ export class WorkoutRepository {
     await this.initialize();
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
-      await this.writeSetting(
-        db,
-        PENDING_DEVICE_PROFILE_NAME_SETTING,
-        displayName?.trim() ?? '',
-      );
+      const normalized = displayName?.trim() ?? '';
+      await db.runAsync('DELETE FROM sync_profile_outbox');
+      if (normalized) {
+        await db.runAsync(
+          `INSERT INTO sync_profile_outbox (display_name, created_at)
+           VALUES (?, ?)`,
+          normalized,
+          nowIso(),
+        );
+      }
+      await this.writeSetting(db, PENDING_DEVICE_PROFILE_NAME_SETTING, '');
     });
   }
 
   async getPendingDeviceProfileDisplayName(): Promise<string | null> {
     await this.initialize();
     const db = await getDatabase();
-    const value = await this.readSetting(
+    const row = await db.getFirstAsync<SyncProfileOutboxRow>(
+      `SELECT id, display_name
+       FROM sync_profile_outbox
+       ORDER BY id ASC
+       LIMIT 1`,
+    );
+    if (row?.display_name?.trim()) {
+      return row.display_name.trim();
+    }
+    const legacy = await this.readSetting(
       db,
       PENDING_DEVICE_PROFILE_NAME_SETTING,
     );
-    const normalized = value?.trim() ?? '';
+    const normalized = legacy?.trim() ?? '';
     return normalized || null;
   }
 
@@ -879,16 +901,15 @@ export class WorkoutRepository {
     await this.initialize();
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
-      const existing = await this.readSetting(
-        db,
-        PENDING_LOCAL_MUTATIONS_SETTING,
-      );
-      const parsed = this.parsePendingLocalMutations(existing);
-      parsed.push(mutation);
-      await this.writeSetting(
-        db,
-        PENDING_LOCAL_MUTATIONS_SETTING,
-        JSON.stringify(parsed),
+      const state = await this.readSyncState(db);
+      if (!state.syncEnabled) {
+        return;
+      }
+      await db.runAsync(
+        `INSERT INTO sync_outbox (payload_json, created_at)
+         VALUES (?, ?)`,
+        JSON.stringify(mutation),
+        nowIso(),
       );
     });
   }
@@ -896,6 +917,22 @@ export class WorkoutRepository {
   async getPendingLocalSyncMutations(): Promise<SyncMutation[]> {
     await this.initialize();
     const db = await getDatabase();
+    const rows = await db.getAllAsync<SyncOutboxRow>(
+      `SELECT id, payload_json
+       FROM sync_outbox
+       ORDER BY id ASC`,
+    );
+    if (rows.length > 0) {
+      return rows
+        .map((row) => {
+          try {
+            return JSON.parse(row.payload_json) as SyncMutation;
+          } catch {
+            return null;
+          }
+        })
+        .filter((mutation): mutation is SyncMutation => mutation != null);
+    }
     return this.parsePendingLocalMutations(
       await this.readSetting(db, PENDING_LOCAL_MUTATIONS_SETTING),
     );
@@ -905,7 +942,24 @@ export class WorkoutRepository {
     await this.initialize();
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
+      await db.runAsync('DELETE FROM sync_outbox');
       await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
+    });
+  }
+
+  async pruneAppliedSyncOps(limit = SYNC_APPLIED_OP_RETENTION_LIMIT) {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.runAsync(
+        `DELETE FROM sync_applied_ops
+         WHERE op_id IN (
+           SELECT op_id FROM sync_applied_ops
+           ORDER BY applied_at DESC, op_id DESC
+           LIMIT -1 OFFSET ?
+         )`,
+        limit,
+      );
     });
   }
 
@@ -916,6 +970,8 @@ export class WorkoutRepository {
       await db.withTransactionAsync(async () => {
         await db.runAsync('DELETE FROM sync_applied_ops');
         await db.runAsync('DELETE FROM sync_devices');
+        await db.runAsync('DELETE FROM sync_outbox');
+        await db.runAsync('DELETE FROM sync_profile_outbox');
         await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
         await this.writeSyncStatePatch(db, {
           autobaseBootstrapKey: null,
@@ -939,6 +995,8 @@ export class WorkoutRepository {
       await db.withTransactionAsync(async () => {
         await db.runAsync('DELETE FROM sync_applied_ops');
         await db.runAsync('DELETE FROM sync_devices');
+        await db.runAsync('DELETE FROM sync_outbox');
+        await db.runAsync('DELETE FROM sync_profile_outbox');
         await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
         await this.writeSyncStatePatch(db, {
           syncEnabled: false,
@@ -995,6 +1053,8 @@ export class WorkoutRepository {
   private async resetSyncState(db: SQLiteDatabase) {
     await db.runAsync('DELETE FROM sync_applied_ops');
     await db.runAsync('DELETE FROM sync_devices');
+    await db.runAsync('DELETE FROM sync_outbox');
+    await db.runAsync('DELETE FROM sync_profile_outbox');
     await this.writeSetting(db, PENDING_LOCAL_MUTATIONS_SETTING, '[]');
     await this.writeSyncStatePatch(db, {
       syncEnabled: false,
@@ -1255,8 +1315,25 @@ export class WorkoutRepository {
     );
   }
 
+  private async ensureSyncRoomStateRow(db: SQLiteDatabase) {
+    await db.runAsync(
+      `INSERT OR IGNORE INTO sync_room_state (
+        id,
+        sync_role,
+        room_binding_state,
+        first_sync_resolution,
+        pending_local_summary,
+        pending_remote_summary,
+        pending_conflict_summary,
+        updated_at
+      ) VALUES (1, NULL, 'unconfigured', 'unknown', NULL, NULL, NULL, ?)`,
+      nowIso(),
+    );
+  }
+
   private async readSyncState(db: SQLiteDatabase): Promise<SyncStateRow> {
     await this.ensureSyncStateRow(db);
+    await this.ensureSyncRoomStateRow(db);
     const row = await db.getFirstAsync<SyncStateDbRow>(
       `SELECT
         sync_enabled,
@@ -1277,6 +1354,16 @@ export class WorkoutRepository {
         updated_at
       FROM sync_state WHERE id = 1`,
     );
+    const roomRow = await db.getFirstAsync<SyncRoomStateDbRow>(
+      `SELECT
+        sync_role,
+        room_binding_state,
+        first_sync_resolution,
+        pending_local_summary,
+        pending_remote_summary,
+        pending_conflict_summary
+      FROM sync_room_state WHERE id = 1`,
+    );
 
     if (!row) {
       const now = nowIso();
@@ -1288,12 +1375,18 @@ export class WorkoutRepository {
         pairingSecretTag: null,
         autobaseBootstrapKey: null,
         lamportCounter: 0,
-        syncRole: null,
-        roomBindingState: 'unconfigured',
-        firstSyncResolution: 'unknown',
-        pendingLocalSummary: null,
-        pendingRemoteSummary: null,
-        pendingConflictSummary: null,
+        syncRole: roomRow?.sync_role ?? null,
+        roomBindingState: roomRow?.room_binding_state ?? 'unconfigured',
+        firstSyncResolution: roomRow?.first_sync_resolution ?? 'unknown',
+        pendingLocalSummary: parseJsonColumn<SyncDataSummary>(
+          roomRow?.pending_local_summary ?? null,
+        ),
+        pendingRemoteSummary: parseJsonColumn<SyncDataSummary>(
+          roomRow?.pending_remote_summary ?? null,
+        ),
+        pendingConflictSummary: parseJsonColumn<SyncConflictSummary>(
+          roomRow?.pending_conflict_summary ?? null,
+        ),
         lastError: null,
         lastSyncedAt: null,
         updatedAt: now,
@@ -1308,17 +1401,21 @@ export class WorkoutRepository {
       pairingSecretTag: row.pairing_secret_tag,
       autobaseBootstrapKey: row.autobase_bootstrap_key,
       lamportCounter: row.lamport_counter,
-      syncRole: row.sync_role,
-      roomBindingState: row.room_binding_state ?? 'unconfigured',
-      firstSyncResolution: row.first_sync_resolution ?? 'unknown',
+      syncRole: roomRow?.sync_role ?? row.sync_role,
+      roomBindingState:
+        roomRow?.room_binding_state ?? row.room_binding_state ?? 'unconfigured',
+      firstSyncResolution:
+        roomRow?.first_sync_resolution ??
+        row.first_sync_resolution ??
+        'unknown',
       pendingLocalSummary: parseJsonColumn<SyncDataSummary>(
-        row.pending_local_summary,
+        roomRow?.pending_local_summary ?? row.pending_local_summary,
       ),
       pendingRemoteSummary: parseJsonColumn<SyncDataSummary>(
-        row.pending_remote_summary,
+        roomRow?.pending_remote_summary ?? row.pending_remote_summary,
       ),
       pendingConflictSummary: parseJsonColumn<SyncConflictSummary>(
-        row.pending_conflict_summary,
+        roomRow?.pending_conflict_summary ?? row.pending_conflict_summary,
       ),
       lastError: row.last_error,
       lastSyncedAt: row.last_synced_at,
@@ -1331,6 +1428,7 @@ export class WorkoutRepository {
     patch: Partial<SyncStateRow>,
   ) {
     await this.ensureSyncStateRow(db);
+    await this.ensureSyncRoomStateRow(db);
 
     const keys: Array<keyof SyncStateRow> = Object.keys(patch) as Array<
       keyof SyncStateRow
@@ -1358,8 +1456,10 @@ export class WorkoutRepository {
       updatedAt: 'updated_at',
     };
 
-    const setClauses: string[] = [];
-    const values: Array<number | string | null> = [];
+    const stateSetClauses: string[] = [];
+    const stateValues: Array<number | string | null> = [];
+    const roomSetClauses: string[] = [];
+    const roomValues: Array<string | number | null> = [];
 
     for (const key of keys) {
       if (key === 'updatedAt') {
@@ -1367,28 +1467,58 @@ export class WorkoutRepository {
       }
       const column = columnMap[key];
       if (!column) continue;
-      setClauses.push(`${column} = ?`);
-      if (key === 'syncEnabled') {
-        values.push(patch[key] ? 1 : 0);
-      } else if (
+      const isRoomColumn =
+        key === 'syncRole' ||
+        key === 'roomBindingState' ||
+        key === 'firstSyncResolution' ||
         key === 'pendingLocalSummary' ||
         key === 'pendingRemoteSummary' ||
-        key === 'pendingConflictSummary'
-      ) {
-        values.push(patch[key] == null ? null : JSON.stringify(patch[key]));
+        key === 'pendingConflictSummary';
+      if (isRoomColumn) {
+        roomSetClauses.push(`${column} = ?`);
+        if (
+          key === 'pendingLocalSummary' ||
+          key === 'pendingRemoteSummary' ||
+          key === 'pendingConflictSummary'
+        ) {
+          roomValues.push(
+            patch[key] == null ? null : JSON.stringify(patch[key]),
+          );
+        } else {
+          roomValues.push(
+            (patch[key] as string | number | null | undefined)?.toString() ??
+              null,
+          );
+        }
       } else {
-        values.push((patch[key] as string | number | null | undefined) ?? null);
+        stateSetClauses.push(`${column} = ?`);
+        if (key === 'syncEnabled') {
+          stateValues.push(patch[key] ? 1 : 0);
+        } else {
+          stateValues.push(
+            (patch[key] as string | number | null | undefined) ?? null,
+          );
+        }
       }
     }
-
-    setClauses.push('updated_at = ?');
-    values.push(patch.updatedAt ?? nowIso());
-    values.push(1);
+    const updatedAt = patch.updatedAt ?? nowIso();
+    stateSetClauses.push('updated_at = ?');
+    stateValues.push(updatedAt);
+    stateValues.push(1);
 
     await db.runAsync(
-      `UPDATE sync_state SET ${setClauses.join(', ')} WHERE id = ?`,
-      ...values,
+      `UPDATE sync_state SET ${stateSetClauses.join(', ')} WHERE id = ?`,
+      ...stateValues,
     );
+    if (roomSetClauses.length > 0) {
+      roomSetClauses.push('updated_at = ?');
+      roomValues.push(updatedAt);
+      roomValues.push(1);
+      await db.runAsync(
+        `UPDATE sync_room_state SET ${roomSetClauses.join(', ')} WHERE id = ?`,
+        ...roomValues,
+      );
+    }
   }
 
   private async hasAppliedSyncOpInDb(db: SQLiteDatabase, opId: string) {

@@ -92,15 +92,53 @@ async function configureDatabase(db: SQLite.SQLiteDatabase) {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS sync_room_state (
+      id INTEGER PRIMARY KEY CHECK (id = 1),
+      sync_role TEXT,
+      room_binding_state TEXT NOT NULL DEFAULT 'unconfigured',
+      first_sync_resolution TEXT NOT NULL DEFAULT 'unknown',
+      pending_local_summary TEXT,
+      pending_remote_summary TEXT,
+      pending_conflict_summary TEXT,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sync_outbox (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      payload_json TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS sync_profile_outbox (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      display_name TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_sync_applied_ops_device_lamport
     ON sync_applied_ops(device_id, lamport);
+
+    CREATE INDEX IF NOT EXISTS idx_sync_applied_ops_applied_at
+    ON sync_applied_ops(applied_at);
 
     CREATE INDEX IF NOT EXISTS idx_sync_devices_last_seen
     ON sync_devices(last_seen DESC);
 
+    CREATE INDEX IF NOT EXISTS idx_sync_outbox_created_at
+    ON sync_outbox(created_at, id);
+
+    CREATE INDEX IF NOT EXISTS idx_sync_profile_outbox_created_at
+    ON sync_profile_outbox(created_at, id);
+
   `);
 
-  await ensureSyncStateColumns(db);
+  try {
+    await ensureSyncStateColumns(db);
+    await ensureSyncRoomStateSeed(db);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[database] sync schema migration failed', error);
+  }
 }
 
 async function ensureSyncStateColumns(db: SQLite.SQLiteDatabase) {
@@ -122,6 +160,21 @@ async function ensureSyncStateColumns(db: SQLite.SQLiteDatabase) {
       // Existing installs already have the column.
     }
   }
+}
+
+async function ensureSyncRoomStateSeed(db: SQLite.SQLiteDatabase) {
+  await db.runAsync(
+    `INSERT OR IGNORE INTO sync_room_state (
+      id,
+      sync_role,
+      room_binding_state,
+      first_sync_resolution,
+      pending_local_summary,
+      pending_remote_summary,
+      pending_conflict_summary,
+      updated_at
+    ) VALUES (1, NULL, 'unconfigured', 'unknown', NULL, NULL, NULL, datetime('now'))`,
+  );
 }
 
 export async function getDatabase() {

@@ -262,6 +262,7 @@ class SyncManagerImpl implements SyncManager {
         }
 
         this.active = true;
+        await this.repository.pruneAppliedSyncOps();
         logSyncEvent(
           'info',
           'manager',

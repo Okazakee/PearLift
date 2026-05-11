@@ -246,7 +246,10 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
           mutation,
           persistedSnapshot ?? get().snapshot,
         );
-      } else if (isSyncableMutation(mutation)) {
+      } else if (
+        isSyncableMutation(mutation) &&
+        get().syncState?.syncEnabled === true
+      ) {
         const canonical = canonicalizeMutationForSync(
           mutation,
           persistedSnapshot ?? get().snapshot,
