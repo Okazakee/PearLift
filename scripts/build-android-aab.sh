@@ -8,7 +8,9 @@ GRADLE_FILE="${ANDROID_DIR}/app/build.gradle"
 DEFAULT_ABIS="armeabi-v7a,arm64-v8a,x86,x86_64"
 RELEASE_ABIS="${PEARLIFT_RELEASE_ABIS:-${DEFAULT_ABIS}}"
 PREBUILD_CLEAN="${PEARLIFT_PREBUILD_CLEAN:-1}"
+REQUIRE_RELEASE_KEY="${PEARLIFT_REQUIRE_RELEASE_KEY:-0}"
 ENV_FILE="${ROOT_DIR}/.env.local"
+KEYSTORE_PROPERTIES="${ANDROID_DIR}/keystore.properties"
 
 if [[ -f "${ENV_FILE}" ]]; then
   # shellcheck disable=SC1090
@@ -33,20 +35,18 @@ if [[ "${PREBUILD_CLEAN}" != "0" ]]; then
   fi
 fi
 
-if [[ -z "${PEARLIFT_UPLOAD_STORE_FILE:-}" || -z "${PEARLIFT_UPLOAD_STORE_PASSWORD:-}" || -z "${PEARLIFT_UPLOAD_KEY_ALIAS:-}" || -z "${PEARLIFT_UPLOAD_KEY_PASSWORD:-}" ]]; then
-  echo "Missing Android release signing variables." >&2
-  echo "Set PEARLIFT_UPLOAD_STORE_FILE, PEARLIFT_UPLOAD_STORE_PASSWORD, PEARLIFT_UPLOAD_KEY_ALIAS, and PEARLIFT_UPLOAD_KEY_PASSWORD." >&2
-  echo "You can keep them in .env.local if you want local convenience." >&2
-  exit 1
+if [[ "${REQUIRE_RELEASE_KEY}" == "1" ]]; then
+  if [[ ! -f "${KEYSTORE_PROPERTIES}" ]]; then
+    echo "Missing ${KEYSTORE_PROPERTIES}. Required for release-key signing." >&2
+    exit 1
+  fi
+  for key in storeFile storePassword keyAlias keyPassword; do
+    if ! rg -q "^${key}=.+" "${KEYSTORE_PROPERTIES}"; then
+      echo "Missing ${key} in ${KEYSTORE_PROPERTIES}." >&2
+      exit 1
+    fi
+  done
 fi
-
-"${ROOT_DIR}/scripts/check-android-keystore.sh" \
-  "${PEARLIFT_UPLOAD_STORE_FILE}" \
-  "${PEARLIFT_UPLOAD_STORE_PASSWORD}" \
-  "${PEARLIFT_UPLOAD_KEY_ALIAS}" \
-  "${PEARLIFT_UPLOAD_KEY_PASSWORD}"
-
-node "${ROOT_DIR}/scripts/ensure-android-release-signing.mjs"
 
 cd "${ANDROID_DIR}"
 

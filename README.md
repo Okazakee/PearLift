@@ -55,8 +55,18 @@ Useful commands:
 
 ```bash
 bun run prebuild -- --clean --platform android
-bun run android:release:apk
-bun run android:release:aab
+bun run android:release:fdroid
+bun run android:release:apk:sideload
+bun run android:release:aab:play
+```
+
+For `android:release:apk:sideload` and `android:release:aab:play`, create `android/keystore.properties` with:
+
+```properties
+storeFile=../keys/pearlift-upload.jks
+storePassword=...
+keyAlias=...
+keyPassword=...
 ```
 
 Release and store documentation:

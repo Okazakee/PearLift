@@ -47,6 +47,7 @@
       "expo-sqlite",
       "expo-localization",
       "./plugins/withSyncBackendBundle",
+      "./plugins/with-optional-release-signing",
       "./plugins/with-pearlift-abi-splits"
     ]
   }
