@@ -76,6 +76,9 @@ export type SyncStatus =
 
 export interface SyncHealth {
   status: SyncStatus;
+  syncMode: 'normal' | 'degraded';
+  degradedReason: string | null;
+  degradedSince: number | null;
   peers: number;
   connections: number;
   peerKeys: string[];
@@ -92,6 +95,9 @@ export interface SyncHealth {
 
 export const INITIAL_SYNC_HEALTH: SyncHealth = {
   status: 'idle',
+  syncMode: 'normal',
+  degradedReason: null,
+  degradedSince: null,
   peers: 0,
   connections: 0,
   peerKeys: [],

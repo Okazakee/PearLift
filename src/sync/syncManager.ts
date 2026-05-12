@@ -1236,6 +1236,9 @@ class SyncManagerImpl implements SyncManager {
   private logHealthFromBridge(previous: SyncHealth, next: SyncHealth) {
     const signature = [
       next.status,
+      next.syncMode,
+      next.degradedReason ?? '',
+      next.degradedSince ?? '',
       next.peers,
       next.connections,
       next.bootstrapped ? '1' : '0',
@@ -1257,6 +1260,9 @@ class SyncManagerImpl implements SyncManager {
         peers: next.peers,
         connections: next.connections,
         bootstrapped: next.bootstrapped,
+        syncMode: next.syncMode,
+        degradedReason: next.degradedReason,
+        degradedSince: next.degradedSince,
         reconnectAttempts: next.reconnectAttempts,
         topicHex: next.topicHex,
         peerKeys: next.peerKeys,

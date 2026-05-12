@@ -150,6 +150,16 @@ function normalizeHealth(value) {
 
   return {
     status: toStringOrNull(value.status) ?? undefined,
+    syncMode:
+      value.syncMode === 'degraded' || value.syncMode === 'normal'
+        ? value.syncMode
+        : undefined,
+    degradedReason: toStringOrNull(value.degradedReason),
+    degradedSince:
+      typeof value.degradedSince === 'number' &&
+      Number.isFinite(value.degradedSince)
+        ? value.degradedSince
+        : null,
     peers:
       typeof value.peers === 'number' && Number.isFinite(value.peers)
         ? Math.max(0, Math.floor(value.peers))

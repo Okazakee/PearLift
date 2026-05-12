@@ -2,7 +2,7 @@
 
 import Autobase from 'autobase';
 import b4a from 'b4a';
-import { mkdir, readFile, writeFile } from 'bare-fs/promises';
+import { mkdir, readFile, rm, writeFile } from 'bare-fs/promises';
 import { join } from 'bare-path';
 import RPC from 'bare-rpc';
 import Corestore from 'corestore';
@@ -56,13 +56,25 @@ let retryTimer = null;
 let lifecycleQueue = Promise.resolve();
 let lifecyclePhase = 'idle';
 let activeStartFingerprint = null;
+let appendReady = false;
+let queuedPublishes = [];
+let queuedPublishOpIds = new Set();
+let flushQueuedPublishesInFlight = false;
+let degraded = false;
+let degradedReason = null;
+let degradedSince = null;
+let degradedRetryDelayMs = 10000;
+let degradedRetryTimer = null;
 
 const MAX_LOG_ENTRIES = 100;
 const MAX_SENT_REMOTE_OP_IDS = 5000;
+const MAX_QUEUED_PUBLISH_OPS = 200;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
 const WAITING_STATUS_THRESHOLD_ATTEMPTS = 3;
 const RETRY_BACKOFF_SECS = [30, 60, 120, 300, 600];
+const DEGRADED_RETRY_INITIAL_MS = 10000;
+const DEGRADED_RETRY_MAX_MS = 60000;
 const logRing = [];
 const WORKLET_BOOT_AT = new Date().toISOString();
 const SOCKET_NO_DATA_TIMEOUT_MS = 10000;
@@ -461,10 +473,317 @@ function isDhtBootstrapped() {
   }
 }
 
+function getSyncMode() {
+  return degraded ? 'degraded' : 'normal';
+}
+
+function clearDegradedRetryTimer() {
+  if (!degradedRetryTimer) return;
+  clearTimeout(degradedRetryTimer);
+  degradedRetryTimer = null;
+}
+
+function clearPublishQueue() {
+  queuedPublishes = [];
+  queuedPublishOpIds = new Set();
+}
+
+function isTracerNullError(error) {
+  const message = getErrorMessage(error).toLowerCase();
+  return (
+    message.includes("reading 'tracer'") ||
+    message.includes('reading "tracer"') ||
+    (message.includes('cannot read properties of null') &&
+      message.includes('tracer'))
+  );
+}
+
+function isAppendReady() {
+  if (discoveryOnlyMode) return false;
+  if (!base || !appendReady) return false;
+  return lifecyclePhase === 'running';
+}
+
+function dedupePublishOpId(op) {
+  return typeof op?.opId === 'string' && op.opId.length > 0 ? op.opId : null;
+}
+
+function queuePublishOp(op, source, reason) {
+  const opId = dedupePublishOpId(op);
+  if (opId && queuedPublishOpIds.has(opId)) {
+    logMajorEvent(
+      'publish',
+      'publish_queued_not_ready',
+      'Publish already queued; skipping duplicate opId.',
+      {
+        source,
+        reason,
+        opId,
+        queueSize: queuedPublishes.length,
+        lifecyclePhase,
+        runtimeStatus,
+      },
+    );
+    return false;
+  }
+
+  if (queuedPublishes.length >= MAX_QUEUED_PUBLISH_OPS) {
+    const dropped = queuedPublishes.shift();
+    if (dropped?.opId) {
+      queuedPublishOpIds.delete(dropped.opId);
+    }
+    logMajorWarning(
+      'publish',
+      'publish_queue_overflow',
+      'Publish queue full; dropped oldest queued publish.',
+      {
+        droppedOpId: dropped?.opId ?? null,
+        source,
+        reason,
+        limit: MAX_QUEUED_PUBLISH_OPS,
+      },
+    );
+  }
+
+  queuedPublishes.push({
+    op,
+    source,
+    reason,
+    opId,
+    enqueuedAt: Date.now(),
+  });
+  if (opId) {
+    queuedPublishOpIds.add(opId);
+  }
+
+  logMajorEvent(
+    'publish',
+    'publish_queued_not_ready',
+    'Publish queued until append pipeline is ready.',
+    {
+      source,
+      reason,
+      opId,
+      queueSize: queuedPublishes.length,
+      lifecyclePhase,
+      runtimeStatus,
+      appendReady,
+      degraded,
+    },
+  );
+  return true;
+}
+
+function enterDegradedMode(reason) {
+  const nextReason = reason || 'Append failed in degraded-safe path.';
+  if (!degraded) {
+    degraded = true;
+    degradedSince = Date.now();
+    degradedRetryDelayMs = DEGRADED_RETRY_INITIAL_MS;
+    logMajorWarning(
+      'sync',
+      'sync_degraded_enter',
+      'Sync backend entered degraded mode after append failure.',
+      {
+        reason: nextReason,
+        queueSize: queuedPublishes.length,
+      },
+    );
+  }
+  degradedReason = nextReason;
+  emitStatus(runtimeStatus, lastBackendError);
+}
+
+function exitDegradedMode() {
+  if (!degraded) return;
+  degraded = false;
+  degradedReason = null;
+  degradedSince = null;
+  degradedRetryDelayMs = DEGRADED_RETRY_INITIAL_MS;
+  clearDegradedRetryTimer();
+  logMajorEvent(
+    'sync',
+    'sync_degraded_exit',
+    'Sync backend exited degraded mode after successful append.',
+  );
+  emitStatus(runtimeStatus, lastBackendError);
+}
+
+function scheduleDegradedRetry(trigger) {
+  if (!degraded) return;
+  if (degradedRetryTimer) return;
+  const delayMs = Math.min(degradedRetryDelayMs, DEGRADED_RETRY_MAX_MS);
+  logMajorEvent(
+    'sync',
+    'sync_degraded_retry',
+    'Scheduling degraded-mode publish retry.',
+    {
+      trigger,
+      delayMs,
+      queueSize: queuedPublishes.length,
+      reason: degradedReason,
+    },
+  );
+  degradedRetryTimer = setTimeout(() => {
+    degradedRetryTimer = null;
+    void flushQueuedPublishes('degraded_retry').catch((error) => {
+      logBackendError('degradedRetry', error);
+    });
+  }, delayMs);
+  degradedRetryDelayMs = Math.min(delayMs * 2, DEGRADED_RETRY_MAX_MS);
+}
+
+async function appendSafe(op, source) {
+  if (!base) {
+    throw new Error('Sync base not started.');
+  }
+
+  logMajorEvent('publish', 'append_attempt', 'Attempting local sync append.', {
+    source,
+    opId: op?.opId ?? null,
+    type:
+      op?.payload?.kind === 'mutation'
+        ? op.payload.mutation?.type
+        : op?.payload?.kind,
+    deviceId: op?.deviceId ?? null,
+    lifecyclePhase,
+    runtimeStatus,
+    queueSize: queuedPublishes.length,
+    degraded,
+  });
+
+  try {
+    await base.append(op, { optimistic: true });
+    return { ok: true, kind: 'appended', message: null };
+  } catch (error) {
+    const message = getErrorMessage(error);
+    if (isTracerNullError(error)) {
+      logMajorWarning(
+        'publish',
+        'append_failed_tracer',
+        'Append failed with tracer-null failure; entering degraded mode.',
+        {
+          source,
+          opId: op?.opId ?? null,
+          message,
+        },
+      );
+      enterDegradedMode(message);
+      return { ok: false, kind: 'tracer', message };
+    }
+
+    logMajorWarning(
+      'publish',
+      'append_failed_other',
+      'Append failed with non-tracer error.',
+      {
+        source,
+        opId: op?.opId ?? null,
+        message,
+      },
+    );
+    throw error;
+  }
+}
+
+async function flushQueuedPublishes(trigger) {
+  if (flushQueuedPublishesInFlight) return;
+  if (!isAppendReady()) return;
+  if (queuedPublishes.length === 0) return;
+
+  flushQueuedPublishesInFlight = true;
+  let processed = 0;
+  const initialSize = queuedPublishes.length;
+  logMajorEvent(
+    'publish',
+    'publish_flush_start',
+    'Flushing queued publishes.',
+    {
+      trigger,
+      queueSize: initialSize,
+      degraded,
+      reason: degradedReason,
+    },
+  );
+
+  try {
+    while (queuedPublishes.length > 0 && isAppendReady()) {
+      const entry = queuedPublishes[0];
+      const result = await appendSafe(entry.op, `${entry.source}:flush`);
+      if (!result.ok) {
+        if (result.kind === 'tracer') {
+          scheduleDegradedRetry('flush_tracer');
+          break;
+        }
+      }
+      queuedPublishes.shift();
+      if (entry.opId) {
+        queuedPublishOpIds.delete(entry.opId);
+      }
+      processed += 1;
+    }
+  } finally {
+    flushQueuedPublishesInFlight = false;
+    logMajorEvent(
+      'publish',
+      'publish_flush_done',
+      'Queued publish flush finished.',
+      {
+        trigger,
+        processed,
+        remaining: queuedPublishes.length,
+        degraded,
+        reason: degradedReason,
+      },
+    );
+  }
+
+  if (processed > 0 && degraded) {
+    exitDegradedMode();
+  }
+  if (queuedPublishes.length > 0 && degraded) {
+    scheduleDegradedRetry('flush_incomplete');
+  }
+}
+
+async function appendOrQueue(op, source) {
+  if (!isAppendReady() || degraded) {
+    const reason = degraded ? 'degraded_mode' : 'append_not_ready';
+    queuePublishOp(op, source, reason);
+    if (degraded) {
+      scheduleDegradedRetry(reason);
+    }
+    return { ok: true, kind: 'queued', message: null };
+  }
+
+  const result = await appendSafe(op, source);
+  if (!result.ok) {
+    if (result.kind === 'tracer') {
+      queuePublishOp(op, source, 'append_failed_tracer');
+      scheduleDegradedRetry('append_failed_tracer');
+      return { ok: true, kind: 'queued', message: result.message };
+    }
+    return result;
+  }
+
+  if (queuedPublishes.length > 0) {
+    void flushQueuedPublishes('post_append').catch((error) => {
+      logBackendError('flushQueuedPublishes', error);
+    });
+  }
+  if (degraded) {
+    exitDegradedMode();
+  }
+  return result;
+}
+
 function buildStatus(status = runtimeStatus, lastError = lastBackendError) {
   const peerKeys = getPeerKeys();
   return {
     status,
+    syncMode: getSyncMode(),
+    degradedReason,
+    degradedSince,
     peers: peerKeys.length,
     connections: activeConnections,
     peerKeys,
@@ -628,6 +947,79 @@ function normalizeStoragePath(pathOrUri) {
   return pathOrUri;
 }
 
+function resolveStorageRoot(config) {
+  const basePath = normalizeStoragePath(config?.storagePath);
+  if (!basePath) {
+    throw new Error('Missing storagePath');
+  }
+  return join(basePath, 'pearlift-sync');
+}
+
+function isRecoverableStartupDecodeError(error) {
+  const message = getErrorMessage(error);
+  if (!message) return false;
+  const hasDecodePrefix =
+    message.includes('DECODING_ERROR') ||
+    message.includes("Cannot read properties of undefined (reading 'decode')");
+  if (!hasDecodePrefix) return false;
+  return (
+    message.includes("reading 'decode'") ||
+    message.includes('Out of bounds') ||
+    message.includes('Invalid data')
+  );
+}
+
+async function resetSyncStorageForDecodeRecovery(targetStorageRoot, reason) {
+  logMajorWarning(
+    'startup',
+    'decode_recovery_reset_begin',
+    'Resetting sync storage after startup decode failure.',
+    {
+      storageRoot: targetStorageRoot,
+      reason,
+    },
+  );
+  await rm(targetStorageRoot, { recursive: true, force: true });
+  await mkdir(targetStorageRoot, { recursive: true });
+  logMajorEvent(
+    'startup',
+    'decode_recovery_reset_done',
+    'Sync storage reset completed; retrying startup.',
+    {
+      storageRoot: targetStorageRoot,
+    },
+  );
+}
+
+async function startSyncWithDecodeRecovery(config) {
+  const targetStorageRoot = resolveStorageRoot(config);
+
+  try {
+    return await startSync(config);
+  } catch (error) {
+    if (!isRecoverableStartupDecodeError(error)) {
+      throw error;
+    }
+    const reason = getErrorMessage(error);
+    logMajorWarning(
+      'startup',
+      'decode_recovery_detected',
+      'Recoverable startup decode error detected; applying one-time storage reset.',
+      {
+        reason,
+        storageRoot: targetStorageRoot,
+      },
+    );
+    try {
+      await ensureStopped();
+    } catch {
+      // ignore cleanup failures before decode recovery
+    }
+    await resetSyncStorageForDecodeRecovery(targetStorageRoot, reason);
+    return startSync(config);
+  }
+}
+
 async function publishBackendPresence() {
   if (!base || !localDeviceId) return;
   try {
@@ -639,7 +1031,7 @@ async function publishBackendPresence() {
       createdAt: new Date().toISOString(),
       payload: { kind: 'presence' },
     };
-    await base.append(op, { optimistic: true });
+    await appendOrQueue(op, 'presence');
   } catch (error) {
     logMajorWarning('presence', 'publish_failed', getErrorMessage(error));
   }
@@ -919,6 +1311,14 @@ async function ensureStopped() {
   sentRemoteOpIds = new Set();
   sentRemoteOpOrder = [];
   isFlushing = false;
+  appendReady = false;
+  clearPublishQueue();
+  flushQueuedPublishesInFlight = false;
+  degraded = false;
+  degradedReason = null;
+  degradedSince = null;
+  degradedRetryDelayMs = DEGRADED_RETRY_INITIAL_MS;
+  clearDegradedRetryTimer();
   runtimeStatus = 'idle';
   lastBackendError = null;
   lastSyncedAt = null;
@@ -942,6 +1342,7 @@ async function ensureStopped() {
 
 async function startSync(config) {
   await ensureStopped();
+  appendReady = false;
   runtimeStatus = 'idle';
   lastBackendError = null;
   lastSyncedAt = null;
@@ -952,11 +1353,7 @@ async function startSync(config) {
 
   const topic = topicFromSecretHex(config.pairingSecretHex);
   topicHex = hashSecretHex(config.pairingSecretHex);
-  const basePath = normalizeStoragePath(config.storagePath);
-  if (!basePath) {
-    throw new Error('Missing storagePath');
-  }
-  storageRoot = join(basePath, 'pearlift-sync');
+  storageRoot = resolveStorageRoot(config);
   await mkdir(storageRoot, { recursive: true });
   localDeviceId = config.deviceId ?? null;
   activeDeviceTag = localDeviceId ?? runtimeDeviceTag;
@@ -1356,6 +1753,18 @@ async function startSync(config) {
     dhtReady: lastDhtBootstrapped,
     discoveryOnlyMode,
   });
+  appendReady = true;
+  logMajorEvent(
+    'publish',
+    'append_pipeline_ready',
+    'Append pipeline marked ready.',
+    {
+      lifecyclePhase,
+      runtimeStatus,
+      queueSize: queuedPublishes.length,
+      degraded,
+    },
+  );
   startHeartbeat();
 
   return {
@@ -1410,8 +1819,12 @@ rpc = new RPC(IPC, async (req) => {
           },
         );
         try {
-          const startResult = await startSync(config);
+          const startResult = await startSyncWithDecodeRecovery(config);
           lifecyclePhase = 'running';
+          void flushQueuedPublishes('lifecycle_running').catch((error) => {
+            logBackendError('flushQueuedPublishes', error);
+            emitStatus('error', getErrorMessage(error));
+          });
           return startResult;
         } catch (error) {
           lifecyclePhase = 'idle';
@@ -1460,18 +1873,38 @@ rpc = new RPC(IPC, async (req) => {
       if (!base) {
         throw new Error('Sync base not started.');
       }
-      await base.append(op, { optimistic: true });
-      logMajorEvent('publish', 'appended', 'Local sync op appended.', {
-        opId: op?.opId ?? null,
-        type:
-          op?.payload?.kind === 'mutation'
-            ? op.payload.mutation?.type
-            : op?.payload?.kind,
-        deviceId: op?.deviceId ?? null,
-        autobaseKey: base?.key ? b4a.toString(base.key, 'hex') : null,
-      });
+      const appendResult = await appendOrQueue(op, 'rpc_publish');
+      if (appendResult.kind === 'appended') {
+        logMajorEvent('publish', 'appended', 'Local sync op appended.', {
+          opId: op?.opId ?? null,
+          type:
+            op?.payload?.kind === 'mutation'
+              ? op.payload.mutation?.type
+              : op?.payload?.kind,
+          deviceId: op?.deviceId ?? null,
+          autobaseKey: base?.key ? b4a.toString(base.key, 'hex') : null,
+        });
+      } else if (appendResult.kind === 'queued') {
+        logMajorEvent(
+          'publish',
+          'queued',
+          'Local sync op queued pending append readiness.',
+          {
+            opId: op?.opId ?? null,
+            lifecyclePhase,
+            runtimeStatus,
+            queueSize: queuedPublishes.length,
+            degraded,
+            degradedReason,
+          },
+        );
+      }
       // Note: do NOT advance lastSyncedAt here — that reflects remote activity.
-      safeReply(req, { ok: true });
+      safeReply(req, {
+        ok: true,
+        queued: appendResult.kind === 'queued',
+        syncMode: getSyncMode(),
+      });
       return;
     }
 

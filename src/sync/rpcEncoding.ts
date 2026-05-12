@@ -204,6 +204,16 @@ function normalizeHealth(value: unknown): Partial<SyncHealth> {
 
   return {
     status,
+    syncMode:
+      value.syncMode === 'degraded' || value.syncMode === 'normal'
+        ? value.syncMode
+        : undefined,
+    degradedReason: toStringOrNull(value.degradedReason),
+    degradedSince:
+      typeof value.degradedSince === 'number' &&
+      Number.isFinite(value.degradedSince)
+        ? value.degradedSince
+        : null,
     peers,
     connections,
     peerKeys: toStringArray(value.peerKeys),
