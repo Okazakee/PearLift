@@ -7,6 +7,7 @@ ANDROID_DIR="${ROOT_DIR}/android"
 GRADLE_FILE="${ANDROID_DIR}/app/build.gradle"
 DEFAULT_ABIS="arm64-v8a"
 RELEASE_ABIS="${PEARLIFT_RELEASE_ABIS:-${DEFAULT_ABIS}}"
+FDROID_SPLITS="${PEARLIFT_FDROID_SPLITS:-0}"
 PREBUILD_CLEAN="${PEARLIFT_PREBUILD_CLEAN:-1}"
 REQUIRE_RELEASE_KEY="${PEARLIFT_REQUIRE_RELEASE_KEY:-0}"
 ENV_FILE="${ROOT_DIR}/.env.local"
@@ -50,16 +51,44 @@ fi
 
 cd "${ANDROID_DIR}"
 
-if command -v bunx >/dev/null 2>&1; then
-  bunx expo run:android \
-    --variant release \
-    --gradle-args "-PreactNativeArchitectures=${RELEASE_ABIS}"
-else
-  npx --yes expo run:android \
-    --variant release \
-    --gradle-args "-PreactNativeArchitectures=${RELEASE_ABIS}"
+GRADLE_ARGS=(
+  assembleRelease
+  "-PreactNativeArchitectures=${RELEASE_ABIS}"
+)
+
+if [[ "${FDROID_SPLITS}" == "1" ]]; then
+  GRADLE_ARGS+=("-PpearliftAbiSplits=true")
+fi
+
+./gradlew "${GRADLE_ARGS[@]}"
+
+APK_OUTPUT_DIR="${ANDROID_DIR}/app/build/outputs/apk/release"
+if [[ ! -d "${APK_OUTPUT_DIR}" ]]; then
+  echo "APK build completed but output directory was not created:" >&2
+  echo "  ${APK_OUTPUT_DIR}" >&2
+  exit 1
+fi
+
+if ! find "${APK_OUTPUT_DIR}" -maxdepth 1 -type f -name "*.apk" | grep -q .; then
+  echo "APK build completed but no APK files were produced in:" >&2
+  echo "  ${APK_OUTPUT_DIR}" >&2
+  exit 1
+fi
+
+if [[ "${FDROID_SPLITS}" == "1" ]]; then
+  REQUIRED_APKS=(
+    "${APK_OUTPUT_DIR}/app-armeabi-v7a-release.apk"
+    "${APK_OUTPUT_DIR}/app-arm64-v8a-release.apk"
+  )
+  for apk in "${REQUIRED_APKS[@]}"; do
+    if [[ ! -f "${apk}" ]]; then
+      echo "F-Droid split build is missing expected APK:" >&2
+      echo "  ${apk}" >&2
+      exit 1
+    fi
+  done
 fi
 
 echo
 echo "APK ready:"
-echo "  ${ANDROID_DIR}/app/build/outputs/apk/release/"
+echo "  ${APK_OUTPUT_DIR}/"

@@ -11,7 +11,7 @@
     "android:release:aab:play": "PEARLIFT_REQUIRE_RELEASE_KEY=1 ./scripts/build-android-aab.sh",
     "android:release:apk": "./scripts/build-android-apk.sh",
     "android:release:apk:sideload": "PEARLIFT_REQUIRE_RELEASE_KEY=1 ./scripts/build-android-apk.sh",
-    "android:release:fdroid": "./scripts/build-android-apk.sh",
+    "android:release:fdroid": "PEARLIFT_FDROID_SPLITS=1 PEARLIFT_RELEASE_ABIS=armeabi-v7a,arm64-v8a ./scripts/build-android-apk.sh",
     "bundle:sync-backend": "node ./scripts/ensure-sync-backend-bundle.mjs --force",
     "fdroid:prepare": "node ./scripts/fdroid-prepare.mjs",
     "version:bump": "node ./scripts/bump-version.mjs",
