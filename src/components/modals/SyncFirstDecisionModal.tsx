@@ -1,13 +1,14 @@
 import { ArrowLeftRight, ArrowUpFromLine } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { SyncConflictSummary, SyncDataSummary } from '@/storage/types';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text } from '../AppText';
 
 interface SyncFirstDecisionModalProps {
   open: boolean;

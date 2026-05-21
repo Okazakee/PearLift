@@ -11,7 +11,7 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, StyleSheet, Text, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -61,6 +61,7 @@ import {
   formatSeconds,
   safeParsePersistedState,
 } from '@/utils/timerHelpers';
+import { Text } from './AppText';
 
 interface RestTimerProps {
   tokens: ThemeTokens;

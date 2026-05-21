@@ -2,7 +2,7 @@ import { fromByteArray } from 'base64-js';
 import { ChevronLeft } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   Camera,
   CommonResolutions,
@@ -21,6 +21,7 @@ import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text } from '../AppText';
 
 interface ScanFromDeviceModalProps {
   open: boolean;

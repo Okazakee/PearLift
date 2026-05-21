@@ -13,8 +13,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
@@ -25,6 +23,7 @@ import type { PairedDevice, SyncStateRow } from '@/storage/types';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text, TextInput } from '../AppText';
 
 interface SyncManagementModalProps {
   open: boolean;

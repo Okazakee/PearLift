@@ -8,13 +8,7 @@ import {
 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AnimatedFadeInView, AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -22,6 +16,7 @@ import type { PairedDevice, SyncStateRow } from '@/storage/types';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text, TextInput } from '../../AppText';
 
 const DEVICES_PER_PAGE = 3;
 

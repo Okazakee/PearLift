@@ -16,7 +16,7 @@ import {
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
 import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
@@ -28,6 +28,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import type { DayConfig, WeekConfig } from '@/types';
+import { Text, TextInput } from '../AppText';
 
 interface ProgramSettingsModalProps {
   open: boolean;

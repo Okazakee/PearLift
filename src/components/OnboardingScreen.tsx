@@ -1,7 +1,7 @@
 import { Activity, Bell, Sliders, Smartphone } from 'lucide-react-native';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeOutUp,
@@ -14,6 +14,7 @@ import { requestNotificationPermission } from '@/native/localNotifications';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
+import { Text } from './AppText';
 
 interface OnboardingScreenProps {
   tokens: ThemeTokens;

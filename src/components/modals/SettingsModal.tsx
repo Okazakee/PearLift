@@ -1,7 +1,7 @@
 import { ChevronLeft } from 'lucide-react-native';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
@@ -20,6 +20,7 @@ import type { PairedDevice, SyncStateRow } from '@/storage/types';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeMode, ThemePreference, ThemeTokens } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
+import { Text } from '../AppText';
 
 interface SettingsModalProps {
   open: boolean;

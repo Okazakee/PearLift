@@ -7,7 +7,6 @@ import {
 import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { Text, TextInput } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -17,34 +16,6 @@ import i18n from './src/i18n';
 import { ensureRestTimerChannels } from './src/native/localNotifications';
 import { WorkoutScreen } from './src/screens/WorkoutScreen';
 
-let monospaceDefaultsApplied = false;
-
-function applyMonospaceDefaults() {
-  if (monospaceDefaultsApplied) return;
-  const defaultFontFamily = 'SpaceGrotesk_400Regular';
-
-  type TextLike = {
-    defaultProps?: { style?: unknown };
-  };
-
-  const GlobalText = Text as unknown as TextLike;
-  const GlobalTextInput = TextInput as unknown as TextLike;
-
-  GlobalText.defaultProps = GlobalText.defaultProps ?? {};
-  GlobalText.defaultProps.style = [
-    { fontFamily: defaultFontFamily },
-    GlobalText.defaultProps.style,
-  ];
-
-  GlobalTextInput.defaultProps = GlobalTextInput.defaultProps ?? {};
-  GlobalTextInput.defaultProps.style = [
-    { fontFamily: defaultFontFamily },
-    GlobalTextInput.defaultProps.style,
-  ];
-
-  monospaceDefaultsApplied = true;
-}
-
 export default function App() {
   const [fontsLoaded] = useFonts({
     SpaceGrotesk_400Regular,
@@ -52,10 +23,6 @@ export default function App() {
     SpaceGrotesk_600SemiBold,
     SpaceGrotesk_700Bold,
   });
-
-  if (fontsLoaded) {
-    applyMonospaceDefaults();
-  }
 
   useEffect(() => {
     const syncRestTimerChannels = () => {

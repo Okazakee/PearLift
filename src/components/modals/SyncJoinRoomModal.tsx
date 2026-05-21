@@ -14,8 +14,6 @@ import {
   Pressable,
   Animated as RNAnimated,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
@@ -25,6 +23,7 @@ import type { SyncDataSummary } from '@/storage/types';
 import { decodeSyncRoomInvite } from '@/sync/roomInvite';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text, TextInput } from '../AppText';
 
 interface SyncJoinRoomModalProps {
   open: boolean;

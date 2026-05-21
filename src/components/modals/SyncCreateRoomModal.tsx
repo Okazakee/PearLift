@@ -3,13 +3,7 @@ import { Copy, QrCode, Shield, X } from 'lucide-react-native';
 import QRCode from 'qrcode';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
@@ -17,6 +11,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { SyncDataSummary } from '@/storage/types';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text } from '../AppText';
 
 interface SyncCreateRoomModalProps {
   open: boolean;

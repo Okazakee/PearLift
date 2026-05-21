@@ -9,7 +9,7 @@ import {
 import QRCode from 'qrcode';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { AnimatedPressable } from '@/animation/primitives';
 import { encodeBackupForQr } from '@/backup/qrBackupCodec';
@@ -20,6 +20,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import { getErrorMessage, logError } from '@/utils/errors';
+import { Text } from '../AppText';
 
 interface ShareToDeviceModalProps {
   open: boolean;

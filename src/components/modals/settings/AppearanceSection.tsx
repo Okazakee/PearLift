@@ -1,11 +1,12 @@
 import { Sun } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
 import { getLanguageNativeName } from '@/storage/workoutRepository';
 import type { ThemePreference, ThemeTokens } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
+import { Text } from '../../AppText';
 
 interface AppearanceSectionProps {
   tokens: ThemeTokens;

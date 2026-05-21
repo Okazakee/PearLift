@@ -1,7 +1,8 @@
 import { Settings } from 'lucide-react-native';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
+import { Text } from './AppText';
 
 interface HeaderProps {
   tokens: ThemeTokens;

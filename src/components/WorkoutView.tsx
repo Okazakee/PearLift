@@ -1,7 +1,7 @@
 import { Plus, Sliders } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   runOnUI,
   scrollTo,
@@ -21,6 +21,7 @@ import type {
   WeightUnit,
   WorkoutSession,
 } from '@/types';
+import { Text } from './AppText';
 
 interface WorkoutViewProps {
   isActive: boolean;

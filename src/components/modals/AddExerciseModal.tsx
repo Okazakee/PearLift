@@ -1,19 +1,13 @@
 import { X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { muscleGroups } from '@/data/workouts';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import type { Exercise } from '@/types';
+import { Text, TextInput } from '../AppText';
 
 interface FormExercise {
   name: string;

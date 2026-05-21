@@ -10,12 +10,13 @@ import {
   Star,
 } from 'lucide-react-native';
 import type React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { dayIconMap } from '@/data/workouts';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import type { DayConfig, WorkoutDay } from '@/types';
+import { Text } from './AppText';
 
 const iconComponents: Record<
   string,

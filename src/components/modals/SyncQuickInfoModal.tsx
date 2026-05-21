@@ -1,11 +1,12 @@
 import { Activity, Users, Wifi, X } from 'lucide-react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text } from '../AppText';
 
 interface SyncQuickInfoModalProps {
   open: boolean;

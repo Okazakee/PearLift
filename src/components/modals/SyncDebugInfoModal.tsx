@@ -1,13 +1,7 @@
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
@@ -15,6 +9,7 @@ import type { SyncLogEntry } from '@/sync/logger';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
+import { Text } from '../AppText';
 
 interface SyncDebugInfoModalProps {
   open: boolean;

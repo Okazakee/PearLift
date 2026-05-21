@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import type { ImageSourcePropType } from 'react-native';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,6 +9,7 @@ import Animated, {
 import { MOTION } from '@/animation/motion';
 import { AnimatedFadeInView } from '@/animation/primitives';
 import { useMotionEnabled } from '@/animation/useMotionEnabled';
+import { Text } from './AppText';
 
 interface BootstrapScreenProps {
   backgroundColor: string;

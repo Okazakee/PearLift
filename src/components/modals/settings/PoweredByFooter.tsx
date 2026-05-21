@@ -1,6 +1,7 @@
-import { Linking, Pressable, Text, View } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
+import { Text } from '../../AppText';
 
 const PEAR_LOGO_WIDTH = 120;
 const PEAR_LOGO_HEIGHT = 29;
