@@ -1,6 +1,6 @@
 ## 1. Overview
 
-PearLift is a local-first, privacy-focused workout tracker built with Expo and React Native. The app supports multi-day workout programs, weight tracking with kg/lb support, Android background rest timers, local backup with QR-based device transfer, and peer-to-peer device sync via Holepunch. The primary language is TypeScript with Expo SDK 55. There is no backend server — sync uses a bundled Node.js backend running on-device through react-native-bare-kit.
+PearLift is a local-first, privacy-focused workout tracker built with Expo and React Native. The app supports multi-day workout programs, weight tracking with kg/lb support, Android background rest timers, local backup with QR-based device transfer, and peer-to-peer device sync via Holepunch. The primary language is TypeScript with Expo SDK 56. There is no backend server — sync uses a bundled Node.js backend running on-device through react-native-bare-kit.
 
 ## 2. Repository Structure
 

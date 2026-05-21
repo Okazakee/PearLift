@@ -1,26 +1,28 @@
-import { Audio, InterruptionModeAndroid, InterruptionModeIOS } from 'expo-av';
+import {
+  type AudioPlayer,
+  createAudioPlayer,
+  setAudioModeAsync,
+} from 'expo-audio';
 import * as Haptics from 'expo-haptics';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 import { AppState } from 'react-native';
 
 import { COMPLETION_SOUND } from '@/config/timer';
 
-let completionSoundRef: Audio.Sound | null = null;
+let completionSoundRef: AudioPlayer | null = null;
 
 export async function prepareCompletionSound(): Promise<void> {
   if (completionSoundRef) return;
   try {
-    await Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      interruptionModeIOS: InterruptionModeIOS.MixWithOthers,
-      interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+    await setAudioModeAsync({
+      playsInSilentMode: true,
+      shouldPlayInBackground: false,
+      interruptionMode: 'mixWithOthers',
     });
-    const { sound } = await Audio.Sound.createAsync(
+    completionSoundRef = createAudioPlayer(
       { uri: COMPLETION_SOUND },
-      { shouldPlay: false },
+      { keepAudioSessionActive: false },
     );
-    completionSoundRef = sound;
   } catch {
     // ignore initialization failures
   }
@@ -32,11 +34,21 @@ export async function playCompletionSound(): Promise<void> {
   }
   if (!completionSoundRef) return;
   try {
-    await completionSoundRef.setPositionAsync(0);
-    await completionSoundRef.playAsync();
+    await completionSoundRef.seekTo(0);
+    completionSoundRef.play();
   } catch {
     // ignore playback failures
   }
+}
+
+export function releaseCompletionSound(): void {
+  if (!completionSoundRef) return;
+  try {
+    completionSoundRef.remove();
+  } catch {
+    // ignore audio player release failures during shutdown
+  }
+  completionSoundRef = null;
 }
 
 export function triggerCompletionFeedback(): void {

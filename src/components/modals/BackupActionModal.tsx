@@ -147,7 +147,7 @@ function createStyles(
       paddingHorizontal: tokens.spacing.lg,
     },
     backdrop: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: 'rgba(0, 0, 0, 0.58)',
     },
     sheet: {

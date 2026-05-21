@@ -365,7 +365,7 @@ function createStyles(
       alignItems: 'flex-end',
     },
     tabletPanelBackdrop: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       backgroundColor: 'rgba(0, 0, 0, 0.34)',
     },
     tabletPanelSheet: {

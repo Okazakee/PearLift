@@ -6,11 +6,6 @@
     "orientation": "default",
     "icon": "./assets/pearlift_icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/pearlift_splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#111113"
-    },
     "android": {
       "package": "dev.okazakee.pearlift",
       "versionCode": 6,
@@ -42,6 +37,7 @@
         {
           "android": {
             "minSdkVersion": 29,
+            "usePrecompiledHeaders": true,
             "enableMinifyInReleaseBuilds": true,
             "enableShrinkResourcesInReleaseBuilds": true,
             "extraProguardRules": "-keep class com.margelo.nitro.camera.** { *; }\n-keep class com.margelo.nitro.image.** { *; }\n-keep class com.margelo.nitro.core.** { *; }\n-keep class com.margelo.nitro.NitroModules { *; }\n-dontwarn expo.modules.core.interfaces.services.KeepAwakeManager"
@@ -52,7 +48,40 @@
       "expo-localization",
       "./plugins/withSyncBackendBundle",
       "./plugins/with-optional-release-signing",
-      "./plugins/with-pearlift-abi-splits"
+      "./plugins/with-pearlift-abi-splits",
+      "expo-font",
+      [
+        "expo-status-bar",
+        {
+          "style": "auto",
+          "hidden": false
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": false
+        }
+      ],
+      "expo-asset",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/pearlift_splash.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#111113"
+        }
+      ]
     ],
     "ios": {
       "bundleIdentifier": "dev.okazakee.pearlift"

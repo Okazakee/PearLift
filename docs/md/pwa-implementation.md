@@ -14,7 +14,7 @@
 | RPC bridge | `MessagePort` / `postMessage` (replace `bare-rpc` IPC) |
 | QR scan | `getUserMedia()` + jsQR (replace vision-camera) |
 | Notifications | Service Worker Push API |
-| Timer audio | `AudioContext` (replace `expo-av`) |
+| Timer audio | `AudioContext` (replace `expo-audio`) |
 | PWA shell | `vite-plugin-pwa` for manifest + service worker |
 | Haptics | Not available, skip |
 

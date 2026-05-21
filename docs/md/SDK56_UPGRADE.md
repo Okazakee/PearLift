@@ -1,133 +1,86 @@
 # SDK 56 Upgrade Notes
 
-> Source: https://expo.dev/changelog/sdk-56-beta
-> Current: SDK 55 / RN 0.83.6 / React 19.2.0 / TS ~5.9.2
+> Source: https://expo.dev/changelog/sdk-56
+> Current: SDK 56 / RN 0.85.3 / React 19.2.3 / TS ~6.0.3
 
 ---
 
-## Upgrade Command
+## Applied Upgrade
 
 ```bash
-bunx expo install expo@^56.0.0 --fix
+bunx expo install expo@^56.0.0 --fix --bun
+bunx expo install expo-audio expo-navigation-bar --bun
+bun remove expo-av
 ```
 
-Then run:
+The Expo Router / React Navigation codemod was intentionally skipped because
+PearLift does not use `expo-router` or `@react-navigation/*`.
 
-```bash
-bunx expo-codemod sdk-56-expo-router-react-navigation-replace src
-```
+The vector-icons codemod was intentionally skipped because PearLift does not use
+`@expo/vector-icons`.
 
 ---
 
-## Breaking Changes to Handle
+## Breaking Changes Handled
 
 ### 1. `expo/fetch` becomes `globalThis.fetch`
-- Remove any `import { fetch } from 'expo/fetch'` — it's now the default.
-- To opt out: set `EXPO_PUBLIC_USE_RN_FETCH=1` in `.env`.
+- No PearLift source imports `expo/fetch`, so no code change was required.
+- To opt out if needed later: set `EXPO_PUBLIC_USE_RN_FETCH=1` in `.env`.
 
 ### 2. `expo-file-system`: async `copy()` and `move()`
-- `copy()` and `move()` on `File`/`Directory` are now async (return a Promise).
-- If you need sync, use `copySync()` / `moveSync()`.
-- Search codebase for `.copy(` and `.move(` calls in:
-  - `src/storage/` (SVG caching)
-  - Holepunch bridge (P2P backend bundle storage)
-  - Workout export
+- No PearLift source calls `File.copy()`, `Directory.copy()`,
+  `File.move()`, or `Directory.move()`.
+- SVG caching now passes an `AbortSignal` to `File.downloadFileAsync()`.
 
 ### 3. iOS deployment target bumped to 16.4
-- Update any custom podspec to `s.platforms = { :ios => '16.4' }`.
-- Drops iPhone 7/7+, 6s/6s+, SE 1st gen, iPad mini 4, iPad Air 2.
+- PearLift uses CNG; `ios/` is generated and ignored.
+- Any future custom iOS Expo module podspec must use
+  `s.platforms = { :ios => '16.4' }`.
+- This drops iPhone 7/7+, 6s/6s+, SE 1st gen, iPad mini 4, and iPad Air 2.
 
 ### 4. Xcode minimum bumped to 26.4
-- Ensure CI runners + local dev machines have Xcode 26.4+.
+- Local iOS builds and CI runners need Xcode 26.4+.
+- EAS Build profiles without a pinned image default to the SDK 56 image.
 
 ### 5. TypeScript 6.0.3
-- `bunx expo install --fix` will pull it in.
-- Opt out: add `"typescript"` to `expo.install.exclude` in `package.json`.
+- `expo install --fix` upgraded TypeScript to `~6.0.3`.
 
-### 6. `@expo/vector-icons` → `@react-native-vector-icons/*`
-- Run: `bunx @react-native-vector-icons/codemod`
+### 6. `expo-av` removed
+- Timer completion audio now uses `expo-audio`.
+- The `expo-audio` config plugin disables microphone recording and background
+  playback permissions because PearLift only plays a short foreground timer
+  completion sound.
 
 ---
 
-## Performance (No Code Changes Needed — Free Wins)
+## SDK 56 Optimizations Adopted
 
-| Change | Impact |
+| Change | PearLift state |
 |---|---|
-| Kotlin compiler plugin | ~40% faster Android cold starts, 33% faster first render |
-| Hermes V1 default | Faster startup, less memory |
-| New iOS JSI layer (Swift→JSI direct) | Faster native module calls |
-| Precompiled XCFrameworks | Faster iOS builds (local + EAS) |
-| Native Node.js watcher | Faster Metro bundler startup |
+| Hermes V1 default | Adopted through SDK 56 / RN 0.85 |
+| Expo Modules Android compiler plugin | Adopted through SDK 56 |
+| iOS precompiled Expo packages | Default, no app config required |
+| Android precompiled headers | Enabled with `expo-build-properties.android.usePrecompiledHeaders` |
+| Status/navigation bar component parity | `StatusBar` and `NavigationBar` are rendered declaratively |
+| Native Node.js watcher / on-demand filesystem | Default Expo CLI behavior |
 
----
-
-## Packages to Update / Migrate
-
-### `expo-av` → `expo-audio`
-The new `expo-audio` has a `useAudioStream` hook (real-time mic buffer). Check `src/utils/timerAudio.ts` — consider migrating from `expo-av` Audio APIs to `expo-audio`.
-
-### `expo-file-system` new features to adopt
-- `File.downloadFileAsync()` now supports progress + `AbortSignal`
-- `File.createUploadTask()` / `File.createDownloadTask()` — resumable long transfers
-- `File.watch()` / `Directory.watch()` — file change subscriptions
-- `File.pickFileAsync()` now supports multi-file + multi-MIME
-- Check usage in: `src/` (workout export), holepunch bridge, SVG caching
-
-### `expo-sqlite` new features
-- Native `ArrayBuffer` for blob columns (replaces `JavaScriptArrayBuffer`)
-- Statement bind params + session changesets
-- Check usage in: `src/storage/database.ts`, `src/storage/workoutRepository.ts`
-
-### `expo-status-bar`
-- New `<StatusBar style="auto" hidden={false} />` declarative API
-- New config plugin for `app.json`
-- Update `src/screens/WorkoutScreen.tsx`
-
-### `expo-haptics`
-- Web haptics now work on Safari (minor — iOS/Android already covered)
-
----
-
-## Native Module: `pearlift-rest-timer-fgs`
-
-### Consider converting to inline module
-Inline modules let you define native modules directly in the project (no separate package). Would simplify `modules/pearlift-rest-timer-fgs/`.
-
-See: https://docs.expo.dev/modules/inline-modules-reference/
-
-### New `create-expo-module` tool
-- `addPlatformSupport` subcommand to add a platform to an existing module
-- Good for if you ever want to add iOS support to the foreground service module
-
----
-
-## New Stuff Worth Exploring
-
-### Expo UI (production-ready)
-Universal cross-platform components: `Button`, `Switch`, `Slider`, `Checkbox`, `BottomSheet`, etc.
-Drop-in replacements for `@gorhom/bottom-sheet`, `@react-native-community/datetimepicker`, etc.
-Could simplify UI components if you're using any of those community libs.
-
-### Brownfield: Multiple isolated apps
-If you ever embed PearLift into another app, `expo-brownfield` now supports multiple frameworks side by side with no symbol collisions.
-
----
-
-## Deprecations
-- Legacy `expo-calendar`, `expo-contacts`, `expo-media-library` APIs — replaced by object-oriented `-next` variants (not used in PearLift currently)
-- `@expo/vector-icons` → superseded by `@react-native-vector-icons/*`
+If Android CMake fails specifically from `usePrecompiledHeaders`, revert only
+that flag to `false` and document the failing package.
 
 ---
 
 ## Testing Checklist
-- [ ] Run `bunx expo install expo@^56.0.0 --fix`
-- [ ] Run the codemod
-- [ ] `bunx expo prebuild --clean` && `bunx expo run:ios` && `bunx expo run:android`
-- [ ] Test timer alarm audio (expo-av / expo-audio)
-- [ ] Test workout export + file sharing (expo-file-system async copy/move)
+
+- [ ] `bun run lint`
+- [ ] `bun run typecheck`
+- [ ] `bunx expo-doctor@latest`
+- [ ] `bun run bundle:sync-backend`
+- [ ] `bunx expo prebuild --clean`
+- [ ] `bun run android`
+- [ ] Test timer alarm audio and haptics
+- [ ] Test workout export, file sharing, and JSON import
 - [ ] Test SQLite database operations
-- [ ] Test foreground service (pearlift-rest-timer-fgs) on Android
-- [ ] Test P2P sync (holepunch bridge file operations)
-- [ ] Test biometric auth (expo-local-authentication)
+- [ ] Test foreground service on Android
+- [ ] Test P2P sync via Holepunch
+- [ ] Test biometric auth
 - [ ] EAS Build: iOS + Android
-- [ ] Verify cold start time improvement on Android

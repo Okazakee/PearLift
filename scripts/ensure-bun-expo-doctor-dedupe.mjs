@@ -11,18 +11,18 @@ import { fileURLToPath } from 'node:url';
 
 const thisFile = fileURLToPath(import.meta.url);
 const projectRoot = resolve(dirname(thisFile), '..');
-const rootModule = resolve(projectRoot, 'node_modules/expo-file-system');
-const nestedModule = resolve(
-  projectRoot,
-  'node_modules/expo/node_modules/expo-file-system',
-);
 const nestedParent = resolve(projectRoot, 'node_modules/expo/node_modules');
-const relativeTarget = '../../expo-file-system';
+const dedupedExpoModules = ['expo-file-system', 'expo-font', 'expo-keep-awake'];
 
-// expo-file-system dedupe symlink — the expo package bundles its own copy
-// inside node_modules/expo/node_modules/. This symlink points it back to
-// the root copy so expo-doctor doesn't see a duplicate.
-if (existsSync(rootModule) && existsSync(nestedParent)) {
+// Some Expo packages are bundled inside node_modules/expo/node_modules/.
+// Link them back to the root copy so expo-doctor doesn't see duplicates.
+for (const moduleName of dedupedExpoModules) {
+  const rootModule = resolve(projectRoot, 'node_modules', moduleName);
+  const nestedModule = resolve(nestedParent, moduleName);
+  const relativeTarget = `../../${moduleName}`;
+
+  if (!existsSync(rootModule) || !existsSync(nestedParent)) continue;
+
   mkdirSync(nestedParent, { recursive: true });
 
   if (existsSync(nestedModule)) {
@@ -36,13 +36,13 @@ if (existsSync(rootModule) && existsSync(nestedParent)) {
       rmSync(nestedModule, { recursive: true, force: true });
       symlinkSync(relativeTarget, nestedModule);
       console.log(
-        '[postinstall] Linked expo/node_modules/expo-file-system -> ../../expo-file-system',
+        `[postinstall] Linked expo/node_modules/${moduleName} -> ${relativeTarget}`,
       );
     }
   } else {
     symlinkSync(relativeTarget, nestedModule);
     console.log(
-      '[postinstall] Linked expo/node_modules/expo-file-system -> ../../expo-file-system',
+      `[postinstall] Linked expo/node_modules/${moduleName} -> ${relativeTarget}`,
     );
   }
 }

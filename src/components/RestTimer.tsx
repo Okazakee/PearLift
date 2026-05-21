@@ -51,6 +51,7 @@ import { withAlpha } from '@/theme/tokens';
 import type { PersistedRestTimerStateV1, RestTimerMode } from '@/types/timer';
 import {
   playCompletionSound,
+  releaseCompletionSound,
   safeActivateKeepAwake,
   safeDeactivateKeepAwake,
   triggerCompletionFeedback,
@@ -164,6 +165,7 @@ export function RestTimer({
       if (panelUnmountTimerRef.current) {
         clearTimeout(panelUnmountTimerRef.current);
       }
+      releaseCompletionSound();
     };
   }, []);
 

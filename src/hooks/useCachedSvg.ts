@@ -29,6 +29,7 @@ export function useCachedSvg(
 
   useEffect(() => {
     let cancelled = false;
+    const controller = new AbortController();
 
     async function load() {
       try {
@@ -45,7 +46,10 @@ export function useCachedSvg(
           return;
         }
 
-        await File.downloadFileAsync(url, file);
+        await File.downloadFileAsync(url, file, {
+          idempotent: true,
+          signal: controller.signal,
+        });
         const content = await file.text();
         if (!cancelled) {
           setSvgContent(tintSvg(content, color));
@@ -65,6 +69,7 @@ export function useCachedSvg(
     load();
     return () => {
       cancelled = true;
+      controller.abort();
     };
   }, [color, filename, url]);
 

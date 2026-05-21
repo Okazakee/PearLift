@@ -6,6 +6,7 @@ import {
   writeAsStringAsync,
 } from 'expo-file-system/legacy';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { NavigationBar } from 'expo-navigation-bar';
 import * as Sharing from 'expo-sharing';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
@@ -219,6 +220,8 @@ export function WorkoutScreen() {
     () => getThemeTokens(effectiveThemeMode, { enableDynamicColor: false }),
     [effectiveThemeMode],
   );
+  const statusBarStyle = effectiveThemeMode === 'dark' ? 'light' : 'dark';
+  const navigationBarStyle = effectiveThemeMode === 'dark' ? 'dark' : 'light';
 
   const currentWeek = snapshot?.currentWeek ?? 1;
   const workouts = snapshot?.workouts ?? [];
@@ -937,11 +940,8 @@ export function WorkoutScreen() {
           edges={['left', 'right']}
           style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
         >
-          <StatusBar
-            style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
-            backgroundColor={tokens.colors.bgBase}
-            translucent={false}
-          />
+          <StatusBar style={statusBarStyle} hidden={false} />
+          <NavigationBar style={navigationBarStyle} hidden={false} />
           <OnboardingScreen
             tokens={tokens}
             topInset={insets.top}
@@ -963,11 +963,8 @@ export function WorkoutScreen() {
         edges={['left', 'right']}
         style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
       >
-        <StatusBar
-          style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
-          backgroundColor={tokens.colors.bgBase}
-          translucent={false}
-        />
+        <StatusBar style={statusBarStyle} hidden={false} />
+        <NavigationBar style={navigationBarStyle} hidden={false} />
         <BootstrapScreen
           backgroundColor={tokens.colors.bgBase}
           accentColor={tokens.colors.primary}
@@ -990,11 +987,8 @@ export function WorkoutScreen() {
       edges={['left', 'right']}
       style={[styles.safeArea, { backgroundColor: tokens.colors.bgBase }]}
     >
-      <StatusBar
-        style={effectiveThemeMode === 'dark' ? 'light' : 'dark'}
-        backgroundColor={tokens.colors.bgBase}
-        translucent={false}
-      />
+      <StatusBar style={statusBarStyle} hidden={false} />
+      <NavigationBar style={navigationBarStyle} hidden={false} />
       <View style={styles.appShell}>
         <Header
           tokens={tokens}

@@ -290,7 +290,7 @@ function createStyles(
       backgroundColor: tokens.colors.surfaceContainer,
     },
     camera: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
     overlay: {
       position: 'absolute',
