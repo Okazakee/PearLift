@@ -157,7 +157,11 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
     });
 
     syncManager.onRemoteApplied(() => {
-      void get().reload();
+      void get()
+        .reload()
+        .catch((err) => {
+          console.error('Failed to reload after remote sync applied:', err);
+        });
       void get().refreshSyncState();
     });
     syncManager.onStateChanged(() => {
@@ -230,8 +234,13 @@ export const useWorkoutStore = create<WorkoutStore>((set, get) => ({
       let persistedSnapshot: WorkoutStoreSnapshot | null = null;
       const shouldPublish =
         !!syncManager?.isActive() && isSyncableMutation(mutation);
+      const syncEnabled =
+        isSyncableMutation(mutation) && get().syncState?.syncEnabled === true;
 
-      if (!skipReload || shouldPublish) {
+      // Always fetch persisted snapshot whenever sync is involved, so we
+      // publish/canonicalize against the DB truth rather than the optimistic
+      // in-memory snapshot (which may have diverged from what was persisted).
+      if (!skipReload || shouldPublish || syncEnabled) {
         persistedSnapshot = await repository.getSnapshot();
         set({ snapshot: persistedSnapshot });
       }

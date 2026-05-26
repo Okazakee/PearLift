@@ -243,6 +243,12 @@ async function configureDatabase(db: SQLite.SQLiteDatabase) {
   );
   const currentVersion = versionRow?.user_version ?? 0;
 
+  if (currentVersion > SCHEMA_GENERATION) {
+    throw new Error(
+      `Database version (${currentVersion}) is newer than this app supports (${SCHEMA_GENERATION}). Downgrading is not supported.`,
+    );
+  }
+
   if (currentVersion !== SCHEMA_GENERATION) {
     await dropAllTables(db);
   }
