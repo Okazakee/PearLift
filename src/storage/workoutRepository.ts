@@ -450,40 +450,38 @@ export class WorkoutRepository {
             break;
           }
           case 'adjustExerciseWeight': {
-            await db.withTransactionAsync(async () => {
-              const exerciseExists = await db.getFirstAsync<{ id: string }>(
-                'SELECT id FROM exercises WHERE id = ? AND deleted_at IS NULL',
-                mutation.exerciseId,
-              );
-              if (!exerciseExists) {
-                return;
-              }
-              const existingWeight = await db.getFirstAsync<{ value: number }>(
-                'SELECT value FROM exercise_weights WHERE exercise_id = ?',
-                mutation.exerciseId,
-              );
-              const exerciseBase = await db.getFirstAsync<{
-                base_weight: number;
-              }>(
-                'SELECT base_weight FROM exercise_targets WHERE exercise_id = ?',
-                mutation.exerciseId,
-              );
-              const currentWeight =
-                existingWeight?.value ?? exerciseBase?.base_weight ?? 0;
-              const nextWeight = Math.max(
-                0,
-                roundToPrecision(currentWeight + mutation.delta, 3),
-              );
-              const timestamp = nowIso();
-              await db.runAsync(
-                `INSERT INTO exercise_weights (exercise_id, value, updated_at)
-               VALUES (?, ?, ?)
-               ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
-                mutation.exerciseId,
-                nextWeight,
-                timestamp,
-              );
-            });
+            const exerciseExists = await db.getFirstAsync<{ id: string }>(
+              'SELECT id FROM exercises WHERE id = ? AND deleted_at IS NULL',
+              mutation.exerciseId,
+            );
+            if (!exerciseExists) {
+              break;
+            }
+            const existingWeight = await db.getFirstAsync<{ value: number }>(
+              'SELECT value FROM exercise_weights WHERE exercise_id = ?',
+              mutation.exerciseId,
+            );
+            const exerciseBase = await db.getFirstAsync<{
+              base_weight: number;
+            }>(
+              'SELECT base_weight FROM exercise_targets WHERE exercise_id = ?',
+              mutation.exerciseId,
+            );
+            const currentWeight =
+              existingWeight?.value ?? exerciseBase?.base_weight ?? 0;
+            const nextWeight = Math.max(
+              0,
+              roundToPrecision(currentWeight + mutation.delta, 3),
+            );
+            const timestamp = nowIso();
+            await db.runAsync(
+              `INSERT INTO exercise_weights (exercise_id, value, updated_at)
+             VALUES (?, ?, ?)
+             ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+              mutation.exerciseId,
+              nextWeight,
+              timestamp,
+            );
             break;
           }
           case 'addExercise': {
@@ -1194,34 +1192,33 @@ export class WorkoutRepository {
     db: SQLiteDatabase,
     runtime: PearLiftRuntimeState,
   ) {
-    await db.withTransactionAsync(async () => {
-      const timestamp = nowIso();
-      const normalizedDayConfigs = normalizeDayConfigs(
-        runtime.workouts,
-        runtime.dayConfigs,
-      );
-      const alignedWorkouts = alignWorkoutsToDays(
-        runtime.workouts,
-        normalizedDayConfigs,
-      );
-      const safeCurrentDay = normalizedDayConfigs.some(
-        (day) => day.id === runtime.currentDay,
-      )
-        ? runtime.currentDay
-        : (normalizedDayConfigs[0]?.id ?? 'push');
+    const timestamp = nowIso();
+    const normalizedDayConfigs = normalizeDayConfigs(
+      runtime.workouts,
+      runtime.dayConfigs,
+    );
+    const alignedWorkouts = alignWorkoutsToDays(
+      runtime.workouts,
+      normalizedDayConfigs,
+    );
+    const safeCurrentDay = normalizedDayConfigs.some(
+      (day) => day.id === runtime.currentDay,
+    )
+      ? runtime.currentDay
+      : (normalizedDayConfigs[0]?.id ?? 'push');
 
-      await db.execAsync(`
-        DELETE FROM exercise_weights;
-        DELETE FROM exercise_targets;
-        DELETE FROM exercises;
-        DELETE FROM training_blocks;
-        DELETE FROM program_days;
-        DELETE FROM programs;
-        DELETE FROM user_preferences;
-      `);
+    await db.execAsync(`
+      DELETE FROM exercise_weights;
+      DELETE FROM exercise_targets;
+      DELETE FROM exercises;
+      DELETE FROM training_blocks;
+      DELETE FROM program_days;
+      DELETE FROM programs;
+      DELETE FROM user_preferences;
+    `);
 
-      await db.runAsync(
-        `INSERT INTO programs (
+    await db.runAsync(
+      `INSERT INTO programs (
           id,
           name,
           description,
@@ -1230,17 +1227,17 @@ export class WorkoutRepository {
           updated_at,
           deleted_at
         ) VALUES (?, ?, ?, 1, 0, ?, NULL)`,
-        DEFAULT_PROGRAM_ID,
-        'Main Program',
-        'Primary training program',
-        timestamp,
-      );
+      DEFAULT_PROGRAM_ID,
+      'Main Program',
+      'Primary training program',
+      timestamp,
+    );
 
-      for (const [index, workout] of alignedWorkouts.entries()) {
-        const dayConfig =
-          normalizedDayConfigs.find((day) => day.id === workout.id) ?? null;
-        await db.runAsync(
-          `INSERT INTO program_days (
+    for (const [index, workout] of alignedWorkouts.entries()) {
+      const dayConfig =
+        normalizedDayConfigs.find((day) => day.id === workout.id) ?? null;
+      await db.runAsync(
+        `INSERT INTO program_days (
             id,
             program_id,
             day_label,
@@ -1252,59 +1249,59 @@ export class WorkoutRepository {
             deleted_at
           )
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
-          workout.id,
-          DEFAULT_PROGRAM_ID,
-          dayConfig?.name ?? workout.name,
-          dayConfig?.icon ?? 'FitnessCenter',
-          workout.name,
-          workout.description,
-          index,
-          timestamp,
-        );
+        workout.id,
+        DEFAULT_PROGRAM_ID,
+        dayConfig?.name ?? workout.name,
+        dayConfig?.icon ?? 'FitnessCenter',
+        workout.name,
+        workout.description,
+        index,
+        timestamp,
+      );
 
-        const orderedExercises = [...workout.exercises].sort(
-          (a, b) => a.position - b.position,
-        );
-        for (const [position, exercise] of orderedExercises.entries()) {
-          await db.runAsync(
-            `INSERT INTO exercises (
+      const orderedExercises = [...workout.exercises].sort(
+        (a, b) => a.position - b.position,
+      );
+      for (const [position, exercise] of orderedExercises.entries()) {
+        await db.runAsync(
+          `INSERT INTO exercises (
               id, program_day_id, name, muscle_group, notes, sort_order, updated_at, deleted_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
-            exercise.id,
-            workout.id,
-            exercise.name,
-            exercise.muscleGroup,
-            exercise.notes,
-            position,
-            timestamp,
-          );
-          await db.runAsync(
-            `INSERT INTO exercise_targets (
+          exercise.id,
+          workout.id,
+          exercise.name,
+          exercise.muscleGroup,
+          exercise.notes,
+          position,
+          timestamp,
+        );
+        await db.runAsync(
+          `INSERT INTO exercise_targets (
               exercise_id,
               sets,
               reps,
               base_weight,
               updated_at
             ) VALUES (?, ?, ?, ?, ?)`,
-            exercise.id,
-            exercise.sets,
-            exercise.reps,
-            exercise.baseWeight,
-            timestamp,
-          );
-          await db.runAsync(
-            `INSERT INTO exercise_weights (exercise_id, value, updated_at)
-             VALUES (?, ?, ?)`,
-            exercise.id,
-            runtime.userWeights[exercise.id] ?? exercise.baseWeight ?? 0,
-            timestamp,
-          );
-        }
-      }
-
-      for (const [index, week] of runtime.weekConfigs.entries()) {
+          exercise.id,
+          exercise.sets,
+          exercise.reps,
+          exercise.baseWeight,
+          timestamp,
+        );
         await db.runAsync(
-          `INSERT INTO training_blocks (
+          `INSERT INTO exercise_weights (exercise_id, value, updated_at)
+             VALUES (?, ?, ?)`,
+          exercise.id,
+          runtime.userWeights[exercise.id] ?? exercise.baseWeight ?? 0,
+          timestamp,
+        );
+      }
+    }
+
+    for (const [index, week] of runtime.weekConfigs.entries()) {
+      await db.runAsync(
+        `INSERT INTO training_blocks (
             id,
             program_id,
             name,
@@ -1315,38 +1312,37 @@ export class WorkoutRepository {
             deleted_at
           )
            VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
-          week.id,
-          DEFAULT_PROGRAM_ID,
-          week.name,
-          week.loadModifier,
-          week.rir,
-          index,
-          timestamp,
-        );
-      }
+        week.id,
+        DEFAULT_PROGRAM_ID,
+        week.name,
+        week.loadModifier,
+        week.rir,
+        index,
+        timestamp,
+      );
+    }
 
-      await this.writeSetting(
-        db,
-        'currentWeek',
-        String(runtime.currentWeek),
-        timestamp,
-      );
-      await this.writeSetting(db, 'currentDay', safeCurrentDay, timestamp);
-      await this.writeSetting(
-        db,
-        'restDuration',
-        String(Math.max(0, runtime.restDuration)),
-        timestamp,
-      );
-      await this.writeSetting(db, 'themeMode', runtime.themeMode, timestamp);
-      await this.writeSetting(
-        db,
-        'weightUnit',
-        runtime.weightUnit ?? 'kg',
-        timestamp,
-      );
-      await this.writeSetting(db, 'language', runtime.language, timestamp);
-    });
+    await this.writeSetting(
+      db,
+      'currentWeek',
+      String(runtime.currentWeek),
+      timestamp,
+    );
+    await this.writeSetting(db, 'currentDay', safeCurrentDay, timestamp);
+    await this.writeSetting(
+      db,
+      'restDuration',
+      String(Math.max(0, runtime.restDuration)),
+      timestamp,
+    );
+    await this.writeSetting(db, 'themeMode', runtime.themeMode, timestamp);
+    await this.writeSetting(
+      db,
+      'weightUnit',
+      runtime.weightUnit ?? 'kg',
+      timestamp,
+    );
+    await this.writeSetting(db, 'language', runtime.language, timestamp);
   }
 
   private async readRuntimeState(
