@@ -22,6 +22,7 @@
     "postinstall": "node ./scripts/ensure-bun-expo-doctor-dedupe.mjs && node ./scripts/apply-node-modules-patches.mjs",
     "prepare": "husky",
     "lint": "biome check .",
+    "test": "bun test",
     "typecheck": "tsc --noEmit",
     "check:full": "bun run lint && bun run typecheck",
     "format": "biome format --write .",

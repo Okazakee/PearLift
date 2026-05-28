@@ -7,6 +7,27 @@ import type {
 } from '@/storage';
 import { logError } from '@/utils/errors';
 import { createSyncBridge } from '@/sync/bridge';
+import { buildHealthSignature } from '@/sync/manager/health';
+import { getLatestSnapshotPayload } from '@/sync/manager/joinResolution';
+import { classifyStartError } from '@/sync/manager/lifecycle';
+import {
+  shouldBufferDuringActiveConflict,
+  shouldBufferDuringJoin,
+  shouldTryReconnectConflict,
+} from '@/sync/manager/remoteApply';
+import {
+  createOpId,
+  EMPTY_ROOM_TIMEOUT_MS,
+  MAX_BUFFERED_REMOTE_OPS,
+  nowIso,
+  PENDING_RESOLVE_DEBOUNCE_MS,
+  PUBLISH_DEBOUNCE_MS,
+  preserveLocalPreferences,
+  RECONNECT_RECONCILE_MS,
+  summarizeRoomBindingState,
+  toRuntime,
+} from '@/sync/manager/state';
+import { clearTimer } from '@/sync/manager/timers';
 import { canonicalizeMutationForSync } from '@/sync/canonicalize';
 import { coalescePublishQueue } from '@/sync/coalesce';
 import {
@@ -51,63 +72,6 @@ import type {
 import { INITIAL_SYNC_HEALTH } from '@/sync/types';
 
 export { getPairingSecretPayload, setPairingSecretPayload, clearPairingSecret };
-
-const EMPTY_ROOM_TIMEOUT_MS = 6000;
-const PENDING_RESOLVE_DEBOUNCE_MS = 1000;
-const PUBLISH_DEBOUNCE_MS = 200;
-const RECONNECT_RECONCILE_MS = 1500;
-const MAX_BUFFERED_REMOTE_OPS = 200;
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function createOpId(deviceId: string, lamport: number) {
-  return `${deviceId}:${lamport}`;
-}
-
-function summarizeRoomBindingState(
-  state: Awaited<ReturnType<WorkoutRepository['getSyncState']>>,
-) {
-  return {
-    roomBindingState: state.roomBindingState,
-    firstSyncResolution: state.firstSyncResolution,
-    autobaseBootstrapKey: state.autobaseBootstrapKey,
-    hasPendingLocalSummary: Boolean(state.pendingLocalSummary),
-    hasPendingRemoteSummary: Boolean(state.pendingRemoteSummary),
-    hasPendingConflictSummary: Boolean(state.pendingConflictSummary),
-  };
-}
-
-function toRuntime(snapshot: WorkoutStoreSnapshot | PearLiftRuntimeState) {
-  return {
-    workouts: snapshot.workouts,
-    userWeights: snapshot.userWeights,
-    weekConfigs: snapshot.weekConfigs,
-    dayConfigs: snapshot.dayConfigs,
-    currentWeek: snapshot.currentWeek,
-    currentDay: snapshot.currentDay,
-    restDuration: snapshot.restDuration,
-    themeMode: snapshot.themeMode,
-    weightUnit: snapshot.weightUnit,
-    language: snapshot.language,
-  } satisfies PearLiftRuntimeState;
-}
-
-function preserveLocalPreferences(
-  incoming: PearLiftRuntimeState,
-  local: PearLiftRuntimeState,
-): PearLiftRuntimeState {
-  return {
-    ...incoming,
-    currentWeek: local.currentWeek,
-    currentDay: local.currentDay,
-    restDuration: local.restDuration,
-    themeMode: local.themeMode,
-    weightUnit: local.weightUnit,
-    language: local.language,
-  };
-}
 
 class SyncManagerImpl implements SyncManager {
   private readonly bridge: SyncBridge;
@@ -378,27 +342,18 @@ class SyncManagerImpl implements SyncManager {
         this.active = false;
         const rawMessage =
           error instanceof Error ? error.message : 'Sync start failed';
-        const startCategory = rawMessage.includes('worklet_start_timeout')
-          ? 'timeout'
-          : rawMessage.includes('validation') ||
-              rawMessage.includes('mismatch')
-            ? 'validation'
-            : 'runtime';
-        const message =
-          startCategory === 'timeout'
-            ? 'Sync startup timed out. Retry to reconnect.'
-            : startCategory === 'validation'
-              ? rawMessage
-              : `Sync start failed: ${rawMessage}`;
+        const classified = classifyStartError(rawMessage);
         logSyncError('manager', 'start_failed', error, {
-          startCategory,
+          startCategory: classified.category,
           rawMessage,
         });
-        await this.repository.setSyncState({ lastError: message });
+        await this.repository.setSyncState({
+          lastError: classified.userMessage,
+        });
         this.setHealth({
           ...this.health,
           status: 'error',
-          lastError: message,
+          lastError: classified.userMessage,
         });
         throw error;
       } finally {
@@ -545,10 +500,7 @@ class SyncManagerImpl implements SyncManager {
     const payload = getOpPayload(op);
 
     if (
-      this.currentRole === 'joiner' &&
-      (syncState.roomBindingState === 'pending_first_sync' ||
-        syncState.roomBindingState === 'conflict_requires_decision') &&
-      payload.kind !== 'presence'
+      shouldBufferDuringJoin(op, this.currentRole, syncState.roomBindingState)
     ) {
       this.bufferedRemoteOps.push(op);
       logSyncEvent(
@@ -568,11 +520,7 @@ class SyncManagerImpl implements SyncManager {
       return;
     }
 
-    if (
-      syncState.roomBindingState === 'active_conflict_requires_decision' &&
-      payload.kind !== 'presence' &&
-      payload.kind !== 'device_profile'
-    ) {
+    if (shouldBufferDuringActiveConflict(op, syncState.roomBindingState)) {
       this.bufferedRemoteOps.push(op);
       logSyncEvent(
         'info',
@@ -591,10 +539,11 @@ class SyncManagerImpl implements SyncManager {
     }
 
     if (
-      syncState.roomBindingState === 'active' &&
-      this.pendingReconnectLocalMutations.length > 0 &&
-      payload.kind !== 'presence' &&
-      payload.kind !== 'device_profile'
+      shouldTryReconnectConflict(
+        op,
+        syncState.roomBindingState,
+        this.pendingReconnectLocalMutations,
+      )
     ) {
       const conflict = await this.tryEnterActiveConflict(op, payload);
       if (conflict) {
@@ -627,13 +576,9 @@ class SyncManagerImpl implements SyncManager {
       this.pendingLocalRuntime ?? (await this.repository.getRuntimeState());
 
     if (choice === 'merge') {
-      const latestSnapshotOp = [...this.bufferedRemoteOps]
-        .reverse()
-        .find((op) => getOpPayload(op).kind === 'snapshot_replace');
-      const remoteSnapshotPayload =
-        latestSnapshotOp && getOpPayload(latestSnapshotOp).kind === 'snapshot_replace'
-          ? (getOpPayload(latestSnapshotOp) as SyncSnapshotReplacePayload)
-          : null;
+      const { remoteSnapshotPayload } = getLatestSnapshotPayload(
+        this.bufferedRemoteOps,
+      );
       const remoteRuntime = remoteSnapshotPayload!.runtime;
       const merged = mergeDisjointRuntime(localRuntime, remoteRuntime);
       await this.repository.applyMutation(
@@ -812,14 +757,9 @@ class SyncManagerImpl implements SyncManager {
     const localRuntime =
       this.pendingLocalRuntime ?? (await this.repository.getRuntimeState());
     const syncState = await this.repository.getSyncState();
-    const latestSnapshotOp = [...this.bufferedRemoteOps]
-      .reverse()
-      .find((op) => getOpPayload(op).kind === 'snapshot_replace');
-
-    const remoteSnapshotPayload =
-      latestSnapshotOp && getOpPayload(latestSnapshotOp).kind === 'snapshot_replace'
-        ? (getOpPayload(latestSnapshotOp) as SyncSnapshotReplacePayload)
-        : null;
+    const { latestSnapshotOp, remoteSnapshotPayload } = getLatestSnapshotPayload(
+      this.bufferedRemoteOps,
+    );
 
     logSyncEvent(
       'info',
@@ -1234,17 +1174,7 @@ class SyncManagerImpl implements SyncManager {
   }
 
   private logHealthFromBridge(previous: SyncHealth, next: SyncHealth) {
-    const signature = [
-      next.status,
-      next.syncMode,
-      next.degradedReason ?? '',
-      next.degradedSince ?? '',
-      next.peers,
-      next.connections,
-      next.bootstrapped ? '1' : '0',
-      next.reconnectAttempts,
-      next.lastError ?? '',
-    ].join('|');
+    const signature = buildHealthSignature(next);
     if (signature === this.lastLoggedHealthSignature) {
       return;
     }
@@ -1284,15 +1214,11 @@ class SyncManagerImpl implements SyncManager {
   }
 
   private clearResolveTimer() {
-    if (!this.resolveTimer) return;
-    clearTimeout(this.resolveTimer);
-    this.resolveTimer = null;
+    this.resolveTimer = clearTimer(this.resolveTimer);
   }
 
   private clearEmptyRoomTimer() {
-    if (!this.emptyRoomTimer) return;
-    clearTimeout(this.emptyRoomTimer);
-    this.emptyRoomTimer = null;
+    this.emptyRoomTimer = clearTimer(this.emptyRoomTimer);
   }
 
   private clearTimers() {
@@ -1303,9 +1229,7 @@ class SyncManagerImpl implements SyncManager {
   }
 
   private clearPublishTimer() {
-    if (!this.publishTimer) return;
-    clearTimeout(this.publishTimer);
-    this.publishTimer = null;
+    this.publishTimer = clearTimer(this.publishTimer);
   }
 
   private clearPendingPublishes() {
@@ -1314,9 +1238,7 @@ class SyncManagerImpl implements SyncManager {
   }
 
   private clearReconnectTimer() {
-    if (!this.reconnectTimer) return;
-    clearTimeout(this.reconnectTimer);
-    this.reconnectTimer = null;
+    this.reconnectTimer = clearTimer(this.reconnectTimer);
   }
 
   private clearBridgeSubscriptions() {

@@ -2,317 +2,71 @@ import * as Crypto from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { alignWorkoutsToDays } from '@/backup/normalization';
 import type { PearLiftRuntimeState } from '@/backup/types';
-import { MAX_DAY_CONFIGS } from '@/config/constants';
-import {
-  buildInitialWeights,
-  defaultDayConfigs,
-  defaultWeekConfigs,
-  defaultWorkouts,
-} from '@/data/workouts';
+import { defaultDayConfigs, defaultWeekConfigs } from '@/data/workouts';
 import { getDatabase } from '@/storage/database';
+import {
+  buildDefaultDeviceName,
+  buildDefaultRuntimeState,
+  buildResetWorkoutDataState,
+  cloneDefaultWorkouts,
+  coerceLanguage,
+  coerceThemeMode,
+  coerceWeightUnit,
+  createExerciseId,
+  DAY_CONFIG_REVISION_SETTING,
+  DEFAULT_PROGRAM_ID,
+  DEFAULT_ROOM_ID,
+  DEVICE_DISPLAY_NAME_SETTING,
+  normalizeDayConfigs,
+  nowIso,
+  parseNumber,
+  SYNC_APPLIED_OP_RETENTION_LIMIT,
+  toDeviceCode,
+  WEEK_CONFIG_REVISION_SETTING,
+} from '@/storage/repository/defaults';
+import {
+  type AppSettingRow,
+  buildExerciseMap,
+  buildUserWeights,
+  type ExerciseRow,
+  type ExerciseTargetRow,
+  type ProgramDayRow,
+  toSettingsMap,
+  type WeekConfigRow,
+  type WeightRow,
+} from '@/storage/repository/runtimeState';
+import {
+  isNewerRevision,
+  parseJsonColumn,
+  type SyncDeviceRow,
+  type SyncIdentityDbRow,
+  type SyncOutboxRow,
+  type SyncProfileOutboxRow,
+  type SyncRoomStateDbRow,
+} from '@/storage/repository/syncState';
+import type { WorkoutRepositoryPort } from '@/storage/repository/types';
+import { WriteQueue } from '@/storage/repository/writeQueue';
 import type {
   MutationContext,
   PairedDevice,
   SyncConflictSummary,
   SyncDataSummary,
-  SyncFirstSyncResolution,
-  SyncRole,
-  SyncRoomBindingState,
   SyncStateRow,
   WorkoutMutation,
   WorkoutStoreSnapshot,
 } from '@/storage/types';
 import type { SyncDeviceProfile, SyncMutation } from '@/sync/types';
-import type {
-  DayConfig,
-  Exercise,
-  UserWeights,
-  WeightUnit,
-  WorkoutSession,
-} from '@/types';
 import { roundToPrecision } from '@/utils/math';
 
-const WEEK_CONFIG_REVISION_SETTING = 'syncWeekConfigsRevisionAt';
-const DAY_CONFIG_REVISION_SETTING = 'syncDayConfigsRevisionAt';
-const DEVICE_DISPLAY_NAME_SETTING = 'syncDeviceDisplayName';
-const SYNC_APPLIED_OP_RETENTION_LIMIT = 4000;
-const DEFAULT_PROGRAM_ID = 'main-program';
-const DEFAULT_ROOM_ID = 'default';
+export { getLanguageNativeName } from '@/storage/repository/defaults';
 
-function toDeviceCode(deviceId: string) {
-  return deviceId.replace(/-/g, '').slice(-4).toUpperCase();
-}
-
-function buildDefaultDeviceName(deviceId: string) {
-  return `PearLift device ${toDeviceCode(deviceId)}`;
-}
-
-function cloneDefaultWorkouts() {
-  return JSON.parse(JSON.stringify(defaultWorkouts)) as WorkoutSession[];
-}
-
-function buildDefaultRuntimeState(): PearLiftRuntimeState {
-  const workouts = cloneDefaultWorkouts();
-  return {
-    workouts,
-    userWeights: buildInitialWeights(workouts),
-    weekConfigs: defaultWeekConfigs,
-    dayConfigs: defaultDayConfigs,
-    currentWeek: 1,
-    currentDay: defaultDayConfigs[0]?.id ?? 'push',
-    restDuration: 150,
-    themeMode: 'system',
-    weightUnit: 'kg',
-    language: 'system',
-  };
-}
-
-function buildResetWorkoutDataState(
-  current: PearLiftRuntimeState,
-): PearLiftRuntimeState {
-  const defaults = buildDefaultRuntimeState();
-  return {
-    ...defaults,
-    restDuration: current.restDuration,
-    themeMode: current.themeMode,
-    weightUnit: current.weightUnit,
-    language: current.language,
-  };
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function createExerciseId(name: string) {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-  return `${slug || 'exercise'}-${Date.now().toString(36)}`;
-}
-
-function parseNumber(value: string | null | undefined, fallback: number) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
-}
-
-function coerceThemeMode(
-  value: string | null | undefined,
-): PearLiftRuntimeState['themeMode'] {
-  if (value === 'light' || value === 'dark' || value === 'system') {
-    return value;
-  }
-  return 'system';
-}
-
-function coerceWeightUnit(value: string | null | undefined): WeightUnit {
-  return value === 'lb' ? 'lb' : 'kg';
-}
-
-export const SUPPORTED_LANGUAGES = [
-  { code: 'en', native: 'English' },
-  { code: 'de', native: 'Deutsch' },
-  { code: 'fr', native: 'Français' },
-  { code: 'es', native: 'Español' },
-  { code: 'it', native: 'Italiano' },
-  { code: 'pt', native: 'Português' },
-  { code: 'nl', native: 'Nederlands' },
-  { code: 'pl', native: 'Polski' },
-  { code: 'sv', native: 'Svenska' },
-  { code: 'da', native: 'Dansk' },
-  { code: 'fi', native: 'Suomi' },
-  { code: 'no', native: 'Norsk' },
-  { code: 'cs', native: 'Čeština' },
-  { code: 'hu', native: 'Magyar' },
-  { code: 'ro', native: 'Română' },
-  { code: 'el', native: 'Ελληνικά' },
-  { code: 'bg', native: 'Български' },
-  { code: 'hr', native: 'Hrvatski' },
-  { code: 'sk', native: 'Slovenčina' },
-  { code: 'sl', native: 'Slovenščina' },
-  { code: 'et', native: 'Eesti' },
-  { code: 'lv', native: 'Latviešu' },
-  { code: 'lt', native: 'Lietuvių' },
-  { code: 'zh', native: '中文' },
-  { code: 'ar', native: 'العربية' },
-  { code: 'hi', native: 'हिन्दी' },
-  { code: 'ru', native: 'Русский' },
-  { code: 'ja', native: '日本語' },
-  { code: 'ko', native: '한국어' },
-  { code: 'tr', native: 'Türkçe' },
-  { code: 'vi', native: 'Tiếng Việt' },
-  { code: 'th', native: 'ไทย' },
-  { code: 'id', native: 'Bahasa Indonesia' },
-];
-
-function coerceLanguage(value: string | null | undefined): string {
-  if (!value) return 'system';
-  if (value === 'system') return 'system';
-  const lang = SUPPORTED_LANGUAGES.find((l) => l.code === value);
-  return lang ? value : 'system';
-}
-
-export const getLanguageNativeName = (code: string): string => {
-  const lang = SUPPORTED_LANGUAGES.find((l) => l.code === code);
-  return lang?.native ?? code;
-};
-
-function normalizeDayConfigs(
-  workouts: WorkoutSession[],
-  dayConfigs: DayConfig[],
-  options: { fallbackToDefault?: boolean } = {},
-): DayConfig[] {
-  const fallbackToDefault = options.fallbackToDefault ?? true;
-  const seen = new Set<string>();
-  const merged: DayConfig[] = [];
-
-  for (const day of dayConfigs) {
-    if (seen.has(day.id)) continue;
-    seen.add(day.id);
-    if (merged.length >= MAX_DAY_CONFIGS) break;
-    merged.push(day);
-  }
-
-  for (const workout of workouts) {
-    if (merged.length >= MAX_DAY_CONFIGS) break;
-    if (seen.has(workout.id)) continue;
-    seen.add(workout.id);
-    merged.push({
-      id: workout.id,
-      name: workout.name || `Day ${merged.length + 1}`,
-      icon: 'FitnessCenter',
-    });
-  }
-
-  if (merged.length > 0) return merged;
-  return fallbackToDefault ? defaultDayConfigs : [];
-}
-
-type ProgramDayRow = {
-  id: string;
-  day_label: string;
-  icon: string;
-  workout_name: string;
-  workout_description: string;
-  sort_order: number;
-};
-
-type ExerciseRow = {
-  id: string;
-  program_day_id: string;
-  name: string;
-  muscle_group: string;
-  notes: string;
-  sort_order: number;
-};
-
-type ExerciseTargetRow = {
-  exercise_id: string;
-  sets: number;
-  reps: string;
-  base_weight: number;
-};
-
-type WeightRow = {
-  exercise_id: string;
-  value: number;
-};
-
-type WeekConfigRow = {
-  id: number;
-  name: string;
-  load_modifier: number;
-  rir: number;
-  sort_order: number;
-};
-
-type AppSettingRow = {
-  key: string;
-  value: string;
-};
-
-type SyncDeviceRow = {
-  device_id: string;
-  device_code: string;
-  display_name: string;
-  writer_key: string | null;
-  last_seen: string;
-  is_hidden: number;
-};
-
-type SyncIdentityDbRow = {
-  sync_enabled: number;
-  device_id: string | null;
-  pairing_secret_ciphertext: string | null;
-  pairing_secret_iv: string | null;
-  pairing_secret_tag: string | null;
-  lamport_counter: number;
-  last_error: string | null;
-  last_synced_at: string | null;
-  updated_at: string;
-};
-
-type SyncRoomStateDbRow = {
-  room_id: string;
-  sync_role: SyncRole | null;
-  room_binding_state: SyncRoomBindingState | null;
-  first_sync_resolution: SyncFirstSyncResolution | null;
-  autobase_bootstrap_key: string | null;
-  pending_local_summary: string | null;
-  pending_remote_summary: string | null;
-  pending_conflict_summary: string | null;
-};
-
-type SyncOutboxRow = {
-  id: number;
-  payload_json: string;
-};
-
-type SyncProfileOutboxRow = {
-  id: number;
-  display_name: string;
-};
-
-function parseJsonColumn<T>(value: string | null): T | null {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
-function isNewerRevision(
-  incomingRevision: string | null | undefined,
-  currentRevision: string | null | undefined,
-) {
-  if (!incomingRevision || !currentRevision) return true;
-  const incomingTime = Date.parse(incomingRevision);
-  const currentTime = Date.parse(currentRevision);
-  if (!Number.isFinite(incomingTime) || !Number.isFinite(currentTime)) {
-    return incomingRevision > currentRevision;
-  }
-  return incomingTime > currentTime;
-}
-
-export class WorkoutRepository {
+class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
   private initialized = false;
   private initPromise: Promise<void> | null = null;
-  private writeQueue: Promise<void> = Promise.resolve();
+  private readonly writeQueue = new WriteQueue();
 
   private enqueueWrite<T>(fn: () => Promise<T>): Promise<T> {
-    // expo-sqlite uses a single native connection; overlapping transactions can fail with:
-    // "cannot start a transaction within a transaction".
-    const run = this.writeQueue.then(fn, fn);
-    this.writeQueue = run.then(
-      () => undefined,
-      (err: unknown) => {
-        console.error('[WorkoutRepository] Write queue error:', err);
-        return undefined; // keep queue alive for subsequent writes
-      },
-    );
-    return run;
+    return this.writeQueue.enqueue(fn);
   }
 
   async initialize() {
@@ -324,7 +78,7 @@ export class WorkoutRepository {
     }
 
     // Drain any pending writes so seeding always runs first.
-    await this.writeQueue;
+    await this.writeQueue.drain();
     this.initPromise = (async () => {
       const db = await getDatabase();
       const row = await db.getFirstAsync<{ total: number }>(
@@ -1384,30 +1138,8 @@ export class WorkoutRepository {
       'SELECT key, value FROM user_preferences',
     );
 
-    const targetMap = new Map(
-      exerciseTargets.map((target) => [target.exercise_id, target]),
-    );
-    const exerciseMap = new Map<string, Exercise[]>();
-    for (const exercise of exercises) {
-      const target = targetMap.get(exercise.id);
-      const list = exerciseMap.get(exercise.program_day_id) ?? [];
-      list.push({
-        id: exercise.id,
-        name: exercise.name,
-        sets: target?.sets ?? 2,
-        reps: target?.reps ?? '8-10',
-        baseWeight: target?.base_weight ?? 0,
-        muscleGroup: exercise.muscle_group,
-        notes: exercise.notes,
-        position: exercise.sort_order,
-      });
-      exerciseMap.set(exercise.program_day_id, list);
-    }
-
-    const userWeights: UserWeights = {};
-    for (const row of weights) {
-      userWeights[row.exercise_id] = row.value;
-    }
+    const exerciseMap = buildExerciseMap(exercises, exerciseTargets);
+    const userWeights = buildUserWeights(weights);
 
     const runtimeWorkouts = workouts.map((workout) => ({
       id: workout.id,
@@ -1418,9 +1150,7 @@ export class WorkoutRepository {
       ),
     }));
 
-    const settingsMap = new Map(
-      settings.map((entry) => [entry.key, entry.value]),
-    );
+    const settingsMap = toSettingsMap(settings);
 
     return {
       workouts:
@@ -1806,4 +1536,10 @@ export class WorkoutRepository {
       );
     }
   }
+}
+
+export type WorkoutRepository = WorkoutRepositoryPort;
+
+export function createWorkoutRepository(): WorkoutRepositoryPort {
+  return new WorkoutRepositoryImpl();
 }

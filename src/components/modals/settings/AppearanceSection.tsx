@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
-import { getLanguageNativeName } from '@/storage/workoutRepository';
+import { getLanguageNativeName } from '@/storage';
 import type { ThemePreference, ThemeTokens } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
 import { Text } from '../../AppText';

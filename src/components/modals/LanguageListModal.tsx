@@ -4,15 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
-import { SUPPORTED_LANGUAGES } from '@/storage/workoutRepository';
+import { SUPPORTED_LANGUAGES } from '@/storage';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import { Text } from '../AppText';
-
-interface LanguageItem {
-  code: string;
-  native: string;
-}
 
 interface LanguageListModalProps {
   open: boolean;
@@ -61,7 +56,7 @@ export function LanguageListModal({
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       >
-        {(SUPPORTED_LANGUAGES as LanguageItem[]).map((lang) => {
+        {SUPPORTED_LANGUAGES.map((lang) => {
           const isSelected = selectedLanguage === lang.code;
           return (
             <Pressable
