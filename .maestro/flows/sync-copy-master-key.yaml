@@ -1,0 +1,22 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- scrollUntilVisible:
+    element:
+      id: settings.sync.advanced
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: settings.sync.advanced
+- scrollUntilVisible:
+    element:
+      id: settings.sync.masterKey
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: settings.sync.masterKey
+- evalScript: ${output.masterKey = maestro.copiedText}
+- runScript: ../scripts/log-sync-master-key.js

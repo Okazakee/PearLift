@@ -1,0 +1,72 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- scrollUntilVisible:
+    element:
+      id: workout.addExercise
+    direction: DOWN
+    timeout: 15000
+    visibilityPercentage: 50
+- tapOn:
+    id: workout.addExercise
+- assertVisible:
+    id: exercise.modal.name
+- tapOn:
+    id: exercise.modal.name
+- inputText: E2E Push Up
+- tapOn:
+    id: exercise.modal.sets
+- eraseText
+- inputText: '4'
+- tapOn:
+    id: exercise.modal.reps
+- eraseText
+- inputText: '10'
+- scrollUntilVisible:
+    element:
+      id: exercise.modal.submit
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.modal.submit
+- assertVisible: E2E Push Up
+- scrollUntilVisible:
+    element:
+      id: exercise.exercise-1-1.edit
+    direction: UP
+    timeout: 15000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.exercise-1-1.edit
+- assertVisible:
+    id: exercise.modal.name
+- tapOn:
+    id: exercise.modal.name
+- eraseText
+- inputText: Bench Press E2E
+- scrollUntilVisible:
+    element:
+      id: exercise.modal.submit
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.modal.submit
+- assertVisible: Bench Press E2E
+- scrollUntilVisible:
+    element:
+      id: exercise.exercise-1-2.delete
+    direction: DOWN
+    timeout: 15000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.exercise-1-2.delete
+- extendedWaitUntil:
+    visible:
+      id: prompt.action.destructive
+    timeout: 10000
+- tapOn:
+    id: prompt.action.destructive
+- assertNotVisible: Squat

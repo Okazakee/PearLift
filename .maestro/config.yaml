@@ -1,0 +1,9 @@
+appId: dev.okazakee.pearlift
+flows:
+  - flows/**/*.yaml
+jsEngine: graaljs
+testOutputDir: .maestro/results
+env:
+  MAESTRO_DEVICE_A: ''
+  MAESTRO_DEVICE_B: ''
+  SYNC_INVITE: ''

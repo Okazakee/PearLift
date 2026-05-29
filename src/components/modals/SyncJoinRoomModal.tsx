@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { SyncDataSummary } from '@/storage/types';
 import { decodeSyncRoomInvite } from '@/sync/roomInvite';
@@ -116,7 +117,12 @@ export function SyncJoinRoomModal({
             <Text style={styles.title}>{t('sync.join.title')}</Text>
             <Text style={styles.subtitle}>{t('sync.join.subtitle')}</Text>
           </View>
-          <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
+          <Pressable
+            onPress={onClose}
+            style={styles.closeButton}
+            hitSlop={8}
+            testID={E2E_IDS.syncJoin.close}
+          >
             <X size={20} color={tokens.colors.textSecondary} />
           </Pressable>
         </View>
@@ -155,6 +161,7 @@ export function SyncJoinRoomModal({
               keyValid === true && styles.inputValid,
               keyValid === false && styles.inputInvalid,
             ]}
+            testID={E2E_IDS.syncJoin.input}
           />
           {keyValid === true ? (
             <View style={styles.validationRow}>
@@ -176,6 +183,7 @@ export function SyncJoinRoomModal({
             <AnimatedPressable
               style={styles.outlineButton}
               onPress={handlePaste}
+              testID={E2E_IDS.syncJoin.paste}
             >
               <ClipboardPaste size={15} color={tokens.colors.textPrimary} />
               <Text style={styles.outlineButtonText}>
@@ -185,6 +193,7 @@ export function SyncJoinRoomModal({
             <AnimatedPressable
               style={styles.outlineButton}
               onPress={onScanRoomKey}
+              testID={E2E_IDS.syncJoin.scan}
             >
               <QrCode size={15} color={tokens.colors.textPrimary} />
               <Text style={styles.outlineButtonText}>
@@ -216,6 +225,7 @@ export function SyncJoinRoomModal({
             setBusy(true);
             void onJoinRoom(key).finally(() => setBusy(false));
           }}
+          testID={E2E_IDS.syncJoin.join}
         >
           {busy ? (
             <ActivityIndicator color={tokens.colors.onPrimary} />

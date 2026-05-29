@@ -3,6 +3,7 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
 import { Linking } from 'react-native';
 import { APP_CONFIG } from '@/config/app';
+import { IS_E2E } from '@/config/e2e';
 import i18n from '@/i18n';
 import { applyWorkoutMutation, showPrompt } from '@/screens/workout/services';
 import { useWorkoutUiStore } from '@/store/workoutUiStore';
@@ -27,21 +28,27 @@ export function useSettingsFlow(systemLanguage: string) {
             ui.setSettingsOpen(false);
             void (async () => {
               try {
-                const enrolledLevel =
-                  await LocalAuthentication.getEnrolledLevelAsync();
-                if (enrolledLevel !== LocalAuthentication.SecurityLevel.NONE) {
-                  const result = await LocalAuthentication.authenticateAsync({
-                    promptMessage: t('prompts.resetAllData.authPromptMessage'),
-                    cancelLabel: t('common.cancel'),
-                    disableDeviceFallback: false,
-                  });
+                if (!IS_E2E) {
+                  const enrolledLevel =
+                    await LocalAuthentication.getEnrolledLevelAsync();
+                  if (
+                    enrolledLevel !== LocalAuthentication.SecurityLevel.NONE
+                  ) {
+                    const result = await LocalAuthentication.authenticateAsync({
+                      promptMessage: t(
+                        'prompts.resetAllData.authPromptMessage',
+                      ),
+                      cancelLabel: t('common.cancel'),
+                      disableDeviceFallback: false,
+                    });
 
-                  if (!result.success) {
-                    showPrompt(
-                      t('prompts.resetAllData.canceledTitle'),
-                      t('prompts.resetAllData.canceledMessage'),
-                    );
-                    return;
+                    if (!result.success) {
+                      showPrompt(
+                        t('prompts.resetAllData.canceledTitle'),
+                        t('prompts.resetAllData.canceledMessage'),
+                      );
+                      return;
+                    }
                   }
                 }
                 await applyWorkoutMutation({ type: 'resetAllData' });

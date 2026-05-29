@@ -139,6 +139,7 @@ export function SyncManagementModal({
 
       <ScrollView
         contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -270,6 +271,7 @@ export function SyncManagementModal({
                 autoCapitalize="words"
                 autoCorrect={false}
                 spellCheck={false}
+                selectTextOnFocus
                 placeholder={t('sync.manage.deviceNamePlaceholder')}
                 placeholderTextColor={tokens.colors.textSecondary}
                 style={[styles.keyInput, { flex: 1 }]}

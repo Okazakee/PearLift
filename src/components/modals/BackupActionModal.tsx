@@ -11,6 +11,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
@@ -88,6 +89,23 @@ export function BackupActionModal({
 
   const actions = mode === 'qr' ? qrActions : localActions;
 
+  const getActionTestId = (actionId: string) => {
+    switch (actionId) {
+      case 'save':
+        return E2E_IDS.backupActions.localExport;
+      case 'restore':
+        return E2E_IDS.backupActions.localImport;
+      case 'share':
+        return E2E_IDS.backupActions.localShare;
+      case 'shareQr':
+        return E2E_IDS.backupActions.shareToDevice;
+      case 'scanQr':
+        return E2E_IDS.backupActions.scanFromDevice;
+      default:
+        return undefined;
+    }
+  };
+
   const handleAction = (action: BackupAction) => {
     onClose();
     action.onPress();
@@ -109,7 +127,11 @@ export function BackupActionModal({
             ? t('backup.deviceSync.title')
             : t('settings.localBackup.title')}
         </Text>
-        <Pressable style={styles.closeButton} onPress={onClose}>
+        <Pressable
+          style={styles.closeButton}
+          onPress={onClose}
+          testID={E2E_IDS.backupActions.close}
+        >
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
@@ -126,6 +148,7 @@ export function BackupActionModal({
               key={action.id}
               style={styles.actionButton}
               onPress={() => handleAction(action)}
+              testID={getActionTestId(action.id)}
             >
               <View style={styles.actionIcon}>
                 <Icon size={20} color={tokens.colors.primary} />

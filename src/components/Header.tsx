@@ -1,5 +1,6 @@
 import { Settings } from 'lucide-react-native';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { E2E_IDS } from '@/config/testIds';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
 import { Text } from './AppText';
@@ -59,11 +60,16 @@ export function Header({
             <Pressable
               onPress={onOpenSyncQuickInfo ?? onOpenSettings}
               style={styles.syncDotButton}
+              testID={E2E_IDS.header.syncStatusOpen}
             >
               <View style={[styles.syncDot, { backgroundColor: statusTone }]} />
             </Pressable>
           ) : null}
-          <Pressable onPress={onOpenSettings} style={styles.iconButton}>
+          <Pressable
+            onPress={onOpenSettings}
+            style={styles.iconButton}
+            testID={E2E_IDS.header.settingsOpen}
+          >
             <Settings size={18} color={tokens.colors.textSecondary} />
           </Pressable>
         </View>

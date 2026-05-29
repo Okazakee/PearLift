@@ -1,0 +1,28 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: settings.close
+    timeout: 10000
+- tapOn:
+    id: settings.close
+- extendedWaitUntil:
+    visible:
+      id: navigation.day.day1
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      text: ${SYNC_ADDED_EXERCISE_NAME}
+    direction: DOWN
+    timeout: 30000
+    visibilityPercentage: 50
+- scrollUntilVisible:
+    element:
+      text: ${SYNC_RENAMED_EXERCISE_NAME}
+    direction: UP
+    timeout: 30000
+    visibilityPercentage: 50
+- assertVisible:
+    id: exercise.exercise-1-1.weightValue

@@ -1,0 +1,6 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    clearState: true
+- waitForAnimationToEnd:
+    timeout: 3000

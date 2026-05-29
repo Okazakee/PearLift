@@ -23,6 +23,7 @@ import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { E2E_IDS } from '@/config/testIds';
 import { dayIconMap, dayIconOptions } from '@/data/workouts';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
@@ -264,7 +265,10 @@ export function ProgramSettingsModal({
           : `${loadPct > 0 ? '+' : ''}${loadPct}%`;
 
       return (
-        <View style={styles.card}>
+        <View
+          style={styles.card}
+          testID={E2E_IDS.programSettings.weekCard(week.id)}
+        >
           <View style={styles.cardPressable}>
             <View style={styles.cardHeader}>
               <TextInput
@@ -275,6 +279,7 @@ export function ProgramSettingsModal({
                 placeholderTextColor={tokens.colors.textMuted}
                 multiline={false}
                 returnKeyType="done"
+                testID={E2E_IDS.programSettings.weekName(week.id)}
               />
 
               <AnimatedPressable
@@ -287,6 +292,7 @@ export function ProgramSettingsModal({
                 disabled={draftWeeks.length <= 1}
                 onPress={() => removeWeek(week.uiKey)}
                 pointerEvents="box-only"
+                testID={E2E_IDS.programSettings.weekDelete(week.id)}
               >
                 <Trash2 size={16} color={tokens.colors.accentDanger} />
               </AnimatedPressable>
@@ -302,6 +308,7 @@ export function ProgramSettingsModal({
                   const nextPct = Math.max(-50, Math.min(50, loadPct - 5));
                   updateWeek(week.uiKey, { loadModifier: 1 + nextPct / 100 });
                 }}
+                testID={E2E_IDS.programSettings.weekLoadDecrement(week.id)}
               >
                 <Minus size={18} color={tokens.colors.textSecondary} />
               </AnimatedPressable>
@@ -312,6 +319,7 @@ export function ProgramSettingsModal({
                   setEditingLoadWeekKey(week.uiKey);
                   setEditingLoadText(String(loadPct));
                 }}
+                testID={E2E_IDS.programSettings.weekLoadValue(week.id)}
               >
                 {editingLoadWeekKey === week.uiKey ? (
                   <View style={styles.loadValueRow}>
@@ -361,6 +369,7 @@ export function ProgramSettingsModal({
                   const nextPct = Math.max(-50, Math.min(50, loadPct + 5));
                   updateWeek(week.uiKey, { loadModifier: 1 + nextPct / 100 });
                 }}
+                testID={E2E_IDS.programSettings.weekLoadIncrement(week.id)}
               >
                 <Plus size={18} color={tokens.colors.textSecondary} />
               </AnimatedPressable>
@@ -377,6 +386,7 @@ export function ProgramSettingsModal({
                     key={value}
                     style={[styles.rirButton, active && styles.rirButtonActive]}
                     onPress={() => updateWeek(week.uiKey, { rir: value })}
+                    testID={E2E_IDS.programSettings.weekRir(week.id, value)}
                   >
                     <Text
                       style={[styles.rirText, active && styles.rirTextActive]}
@@ -445,6 +455,7 @@ export function ProgramSettingsModal({
             style={[styles.iconOption, active && styles.iconOptionActive]}
             hitSlop={4}
             onPress={() => updateDay(day.id, { icon: option })}
+            testID={E2E_IDS.programSettings.dayIcon(day.id, option)}
           >
             {IconComponent && (
               <IconComponent
@@ -464,7 +475,10 @@ export function ProgramSettingsModal({
       };
 
       return (
-        <View style={styles.card}>
+        <View
+          style={styles.card}
+          testID={E2E_IDS.programSettings.dayCard(day.id)}
+        >
           <View style={styles.cardPressable}>
             <View style={styles.cardHeader}>
               <TextInput
@@ -477,6 +491,7 @@ export function ProgramSettingsModal({
                 placeholderTextColor={tokens.colors.textMuted}
                 multiline={false}
                 returnKeyType="done"
+                testID={E2E_IDS.programSettings.dayName(day.id)}
               />
               <AnimatedPressable
                 style={[
@@ -488,6 +503,7 @@ export function ProgramSettingsModal({
                 disabled={draftDays.length <= 1}
                 onPress={() => removeDay(index)}
                 pointerEvents="box-only"
+                testID={E2E_IDS.programSettings.dayDelete(day.id)}
               >
                 <Trash2 size={16} color={tokens.colors.accentDanger} />
               </AnimatedPressable>
@@ -529,7 +545,11 @@ export function ProgramSettingsModal({
   const content = (
     <View style={styles.container}>
       <View style={styles.header}>
-        <AnimatedPressable style={styles.backButton} onPress={onClose}>
+        <AnimatedPressable
+          style={styles.backButton}
+          onPress={onClose}
+          testID={E2E_IDS.programSettings.close}
+        >
           <ChevronLeft size={22} color={tokens.colors.textPrimary} />
         </AnimatedPressable>
         <Text style={styles.title}>{t('programSettings.title')}</Text>
@@ -545,6 +565,7 @@ export function ProgramSettingsModal({
                 activeTab === 'weeks' && styles.tabActive,
               ]}
               onPress={() => setActiveTab('weeks')}
+              testID={E2E_IDS.programSettings.tabWeeks}
             >
               <Text
                 style={[
@@ -561,6 +582,7 @@ export function ProgramSettingsModal({
                 activeTab === 'days' && styles.tabActive,
               ]}
               onPress={() => setActiveTab('days')}
+              testID={E2E_IDS.programSettings.tabDays}
             >
               <Text
                 style={[
@@ -608,7 +630,11 @@ export function ProgramSettingsModal({
                   }}
                 />
                 {draftWeeks.length < MAX_WEEKS && (
-                  <AnimatedPressable style={styles.ghostCard} onPress={addWeek}>
+                  <AnimatedPressable
+                    style={styles.ghostCard}
+                    onPress={addWeek}
+                    testID={E2E_IDS.programSettings.addWeek}
+                  >
                     <Plus
                       size={16}
                       color={withAlpha(tokens.colors.primary, 0.7)}
@@ -650,7 +676,11 @@ export function ProgramSettingsModal({
                   }}
                 />
                 {draftDays.length < MAX_DAYS && (
-                  <AnimatedPressable style={styles.ghostCard} onPress={addDay}>
+                  <AnimatedPressable
+                    style={styles.ghostCard}
+                    onPress={addDay}
+                    testID={E2E_IDS.programSettings.addDay}
+                  >
                     <Plus
                       size={16}
                       color={withAlpha(tokens.colors.primary, 0.7)}

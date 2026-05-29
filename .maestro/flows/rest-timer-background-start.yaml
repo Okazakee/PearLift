@@ -1,0 +1,32 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- tapOn:
+    point: '89%,85%'
+- extendedWaitUntil:
+    visible:
+      id: restTimer.close
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 2000
+- tapOn:
+    id: restTimer.settings
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.duration.decrement
+- tapOn:
+    id: restTimer.startPause

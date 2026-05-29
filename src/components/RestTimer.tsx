@@ -11,7 +11,7 @@ import {
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, StyleSheet, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -26,7 +26,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { MOTION } from '@/animation/motion';
-import { AnimatedPressable } from '@/animation/primitives';
+import { E2E_IDS } from '@/config/testIds';
 import {
   KEEP_AWAKE_TAG,
   MAX_DURATION,
@@ -841,9 +841,11 @@ export function RestTimer({
         pointerEvents={expanded ? 'none' : 'auto'}
         style={[styles.fabContainer, fabAnimatedStyle]}
       >
-        <AnimatedPressable style={styles.fab} onPress={() => setExpanded(true)}>
-          <Timer size={24} color={tokens.colors.onPrimary} />
-        </AnimatedPressable>
+        <Pressable style={styles.fab} onPress={() => setExpanded(true)}>
+          <View collapsable={false} testID={E2E_IDS.restTimer.open}>
+            <Timer size={24} color={tokens.colors.onPrimary} />
+          </View>
+        </Pressable>
       </Animated.View>
 
       <Animated.View
@@ -856,12 +858,14 @@ export function RestTimer({
               <Timer size={18} color={tokens.colors.primary} />
               <Text style={styles.headerText}>{t('restTimer.title')}</Text>
             </View>
-            <AnimatedPressable
+            <Pressable
               style={styles.closeButton}
               onPress={() => setExpanded(false)}
             >
-              <X size={16} color={tokens.colors.textSecondary} />
-            </AnimatedPressable>
+              <View collapsable={false} testID={E2E_IDS.restTimer.close}>
+                <X size={16} color={tokens.colors.textSecondary} />
+              </View>
+            </Pressable>
           </View>
 
           {panelContentMounted ? (
@@ -924,45 +928,51 @@ export function RestTimer({
               </View>
 
               <View style={styles.controlRow}>
-                <AnimatedPressable
-                  style={styles.controlButton}
-                  onPress={handleReset}
-                >
-                  <RefreshCw size={20} color={tokens.colors.textPrimary} />
-                </AnimatedPressable>
-                <AnimatedPressable
+                <Pressable style={styles.controlButton} onPress={handleReset}>
+                  <View collapsable={false} testID={E2E_IDS.restTimer.reset}>
+                    <RefreshCw size={20} color={tokens.colors.textPrimary} />
+                  </View>
+                </Pressable>
+                <Pressable
                   style={[
                     styles.playButton,
                     isRunning && styles.playButtonRunning,
                   ]}
                   onPress={handleToggleRunning}
                 >
-                  {isRunning ? (
-                    <Pause size={24} color={tokens.colors.accentWarning} />
-                  ) : (
-                    <Play
-                      size={28}
-                      color={tokens.colors.onPrimary}
-                      style={styles.playIcon}
-                    />
-                  )}
-                </AnimatedPressable>
-                <AnimatedPressable
+                  <View
+                    collapsable={false}
+                    testID={E2E_IDS.restTimer.startPause}
+                  >
+                    {isRunning ? (
+                      <Pause size={24} color={tokens.colors.accentWarning} />
+                    ) : (
+                      <Play
+                        size={28}
+                        color={tokens.colors.onPrimary}
+                        style={styles.playIcon}
+                      />
+                    )}
+                  </View>
+                </Pressable>
+                <Pressable
                   style={[
                     styles.controlButton,
                     showSettings && styles.controlButtonActive,
                   ]}
                   onPress={() => setShowSettings(!showSettings)}
                 >
-                  <Sliders
-                    size={20}
-                    color={
-                      showSettings
-                        ? tokens.colors.primary
-                        : tokens.colors.textPrimary
-                    }
-                  />
-                </AnimatedPressable>
+                  <View collapsable={false} testID={E2E_IDS.restTimer.settings}>
+                    <Sliders
+                      size={20}
+                      color={
+                        showSettings
+                          ? tokens.colors.primary
+                          : tokens.colors.textPrimary
+                      }
+                    />
+                  </View>
+                </Pressable>
               </View>
 
               {showSettings ? (
@@ -981,7 +991,7 @@ export function RestTimer({
                       {t('restTimer.duration')}
                     </Text>
                     <View style={styles.durationControls}>
-                      <AnimatedPressable
+                      <Pressable
                         style={[
                           styles.adjustButton,
                           duration <= MIN_DURATION &&
@@ -990,12 +1000,17 @@ export function RestTimer({
                         onPress={() => handleAdjustDuration(-STEP)}
                         disabled={duration <= MIN_DURATION}
                       >
-                        <Minus size={16} color={tokens.colors.textPrimary} />
-                      </AnimatedPressable>
+                        <View
+                          collapsable={false}
+                          testID={E2E_IDS.restTimer.decrementDuration}
+                        >
+                          <Minus size={16} color={tokens.colors.textPrimary} />
+                        </View>
+                      </Pressable>
                       <Text style={styles.durationValue}>
                         {formatSeconds(duration)}
                       </Text>
-                      <AnimatedPressable
+                      <Pressable
                         style={[
                           styles.adjustButton,
                           duration >= MAX_DURATION &&
@@ -1004,8 +1019,13 @@ export function RestTimer({
                         onPress={() => handleAdjustDuration(STEP)}
                         disabled={duration >= MAX_DURATION}
                       >
-                        <Plus size={16} color={tokens.colors.textPrimary} />
-                      </AnimatedPressable>
+                        <View
+                          collapsable={false}
+                          testID={E2E_IDS.restTimer.incrementDuration}
+                        >
+                          <Plus size={16} color={tokens.colors.textPrimary} />
+                        </View>
+                      </Pressable>
                     </View>
                   </View>
                 </Animated.View>

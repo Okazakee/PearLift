@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
@@ -58,6 +59,13 @@ export function AppPromptModal({
                 tone === 'destructive' && styles.actionDestructive,
               ]}
               onPress={() => handleAction(action)}
+              testID={
+                tone === 'cancel'
+                  ? E2E_IDS.prompt.cancel
+                  : tone === 'destructive'
+                    ? E2E_IDS.prompt.destructive
+                    : E2E_IDS.prompt.default
+              }
             >
               <Text
                 style={[

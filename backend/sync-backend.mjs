@@ -1170,6 +1170,12 @@ function startHeartbeat() {
       discovery: getDiscoveryDiagnostics(),
     });
 
+    if (!discoveryOnlyMode && base?.view && base.view.length > sentViewLength) {
+      void flushRemoteOps().catch((error) => {
+        logBackendError('heartbeatFlushRemoteOps', error);
+      });
+    }
+
     const now = Date.now();
     for (const state of socketStates) {
       if (state.closed) continue;
@@ -1765,6 +1771,11 @@ async function startSync(config) {
       degraded,
     },
   );
+  if (!discoveryOnlyMode) {
+    void flushRemoteOps().catch((error) => {
+      logBackendError('startFlushRemoteOps', error);
+    });
+  }
   startHeartbeat();
 
   return {

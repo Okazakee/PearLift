@@ -1,0 +1,19 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- scrollUntilVisible:
+    element:
+      id: exercise.exercise-1-2.delete
+    direction: DOWN
+    timeout: 15000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.exercise-1-2.delete
+- extendedWaitUntil:
+    visible:
+      id: prompt.action.destructive
+    timeout: 10000
+- tapOn:
+    id: prompt.action.destructive
+- assertNotVisible: Squat

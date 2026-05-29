@@ -9,6 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { MOTION } from '@/animation/motion';
 import { AnimatedPressable } from '@/animation/primitives';
+import { IS_E2E } from '@/config/e2e';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { requestNotificationPermission } from '@/native/localNotifications';
 import type { ThemeTokens } from '@/theme/tokens';
@@ -80,6 +82,10 @@ export function OnboardingScreen({
 
   const handleNext = async () => {
     if (isLastPage) {
+      if (IS_E2E) {
+        onComplete();
+        return;
+      }
       if (!requesting) {
         setRequesting(true);
         await requestNotificationPermission();
@@ -151,6 +157,7 @@ export function OnboardingScreen({
                   weightUnit === 'kg' && styles.unitOptionActive,
                 ]}
                 onPress={() => onWeightUnitChange('kg')}
+                testID={E2E_IDS.onboarding.unitKg}
               >
                 <Text
                   style={[
@@ -167,6 +174,7 @@ export function OnboardingScreen({
                   weightUnit === 'lb' && styles.unitOptionActive,
                 ]}
                 onPress={() => onWeightUnitChange('lb')}
+                testID={E2E_IDS.onboarding.unitLb}
               >
                 <Text
                   style={[
@@ -185,6 +193,7 @@ export function OnboardingScreen({
               <AnimatedPressable
                 style={styles.primaryButton}
                 onPress={onOpenSyncCreate}
+                testID={E2E_IDS.onboarding.syncCreate}
               >
                 <Text style={styles.primaryButtonText}>
                   {t('sync.manage.createRoom')}
@@ -193,12 +202,17 @@ export function OnboardingScreen({
               <AnimatedPressable
                 style={styles.outlineButton}
                 onPress={onOpenSyncJoin}
+                testID={E2E_IDS.onboarding.syncJoin}
               >
                 <Text style={styles.outlineButtonText}>
                   {t('sync.manage.joinRoom')}
                 </Text>
               </AnimatedPressable>
-              <AnimatedPressable style={styles.skipButton} onPress={handleNext}>
+              <AnimatedPressable
+                style={styles.skipButton}
+                onPress={handleNext}
+                testID={E2E_IDS.onboarding.syncSkip}
+              >
                 <Text style={styles.skipButtonText}>
                   {t('onboarding.skipSync')}
                 </Text>
@@ -212,6 +226,7 @@ export function OnboardingScreen({
             style={[styles.backButton, isFirstPage && styles.buttonDisabled]}
             onPress={handleBack}
             disabled={isFirstPage}
+            testID={E2E_IDS.onboarding.back}
           >
             <Text
               style={[
@@ -227,6 +242,7 @@ export function OnboardingScreen({
             style={[styles.nextButton, requesting && styles.buttonDisabled]}
             onPress={handleNext}
             disabled={requesting}
+            testID={E2E_IDS.onboarding.next}
           >
             <Text style={styles.nextButtonText}>
               {isLastPage

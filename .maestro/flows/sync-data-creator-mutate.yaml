@@ -1,0 +1,65 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: settings.close
+    timeout: 10000
+- tapOn:
+    id: settings.close
+- scrollUntilVisible:
+    element:
+      id: workout.addExercise
+    direction: DOWN
+    timeout: 15000
+    visibilityPercentage: 50
+- tapOn:
+    id: workout.addExercise
+- extendedWaitUntil:
+    visible:
+      id: exercise.modal.name
+    timeout: 10000
+- tapOn:
+    id: exercise.modal.name
+- inputText: ${SYNC_ADDED_EXERCISE_NAME}
+- tapOn:
+    id: exercise.modal.sets
+- eraseText
+- inputText: '5'
+- tapOn:
+    id: exercise.modal.reps
+- eraseText
+- inputText: '6'
+- scrollUntilVisible:
+    element:
+      id: exercise.modal.submit
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.modal.submit
+- assertVisible: ${SYNC_ADDED_EXERCISE_NAME}
+- scrollUntilVisible:
+    element:
+      id: exercise.exercise-1-1.edit
+    direction: UP
+    timeout: 15000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.exercise-1-1.edit
+- tapOn:
+    id: exercise.modal.name
+- eraseText
+- inputText: ${SYNC_RENAMED_EXERCISE_NAME}
+- scrollUntilVisible:
+    element:
+      id: exercise.modal.submit
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: exercise.modal.submit
+- assertVisible: ${SYNC_RENAMED_EXERCISE_NAME}
+- tapOn:
+    id: exercise.exercise-1-1.increment

@@ -1,0 +1,50 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/open-settings.yaml
+- scrollUntilVisible:
+    element:
+      id: settings.sync.expand
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: settings.sync.expand
+- tapOn:
+    id: settings.sync.create
+- extendedWaitUntil:
+    visible:
+      id: sync.create.inviteText
+    timeout: 30000
+- tapOn:
+    id: sync.create.close
+- scrollUntilVisible:
+    element:
+      id: settings.sync.debug
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: settings.sync.debug
+- extendedWaitUntil:
+    visible:
+      id: syncDebug.refresh
+    timeout: 15000
+- assertVisible:
+    id: syncDebug.summary
+- tapOn:
+    id: syncDebug.refresh
+- scrollUntilVisible:
+    element:
+      id: syncDebug.logs
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- assertVisible:
+    id: syncDebug.logs
+- tapOn:
+    id: syncDebug.close
+- extendedWaitUntil:
+    visible:
+      id: settings.sync.debug
+    timeout: 10000

@@ -15,6 +15,7 @@ import {
   type SettingsStyles,
 } from '@/components/modals/settings/SettingsModal.styles';
 import { SyncSection } from '@/components/modals/settings/SyncSection';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { PairedDevice, SyncStateRow } from '@/storage/types';
 import type { SyncHealth } from '@/sync/types';
@@ -111,7 +112,11 @@ export function SettingsModal({
   const content = (
     <View style={styles.container}>
       <View style={styles.header}>
-        <AnimatedPressable style={styles.backButton} onPress={onClose}>
+        <AnimatedPressable
+          style={styles.backButton}
+          onPress={onClose}
+          testID={E2E_IDS.settings.close}
+        >
           <ChevronLeft size={22} color={tokens.colors.textPrimary} />
         </AnimatedPressable>
         <Text style={styles.title}>{t('settings.title')}</Text>
@@ -120,6 +125,7 @@ export function SettingsModal({
 
       <ScrollView
         contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
         <AppearanceSection

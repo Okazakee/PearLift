@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import { SUPPORTED_LANGUAGES } from '@/storage';
 import type { ThemeTokens } from '@/theme/tokens';
@@ -46,7 +47,11 @@ export function LanguageListModal({
           <Globe size={18} color={tokens.colors.primary} />
           <Text style={styles.title}>{t('settings.appearance.language')}</Text>
         </View>
-        <Pressable style={styles.closeButton} onPress={onClose}>
+        <Pressable
+          style={styles.closeButton}
+          onPress={onClose}
+          testID={E2E_IDS.languageList.close}
+        >
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
@@ -63,6 +68,7 @@ export function LanguageListModal({
               key={lang.code}
               style={[styles.row, isSelected && styles.rowSelected]}
               onPress={() => handleSelect(lang.code)}
+              testID={E2E_IDS.languageList.option(lang.code)}
             >
               <Text
                 style={[styles.rowTitle, isSelected && styles.rowTitleSelected]}

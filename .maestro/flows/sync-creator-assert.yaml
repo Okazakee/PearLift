@@ -1,0 +1,16 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: sync.create.close
+    timeout: 10000
+- tapOn:
+    id: sync.create.close
+- extendedWaitUntil:
+    visible:
+      id: settings.sync.leave
+    timeout: 30000
+- assertVisible:
+    id: settings.sync.leave

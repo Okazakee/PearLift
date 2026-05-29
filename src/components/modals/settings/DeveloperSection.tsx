@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
+import { E2E_IDS } from '@/config/testIds';
 import type { ThemeTokens } from '@/theme/tokens';
 import { Text } from '../../AppText';
 
@@ -35,6 +36,7 @@ export function DeveloperSection({
         <AnimatedPressable
           style={styles.developerPrimaryButton}
           onPress={onOpenGithub}
+          testID={E2E_IDS.settings.githubOpen}
         >
           <CodeXml size={18} color={tokens.colors.onPrimary} />
           <Text style={styles.githubButtonText}>

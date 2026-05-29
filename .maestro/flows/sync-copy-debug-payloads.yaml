@@ -1,0 +1,64 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- scrollUntilVisible:
+    element:
+      id: settings.sync.debug
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: settings.sync.debug
+- extendedWaitUntil:
+    visible:
+      id: syncDebug.refresh
+    timeout: 15000
+- copyTextFrom:
+    id: syncDebug.value.roomState
+- evalScript: ${output.roomState = maestro.copiedText}
+- copyTextFrom:
+    id: syncDebug.value.firstSyncResolution
+- evalScript: ${output.firstSyncResolution = maestro.copiedText}
+- copyTextFrom:
+    id: syncDebug.value.pairedDeviceNames
+- evalScript: ${output.pairedDeviceNames = maestro.copiedText}
+- scrollUntilVisible:
+    element:
+      id: syncDebug.value.autobaseKey
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: syncDebug.value.autobaseKey
+- evalScript: ${output.autobaseKey = maestro.copiedText}
+- scrollUntilVisible:
+    element:
+      id: syncDebug.value.topicHex
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: syncDebug.value.topicHex
+- evalScript: ${output.topicHex = maestro.copiedText}
+- scrollUntilVisible:
+    element:
+      id: syncDebug.value.lastError
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: syncDebug.value.lastError
+- evalScript: ${output.lastError = maestro.copiedText}
+- scrollUntilVisible:
+    element:
+      id: syncDebug.value.recentLogKeys
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: syncDebug.value.recentLogKeys
+- evalScript: ${output.recentLogKeys = maestro.copiedText}
+- runScript: ../scripts/log-sync-diagnostics.js
+- tapOn:
+    id: syncDebug.close

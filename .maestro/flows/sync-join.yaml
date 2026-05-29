@@ -1,0 +1,30 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/open-settings.yaml
+- scrollUntilVisible:
+    element:
+      id: settings.sync.expand
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: settings.sync.expand
+- tapOn:
+    id: settings.sync.join
+- extendedWaitUntil:
+    visible:
+      id: sync.join.input
+    timeout: 15000
+- tapOn:
+    id: sync.join.input
+- setClipboard: ${SYNC_JOIN_VALUE}
+- pasteText
+- tapOn:
+    id: sync.join.submit
+- extendedWaitUntil:
+    visible:
+      id: settings.sync.leave
+    timeout: 30000
+- assertVisible:
+    id: settings.sync.leave

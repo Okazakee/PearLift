@@ -1,0 +1,5 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/assert-home.yaml

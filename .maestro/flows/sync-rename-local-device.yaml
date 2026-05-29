@@ -1,0 +1,15 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: settings.sync.deviceName
+    timeout: 15000
+- tapOn:
+    id: settings.sync.deviceName
+- eraseText
+- inputText: ${SYNC_DEVICE_NAME}
+- tapOn:
+    id: settings.sync.renameDevice
+- assertVisible: ${SYNC_DEVICE_NAME}

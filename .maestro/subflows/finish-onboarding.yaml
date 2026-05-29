@@ -1,0 +1,18 @@
+appId: dev.okazakee.pearlift
+---
+- assertVisible:
+    id: onboarding.next
+- tapOn:
+    id: onboarding.next
+- tapOn:
+    id: onboarding.unit.kg
+- tapOn:
+    id: onboarding.next
+- tapOn:
+    id: onboarding.sync.skip
+- tapOn:
+    id: onboarding.next
+- extendedWaitUntil:
+    visible:
+      id: settings.open
+    timeout: 15000

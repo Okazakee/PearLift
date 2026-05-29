@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
+import { E2E_IDS } from '@/config/testIds';
 import type { ThemeTokens } from '@/theme/tokens';
 import { Text } from '../../AppText';
 
@@ -33,6 +34,7 @@ export function DataSection({
       <AnimatedPressable
         style={[styles.outlineButton, { width: '100%' }]}
         onPress={onOpenLocalBackup}
+        testID={E2E_IDS.settings.localBackupOpen}
       >
         <HardDrive size={15} color={tokens.colors.textSecondary} />
         <Text style={styles.outlineButtonText}>
@@ -43,6 +45,7 @@ export function DataSection({
       <AnimatedPressable
         style={[styles.outlineButton, { width: '100%' }]}
         onPress={onOpenQRBackup}
+        testID={E2E_IDS.settings.qrBackupOpen}
       >
         <QrCode size={15} color={tokens.colors.textSecondary} />
         <Text style={styles.outlineButtonText}>
@@ -50,7 +53,11 @@ export function DataSection({
         </Text>
       </AnimatedPressable>
 
-      <AnimatedPressable style={styles.resetButton} onPress={onResetData}>
+      <AnimatedPressable
+        style={styles.resetButton}
+        onPress={onResetData}
+        testID={E2E_IDS.settings.resetData}
+      >
         <RefreshCw size={18} color={tokens.colors.accentDanger} />
         <Text style={styles.resetButtonText}>
           {t('settings.data.resetButton')}

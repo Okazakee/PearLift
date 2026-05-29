@@ -1,0 +1,6 @@
+appId: dev.okazakee.pearlift
+---
+- assertVisible:
+    id: settings.open
+- assertVisible:
+    id: navigation.day.day1

@@ -6,11 +6,12 @@ import {
   Shield,
   Trash2,
 } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AnimatedFadeInView, AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { PairedDevice, SyncStateRow } from '@/storage/types';
 import type { SyncHealth } from '@/sync/types';
@@ -44,7 +45,7 @@ interface SyncSectionProps {
   onRenameLocalDevice: (displayName: string) => Promise<void>;
   onCopyMasterKey: () => Promise<void>;
   onForgetDevice: (deviceId: string) => Promise<void>;
-  onLeaveRoom: () => Promise<void>;
+  onLeaveRoom: () => void;
   onOpenDebug: () => void;
 }
 
@@ -77,12 +78,20 @@ export function SyncSection({
   const [draftDeviceName, setDraftDeviceName] = useState(
     localDeviceDisplayName,
   );
-  const [busy, setBusy] = useState<
-    null | 'toggle' | 'key' | 'copy' | 'rename' | 'leave'
-  >(null);
+  const [busy, setBusy] = useState<null | 'toggle' | 'key' | 'copy' | 'rename'>(
+    null,
+  );
   const [localError, setLocalError] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [devicesVisible, setDevicesVisible] = useState(DEVICES_PER_PAGE);
+
+  useEffect(() => {
+    setDraftKey(masterKey ?? '');
+  }, [masterKey]);
+
+  useEffect(() => {
+    setDraftDeviceName(localDeviceDisplayName);
+  }, [localDeviceDisplayName]);
 
   const syncEnabled = syncState?.syncEnabled ?? false;
   const roomRole = syncState?.syncRole ?? null;
@@ -114,6 +123,7 @@ export function SyncSection({
       <AnimatedPressable
         style={settingsStyles.row}
         onPress={() => setExpanded(!expanded)}
+        testID={E2E_IDS.settings.syncExpand}
       >
         <View style={settingsStyles.rowText}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -196,6 +206,7 @@ export function SyncSection({
                 onPress={() =>
                   runBusy('toggle', () => onToggleSync(!syncEnabled))
                 }
+                testID={E2E_IDS.settings.syncToggle}
               >
                 {busy === 'toggle' ? (
                   <ActivityIndicator color={tokens.colors.onPrimary} />
@@ -220,6 +231,7 @@ export function SyncSection({
                 <AnimatedPressable
                   style={styles.primaryButton}
                   onPress={onOpenCreateRoom}
+                  testID={E2E_IDS.settings.syncCreate}
                 >
                   <Text style={styles.primaryButtonText}>
                     {t('sync.manage.createRoom')}
@@ -228,6 +240,7 @@ export function SyncSection({
                 <AnimatedPressable
                   style={styles.outlineButton}
                   onPress={onOpenJoinRoom}
+                  testID={E2E_IDS.settings.syncJoin}
                 >
                   <Text style={styles.outlineButtonText}>
                     {t('sync.manage.joinRoom')}
@@ -240,6 +253,7 @@ export function SyncSection({
                   <AnimatedPressable
                     style={styles.outlineButton}
                     onPress={onShowSyncQR}
+                    testID={E2E_IDS.settings.syncShowQr}
                   >
                     <Text style={styles.outlineButtonText}>
                       {t('sync.manage.showQR')}
@@ -248,15 +262,12 @@ export function SyncSection({
                 ) : null}
                 <AnimatedPressable
                   style={styles.leaveButton}
-                  onPress={() => runBusy('leave', onLeaveRoom)}
+                  onPress={onLeaveRoom}
+                  testID={E2E_IDS.settings.syncLeave}
                 >
-                  {busy === 'leave' ? (
-                    <ActivityIndicator color={tokens.colors.accentDanger} />
-                  ) : (
-                    <Text style={styles.leaveButtonText}>
-                      {t('sync.manage.leaveRoom')}
-                    </Text>
-                  )}
+                  <Text style={styles.leaveButtonText}>
+                    {t('sync.manage.leaveRoom')}
+                  </Text>
                 </AnimatedPressable>
               </View>
             )}
@@ -278,9 +289,11 @@ export function SyncSection({
                     autoCapitalize="words"
                     autoCorrect={false}
                     spellCheck={false}
+                    selectTextOnFocus
                     placeholder={t('sync.manage.deviceNamePlaceholder')}
                     placeholderTextColor={tokens.colors.textSecondary}
                     style={[styles.keyInput, { flex: 1 }]}
+                    testID={E2E_IDS.settings.syncDeviceName}
                   />
                   <AnimatedPressable
                     style={styles.smallButton}
@@ -289,6 +302,7 @@ export function SyncSection({
                         onRenameLocalDevice(draftDeviceName),
                       )
                     }
+                    testID={E2E_IDS.settings.syncRenameDevice}
                   >
                     {busy === 'rename' ? (
                       <ActivityIndicator color={tokens.colors.textPrimary} />
@@ -305,6 +319,7 @@ export function SyncSection({
             <AnimatedPressable
               style={styles.inlineSection}
               onPress={() => setAdvancedOpen(!advancedOpen)}
+              testID={E2E_IDS.settings.syncAdvanced}
             >
               <View style={settingsStyles.sectionHeader}>
                 <KeyRound size={14} color={tokens.colors.primary} />
@@ -336,11 +351,13 @@ export function SyncSection({
                     placeholder={t('sync.manage.masterKeyPlaceholder')}
                     placeholderTextColor={tokens.colors.textSecondary}
                     style={styles.keyInput}
+                    testID={E2E_IDS.settings.syncMasterKey}
                   />
                   <View style={styles.actionRow}>
                     <AnimatedPressable
                       style={styles.outlineButton}
                       onPress={() => runBusy('copy', onCopyMasterKey)}
+                      testID={E2E_IDS.settings.syncCopyKey}
                     >
                       {busy === 'copy' ? (
                         <ActivityIndicator color={tokens.colors.textPrimary} />
@@ -358,6 +375,7 @@ export function SyncSection({
                       onPress={() =>
                         runBusy('key', () => onApplyMasterKey(draftKey))
                       }
+                      testID={E2E_IDS.settings.syncApplyKey}
                     >
                       {busy === 'key' ? (
                         <ActivityIndicator color={tokens.colors.onPrimary} />
@@ -437,7 +455,11 @@ export function SyncSection({
               </View>
             ) : null}
 
-            <AnimatedPressable style={styles.debugButton} onPress={onOpenDebug}>
+            <AnimatedPressable
+              style={styles.debugButton}
+              onPress={onOpenDebug}
+              testID={E2E_IDS.settings.syncDebug}
+            >
               <Text style={styles.debugButtonText}>
                 {t('sync.manage.debug')}
               </Text>

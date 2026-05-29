@@ -1,0 +1,24 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/open-settings.yaml
+- scrollUntilVisible:
+    element:
+      id: settings.data.qrBackup
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: settings.data.qrBackup
+- extendedWaitUntil:
+    visible:
+      id: backup.actions.qr.shareToDevice
+    timeout: 10000
+- tapOn:
+    id: backup.actions.qr.shareToDevice
+- extendedWaitUntil:
+    visible:
+      id: backup.shareToDevice.qr
+    timeout: 15000
+- tapOn:
+    id: backup.shareToDevice.close

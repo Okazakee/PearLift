@@ -16,6 +16,7 @@ import { encodeBackupForQr } from '@/backup/qrBackupCodec';
 import type { PearLiftRuntimeState } from '@/backup/types';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
@@ -129,7 +130,11 @@ export function ShareToDeviceModal({
   const content = (
     <View style={styles.container}>
       <View style={styles.header}>
-        <AnimatedPressable style={styles.backButton} onPress={onClose}>
+        <AnimatedPressable
+          style={styles.backButton}
+          onPress={onClose}
+          testID={E2E_IDS.shareToDevice.close}
+        >
           <ChevronLeft size={22} color={tokens.colors.textPrimary} />
         </AnimatedPressable>
         <Text style={styles.title}>{t('deviceTransfer.shareTitle')}</Text>
@@ -181,7 +186,10 @@ export function ShareToDeviceModal({
                 </Text>
               </View>
 
-              <View style={styles.qrImage}>
+              <View
+                style={styles.qrImage}
+                testID={E2E_IDS.shareToDevice.qrContainer}
+              >
                 <Svg
                   width="100%"
                   height="100%"
@@ -235,12 +243,14 @@ export function ShareToDeviceModal({
                             : (current - 1 + totalPackets) % totalPackets,
                         )
                       }
+                      testID={E2E_IDS.shareToDevice.previous}
                     >
                       <SkipBack size={16} color={tokens.colors.textPrimary} />
                     </AnimatedPressable>
                     <AnimatedPressable
                       style={styles.pauseButton}
                       onPress={() => setPaused((value) => !value)}
+                      testID={E2E_IDS.shareToDevice.pause}
                     >
                       {paused ? (
                         <Play size={14} color={tokens.colors.textPrimary} />
@@ -264,6 +274,7 @@ export function ShareToDeviceModal({
                           totalPackets === 0 ? 0 : (current + 1) % totalPackets,
                         )
                       }
+                      testID={E2E_IDS.shareToDevice.next}
                     >
                       <SkipForward
                         size={16}

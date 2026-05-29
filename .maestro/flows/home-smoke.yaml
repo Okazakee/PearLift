@@ -1,0 +1,9 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/assert-home.yaml
+- assertVisible:
+    id: workout.week.1
+- assertVisible:
+    id: exercise.exercise-1-1.card

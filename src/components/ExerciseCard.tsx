@@ -2,6 +2,7 @@ import { Dumbbell, Edit2, Minus, Plus, Trash2 } from 'lucide-react-native';
 import { memo, useCallback, useMemo, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
+import { E2E_IDS } from '@/config/testIds';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import type { Exercise, WeightUnit } from '@/types';
@@ -80,19 +81,25 @@ function ExerciseCardComponent({
   }, [exercise, onDeleteExercise]);
 
   return (
-    <AnimatedPressable style={styles.card} pressScale={1}>
+    <AnimatedPressable
+      style={styles.card}
+      pressScale={1}
+      testID={E2E_IDS.exercise.card(exercise.id)}
+    >
       <View style={styles.topRow}>
         <Text style={styles.name}>{exercise.name}</Text>
         <View style={styles.topActions}>
           <AnimatedPressable
             style={[styles.iconButton, styles.iconButtonEdit]}
             onPress={handleEdit}
+            testID={E2E_IDS.exercise.edit(exercise.id)}
           >
             <Edit2 size={16} color={tokens.colors.textSecondary} />
           </AnimatedPressable>
           <AnimatedPressable
             style={[styles.iconButton, styles.iconButtonDelete]}
             onPress={handleDelete}
+            testID={E2E_IDS.exercise.delete(exercise.id)}
           >
             <Trash2 size={17} color={tokens.colors.error} />
           </AnimatedPressable>
@@ -116,6 +123,7 @@ function ExerciseCardComponent({
         <AnimatedPressable
           style={[styles.stepButton, styles.stepButtonMinus]}
           onPress={() => handleWeightAdjust(-1)}
+          testID={E2E_IDS.exercise.decrement(exercise.id)}
         >
           <Minus size={18} color={tokens.colors.error} />
         </AnimatedPressable>
@@ -131,6 +139,7 @@ function ExerciseCardComponent({
               onBlur={handleWeightSubmit}
               onSubmitEditing={handleWeightSubmit}
               returnKeyType="done"
+              testID={E2E_IDS.exercise.weightInput(exercise.id)}
             />
             <Text style={styles.weightUnit}>
               {formatWeightUnit(weightUnit)}
@@ -143,6 +152,7 @@ function ExerciseCardComponent({
               setTempWeight(formatWeight(baseDisplayWeight, weightUnit));
               setEditingWeight(true);
             }}
+            testID={E2E_IDS.exercise.weightValue(exercise.id)}
           >
             <Dumbbell size={24} color={tokens.colors.primary} />
             <Text style={styles.weightValue}>
@@ -157,6 +167,7 @@ function ExerciseCardComponent({
         <AnimatedPressable
           style={[styles.stepButton, styles.stepButtonPlus]}
           onPress={() => handleWeightAdjust(1)}
+          testID={E2E_IDS.exercise.increment(exercise.id)}
         >
           <Plus size={18} color={tokens.colors.success} />
         </AnimatedPressable>

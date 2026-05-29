@@ -11,6 +11,7 @@ import {
 } from 'lucide-react-native';
 import type React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
+import { E2E_IDS } from '@/config/testIds';
 import { dayIconMap } from '@/data/workouts';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
@@ -74,6 +75,7 @@ export function Navigation({
               key={item.id}
               onPress={() => onDayChange(item.id)}
               style={[styles.item, { width: itemWidth }]}
+              testID={E2E_IDS.navigation.day(item.id)}
               android_ripple={{
                 color: withAlpha(tokens.colors.primary, 0.12),
                 radius: 22,

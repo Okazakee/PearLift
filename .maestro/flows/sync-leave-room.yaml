@@ -1,0 +1,19 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    clearState: false
+    stopApp: false
+- assertVisible:
+    id: settings.sync.leave
+- tapOn:
+    id: settings.sync.leave
+- assertVisible:
+    id: prompt.action.destructive
+- tapOn:
+    id: prompt.action.destructive
+- extendedWaitUntil:
+    visible:
+      id: settings.sync.create
+    timeout: 15000
+- assertVisible:
+    id: settings.sync.join

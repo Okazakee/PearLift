@@ -1,0 +1,11 @@
+appId: dev.okazakee.pearlift
+---
+- launchApp:
+    stopApp: false
+- extendedWaitUntil:
+    visible:
+      id: navigation.day.day1
+    timeout: 15000
+- waitForAnimationToEnd:
+    timeout: 3000
+- assertNotVisible: Squat

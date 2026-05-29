@@ -1,0 +1,83 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- tapOn:
+    id: workout.programSettings
+- extendedWaitUntil:
+    visible:
+      id: programSettings.close
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: programSettings.week.4.delete
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: programSettings.week.4.delete
+- extendedWaitUntil:
+    visible:
+      id: prompt.action.destructive
+    timeout: 10000
+- tapOn:
+    id: prompt.action.destructive
+- extendedWaitUntil:
+    visible:
+      id: programSettings.week.add
+    timeout: 10000
+- tapOn:
+    id: programSettings.week.add
+- scrollUntilVisible:
+    element:
+      id: programSettings.week.1.load.increment
+    direction: UP
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: programSettings.week.1.load.increment
+- tapOn:
+    id: programSettings.week.1.rir.4
+- tapOn:
+    id: programSettings.tab.days
+- extendedWaitUntil:
+    visible:
+      id: programSettings.day.day1.name
+    timeout: 10000
+- tapOn:
+    id: programSettings.day.day1.name
+- eraseText
+- inputText: Upper A
+- tapOn:
+    id: programSettings.day.day1.icon.dumbbell
+- scrollUntilVisible:
+    element:
+      id: programSettings.day.add
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- tapOn:
+    id: programSettings.day.add
+- tapOn:
+    id: programSettings.close
+- tapOn:
+    id: workout.programSettings
+- tapOn:
+    id: programSettings.tab.days
+- extendedWaitUntil:
+    visible:
+      id: programSettings.day.day1.name
+    timeout: 10000
+- assertVisible: Upper A
+- scrollUntilVisible:
+    element:
+      id: programSettings.day.add
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 50
+- assertVisible:
+    id: programSettings.day.add
+- tapOn:
+    id: programSettings.close
+- assertVisible:
+    id: workout.programSettings

@@ -162,6 +162,10 @@ class SyncManagerImpl implements SyncManager {
           ? toRuntime(input.localSnapshot)
           : await this.repository.getRuntimeState();
         const syncState = await this.repository.getSyncState();
+        const shouldReplayRemoteHistory =
+          input.role === 'joiner' &&
+          (syncState.roomBindingState === 'pending_first_sync' ||
+            syncState.roomBindingState === 'conflict_requires_decision');
 
         this.deviceId = deviceId;
         setSyncLogDeviceTag(deviceId);
@@ -178,9 +182,17 @@ class SyncManagerImpl implements SyncManager {
 
         this.clearBridgeSubscriptions();
         this.unsubscribeStatus = this.bridge.onStatus((health) => {
-          const mergedHealth = { ...this.health, ...health };
+          const previousHealth = this.health;
+          const mergedHealth = { ...previousHealth, ...health };
           this.logHealthFromBridge(this.health, mergedHealth);
           this.setHealth(mergedHealth);
+          if (
+            this.currentRole === 'creator' &&
+            previousHealth.connections === 0 &&
+            mergedHealth.connections > 0
+          ) {
+            void this.republishCreatorSnapshotOnPeerConnect();
+          }
           if (
             mergedHealth.status === 'synced' ||
             mergedHealth.status === 'peer_connected' ||
@@ -212,6 +224,9 @@ class SyncManagerImpl implements SyncManager {
           deviceId,
           role: input.role,
           bootstrapKeyHex: requestedBootstrapKey,
+          debug: shouldReplayRemoteHistory
+            ? { disableCursorOptimization: true }
+            : undefined,
         });
         this.bridgeStartResolved = true;
 
@@ -421,6 +436,27 @@ class SyncManagerImpl implements SyncManager {
         { type: mutation.type },
       );
       return;
+    }
+
+    if (this.currentRole === 'creator' && this.health.connections > 0) {
+      const pairedDevices = await this.repository.getPairedDevices();
+      if (pairedDevices.length === 0) {
+        const runtime = snapshot
+          ? toRuntime(snapshot)
+          : await this.repository.getRuntimeState();
+        await this.publishSnapshotReplace(runtime, 'auto_publish_local');
+        logSyncEvent(
+          'info',
+          'manager',
+          'creator_snapshot_bootstrap_publish',
+          'Published full snapshot because no synced peer profile is known yet.',
+          {
+            type: mutation.type,
+            connections: this.health.connections,
+          },
+        );
+        return;
+      }
     }
 
     this.enqueuePublish(canonical);
@@ -1151,6 +1187,29 @@ class SyncManagerImpl implements SyncManager {
       pendingRemoteSummary: null,
       pendingConflictSummary: null,
     });
+  }
+
+  private async republishCreatorSnapshotOnPeerConnect() {
+    try {
+      const runtime = await this.repository.getRuntimeState();
+      await this.publishSnapshotReplace(runtime, 'auto_publish_local');
+      logSyncEvent(
+        'info',
+        'manager',
+        'creator_snapshot_republished',
+        'Republished creator snapshot after first peer connection.',
+        {
+          connections: this.health.connections,
+          peers: this.health.peers,
+        },
+      );
+    } catch (error) {
+      logSyncError(
+        'manager',
+        'creator_snapshot_republish_failed',
+        error,
+      );
+    }
   }
 
   private async persistFirstSyncState(

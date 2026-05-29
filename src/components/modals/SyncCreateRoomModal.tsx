@@ -7,8 +7,11 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { IS_E2E } from '@/config/e2e';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { SyncDataSummary } from '@/storage/types';
+import { decodeSyncRoomInvite } from '@/sync/roomInvite';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import { Text } from '../AppText';
@@ -41,7 +44,20 @@ export function SyncCreateRoomModal({
     [tokens, topInset, bottomInset, layout],
   );
   const [qrSvg, setQrSvg] = useState<string | null>(null);
-  const [keyExpanded, setKeyExpanded] = useState(false);
+  const [keyExpanded, setKeyExpanded] = useState(IS_E2E);
+  const inviteParts = useMemo(() => {
+    if (!IS_E2E || !invitePayload) return null;
+    try {
+      return decodeSyncRoomInvite(invitePayload);
+    } catch {
+      return null;
+    }
+  }, [invitePayload]);
+
+  useEffect(() => {
+    if (!open) return;
+    setKeyExpanded(IS_E2E);
+  }, [open]);
 
   useEffect(() => {
     if (!open || !invitePayload) {
@@ -75,7 +91,12 @@ export function SyncCreateRoomModal({
             <Text style={styles.title}>{t('sync.create.title')}</Text>
             <Text style={styles.subtitle}>{t('sync.create.subtitle')}</Text>
           </View>
-          <Pressable onPress={onClose} style={styles.closeButton} hitSlop={8}>
+          <Pressable
+            onPress={onClose}
+            style={styles.closeButton}
+            hitSlop={8}
+            testID={E2E_IDS.syncCreate.close}
+          >
             <X size={20} color={tokens.colors.textSecondary} />
           </Pressable>
         </View>
@@ -121,7 +142,10 @@ export function SyncCreateRoomModal({
           )}
           {invitePayload ? (
             <>
-              <Pressable onPress={() => setKeyExpanded(!keyExpanded)}>
+              <Pressable
+                onPress={() => setKeyExpanded(!keyExpanded)}
+                testID={E2E_IDS.syncCreate.inviteText}
+              >
                 <Text style={styles.keyText}>
                   {keyExpanded
                     ? invitePayload
@@ -131,12 +155,33 @@ export function SyncCreateRoomModal({
               <AnimatedPressable
                 style={styles.outlineButton}
                 onPress={() => void Clipboard.setStringAsync(invitePayload)}
+                testID={E2E_IDS.syncCreate.copy}
               >
                 <Copy size={15} color={tokens.colors.textPrimary} />
                 <Text style={styles.outlineButtonText}>
                   {t('sync.create.copy')}
                 </Text>
               </AnimatedPressable>
+              {IS_E2E && inviteParts ? (
+                <View style={styles.e2eKeysCard}>
+                  <Text style={styles.e2eKeyLabel}>Pairing secret</Text>
+                  <Text
+                    selectable
+                    style={styles.e2eKeyValue}
+                    testID={E2E_IDS.syncCreate.pairingSecret}
+                  >
+                    {inviteParts.pairingSecretHex}
+                  </Text>
+                  <Text style={styles.e2eKeyLabel}>Bootstrap key</Text>
+                  <Text
+                    selectable
+                    style={styles.e2eKeyValue}
+                    testID={E2E_IDS.syncCreate.bootstrapKey}
+                  >
+                    {inviteParts.bootstrapKeyHex ?? ''}
+                  </Text>
+                </View>
+              ) : null}
             </>
           ) : null}
         </View>
@@ -228,6 +273,27 @@ function createStyles(
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.label,
       fontWeight: '700',
+    },
+    e2eKeysCard: {
+      marginTop: tokens.spacing.sm,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.25),
+      backgroundColor: withAlpha(tokens.colors.primary, 0.08),
+      padding: tokens.spacing.sm,
+      gap: tokens.spacing.xs,
+    },
+    e2eKeyLabel: {
+      color: tokens.colors.textSecondary,
+      fontSize: 11,
+      fontWeight: '600',
+      textTransform: 'uppercase',
+      letterSpacing: 0.4,
+    },
+    e2eKeyValue: {
+      color: tokens.colors.textPrimary,
+      fontSize: 12,
+      fontFamily: 'monospace',
     },
     primaryButton: {
       minHeight: 48,

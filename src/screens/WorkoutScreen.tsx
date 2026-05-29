@@ -409,6 +409,9 @@ export function WorkoutScreen() {
           topInset={insets.top}
           bottomInset={insets.bottom}
           syncHealth={syncHealth}
+          syncState={syncState}
+          pairedDevices={pairedDevices}
+          localDeviceDisplayName={localDeviceDisplayName}
           logEntries={syncLogs}
           onRefresh={syncFlow.handleRefreshSync}
           onClearLogs={() => {

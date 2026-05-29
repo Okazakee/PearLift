@@ -11,6 +11,7 @@ import type { SortableGridRenderItem } from 'react-native-sortables';
 import Sortable from 'react-native-sortables';
 import { AnimatedPressable } from '@/animation/primitives';
 import { ExerciseCard } from '@/components/ExerciseCard';
+import { E2E_IDS } from '@/config/testIds';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
@@ -164,6 +165,7 @@ export function WorkoutView({
                   key={item.id}
                   style={[styles.weekTab, active && styles.weekTabActive]}
                   onPress={() => onWeekChange(item.id)}
+                  testID={E2E_IDS.workout.weekTab(item.id)}
                 >
                   <Text
                     style={[
@@ -180,6 +182,7 @@ export function WorkoutView({
           <AnimatedPressable
             style={styles.settingsButton}
             onPress={onOpenProgramSettings}
+            testID={E2E_IDS.workout.programSettings}
           >
             <Sliders size={16} color={tokens.colors.textSecondary} />
           </AnimatedPressable>
@@ -201,7 +204,11 @@ export function WorkoutView({
 
   const renderFooter = useCallback(
     () => (
-      <AnimatedPressable style={styles.addButton} onPress={onOpenAddExercise}>
+      <AnimatedPressable
+        style={styles.addButton}
+        onPress={onOpenAddExercise}
+        testID={E2E_IDS.workout.addExercise}
+      >
         <Plus size={16} color={tokens.colors.primary} />
         <Text style={styles.addButtonText}>{t('workout.addExercise')}</Text>
       </AnimatedPressable>

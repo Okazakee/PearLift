@@ -1,0 +1,18 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/open-settings.yaml
+- scrollUntilVisible:
+    element:
+      id: settings.data.reset
+    direction: DOWN
+    timeout: 10000
+    speed: 40
+    visibilityPercentage: 100
+- tapOn:
+    id: settings.data.reset
+- extendedWaitUntil:
+    visible:
+      id: prompt.action.destructive
+    timeout: 10000

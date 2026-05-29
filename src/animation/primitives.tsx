@@ -169,6 +169,7 @@ export function AnimatedPressable({
   return (
     <AnimatedPressableBase
       {...props}
+      collapsable={false}
       style={[style, animatedStyle]}
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}

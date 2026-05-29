@@ -1,0 +1,10 @@
+appId: dev.okazakee.pearlift
+---
+- tapOn:
+    id: settings.open
+- extendedWaitUntil:
+    visible:
+      id: settings.close
+    timeout: 10000
+- waitForAnimationToEnd:
+    timeout: 2000

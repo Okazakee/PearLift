@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
+import { E2E_IDS } from '@/config/testIds';
 import { muscleGroups } from '@/data/workouts';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
@@ -101,7 +102,11 @@ export function AddExerciseModal({
         <View style={styles.tabletPanel}>
           <View style={styles.titleRow}>
             <Text style={styles.title}>{t('addExercise.titleEdit')}</Text>
-            <Pressable style={styles.closeButton} onPress={onClose}>
+            <Pressable
+              style={styles.closeButton}
+              onPress={onClose}
+              testID={E2E_IDS.exerciseModal.close}
+            >
               <X size={18} color={tokens.colors.textSecondary} />
             </Pressable>
           </View>
@@ -120,6 +125,7 @@ export function AddExerciseModal({
               placeholder={t('addExercise.namePlaceholder')}
               placeholderTextColor={tokens.colors.textMuted}
               style={styles.input}
+              testID={E2E_IDS.exerciseModal.name}
             />
 
             <Text style={styles.label}>{t('addExercise.muscleGroup')}</Text>
@@ -133,6 +139,7 @@ export function AddExerciseModal({
                       setForm((prev) => ({ ...prev, muscleGroup: muscle }))
                     }
                     style={[styles.chip, active && styles.chipActive]}
+                    testID={E2E_IDS.exerciseModal.muscleGroup(muscle)}
                   >
                     <Text
                       style={[styles.chipText, active && styles.chipTextActive]}
@@ -154,6 +161,7 @@ export function AddExerciseModal({
                   }
                   keyboardType="numeric"
                   style={styles.input}
+                  testID={E2E_IDS.exerciseModal.sets}
                 />
               </View>
               <View style={styles.col}>
@@ -164,6 +172,7 @@ export function AddExerciseModal({
                     setForm((prev) => ({ ...prev, reps: text }))
                   }
                   style={styles.input}
+                  testID={E2E_IDS.exerciseModal.reps}
                 />
               </View>
             </View>
@@ -178,11 +187,16 @@ export function AddExerciseModal({
               placeholder={t('addExercise.notesPlaceholder')}
               placeholderTextColor={tokens.colors.textMuted}
               multiline
+              testID={E2E_IDS.exerciseModal.notes}
             />
 
             {error && <Text style={styles.error}>{error}</Text>}
 
-            <Pressable style={styles.submitButton} onPress={handleSubmit}>
+            <Pressable
+              style={styles.submitButton}
+              onPress={handleSubmit}
+              testID={E2E_IDS.exerciseModal.submit}
+            >
               <Text style={styles.submitText}>
                 {t('addExercise.submitEdit')}
               </Text>
@@ -207,7 +221,11 @@ export function AddExerciseModal({
             ? t('addExercise.titleAdd')
             : t('addExercise.titleEdit')}
         </Text>
-        <Pressable style={styles.closeButton} onPress={onClose}>
+        <Pressable
+          style={styles.closeButton}
+          onPress={onClose}
+          testID={E2E_IDS.exerciseModal.close}
+        >
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>
@@ -224,6 +242,7 @@ export function AddExerciseModal({
           placeholder={t('addExercise.namePlaceholder')}
           placeholderTextColor={tokens.colors.textMuted}
           style={styles.input}
+          testID={E2E_IDS.exerciseModal.name}
         />
 
         <Text style={styles.label}>{t('addExercise.muscleGroup')}</Text>
@@ -237,6 +256,7 @@ export function AddExerciseModal({
                   setForm((prev) => ({ ...prev, muscleGroup: muscle }))
                 }
                 style={[styles.chip, active && styles.chipActive]}
+                testID={E2E_IDS.exerciseModal.muscleGroup(muscle)}
               >
                 <Text
                   style={[styles.chipText, active && styles.chipTextActive]}
@@ -258,6 +278,7 @@ export function AddExerciseModal({
               }
               keyboardType="numeric"
               style={styles.input}
+              testID={E2E_IDS.exerciseModal.sets}
             />
           </View>
           <View style={styles.col}>
@@ -268,6 +289,7 @@ export function AddExerciseModal({
                 setForm((prev) => ({ ...prev, reps: text }))
               }
               style={styles.input}
+              testID={E2E_IDS.exerciseModal.reps}
             />
           </View>
         </View>
@@ -280,11 +302,16 @@ export function AddExerciseModal({
           placeholder={t('addExercise.notesPlaceholder')}
           placeholderTextColor={tokens.colors.textMuted}
           multiline
+          testID={E2E_IDS.exerciseModal.notes}
         />
 
         {error && <Text style={styles.error}>{error}</Text>}
 
-        <Pressable style={styles.submitButton} onPress={handleSubmit}>
+        <Pressable
+          style={styles.submitButton}
+          onPress={handleSubmit}
+          testID={E2E_IDS.exerciseModal.submit}
+        >
           <Text style={styles.submitText}>
             {mode === 'add'
               ? t('addExercise.submitAdd')

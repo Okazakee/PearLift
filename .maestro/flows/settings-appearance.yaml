@@ -1,0 +1,20 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/open-settings.yaml
+- tapOn:
+    id: settings.theme.dark
+- tapOn:
+    id: settings.weightUnit.lb
+- tapOn:
+    id: settings.language.open
+- extendedWaitUntil:
+    visible:
+      id: settings.language.option.en
+    timeout: 10000
+- tapOn:
+    id: settings.language.option.en
+- tapOn:
+    id: settings.close
+- assertVisible: lb

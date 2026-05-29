@@ -11,7 +11,8 @@ export function shouldBufferDuringJoin(
     currentRole === 'joiner' &&
     (roomBindingState === 'pending_first_sync' ||
       roomBindingState === 'conflict_requires_decision') &&
-    payload.kind !== 'presence'
+    payload.kind !== 'presence' &&
+    payload.kind !== 'device_profile'
   );
 }
 
@@ -48,4 +49,3 @@ export function isHealthyReconnectState(health: SyncHealth): boolean {
     health.reconnectAttempts <= 0
   );
 }
-

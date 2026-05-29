@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
 import type { SettingsStyles } from '@/components/modals/settings/SettingsModal.styles';
+import { E2E_IDS } from '@/config/testIds';
 import { getLanguageNativeName } from '@/storage';
 import type { ThemePreference, ThemeTokens } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
@@ -90,6 +91,7 @@ export function AppearanceSection({
           <AnimatedPressable
             style={themeOptionStyle('system')}
             onPress={() => onThemePreferenceChange('system')}
+            testID={E2E_IDS.settings.themeSystem}
           >
             <Text style={themeOptionTextStyle('system')}>
               {t('settings.appearance.themeSystem')}
@@ -98,6 +100,7 @@ export function AppearanceSection({
           <AnimatedPressable
             style={themeOptionStyle('light')}
             onPress={() => onThemePreferenceChange('light')}
+            testID={E2E_IDS.settings.themeLight}
           >
             <Text style={themeOptionTextStyle('light')}>
               {t('settings.appearance.themeLight')}
@@ -106,6 +109,7 @@ export function AppearanceSection({
           <AnimatedPressable
             style={themeOptionStyle('dark')}
             onPress={() => onThemePreferenceChange('dark')}
+            testID={E2E_IDS.settings.themeDark}
           >
             <Text style={themeOptionTextStyle('dark')}>
               {t('settings.appearance.themeDark')}
@@ -127,12 +131,14 @@ export function AppearanceSection({
           <AnimatedPressable
             style={unitOptionStyle('kg')}
             onPress={() => onWeightUnitChange('kg')}
+            testID={E2E_IDS.settings.weightKg}
           >
             <Text style={unitOptionTextStyle('kg')}>kg</Text>
           </AnimatedPressable>
           <AnimatedPressable
             style={unitOptionStyle('lb')}
             onPress={() => onWeightUnitChange('lb')}
+            testID={E2E_IDS.settings.weightLb}
           >
             <Text style={unitOptionTextStyle('lb')}>lb</Text>
           </AnimatedPressable>
@@ -159,6 +165,7 @@ export function AppearanceSection({
               language === 'system' ? 'manual' : language,
             )}
             onPress={onLanguageListOpen}
+            testID={E2E_IDS.settings.languageOpen}
           >
             <Text
               style={languageOptionTextStyle(

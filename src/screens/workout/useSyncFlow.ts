@@ -60,11 +60,20 @@ export function useSyncFlow() {
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {
       if (nextState !== 'active') return;
-      if (!syncStore.syncState?.syncEnabled) return;
+      const currentSyncStore = useSyncStore.getState();
+      if (!currentSyncStore.syncState?.syncEnabled) return;
+      const hasLiveConnection = currentSyncStore.syncHealth.connections > 0;
+      const status = currentSyncStore.syncHealth.status;
+      const isHealthyForegroundState =
+        hasLiveConnection &&
+        (status === 'handshake_ok' ||
+          status === 'synced' ||
+          status === 'peer_connected' ||
+          status === 'replicating');
+
       if (
-        syncStore.syncHealth.status !== 'error' &&
-        syncStore.syncHealth.status !== 'waiting' &&
-        syncStore.syncHealth.reconnectAttempts <= 0
+        isHealthyForegroundState &&
+        currentSyncStore.syncHealth.reconnectAttempts <= 0
       ) {
         return;
       }
@@ -76,7 +85,10 @@ export function useSyncFlow() {
           const key = syncMasterKey ?? (await getPairingSecretPayload());
           setSyncMasterKey(key);
           await stopSync();
-          await startSync(syncStore.syncState?.syncRole ?? 'creator', key);
+          await startSync(
+            currentSyncStore.syncState?.syncRole ?? 'creator',
+            key,
+          );
         } catch {
           // ignore foreground reconnect nudges
         }
@@ -86,13 +98,7 @@ export function useSyncFlow() {
     return () => {
       sub.remove();
     };
-  }, [
-    syncMasterKey,
-    syncStore.syncHealth.reconnectAttempts,
-    syncStore.syncHealth.status,
-    syncStore.syncState?.syncEnabled,
-    syncStore.syncState?.syncRole,
-  ]);
+  }, [syncMasterKey]);
 
   const localSyncSummary = snapshot ? summarizeRuntime(snapshot) : null;
 

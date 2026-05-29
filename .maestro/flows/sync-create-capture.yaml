@@ -1,0 +1,31 @@
+appId: dev.okazakee.pearlift
+---
+- runFlow: ../subflows/launch-clean.yaml
+- runFlow: ../subflows/finish-onboarding.yaml
+- runFlow: ../subflows/open-settings.yaml
+- scrollUntilVisible:
+    element:
+      id: settings.sync.expand
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    id: settings.sync.expand
+- tapOn:
+    id: settings.sync.create
+- extendedWaitUntil:
+    visible:
+      id: sync.create.inviteText
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: sync.create.pairingSecret
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: sync.create.pairingSecret
+- evalScript: ${output.pairingSecret = maestro.copiedText}
+- copyTextFrom:
+    id: sync.create.bootstrapKey
+- evalScript: ${output.bootstrapKey = maestro.copiedText}
+- runScript: ../scripts/log-sync-create-parts.js
