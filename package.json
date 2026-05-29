@@ -1,6 +1,6 @@
 {
   "name": "pearlift",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "index.ts",
   "scripts": {
     "start": "node ./scripts/ensure-sync-backend-bundle.mjs && expo start --dev-client",

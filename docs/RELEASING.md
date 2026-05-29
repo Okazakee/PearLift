@@ -141,6 +141,30 @@ git push
 
 Then open or update the F-Droid merge request and wait for CI.
 
+## F-Droid pipeline notes
+
+The build recipe lives in `~/Desktop/Projects/fdroiddata/metadata/dev.okazakee.pearlift.yml`
+and is maintained by hand (the `fdroid:prepare` script does not touch the `prebuild` or `build`
+sections — only version numbers and commit hashes).
+
+Current pipeline flow inside the F-Droid build server:
+
+1. `sudo`: install npm + bun from Debian repo
+2. `prebuild`:
+   - `bun install --frozen-lockfile`
+   - strip stray nested `node_modules` in the rest-timer module
+   - patch `jvmToolchain(17)` → `jvmToolchain(21)` in the RN gradle plugin's composite build files (F-Droid servers only have JDK 21; without this Gradle fails to compile the plugin itself)
+   - `bunx expo prebuild -p android --clean`
+3. `build`: `gradle assembleRelease` with ABI splits and `-Preact.internal.disableJavaVersionAlignment=true` (RN's escape hatch to skip the JDK 17 alignment for app modules)
+
+This recipe produces two APKs per release — one per ABI — with version codes
+`baseVersionCode * 100 + 1` (armeabi-v7a) and `baseVersionCode * 100 + 2` (arm64-v8a).
+
+When patching the recipe after an RN upgrade, always re-verify:
+
+- the `jvmToolchain` sed targets still match the plugin's composite build files
+- `react.internal.disableJavaVersionAlignment` is still recognized by `JdkConfiguratorUtils`
+
 ## Future update rule
 
 If you want to keep developing without publishing to F-Droid yet:
