@@ -153,17 +153,22 @@ Current pipeline flow inside the F-Droid build server:
 2. `prebuild`:
    - `bun install --frozen-lockfile`
    - strip stray nested `node_modules` in the rest-timer module
-   - patch `jvmToolchain(17)` → `jvmToolchain(21)` in the RN gradle plugin's composite build files (F-Droid servers only have JDK 21; without this Gradle fails to compile the plugin itself)
+   - patch `JavaVersion.VERSION_17` → `VERSION_21` and `jvmToolchain(17)` → `jvmToolchain(21)` in the RN gradle plugin (F-Droid servers only have JDK 21; the plugin hardcodes JDK 17 for toolchain alignment, which fails without this sed)
    - `bunx expo prebuild -p android --clean`
-3. `build`: `gradle assembleRelease` with ABI splits and `-Preact.internal.disableJavaVersionAlignment=true` (RN's escape hatch to skip the JDK 17 alignment for app modules)
+3. `build`: `gradle assembleRelease` with ABI splits and arch flags
+
+The combined sed keeps Java and Kotlin targets aligned at 21 everywhere — splitting
+them (e.g., skipping alignment via `react.internal.disableJavaVersionAlignment`)
+causes Java/Kotlin target mismatches in library modules that default to Java 1.8.
 
 This recipe produces two APKs per release — one per ABI — with version codes
 `baseVersionCode * 100 + 1` (armeabi-v7a) and `baseVersionCode * 100 + 2` (arm64-v8a).
 
 When patching the recipe after an RN upgrade, always re-verify:
 
-- the `jvmToolchain` sed targets still match the plugin's composite build files
-- `react.internal.disableJavaVersionAlignment` is still recognized by `JdkConfiguratorUtils`
+- the `JavaVersion\|jvmToolchain` sed targets still match the plugin files
+- the JdkConfiguratorUtils.kt path hasn't moved
+- `notify-kit` hasn't added a `jvmToolchain` call (currently it uses `jvmTarget`/`JavaVersion` only, which JDK 21 handles natively)
 
 ## Future update rule
 
