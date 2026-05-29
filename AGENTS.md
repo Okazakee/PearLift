@@ -30,6 +30,7 @@ scripts/                     # Build, release, and dev scripts (invoked via npm 
 plugins/                     # Expo config plugins (abi splits, sync backend bundling)
 assets/                      # Static assets (images, fonts)
 docs/                        # Project documentation (privacy policy, release guide)
+tests/                       # Bun test files (mirrors src structure by module)
 fastlane/                    # Fastlane metadata for app store submissions
 android/                     # Android native project files
 ios/                         # iOS native project files
@@ -40,6 +41,7 @@ ios/                         # iOS native project files
 - Shared utility functions go in `src/utils/`.
 - Native module wrappers go in `src/native/`.
 - Dev-only scripts go in `scripts/` and are never imported from `src/`.
+- Test files go in `tests/` at the repo root, named `<module>.test.ts`.
 - The `src/sync/sync.bundle.mjs` file is a build artifact — never edit it directly.
 
 ## 5. Commands and Workflows
@@ -58,6 +60,12 @@ bun install           # install dependencies
 bun run start         # start Expo dev client (includes sync backend bundle step)
 bun run android       # run on Android device/emulator
 bun run ios           # run on iOS device/emulator
+```
+
+### Test
+
+```bash
+bun run test          # run Bun test suite (files in tests/)
 ```
 
 ### Lint and typecheck
@@ -107,7 +115,7 @@ The following MCP servers are configured in `opencode.json`:
 | Item | Convention |
 |------|-----------|
 | Indentation | 2 spaces |
-| Line length | p95 is 67 chars; hard wrap at ~80 |
+| Line length | p95 is 68 chars; hard wrap at ~80 |
 | Blank lines — top-level | 1 blank line between top-level function/class/export definitions |
 | Blank lines — methods | 1 blank line between methods inside a class |
 | Blank lines — after imports | 0 or 1 blank line between last import and first definition |
@@ -138,12 +146,12 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { MOTION } from '../animation/motion';
+import { MOTION } from '@/animation/motion';
 import {
   AnimatedFadeInView,
   AnimatedSlideInRightView,
   AnimatedSlideInView,
-} from '../animation/primitives';
+} from '@/animation/primitives';
 ```
 
 **Real snippet — component structure:**
@@ -208,6 +216,7 @@ let base = null;
 | Compact types | PascalCase with `Compact` prefix | `CompactExercise`, `CompactWorkout` |
 | Files — components | PascalCase (matching component name) | `AnimatedModalShell.tsx` |
 | Files — non-components | camelCase | `workoutRepository.ts`, `logger.ts` |
+| Files — test files | CamelCase with `.test.ts` suffix | `backupDiff.test.ts`, `firstSync.test.ts` |
 | Files — barrel exports | `index.ts` | `src/components/index.ts` |
 | Directories | camelCase | `useResponsiveLayout`, `holepunchBridge` |
 | Private class members | camelCase with no underscore prefix | `private readonly bridge` |
@@ -234,7 +243,7 @@ Same naming conventions as TypeScript: camelCase for variables and functions, Pa
 - Return types are inferred unless the function is exported from a module — then return type is explicit.
 - Use `interface` for object shapes (especially component props), `type` for unions and aliases.
 - Use `X | null` not `X | undefined` for nullable values. Use `X | null | undefined` only when both are possible.
-- `type` imports are preferred: `import type { Foo } from './types'`.
+- `type` imports are preferred: `import type { Foo } from '@/types'`.
 - `satisfies` operator used for constraining without widening: `} satisfies PearLiftRuntimeState`.
 - `as const` used for literal type assertions: `export const SYNC_OP_SCHEMA_VERSION = 1 as const`.
 - Generic type parameters are PascalCase single letters or meaningful names: `T`, `Raw`.
@@ -266,14 +275,15 @@ import type {
   SyncRole,
   WorkoutMutation,
   WorkoutStoreSnapshot,
-} from './types';
+} from '@/sync/types';
 ```
 
 ## 9. Imports
 
 ### TypeScript
 
-- Three import groups: React/RN → third-party → local. Separated by a blank line.
+- All imports use the `@/` path alias (maps to `src/` via tsconfig `paths`). Relative paths (`../`, `./`) are never used.
+- Three import groups: React/RN → third-party → local (`@/`). Separated by a blank line.
 - Within each group, imports are sorted alphabetically by module path.
 - `type` imports are extracted to a separate import from the same module or in a dedicated `import type` block.
 - Named imports are grouped on one line for the same module path.
@@ -286,19 +296,20 @@ import type {
 import { type ReactNode, useEffect, useState } from 'react';
 import { StyleSheet, type ViewStyle } from 'react-native';
 import Animated, { FadeIn, FadeOut, ReduceMotion } from 'react-native-reanimated';
-import { MOTION } from '../animation/motion';
-import type { PearLiftRuntimeState } from '../backup/types';
-import { buildInitialWeights, defaultDayConfigs } from '../data/workouts';
-import { resolveFirstSync } from '../sync/firstSync';
+import { MOTION } from '@/animation/motion';
+import type { PearLiftRuntimeState } from '@/backup/types';
+import { buildInitialWeights, defaultDayConfigs } from '@/data/workouts';
+import { resolveFirstSync } from '@/sync/firstSync';
 ```
 
-- Re-exports use barrel `index.ts` files: `export { AnimatedModalShell } from './AnimatedModalShell';`.
-- Absolute path imports are never used — all imports are relative (`../`, `./`).
+- Re-exports use barrel `index.ts` files: `export { AnimatedModalShell } from './AnimatedModalShell';` (relative paths within barrel files are ok since they reference siblings).
+- `@/` path alias is configured in `tsconfig.json` as `"@/*": ["./src/*"]`.
 
 ### JavaScript (.mjs)
 
 - Same three-group ordering as TypeScript. Single quotes. Semicolons always. No `type` imports.
 - Use `import` not `require`.
+- JavaScript files in `backend/` and `scripts/` use relative paths since they are outside `src/`.
 
 ### Kotlin
 
@@ -332,7 +343,7 @@ export function getErrorMessage(error: unknown): string {
 **Real snippet — logging and re-throwing:**
 
 ```typescript
-import { logError } from '../utils/errors';
+import { logError } from '@/utils/errors';
 
 try {
   await riskyOperation();
@@ -401,13 +412,78 @@ console.error(`[${scope}]`, error);
 
 ### TypeScript
 
-No test files exist in the repository. The project relies on:
-- A dev-only verification script at `scripts/verify-first-sync.ts` that imports source modules and runs assertions via `throw new Error`.
-- Manual testing on device.
+- **Framework:** Bun's built-in test runner (`bun:test`). Run with `bun run test`.
+- **File location:** All test files live in `tests/` at the repo root.
+- **File naming:** `<module>.test.ts` (e.g., `backupDiff.test.ts`, `firstSync.test.ts`).
+- **Test structure:** `describe` blocks for grouping, `test` for individual cases, `expect` for assertions.
+- **Imports:** Tests use `@/` path aliases to import source modules, same as application code.
+- Helper functions defined at module scope within each test file (not in a shared utilities directory).
 
-If adding tests:
-- Use Bun's built-in test runner or Jest (Jest config is not currently present but `jest` is the detected framework [tentative]).
-- Place test files in a `__tests__/` directory adjacent to the source, or in a top-level `tests/` directory.
+**Real snippet — canonical test:**
+
+```typescript
+import { describe, expect, test } from 'bun:test';
+import { parseAndMigrateBackup, parseBackupJson } from '@/backup/migration';
+
+describe('backup migration', () => {
+  test('rejects invalid backup payloads early', () => {
+    let caught: unknown = null;
+    try {
+      parseBackupJson('{');
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught instanceof Error ? caught.message : String(caught)).toBe(
+      'Invalid JSON file.',
+    );
+  });
+});
+```
+
+**Real snippet — test with builder helpers:**
+
+```typescript
+import { describe, expect, test } from 'bun:test';
+import type { PearLiftRuntimeState } from '@/backup/types';
+import {
+  buildInitialWeights,
+  defaultDayConfigs,
+  defaultWeekConfigs,
+  defaultWorkouts,
+} from '@/data/workouts';
+import { resolveFirstSync } from '@/sync/firstSync';
+import type { WorkoutSession } from '@/types';
+
+function runtime(workouts: WorkoutSession[]): PearLiftRuntimeState {
+  return {
+    workouts,
+    userWeights: buildInitialWeights(workouts),
+    weekConfigs: defaultWeekConfigs,
+    dayConfigs: defaultDayConfigs,
+    currentWeek: 1,
+    currentDay: defaultDayConfigs[0]?.id ?? 'day1',
+    restDuration: 150,
+    themeMode: 'system',
+    weightUnit: 'kg',
+    language: 'system',
+  };
+}
+
+describe('resolveFirstSync', () => {
+  test('returns already_in_sync for identical runtimes', () => {
+    const defaultRuntime = runtime(defaultWorkouts);
+    expect(resolveFirstSync(defaultRuntime, defaultRuntime, 1).kind).toBe(
+      'already_in_sync',
+    );
+  });
+});
+```
+
+- A dev-only verification script also exists at `scripts/verify-first-sync.ts`.
+- No test fixtures directory — test data is constructed inline within each test file.
+- No `beforeEach`/`afterEach` hooks are used.
+- Tests are explicitly typed — helper functions have explicit parameter and return types.
 
 ## 13. Git
 
@@ -432,6 +508,7 @@ If adding tests:
 | Formatter | `biome.json` | `bun run format` |
 | Linter | `biome.json` (recommended rules) | `bun run lint` |
 | Type checker | `tsconfig.json` (extends `expo/tsconfig.base`, strict) | `bun run typecheck` |
+| Test runner | Bun built-in (`bun:test`) | `bun run test` |
 | Git hooks | `.husky/pre-commit`, `.husky/pre-push` | auto |
 
 To add a dependency:
@@ -441,7 +518,7 @@ bun add -d <package>   # devDependency
 ```
 
 - `biome.json` config: `quoteStyle: "single"`, `semicolons: "always"`, `indentStyle: "space"`.
-- `tsconfig.json`: `strict: true`, `noEmit: true`, `module: "esnext"`, `moduleResolution: "bundler"`, `noFallthroughCasesInSwitch: true`, `noImplicitOverride: true`.
+- `tsconfig.json`: `strict: true`, `noEmit: true`, `module: "esnext"`, `moduleResolution: "bundler"`, `noFallthroughCasesInSwitch: true`, `noImplicitOverride: true`, `paths: { "@/*": ["./src/*"] }`.
 - The `src/sync/` directory is excluded from biome formatting (`!src/sync` in biome.json).
 - Biome's VCS integration is enabled — it respects `.gitignore`.
 
@@ -452,9 +529,10 @@ bun add -d <package>   # devDependency
 - Never use double quotes for string literals in TypeScript or JavaScript files — single quotes only.
 - Never omit semicolons in TypeScript or JavaScript files — semicolons are always required.
 - Never use `var` in JavaScript — always `let` or `const`.
-- Never use absolute import paths — all imports are relative (`../`, `./`).
+- Never use relative import paths (`../`, `./`) in `src/` or `tests/` — use the `@/` path alias instead. Barrel re-exports within `index.ts` files are the only exception.
+- Never use absolute file-system import paths — `@/` is the only allowed non-relative prefix.
 - Never edit `src/sync/sync.bundle.mjs` directly — it is a build artifact.
-- Never import from `scripts/` into `src/` — scripts are dev/build-only.
+- Never import from `scripts/` into `src/` or `tests/` — scripts are dev/build-only.
 - Never use `undefined` where `null` is conventionally used — the codebase uses `null` for intentional absence.
 - Never add JSDoc/TSDoc docstrings — the codebase does not use them and they would be inconsistent noise.
 - Never use `console.log` without the preceding `// eslint-disable-next-line no-console` comment.
@@ -462,3 +540,4 @@ bun add -d <package>   # devDependency
 - Never silently swallow an error without a `// ignore ...` comment explaining why.
 - Never commit build artifacts (`dist/`, `web-build/`, `.expo/`).
 - Never skip the pre-commit lint hook — `bun run lint` must pass before every commit.
+- Never place test files outside `tests/` at the repo root — tests do not use `__tests__/` directories.
