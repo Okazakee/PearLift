@@ -428,6 +428,17 @@ class SyncManagerImpl implements SyncManager {
       return;
     }
 
+    if (mutation.type === 'restoreRuntimeState') {
+      await this.publishSnapshotReplace(mutation.runtime, 'auto_publish_local');
+      logSyncEvent(
+        'info',
+        'manager',
+        'backup_import_snapshot_publish',
+        'Published full snapshot after backup import.',
+      );
+      return;
+    }
+
     const canonical = canonicalizeMutationForSync(mutation, snapshot);
     if (!canonical) {
       logSyncEvent(
