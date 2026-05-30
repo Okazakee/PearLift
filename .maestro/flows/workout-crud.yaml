@@ -7,7 +7,8 @@ appId: dev.okazakee.pearlift
       id: workout.addExercise
     direction: DOWN
     timeout: 15000
-    visibilityPercentage: 50
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn:
     id: workout.addExercise
 - assertVisible:
@@ -28,7 +29,8 @@ appId: dev.okazakee.pearlift
       id: exercise.modal.submit
     direction: DOWN
     timeout: 10000
-    visibilityPercentage: 50
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn:
     id: exercise.modal.submit
 - assertVisible: E2E Push Up
@@ -51,7 +53,8 @@ appId: dev.okazakee.pearlift
       id: exercise.modal.submit
     direction: DOWN
     timeout: 10000
-    visibilityPercentage: 50
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn:
     id: exercise.modal.submit
 - assertVisible: Bench Press E2E
@@ -60,7 +63,8 @@ appId: dev.okazakee.pearlift
       id: exercise.exercise-1-2.delete
     direction: DOWN
     timeout: 15000
-    visibilityPercentage: 50
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn:
     id: exercise.exercise-1-2.delete
 - extendedWaitUntil:

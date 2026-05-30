@@ -45,8 +45,12 @@ export function AppPromptModal({
       backdropStyle={styles.backdrop}
       sheetStyle={styles.sheet}
     >
-      <Text style={styles.title}>{title}</Text>
-      <Text style={styles.message}>{message}</Text>
+      <Text style={styles.title} testID={E2E_IDS.prompt.title}>
+        {title}
+      </Text>
+      <Text style={styles.message} testID={E2E_IDS.prompt.message}>
+        {message}
+      </Text>
       <View style={styles.actionsRow}>
         {actions.map((action) => {
           const tone = action.tone ?? 'default';

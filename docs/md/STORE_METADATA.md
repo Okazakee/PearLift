@@ -54,7 +54,7 @@ PearLift X.Y.Z
 
 Current repo posture:
 
-- buildable from source with the release flow in `docs/RELEASING.md`
+- buildable from source with the release flow in `docs/md/RELEASING.md`
 - fully FLOSS dependency posture for the current app stack
 - no anti-feature declaration expected from current dependency set
 

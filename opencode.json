@@ -1,5 +1,23 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    ".opencode/plugins/graphify.js",
+    [
+      "opencode-goal-plugin",
+      {
+        "maxTurns": 50,
+        "maxDurationMs": 3600000,
+        "maxTokens": 500000
+      }
+    ]
+  ],
+  "command": {
+    "goal": {
+      "description": "Set a session-scoped goal and auto-continue until complete.",
+      "template": "$ARGUMENTS",
+      "agent": "build"
+    }
+  },
   "mcp": {
     "context7": {
       "type": "remote",

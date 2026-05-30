@@ -14,6 +14,16 @@ appId: dev.okazakee.pearlift
     visible:
       id: syncDebug.summary
     timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: syncDebug.value.pairedDeviceNames
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      text: ${SYNC_EXPECTED_PAIRED_DEVICE_NAME}
+    direction: UP
+    timeout: 10000
+    visibilityPercentage: 50
 - assertVisible: ${SYNC_EXPECTED_PAIRED_DEVICE_NAME}
 - tapOn:
     id: syncDebug.close

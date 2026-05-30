@@ -12,8 +12,26 @@ appId: dev.okazakee.pearlift
     id: settings.sync.debug
 - extendedWaitUntil:
     visible:
-      id: syncDebug.refresh
+      id: syncDebug.summary
     timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: syncDebug.value.status
+    direction: UP
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: syncDebug.value.status
+- evalScript: ${output.status = maestro.copiedText}
+- copyTextFrom:
+    id: syncDebug.value.syncMode
+- evalScript: ${output.syncMode = maestro.copiedText}
+- copyTextFrom:
+    id: syncDebug.value.syncRole
+- evalScript: ${output.syncRole = maestro.copiedText}
+- copyTextFrom:
+    id: syncDebug.value.deviceName
+- evalScript: ${output.deviceName = maestro.copiedText}
 - copyTextFrom:
     id: syncDebug.value.roomState
 - evalScript: ${output.roomState = maestro.copiedText}
@@ -21,8 +39,32 @@ appId: dev.okazakee.pearlift
     id: syncDebug.value.firstSyncResolution
 - evalScript: ${output.firstSyncResolution = maestro.copiedText}
 - copyTextFrom:
+    id: syncDebug.value.connections
+- evalScript: ${output.connections = maestro.copiedText}
+- copyTextFrom:
+    id: syncDebug.value.pairedDevicesCount
+- evalScript: ${output.pairedDevicesCount = maestro.copiedText}
+- copyTextFrom:
     id: syncDebug.value.pairedDeviceNames
 - evalScript: ${output.pairedDeviceNames = maestro.copiedText}
+- scrollUntilVisible:
+    element:
+      id: syncDebug.value.pendingLocalSummary
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: syncDebug.value.pendingLocalSummary
+- evalScript: ${output.pendingLocalSummary = maestro.copiedText}
+- scrollUntilVisible:
+    element:
+      id: syncDebug.value.pendingRemoteSummary
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 30
+- copyTextFrom:
+    id: syncDebug.value.pendingRemoteSummary
+- evalScript: ${output.pendingRemoteSummary = maestro.copiedText}
 - scrollUntilVisible:
     element:
       id: syncDebug.value.autobaseKey

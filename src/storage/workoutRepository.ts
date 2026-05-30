@@ -248,7 +248,8 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
                 ? Math.max(...existing.map((exercise) => exercise.sort_order)) +
                   1
                 : 0;
-            const exerciseId = createExerciseId(mutation.exercise.name);
+            const exerciseId =
+              mutation.exercise.id ?? createExerciseId(mutation.exercise.name);
             const timestamp = nowIso();
             await db.runAsync(
               `INSERT INTO exercises (
@@ -533,7 +534,6 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           }
           case 'restoreRuntimeState': {
             await this.replaceAllState(db, mutation.runtime);
-            await this.resetSyncState(db);
             await this.writeSetting(db, 'setupDone', 'true');
             break;
           }

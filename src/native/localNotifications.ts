@@ -25,6 +25,7 @@ export async function ensureRestTimerChannels(channelName: string) {
       id: 'rest-timer-v2',
       name: channelName,
       importance: AndroidImportance.HIGH,
+      sound: 'timer_completion',
       vibration: true,
       vibrationPattern: [0, 250, 150, 250],
       badge: false,
@@ -50,6 +51,9 @@ export async function scheduleRestTimerCompletionNotification(
       android: {
         channelId: 'rest-timer-v2',
         pressAction: { id: DEFAULT_PRESS_ACTION_ID },
+        ongoing: true,
+        loopSound: true,
+        autoCancel: false,
       },
     },
     trigger,

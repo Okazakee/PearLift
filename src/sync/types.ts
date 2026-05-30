@@ -116,6 +116,7 @@ export interface StartSyncInput {
   deviceId: string;
   role: SyncRole;
   bootstrapKeyHex?: string | null;
+  dhtBootstrap?: { host: string; port: number } | null;
   debug?: {
     discoveryOnly?: boolean;
     disableCursorOptimization?: boolean;
@@ -161,6 +162,7 @@ export interface SyncManager {
     role: SyncRole;
     pairingSecretHex?: string;
     bootstrapKeyHex?: string;
+    dhtBootstrap?: { host: string; port: number } | null;
     localSnapshot: WorkoutStoreSnapshot | null;
   }): Promise<void>;
   stop(): Promise<void>;

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getE2EDhtBootstrap } from '@/config/e2e';
 import { REST_TIMER_PERSIST_KEY } from '@/config/timer';
 import i18n from '@/i18n';
 import { cancelRestTimerNotification } from '@/native/localNotifications';
@@ -301,6 +302,7 @@ export async function startSync(
     role,
     pairingSecretHex,
     bootstrapKeyHex: bootstrapKeyHex ?? undefined,
+    dhtBootstrap: getE2EDhtBootstrap(),
     localSnapshot: snapshot,
   });
   await refreshSyncState();

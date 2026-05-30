@@ -28,12 +28,10 @@ appId: dev.okazakee.pearlift
     id: settings.sync.debug
 - extendedWaitUntil:
     visible:
-      id: syncDebug.refresh
+      id: syncDebug.summary
     timeout: 15000
 - assertVisible:
     id: syncDebug.summary
-- tapOn:
-    id: syncDebug.refresh
 - scrollUntilVisible:
     element:
       id: syncDebug.logs

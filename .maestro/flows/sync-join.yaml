@@ -18,8 +18,16 @@ appId: dev.okazakee.pearlift
     timeout: 15000
 - tapOn:
     id: sync.join.input
-- setClipboard: ${SYNC_JOIN_VALUE}
-- pasteText
+- inputText: ${SYNC_JOIN_VALUE}
+- pressKey: Back
+- waitForAnimationToEnd:
+    timeout: 2000
+- scrollUntilVisible:
+    element:
+      id: sync.join.submit
+    direction: DOWN
+    timeout: 10000
+    visibilityPercentage: 100
 - tapOn:
     id: sync.join.submit
 - extendedWaitUntil:

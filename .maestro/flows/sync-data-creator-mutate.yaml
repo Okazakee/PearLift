@@ -13,7 +13,8 @@ appId: dev.okazakee.pearlift
       id: workout.addExercise
     direction: DOWN
     timeout: 15000
-    visibilityPercentage: 50
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn:
     id: workout.addExercise
 - extendedWaitUntil:
@@ -36,7 +37,8 @@ appId: dev.okazakee.pearlift
       id: exercise.modal.submit
     direction: DOWN
     timeout: 10000
-    visibilityPercentage: 50
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn:
     id: exercise.modal.submit
 - assertVisible: ${SYNC_ADDED_EXERCISE_NAME}
@@ -57,9 +59,19 @@ appId: dev.okazakee.pearlift
       id: exercise.modal.submit
     direction: DOWN
     timeout: 10000
-    visibilityPercentage: 50
+    visibilityPercentage: 100
+    centerElement: true
 - tapOn:
     id: exercise.modal.submit
 - assertVisible: ${SYNC_RENAMED_EXERCISE_NAME}
 - tapOn:
-    id: exercise.exercise-1-1.increment
+    id: exercise.exercise-1-1.weightValue
+- extendedWaitUntil:
+    visible:
+      id: exercise.exercise-1-1.weightInput
+    timeout: 10000
+- eraseText
+- inputText: ${SYNC_EXPECTED_WEIGHT_VALUE}
+- pressKey: Enter
+- tapOn: ${SYNC_RENAMED_EXERCISE_NAME}
+- assertVisible: ${SYNC_EXPECTED_WEIGHT_VALUE}

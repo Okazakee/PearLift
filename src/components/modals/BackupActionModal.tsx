@@ -131,6 +131,7 @@ export function BackupActionModal({
           style={styles.closeButton}
           onPress={onClose}
           testID={E2E_IDS.backupActions.close}
+          hitSlop={8}
         >
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>

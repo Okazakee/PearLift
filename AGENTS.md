@@ -31,6 +31,9 @@ plugins/                     # Expo config plugins (abi splits, sync backend bun
 assets/                      # Static assets (images, fonts)
 docs/                        # Project documentation (privacy policy, release guide)
 tests/                       # Bun test files (mirrors src structure by module)
+.maestro/                    # Maestro E2E test flows and subflows
+.opencode/                   # OpenCode agent configuration and skills
+graphify-out/                # Generated knowledge graph (gitignored, rebuilt via `graphify update .`)
 fastlane/                    # Fastlane metadata for app store submissions
 android/                     # Android native project files
 ios/                         # iOS native project files
@@ -43,6 +46,8 @@ ios/                         # iOS native project files
 - Dev-only scripts go in `scripts/` and are never imported from `src/`.
 - Test files go in `tests/` at the repo root, named `<module>.test.ts`.
 - The `src/sync/sync.bundle.mjs` file is a build artifact — never edit it directly.
+- The worklet (backend JS engine) requires `memoryLimit: 128 * 1024 * 1024` on arm64 devices to prevent V8 pointer compression delays. Configured in `src/sync/holepunchBridge.ts`.
+- Sync runs on a bundled Node.js backend via `react-native-bare-kit`. The backend source is in `backend/` and bundled into `src/sync/sync.bundle.mjs` by `bare-pack`.
 
 ## 5. Commands and Workflows
 
@@ -105,6 +110,31 @@ The following MCP servers are configured in `opencode.json`:
 
 - **context7**: Use to search current documentation for Expo, React Native, Biome, Reanimated, Bare Kit, Holepunch, Zustand, or any other dependency. Always prefer this over training-data knowledge when unsure about an API.
 - **gh_grep**: Use to find real-world usage examples from GitHub repositories when documentation is sparse (e.g., `bare-rpc`, `hyperswarm`, `autobase`, `react-native-bare-kit`).
+
+### Skills
+
+The following skills are available in `.opencode/skills/`:
+
+- **agentskill**: Analyze the codebase and synthesize an AGENTS.md file. Invoke with `/agentskill` or `skill: "agentskill"`.
+- **graphify**: Query the knowledge graph for codebase questions, relationships, and architecture. Invoke with `/graphify` or `skill: "graphify"`. The graph is regenerated via `graphify update .`.
+
+### E2E Testing
+
+```bash
+bun run e2e:android:build            # Build E2E APK (x86_64 + arm64-v8a)
+bun run e2e:android:install          # Install APK on device A
+bun run e2e:android:sync             # Full two-device sync test via Maestro
+bun run e2e:android:test             # Run single-device Maestro UI tests
+```
+
+Maestro test flows live in `.maestro/flows/`. Key flows:
+- `sync-create-capture.yaml` — create room, capture pairing secret + bootstrap key
+- `sync-join.yaml` — join room with invite
+- `sync-copy-debug-payloads.yaml` — capture full sync diagnostics (status, connections, room state, paired devices)
+- `sync-data-creator-mutate.yaml` — add/edit/weight mutations on creator
+- `sync-data-joiner-assert.yaml` — assert synced data on joiner
+
+Diagnostics are written to `~/.maestro/tests/<latest>/maestro.log` as `JsConsole` output. The e2e runner parses `SYNC_DIAGNOSTICS` JSON from this log.
 
 ## 6. Code Formatting
 
@@ -541,3 +571,16 @@ bun add -d <package>   # devDependency
 - Never commit build artifacts (`dist/`, `web-build/`, `.expo/`).
 - Never skip the pre-commit lint hook — `bun run lint` must pass before every commit.
 - Never place test files outside `tests/` at the repo root — tests do not use `__tests__/` directories.
+
+## graphify
+
+This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+
+When the user types `/graphify`, invoke the `skill` tool with `skill: "graphify"` before doing anything else.
+
+Rules:
+- For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
+- Dirty graphify-out/ files are expected after hooks or incremental updates; dirty graph files are not a reason to skip graphify. Only skip graphify if the task is about stale or incorrect graph output, or the user explicitly says not to use it.
+- If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
+- Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
+- After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost).

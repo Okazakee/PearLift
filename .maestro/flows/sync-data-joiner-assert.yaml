@@ -24,5 +24,6 @@ appId: dev.okazakee.pearlift
     direction: UP
     timeout: 30000
     visibilityPercentage: 50
+- assertVisible: ${SYNC_EXPECTED_WEIGHT_VALUE}
 - assertVisible:
     id: exercise.exercise-1-1.weightValue

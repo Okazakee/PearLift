@@ -51,6 +51,7 @@ export function LanguageListModal({
           style={styles.closeButton}
           onPress={onClose}
           testID={E2E_IDS.languageList.close}
+          hitSlop={8}
         >
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>

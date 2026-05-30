@@ -98,6 +98,22 @@ function assertStartRequest(value) {
       'SYNC_START debug.disableCursorOptimization must be boolean.',
     );
   }
+  let dhtBootstrap = null;
+  if (value.dhtBootstrap != null) {
+    if (!isRecord(value.dhtBootstrap)) {
+      throw new Error('SYNC_START dhtBootstrap must be an object.');
+    }
+    if (typeof value.dhtBootstrap.host !== 'string') {
+      throw new Error('SYNC_START dhtBootstrap.host must be a string.');
+    }
+    if (typeof value.dhtBootstrap.port !== 'number') {
+      throw new Error('SYNC_START dhtBootstrap.port must be a number.');
+    }
+    dhtBootstrap = {
+      host: value.dhtBootstrap.host,
+      port: value.dhtBootstrap.port,
+    };
+  }
   return {
     pairingSecretHex: value.pairingSecretHex,
     deviceId: value.deviceId,
@@ -118,6 +134,7 @@ function assertStartRequest(value) {
               : undefined,
         }
       : undefined,
+    dhtBootstrap,
   };
 }
 

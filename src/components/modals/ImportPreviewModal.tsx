@@ -41,7 +41,7 @@ export function ImportPreviewModal({
           <Eye size={18} color={tokens.colors.primary} />
           <Text style={styles.title}>{t('importPreview.title')}</Text>
         </View>
-        <Pressable style={styles.closeButton} onPress={onClose}>
+        <Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>

@@ -128,7 +128,7 @@ This is the right direction. It is more stable than hidden offscreen payload blo
 
 Key files to inspect first:
 
-- `docs/sync-e2e-handoff.md`
+- `docs/md/sync-e2e-handoff.md`
 - `scripts/e2e/run-sync-two-emulator.mjs`
 - `scripts/e2e/common.mjs`
 - `.maestro/flows/sync-create-capture.yaml`

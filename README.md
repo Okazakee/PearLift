@@ -70,9 +70,9 @@ keyPassword=...
 ```
 
 Release and store documentation:
-- [Release guide](./docs/RELEASING.md)
-- [Store metadata](./docs/STORE_METADATA.md)
-- [Asset provenance](./docs/ASSET_PROVENANCE.md)
+- [Release guide](./docs/md/RELEASING.md)
+- [Store metadata](./docs/md/STORE_METADATA.md)
+- [Asset provenance](./docs/md/ASSET_PROVENANCE.md)
 
 ## Privacy & Support
 

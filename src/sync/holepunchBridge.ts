@@ -43,7 +43,7 @@ type LifecycleOperation = 'start' | 'stop' | 'clear_storage';
 const APP_LAUNCH_AT = new Date().toISOString();
 const HEARTBEAT_INTERVAL_MS = 10000;
 const HEARTBEAT_FAIL_THRESHOLD = 2;
-const START_TIMEOUT_MS = 12000;
+const START_TIMEOUT_MS = 30000;
 const LIFECYCLE_OPERATION_TIMEOUT_MS = 3000;
 const STALE_RUNTIME_FILES = [
   'worklet-runtime.lock',
@@ -215,7 +215,7 @@ export class HolepunchWorkletBridge implements SyncBridge {
       },
     );
 
-    const worklet = new Worklet();
+    const worklet = new Worklet({ memoryLimit: 128 * 1024 * 1024 });
     if (typeof syncBundle === 'string') {
       worklet.start('/sync.bundle', syncBundle, [storagePath]);
     } else {

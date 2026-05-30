@@ -9,6 +9,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.ServiceInfo
+import android.media.AudioAttributes
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -169,6 +172,8 @@ class RestTimerService : Service() {
           .remove(PREF_STOP_ACTION_LABEL)
           .apply()
         stopTicking()
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(NOTIF_COMPLETE_ID)
         stopForegroundCompat(removeNotification = true)
         stopSelf()
       }
@@ -177,6 +182,8 @@ class RestTimerService : Service() {
         // App returned to foreground; remove ongoing notification and stop service,
         // but keep stored state for JS reconciliation.
         stopTicking()
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.cancel(NOTIF_COMPLETE_ID)
         stopForegroundCompat(removeNotification = true)
         stopSelf()
       }
@@ -279,9 +286,23 @@ class RestTimerService : Service() {
     val completion = NotificationCompat.Builder(this, CHANNEL_COMPLETE_ID)
       .setContentTitle(notificationText.completionTitle)
       .setContentText(notificationText.completionBody)
-      .setSmallIcon(applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_lock_idle_alarm)
-      .setAutoCancel(true)
+      .setSmallIcon(
+        applicationInfo.icon.takeIf { it != 0 } ?: android.R.drawable.ic_lock_idle_alarm,
+      )
+      .setOngoing(true)
+      .setAutoCancel(false)
       .setContentIntent(buildLaunchPendingIntent())
+      .addAction(
+        0,
+        notificationText.stopActionLabel,
+        PendingIntent.getService(
+          this,
+          4,
+          Intent(this, RestTimerService::class.java).setAction(ACTION_CANCEL),
+          PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        ),
+      )
+      .setDefaults(Notification.DEFAULT_VIBRATE)
       .build()
     nm.notify(NOTIF_COMPLETE_ID, completion)
 
@@ -306,10 +327,27 @@ class RestTimerService : Service() {
     runningChannel.setShowBadge(false)
     nm.createNotificationChannel(runningChannel)
 
+    val completionSoundResId = resources.getIdentifier(
+      "timer_completion",
+      "raw",
+      packageName,
+    )
+    val completionSoundUri = if (completionSoundResId != 0) {
+      Uri.parse("android.resource://${packageName}/$completionSoundResId")
+    } else {
+      RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+    }
     val completionChannel = NotificationChannel(
       CHANNEL_COMPLETE_ID,
       notificationText.runningTitle,
-      NotificationManager.IMPORTANCE_MAX,
+      NotificationManager.IMPORTANCE_HIGH,
+    )
+    completionChannel.setSound(
+      completionSoundUri,
+      AudioAttributes.Builder()
+        .setUsage(AudioAttributes.USAGE_ALARM)
+        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+        .build(),
     )
     completionChannel.enableVibration(true)
     completionChannel.setShowBadge(false)

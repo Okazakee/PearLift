@@ -200,6 +200,6 @@ Current privacy posture:
 
 ## Keep these docs
 
-- `docs/RELEASING.md`
-- `docs/STORE_METADATA.md`
-- `docs/ASSET_PROVENANCE.md`
+- `docs/md/RELEASING.md`
+- `docs/md/STORE_METADATA.md`
+- `docs/md/ASSET_PROVENANCE.md`

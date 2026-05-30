@@ -138,6 +138,7 @@ class SyncManagerImpl implements SyncManager {
     role: SyncRole;
     pairingSecretHex?: string;
     bootstrapKeyHex?: string;
+    dhtBootstrap?: { host: string; port: number } | null;
     localSnapshot: WorkoutStoreSnapshot | null;
   }) {
     if (this.active) return;
@@ -224,6 +225,7 @@ class SyncManagerImpl implements SyncManager {
           deviceId,
           role: input.role,
           bootstrapKeyHex: requestedBootstrapKey,
+          dhtBootstrap: input.dhtBootstrap ?? null,
           debug: shouldReplayRemoteHistory
             ? { disableCursorOptimization: true }
             : undefined,

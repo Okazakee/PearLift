@@ -106,6 +106,7 @@ export function AddExerciseModal({
               style={styles.closeButton}
               onPress={onClose}
               testID={E2E_IDS.exerciseModal.close}
+              hitSlop={8}
             >
               <X size={18} color={tokens.colors.textSecondary} />
             </Pressable>
@@ -225,6 +226,7 @@ export function AddExerciseModal({
           style={styles.closeButton}
           onPress={onClose}
           testID={E2E_IDS.exerciseModal.close}
+          hitSlop={8}
         >
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>

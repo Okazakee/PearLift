@@ -861,6 +861,7 @@ export function RestTimer({
             <Pressable
               style={styles.closeButton}
               onPress={() => setExpanded(false)}
+              hitSlop={10}
             >
               <View collapsable={false} testID={E2E_IDS.restTimer.close}>
                 <X size={16} color={tokens.colors.textSecondary} />
@@ -1103,9 +1104,9 @@ function createStyles(
       fontWeight: '600',
     },
     closeButton: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
     },

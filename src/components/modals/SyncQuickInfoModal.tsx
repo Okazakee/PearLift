@@ -62,7 +62,7 @@ export function SyncQuickInfoModal({
     >
       <View style={styles.header}>
         <Text style={styles.title}>{t('sync.quick.title')}</Text>
-        <Pressable style={styles.closeButton} onPress={onClose}>
+        <Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
           <X size={18} color={tokens.colors.textSecondary} />
         </Pressable>
       </View>

@@ -48,3 +48,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# graphify generated knowledge graph
+graphify-out/
+
+# maestro test artifacts
+.maestro/out/
+.maestro/results/

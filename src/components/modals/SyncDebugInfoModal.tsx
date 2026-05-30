@@ -1,6 +1,6 @@
 import * as Clipboard from 'expo-clipboard';
 import { ChevronDown, ChevronUp } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
 import { AnimatedPressable } from '@/animation/primitives';
@@ -134,6 +134,7 @@ export function SyncDebugInfoModal({
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<SyncLogFilter>('all');
   const [expandedLogIndex, setExpandedLogIndex] = useState<number | null>(null);
+  const listRef = useRef<FlatList<SyncLogEntry> | null>(null);
 
   const filteredLogs = useMemo(() => {
     if (filter === 'all') return logEntries;
@@ -156,6 +157,12 @@ export function SyncDebugInfoModal({
     if (!open) return;
     setVisibleCount(LOG_PAGE_SIZE);
     setExpandedLogIndex(null);
+    requestAnimationFrame(() => {
+      listRef.current?.scrollToOffset({
+        animated: false,
+        offset: 0,
+      });
+    });
   }, [open]);
 
   const visibleLogs = filteredLogs.slice(0, visibleCount);
@@ -218,6 +225,7 @@ export function SyncDebugInfoModal({
         </View>
 
         <FlatList
+          ref={listRef}
           data={visibleLogs}
           keyExtractor={(item, index) => `${item.ts}-${item.key}-${index}`}
           onEndReached={() => {
@@ -283,11 +291,13 @@ export function SyncDebugInfoModal({
                   styles={styles}
                   label={t('sync.info.statusLabel')}
                   value={t(`sync.info.status.${syncHealth.status}`)}
+                  valueTestID={E2E_IDS.syncDebug.statusValue}
                 />
                 <DebugRow
                   styles={styles}
                   label="Mode"
                   value={syncHealth.syncMode ?? '—'}
+                  valueTestID={E2E_IDS.syncDebug.syncModeValue}
                 />
                 <DebugRow
                   styles={styles}
@@ -298,11 +308,13 @@ export function SyncDebugInfoModal({
                   styles={styles}
                   label="Role"
                   value={syncState?.syncRole ?? '—'}
+                  valueTestID={E2E_IDS.syncDebug.syncRoleValue}
                 />
                 <DebugRow
                   styles={styles}
                   label="Device Name"
                   value={localDeviceDisplayName || '—'}
+                  valueTestID={E2E_IDS.syncDebug.deviceNameValue}
                 />
                 <DebugRow
                   styles={styles}
@@ -330,11 +342,13 @@ export function SyncDebugInfoModal({
                   styles={styles}
                   label={t('sync.debug.connections')}
                   value={String(syncHealth.connections)}
+                  valueTestID={E2E_IDS.syncDebug.connectionsValue}
                 />
                 <DebugRow
                   styles={styles}
                   label="Paired Devices"
                   value={String(pairedDevices.length)}
+                  valueTestID={E2E_IDS.syncDebug.pairedDevicesCountValue}
                 />
                 <DebugRow
                   styles={styles}
@@ -369,11 +383,13 @@ export function SyncDebugInfoModal({
                   styles={styles}
                   label="Pending Local Summary"
                   value={formatSummaryCounts(syncState?.pendingLocalSummary)}
+                  valueTestID={E2E_IDS.syncDebug.pendingLocalSummaryValue}
                 />
                 <DebugRow
                   styles={styles}
                   label="Pending Remote Summary"
                   value={formatSummaryCounts(syncState?.pendingRemoteSummary)}
+                  valueTestID={E2E_IDS.syncDebug.pendingRemoteSummaryValue}
                 />
                 <DebugRow
                   styles={styles}

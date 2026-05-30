@@ -28,7 +28,9 @@ export type WorkoutMutation =
   | {
       type: 'addExercise';
       workoutId: WorkoutDay;
-      exercise: Omit<Exercise, 'id' | 'position' | 'baseWeight'>;
+      exercise: Omit<Exercise, 'id' | 'position' | 'baseWeight'> & {
+        id?: string;
+      };
     }
   | {
       type: 'editExercise';

@@ -70,7 +70,8 @@ export function decodeSyncRoomInvite(payload: string): SyncRoomInvite {
     return { pairingSecretHex: lower, bootstrapKeyHex: null };
   }
 
-  if (!normalized.startsWith(ROOM_INVITE_PREFIX)) {
+  const lowerPrefix = ROOM_INVITE_PREFIX.toLowerCase();
+  if (!lower.startsWith(lowerPrefix)) {
     throw new Error('Invalid sync room invite.');
   }
 

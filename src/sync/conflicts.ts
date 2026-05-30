@@ -110,8 +110,10 @@ function applyMutationPreview(
       );
       if (!workout) return next;
       workout.exercises.push({
-        id: `${mutation.workoutId}-${workout.exercises.length + 1}`,
         ...mutation.exercise,
+        id:
+          mutation.exercise.id ??
+          `${mutation.workoutId}-${workout.exercises.length + 1}`,
         baseWeight: 0,
         position: workout.exercises.length,
       });

@@ -195,11 +195,6 @@ export function SyncSection({
                       })
                     : t('sync.quick.state.off')}
                 </Text>
-                {syncEnabled && syncState?.lastSyncedAt ? (
-                  <Text style={styles.statusMeta}>
-                    {t('sync.manage.lastSyncAt', { at: lastSyncedLabel })}
-                  </Text>
-                ) : null}
               </View>
               <AnimatedPressable
                 style={syncEnabled ? styles.stopButton : styles.startButton}

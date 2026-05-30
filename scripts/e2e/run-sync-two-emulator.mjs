@@ -1,3 +1,4 @@
+import { spawn, spawnSync } from 'node:child_process';
 import {
   mkdirSync,
   readdirSync,
@@ -11,66 +12,94 @@ import {
   ensureCommand,
   maestroArgs,
   maestroRoot,
+  projectRoot,
   run,
   runCapture,
   runResult,
 } from './common.mjs';
+import {
+  encodeSyncInvite,
+  extractBootstrapKey,
+  extractDiagnostics,
+  extractPairingSecret,
+} from './syncRunnerHelpers.mjs';
 
-function extractPairingSecret(text) {
-  const match = text.match(/SYNC_PAIRING_SECRET=([0-9a-f]{64})/i);
-  return match?.[1]?.toLowerCase() ?? null;
-}
+const DHT_BOOTSTRAP_PORT = 54973;
 
-function extractBootstrapKey(text) {
-  const match = text.match(/SYNC_BOOTSTRAP_KEY=([0-9a-f]{64})/i);
-  return match?.[1]?.toLowerCase() ?? null;
-}
+function startDhtBootstrap() {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      'node',
+      ['./scripts/e2e/start-dht-bootstrap.mjs', String(DHT_BOOTSTRAP_PORT)],
+      {
+        cwd: projectRoot,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    );
 
-function encodeSyncInvite(pairingSecretHex, bootstrapKeyHex) {
-  const payload = JSON.stringify({
-    pairingSecretHex,
-    bootstrapKeyHex,
+    let resolved = false;
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        child.kill();
+        reject(new Error('DHT bootstrap startup timed out.'));
+      }
+    }, 10000);
+
+    child.stdout.once('data', (chunk) => {
+      if (resolved) return;
+      resolved = true;
+      clearTimeout(timer);
+      const line = chunk.toString().trim();
+      process.stdout.write(`${line}\n`);
+      resolve(child);
+    });
+
+    child.on('error', (err) => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timer);
+        reject(err);
+      }
+    });
+
+    child.on('exit', (code) => {
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timer);
+        reject(new Error(`DHT bootstrap exited early with code ${code}.`));
+      }
+    });
   });
+}
 
-  return `pearlift-sync-room:v1:${Buffer.from(payload, 'utf8')
-    .toString('base64')
-    .replaceAll('+', '-')
-    .replaceAll('/', '_')
-    .replace(/=+$/g, '')}`;
+function stopDhtBootstrap(child) {
+  try {
+    child.kill('SIGTERM');
+  } catch {
+    // ignore
+  }
 }
 
 function readLatestMaestroLog() {
-  const testsRoot = resolve(homedir(), '.maestro/tests');
-  const latestEntry = readdirSync(testsRoot, {
-    withFileTypes: true,
-  })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => ({
-      path: join(testsRoot, entry.name, 'maestro.log'),
-      mtimeMs: statSync(join(testsRoot, entry.name)).mtimeMs,
-    }))
-    .sort((a, b) => b.mtimeMs - a.mtimeMs)[0];
-
-  if (!latestEntry) {
-    return '';
-  }
-
-  return readFileSync(latestEntry.path, 'utf8');
-}
-
-function extractDiagnostics(text) {
-  const match = text.match(
-    /\{"type":"SYNC_DIAGNOSTICS","snapshot":"[\s\S]*?","logs":"[\s\S]*?"\}/g,
-  );
-  if (!match?.length) {
-    return null;
-  }
-
-  const raw = match[match.length - 1];
   try {
-    return JSON.parse(raw);
+    const testsRoot = resolve(homedir(), '.maestro/tests');
+    const latestEntry = readdirSync(testsRoot, {
+      withFileTypes: true,
+    })
+      .filter((entry) => entry.isDirectory())
+      .map((entry) => ({
+        path: join(testsRoot, entry.name, 'maestro.log'),
+        mtimeMs: statSync(join(testsRoot, entry.name)).mtimeMs,
+      }))
+      .sort((a, b) => b.mtimeMs - a.mtimeMs)[0];
+
+    if (!latestEntry) {
+      return '';
+    }
+
+    return readFileSync(latestEntry.path, 'utf8');
   } catch {
-    return null;
+    return '';
   }
 }
 
@@ -84,6 +113,11 @@ function captureDiagnostics(device, label) {
     extractDiagnostics(readLatestMaestroLog());
   if (!diagnostics) {
     throw new Error(`Failed to capture sync diagnostics for ${label}.`);
+  }
+  if (result.status !== 0) {
+    throw new Error(
+      `Sync diagnostics flow failed for ${label} with exit code ${result.status}.`,
+    );
   }
 
   const outDir = resolve(maestroRoot, 'out');
@@ -106,6 +140,7 @@ const addedExerciseName =
   process.env.SYNC_ADDED_EXERCISE_NAME ?? 'Synced Split Squat';
 const renamedExerciseName =
   process.env.SYNC_RENAMED_EXERCISE_NAME ?? 'Bench Press Synced';
+const syncedWeightValue = process.env.SYNC_EXPECTED_WEIGHT_VALUE ?? '91.5';
 const creatorDeviceName =
   process.env.SYNC_CREATOR_DEVICE_NAME ?? 'E2E Creator Prime';
 const joinerDeviceName =
@@ -119,29 +154,32 @@ if (!deviceA || !deviceB) {
 
 ensureCommand('maestro');
 
-const creatorOutput = runCapture(
-  'maestro',
-  maestroArgs(deviceA, '.maestro/flows/sync-create-capture.yaml'),
-);
-
+let dhtChild = null;
 try {
-  run(
-    'maestro',
-    maestroArgs(deviceA, '.maestro/flows/sync-creator-assert.yaml'),
-  );
+  dhtChild = await startDhtBootstrap();
 
+  const creatorOutput = runCapture(
+    'maestro',
+    maestroArgs(deviceA, '.maestro/flows/sync-create-capture.yaml'),
+  );
   const creatorPairingSecret =
     extractPairingSecret(creatorOutput) ??
     extractPairingSecret(readLatestMaestroLog());
   const bootstrapKeyHex =
     extractBootstrapKey(creatorOutput) ??
     extractBootstrapKey(readLatestMaestroLog());
+
   if (!creatorPairingSecret) {
     throw new Error('Failed to capture creator pairing secret.');
   }
   if (!bootstrapKeyHex) {
     throw new Error('Failed to capture creator bootstrap key.');
   }
+
+  run(
+    'maestro',
+    maestroArgs(deviceA, '.maestro/flows/sync-creator-assert.yaml'),
+  );
 
   const syncInvite = encodeSyncInvite(creatorPairingSecret, bootstrapKeyHex);
 
@@ -200,6 +238,8 @@ try {
     `SYNC_ADDED_EXERCISE_NAME=${addedExerciseName}`,
     '-e',
     `SYNC_RENAMED_EXERCISE_NAME=${renamedExerciseName}`,
+    '-e',
+    `SYNC_EXPECTED_WEIGHT_VALUE=${syncedWeightValue}`,
     '.maestro/flows/sync-data-creator-mutate.yaml',
   ]);
   run('maestro', [
@@ -210,6 +250,8 @@ try {
     `SYNC_ADDED_EXERCISE_NAME=${addedExerciseName}`,
     '-e',
     `SYNC_RENAMED_EXERCISE_NAME=${renamedExerciseName}`,
+    '-e',
+    `SYNC_EXPECTED_WEIGHT_VALUE=${syncedWeightValue}`,
     '.maestro/flows/sync-data-joiner-assert.yaml',
   ]);
   run(
@@ -228,4 +270,6 @@ try {
     captureDiagnostics(deviceB, 'joiner-failure');
   } catch {}
   throw error;
+} finally {
+  stopDhtBootstrap(dhtChild);
 }
