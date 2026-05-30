@@ -93,16 +93,11 @@ This updates:
 It syncs:
 
 - `versionName`
-- F-Droid split `versionCode`s
-- `commit`
-- `CurrentVersion`
-- `CurrentVersionCode`
+- F-Droid `versionCode`
 
-PearLift uses ABI split APKs on F-Droid. The app's base `versionCode` stays in
-`app.json` and `fdroid-version.txt`; the F-Droid metadata derives APK-specific
-codes from it:
+PearLift uses ABI split APKs on F-Droid (arm64-v8a only). The app's base `versionCode` stays in
+`app.json`, but the F-Droid build produces a distinct `versionCode`:
 
-- `armeabi-v7a`: `baseVersionCode * 100 + 1`
 - `arm64-v8a`: `baseVersionCode * 100 + 2`
 
 It does not commit or push anything.
@@ -162,7 +157,7 @@ them (e.g., skipping alignment via `react.internal.disableJavaVersionAlignment`)
 causes Java/Kotlin target mismatches in library modules that default to Java 1.8.
 
 This recipe produces two APKs per release — one per ABI — with version codes
-`baseVersionCode * 100 + 1` (armeabi-v7a) and `baseVersionCode * 100 + 2` (arm64-v8a).
+`baseVersionCode * 100 + 2` (arm64-v8a).
 
 When patching the recipe after an RN upgrade, always re-verify:
 

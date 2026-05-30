@@ -103,14 +103,6 @@ const { stdout: commitStdout } = await execFile('git', ['rev-parse', 'HEAD'], {
 const commitSha = commitStdout.trim();
 const fdroidBuilds = [
   {
-    abi: 'armeabi-v7a',
-    outputFile:
-      'android/app/build/outputs/apk/release/app-armeabi-v7a-release.apk',
-    versionCode: versionCode * 100 + 1,
-    versionName,
-    commitSha,
-  },
-  {
     abi: 'arm64-v8a',
     outputFile:
       'android/app/build/outputs/apk/release/app-arm64-v8a-release.apk',
