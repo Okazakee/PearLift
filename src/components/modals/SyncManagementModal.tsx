@@ -6,7 +6,7 @@ import {
   Shield,
   Trash2,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
@@ -94,14 +94,18 @@ export function SyncManagementModal({
   >(null);
   const [localError, setLocalError] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const resetKey = open
+    ? `${masterKey ?? ''}\u0000${localDeviceDisplayName}`
+    : null;
+  const prevResetKeyRef = useRef<string | null>(resetKey);
 
-  useEffect(() => {
-    if (!open) return;
+  if (resetKey !== prevResetKeyRef.current) {
+    prevResetKeyRef.current = resetKey;
     setDraftKey(masterKey ?? '');
     setDraftDeviceName(localDeviceDisplayName);
     setLocalError(null);
     setBusy(null);
-  }, [localDeviceDisplayName, masterKey, open]);
+  }
 
   const syncEnabled = syncState?.syncEnabled ?? false;
   const roomRole = syncState?.syncRole ?? null;

@@ -1,7 +1,7 @@
 import * as Clipboard from 'expo-clipboard';
 import { Copy, QrCode, Shield, X } from 'lucide-react-native';
 import QRCode from 'qrcode';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { SvgXml } from 'react-native-svg';
@@ -45,6 +45,11 @@ export function SyncCreateRoomModal({
   );
   const [qrSvg, setQrSvg] = useState<string | null>(null);
   const [keyExpanded, setKeyExpanded] = useState(IS_E2E);
+  const prevOpenRef = useRef(open);
+  const visibleInvitePayload = open ? invitePayload : null;
+  const prevVisibleInvitePayloadRef = useRef<string | null>(
+    visibleInvitePayload,
+  );
   const inviteParts = useMemo(() => {
     if (!IS_E2E || !invitePayload) return null;
     try {
@@ -54,16 +59,20 @@ export function SyncCreateRoomModal({
     }
   }, [invitePayload]);
 
-  useEffect(() => {
-    if (!open) return;
-    setKeyExpanded(IS_E2E);
-  }, [open]);
+  if (open !== prevOpenRef.current) {
+    prevOpenRef.current = open;
+    if (open) {
+      setKeyExpanded(IS_E2E);
+    }
+  }
+
+  if (visibleInvitePayload !== prevVisibleInvitePayloadRef.current) {
+    prevVisibleInvitePayloadRef.current = visibleInvitePayload;
+    setQrSvg(null);
+  }
 
   useEffect(() => {
-    if (!open || !invitePayload) {
-      setQrSvg(null);
-      return;
-    }
+    if (!open || !invitePayload) return;
     let cancelled = false;
     void (async () => {
       const svg = await QRCode.toString(invitePayload, {

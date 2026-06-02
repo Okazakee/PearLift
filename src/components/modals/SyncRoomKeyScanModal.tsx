@@ -51,14 +51,17 @@ export function SyncRoomKeyScanModal({
   });
   const [processing, setProcessing] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
+  const prevOpenRef = useRef(open);
   const scanLoopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const captureInFlightRef = useRef(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setProcessing(false);
-    setScanError(null);
-  }, [open]);
+  if (open !== prevOpenRef.current) {
+    prevOpenRef.current = open;
+    if (open) {
+      setProcessing(false);
+      setScanError(null);
+    }
+  }
 
   useEffect(() => {
     return () => {

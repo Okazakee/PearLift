@@ -134,6 +134,7 @@ export function SyncDebugInfoModal({
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState<SyncLogFilter>('all');
   const [expandedLogIndex, setExpandedLogIndex] = useState<number | null>(null);
+  const prevOpenRef = useRef(open);
   const listRef = useRef<FlatList<SyncLogEntry> | null>(null);
 
   const filteredLogs = useMemo(() => {
@@ -153,10 +154,16 @@ export function SyncDebugInfoModal({
     [localDeviceDisplayName, pairedDevices, syncHealth, syncState, t],
   );
 
+  if (open !== prevOpenRef.current) {
+    prevOpenRef.current = open;
+    if (open) {
+      setVisibleCount(LOG_PAGE_SIZE);
+      setExpandedLogIndex(null);
+    }
+  }
+
   useEffect(() => {
     if (!open) return;
-    setVisibleCount(LOG_PAGE_SIZE);
-    setExpandedLogIndex(null);
     requestAnimationFrame(() => {
       listRef.current?.scrollToOffset({
         animated: false,

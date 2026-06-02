@@ -7,7 +7,7 @@ import {
   SkipForward,
 } from 'lucide-react-native';
 import QRCode from 'qrcode';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
@@ -46,35 +46,54 @@ export function ShareToDeviceModal({
     () => createStyles(tokens, topInset, bottomInset, layout),
     [tokens, topInset, bottomInset, layout],
   );
-  const [packets, setPackets] = useState<string[]>([]);
-  const [isChunked, setIsChunked] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const prevOpenRef = useRef(open);
+  const prevRuntimeStateRef = useRef<PearLiftRuntimeState | null>(runtimeState);
 
-  useEffect(() => {
-    if (!open) return;
-    setPackets([]);
-    setIsChunked(false);
+  if (open !== prevOpenRef.current) {
+    prevOpenRef.current = open;
+    if (open) {
+      setActiveIndex(0);
+      setPaused(false);
+    }
+  }
+
+  if (open && runtimeState !== prevRuntimeStateRef.current) {
+    prevRuntimeStateRef.current = runtimeState;
     setActiveIndex(0);
     setPaused(false);
-    setError(null);
+  } else if (!open && prevRuntimeStateRef.current !== runtimeState) {
+    prevRuntimeStateRef.current = runtimeState;
+  }
 
+  const encodedTransfer = useMemo(() => {
     if (!runtimeState) {
-      return;
+      return {
+        packets: [] as string[],
+        isChunked: false,
+        encodeError: null as string | null,
+      };
     }
 
     try {
       const encoded = encodeBackupForQr(runtimeState);
-      setPackets(encoded.packets);
-      setIsChunked(encoded.mode === 'chunked');
+      return {
+        packets: encoded.packets,
+        isChunked: encoded.mode === 'chunked',
+        encodeError: null,
+      };
     } catch (error) {
-      logError('backup/qr-export encode failed', {
-        error: getErrorMessage(error),
-      });
-      setError(t('deviceTransfer.tooLarge'));
+      return {
+        packets: [] as string[],
+        isChunked: false,
+        encodeError: getErrorMessage(error),
+      };
     }
-  }, [open, runtimeState, t]);
+  }, [runtimeState]);
+
+  const packets = encodedTransfer.packets;
+  const isChunked = encodedTransfer.isChunked;
 
   useEffect(() => {
     if (!open || !isChunked || paused || packets.length <= 1) return;
@@ -86,9 +105,12 @@ export function ShareToDeviceModal({
     };
   }, [open, isChunked, paused, packets.length]);
 
-  const activePayload = packets[activeIndex] ?? null;
+  const safeActiveIndex =
+    packets.length === 0 ? 0 : activeIndex % packets.length;
+  const activePayload = packets[safeActiveIndex] ?? null;
   const totalPackets = packets.length;
-  const chunkProgress = totalPackets > 0 ? (activeIndex + 1) / totalPackets : 0;
+  const chunkProgress =
+    totalPackets > 0 ? (safeActiveIndex + 1) / totalPackets : 0;
   const qrRender = useMemo(() => {
     if (!open || !activePayload) return null;
     try {
@@ -114,18 +136,29 @@ export function ShareToDeviceModal({
       };
     }
   }, [open, activePayload]);
+  const encodeError = encodedTransfer.encodeError;
   const qrRenderError = qrRender && 'error' in qrRender ? qrRender.error : null;
-  const visibleError =
-    error ?? (qrRenderError ? t('prompts.exportBackup.failedTitle') : null);
+  const visibleError = encodeError
+    ? t('deviceTransfer.tooLarge')
+    : qrRenderError
+      ? t('prompts.exportBackup.failedTitle')
+      : null;
+
+  useEffect(() => {
+    if (!open || !encodeError) return;
+    logError('backup/qr-export encode failed', {
+      error: encodeError,
+    });
+  }, [encodeError, open]);
 
   useEffect(() => {
     if (!open || !activePayload || !qrRenderError) return;
     logError('backup/qr-export render failed', {
       error: qrRenderError,
-      packetIndex: activeIndex,
+      packetIndex: safeActiveIndex,
       packetLength: activePayload.length,
     });
-  }, [open, activePayload, qrRenderError, activeIndex]);
+  }, [open, activePayload, qrRenderError, safeActiveIndex]);
 
   const content = (
     <View style={styles.container}>
@@ -179,7 +212,7 @@ export function ShareToDeviceModal({
                 </View>
                 <Text style={styles.metaCounter}>
                   {t('deviceTransfer.shareChunkCounter', {
-                    current: activeIndex + 1,
+                    current: safeActiveIndex + 1,
                     total: Math.max(totalPackets, 1),
                     defaultValue: 'Chunk {{current}}/{{total}}',
                   })}

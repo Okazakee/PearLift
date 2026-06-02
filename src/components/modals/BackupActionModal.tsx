@@ -36,6 +36,23 @@ interface BackupActionModalProps {
   onClose: () => void;
 }
 
+function getActionTestId(actionId: string) {
+  switch (actionId) {
+    case 'save':
+      return E2E_IDS.backupActions.localExport;
+    case 'restore':
+      return E2E_IDS.backupActions.localImport;
+    case 'share':
+      return E2E_IDS.backupActions.localShare;
+    case 'shareQr':
+      return E2E_IDS.backupActions.shareToDevice;
+    case 'scanQr':
+      return E2E_IDS.backupActions.scanFromDevice;
+    default:
+      return undefined;
+  }
+}
+
 export function BackupActionModal({
   open,
   mode,
@@ -88,23 +105,6 @@ export function BackupActionModal({
   ];
 
   const actions = mode === 'qr' ? qrActions : localActions;
-
-  const getActionTestId = (actionId: string) => {
-    switch (actionId) {
-      case 'save':
-        return E2E_IDS.backupActions.localExport;
-      case 'restore':
-        return E2E_IDS.backupActions.localImport;
-      case 'share':
-        return E2E_IDS.backupActions.localShare;
-      case 'shareQr':
-        return E2E_IDS.backupActions.shareToDevice;
-      case 'scanQr':
-        return E2E_IDS.backupActions.scanFromDevice;
-      default:
-        return undefined;
-    }
-  };
 
   const handleAction = (action: BackupAction) => {
     onClose();

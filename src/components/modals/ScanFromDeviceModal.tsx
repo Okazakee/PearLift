@@ -62,18 +62,21 @@ export function ScanFromDeviceModal({
   const [chunkPayloads, setChunkPayloads] = useState<Map<number, string>>(
     () => new Map(),
   );
+  const prevOpenRef = useRef(open);
   const scanLoopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const captureInFlightRef = useRef(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setProcessing(false);
-    setScanError(null);
-    setChunkTransferId(null);
-    setChunkChecksum(null);
-    setChunkTotal(0);
-    setChunkPayloads(new Map());
-  }, [open]);
+  if (open !== prevOpenRef.current) {
+    prevOpenRef.current = open;
+    if (open) {
+      setProcessing(false);
+      setScanError(null);
+      setChunkTransferId(null);
+      setChunkChecksum(null);
+      setChunkTotal(0);
+      setChunkPayloads(new Map());
+    }
+  }
 
   useEffect(() => {
     return () => {

@@ -14,7 +14,7 @@ import {
   Trash2,
 } from 'lucide-react-native';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedRef } from 'react-native-reanimated';
@@ -119,26 +119,23 @@ export function ProgramSettingsModal({
     [],
   );
 
-  useEffect(() => {
-    if (!open) {
-      wasOpenRef.current = false;
-      setEditingLoadWeekKey(null);
-      setEditingLoadText('');
-      return;
+  if (open !== wasOpenRef.current) {
+    wasOpenRef.current = open;
+    setEditingLoadWeekKey(null);
+    setEditingLoadText('');
+    if (open) {
+      weekUiKeyCounterRef.current = 0;
+      dayIdCounterRef.current = 0;
+      setDraftWeeks(
+        weekConfigs.map((w, i) => ({
+          ...w,
+          id: i + 1,
+          uiKey: createWeekUiKey(),
+        })),
+      );
+      setDraftDays(dayConfigs);
     }
-    if (wasOpenRef.current) return;
-    wasOpenRef.current = true;
-    weekUiKeyCounterRef.current = 0;
-    dayIdCounterRef.current = 0;
-    setDraftWeeks(
-      weekConfigs.map((w, i) => ({
-        ...w,
-        id: i + 1,
-        uiKey: createWeekUiKey(),
-      })),
-    );
-    setDraftDays(dayConfigs);
-  }, [createWeekUiKey, dayConfigs, open, weekConfigs]);
+  }
 
   const updateWeek = useCallback(
     (uiKey: string, update: Partial<WeekConfig>) => {

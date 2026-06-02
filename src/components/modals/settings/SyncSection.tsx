@@ -6,7 +6,7 @@ import {
   Shield,
   Trash2,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { AnimatedFadeInView, AnimatedPressable } from '@/animation/primitives';
@@ -74,24 +74,31 @@ export function SyncSection({
   const styles = useMemo(() => createStyles(tokens, layout), [tokens, layout]);
 
   const [expanded, setExpanded] = useState(defaultExpanded);
-  const [draftKey, setDraftKey] = useState(masterKey ?? '');
-  const [draftDeviceName, setDraftDeviceName] = useState(
-    localDeviceDisplayName,
-  );
+  const [draftKey, setDraftKey] = useState('');
+  const [draftDeviceName, setDraftDeviceName] = useState('');
   const [busy, setBusy] = useState<null | 'toggle' | 'key' | 'copy' | 'rename'>(
     null,
   );
   const [localError, setLocalError] = useState<string | null>(null);
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [devicesVisible, setDevicesVisible] = useState(DEVICES_PER_PAGE);
+  const didSyncDraftsRef = useRef(false);
+  const prevMasterKeyRef = useRef<string | null>(masterKey);
+  const prevDeviceNameRef = useRef(localDeviceDisplayName);
 
-  useEffect(() => {
+  if (!didSyncDraftsRef.current) {
+    didSyncDraftsRef.current = true;
     setDraftKey(masterKey ?? '');
-  }, [masterKey]);
-
-  useEffect(() => {
     setDraftDeviceName(localDeviceDisplayName);
-  }, [localDeviceDisplayName]);
+  } else if (masterKey !== prevMasterKeyRef.current) {
+    prevMasterKeyRef.current = masterKey;
+    setDraftKey(masterKey ?? '');
+  }
+
+  if (localDeviceDisplayName !== prevDeviceNameRef.current) {
+    prevDeviceNameRef.current = localDeviceDisplayName;
+    setDraftDeviceName(localDeviceDisplayName);
+  }
 
   const syncEnabled = syncState?.syncEnabled ?? false;
   const roomRole = syncState?.syncRole ?? null;
@@ -146,15 +153,13 @@ export function SyncSection({
           ) : null}
         </View>
         <Text
-          style={[
-            {
-              fontSize: tokens.type.label,
-              fontWeight: '700',
-              color: syncEnabled
-                ? tokens.colors.primary
-                : tokens.colors.textSecondary,
-            },
-          ]}
+          style={{
+            fontSize: tokens.type.label,
+            fontWeight: '700',
+            color: syncEnabled
+              ? tokens.colors.primary
+              : tokens.colors.textSecondary,
+          }}
         >
           {syncEnabled
             ? t('settings.syncStatus.enabled')

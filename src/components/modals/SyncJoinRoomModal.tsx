@@ -9,13 +9,12 @@ import {
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  ActivityIndicator,
-  Pressable,
-  Animated as RNAnimated,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
 import { E2E_IDS } from '@/config/testIds';
@@ -59,23 +58,35 @@ export function SyncJoinRoomModal({
   const [pasteFeedback, setPasteFeedback] = useState<'valid' | 'empty' | null>(
     null,
   );
-  const pasteFade = useRef(new RNAnimated.Value(0)).current;
+  const pasteFade = useSharedValue(0);
+  const pasteFeedbackHideTimer = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const validateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     return () => {
       if (validateTimer.current) clearTimeout(validateTimer.current);
+      if (pasteFeedbackHideTimer.current) {
+        clearTimeout(pasteFeedbackHideTimer.current);
+      }
     };
   }, []);
 
+  const pasteFeedbackStyle = useAnimatedStyle(() => ({
+    opacity: pasteFade.value,
+  }));
+
   const triggerPasteFeedback = (kind: 'valid' | 'empty') => {
+    if (pasteFeedbackHideTimer.current) {
+      clearTimeout(pasteFeedbackHideTimer.current);
+    }
     setPasteFeedback(kind);
-    pasteFade.setValue(1);
-    RNAnimated.timing(pasteFade, {
-      toValue: 0,
-      duration: 1800,
-      useNativeDriver: true,
-    }).start(() => setPasteFeedback(null));
+    pasteFade.value = 1;
+    pasteFade.value = withTiming(0, { duration: 1800 });
+    pasteFeedbackHideTimer.current = setTimeout(() => {
+      setPasteFeedback(null);
+    }, 1800);
   };
 
   const handlePaste = () => {
@@ -202,7 +213,7 @@ export function SyncJoinRoomModal({
             </AnimatedPressable>
           </View>
           {pasteFeedback ? (
-            <RNAnimated.View style={{ opacity: pasteFade }}>
+            <Animated.View style={pasteFeedbackStyle}>
               <Text
                 style={[
                   styles.helperText,
@@ -215,7 +226,7 @@ export function SyncJoinRoomModal({
                   ? t('sync.join.pasteSuccess')
                   : t('sync.join.pasteEmpty')}
               </Text>
-            </RNAnimated.View>
+            </Animated.View>
           ) : null}
         </View>
 

@@ -1,5 +1,5 @@
 import { X } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
@@ -47,10 +47,12 @@ export function AddExerciseModal({
   const layout = useResponsiveLayout();
   const [form, setForm] = useState<FormExercise>(blankState);
   const [error, setError] = useState<string | null>(null);
+  const resetKey = open ? `${mode}:${initialExercise?.id ?? 'new'}` : null;
+  const prevResetKeyRef = useRef<string | null>(resetKey);
   const styles = useMemo(() => createStyles(tokens, layout), [tokens, layout]);
 
-  useEffect(() => {
-    if (!open) return;
+  if (resetKey !== prevResetKeyRef.current) {
+    prevResetKeyRef.current = resetKey;
     if (mode === 'edit' && initialExercise) {
       setForm({
         name: initialExercise.name,
@@ -63,7 +65,7 @@ export function AddExerciseModal({
       setForm(blankState);
     }
     setError(null);
-  }, [open, mode, initialExercise]);
+  }
 
   const handleSubmit = () => {
     const parsedSets = Number(form.sets);
