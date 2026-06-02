@@ -2,13 +2,13 @@
   "expo": {
     "name": "PearLift",
     "slug": "PearLift",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "default",
     "icon": "./assets/pearlift_icon.png",
     "userInterfaceStyle": "automatic",
     "android": {
       "package": "dev.okazakee.pearlift",
-      "versionCode": 8,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/pearlift_splash.png",
         "backgroundColor": "#111113"
