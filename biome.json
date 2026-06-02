@@ -14,7 +14,8 @@
       "!.expo",
       "!dist",
       "!web-build",
-      "!src/sync"
+      "!src/sync",
+      "!.opencode"
     ]
   },
   "formatter": {
