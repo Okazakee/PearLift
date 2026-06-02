@@ -52,6 +52,7 @@
     "expo-file-system": "~56.0.7",
     "expo-font": "~56.0.5",
     "expo-haptics": "~56.0.3",
+    "expo-image": "~56.0.9",
     "expo-keep-awake": "~56.0.3",
     "expo-local-authentication": "~56.0.4",
     "expo-localization": "~56.0.6",

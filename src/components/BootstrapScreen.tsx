@@ -1,6 +1,7 @@
+import { Image } from 'expo-image';
 import { useEffect } from 'react';
 import type { ImageSourcePropType } from 'react-native';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -65,7 +66,7 @@ export function BootstrapScreen({
           <Image
             source={imageSource}
             style={styles.icon}
-            resizeMode="contain"
+            contentFit="contain"
           />
         </View>
 

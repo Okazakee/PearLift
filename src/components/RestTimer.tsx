@@ -130,11 +130,7 @@ export function RestTimer({
     [t],
   );
 
-  useEffect(() => {
-    onExpandedChange?.(expanded);
-  }, [expanded, onExpandedChange]);
-
-  useEffect(() => {
+  const clearPanelContentSchedule = useCallback(() => {
     if (panelMountRafRef.current) {
       cancelAnimationFrame(panelMountRafRef.current);
       panelMountRafRef.current = null;
@@ -143,32 +139,43 @@ export function RestTimer({
       clearTimeout(panelUnmountTimerRef.current);
       panelUnmountTimerRef.current = null;
     }
+  }, []);
 
-    if (expanded) {
-      panelMountRafRef.current = requestAnimationFrame(() => {
-        panelMountRafRef.current = null;
-        setPanelContentMounted(true);
-      });
-      return;
-    }
+  const setExpandedState = useCallback(
+    (nextExpanded: boolean) => {
+      clearPanelContentSchedule();
+      setExpanded(nextExpanded);
+      onExpandedChange?.(nextExpanded);
+      if (nextExpanded) {
+        panelMountRafRef.current = requestAnimationFrame(() => {
+          panelMountRafRef.current = null;
+          setPanelContentMounted(true);
+        });
+        return;
+      }
 
-    panelUnmountTimerRef.current = setTimeout(() => {
-      panelUnmountTimerRef.current = null;
-      setPanelContentMounted(false);
-    }, MOTION.duration.base);
-  }, [expanded]);
+      panelUnmountTimerRef.current = setTimeout(() => {
+        panelUnmountTimerRef.current = null;
+        setPanelContentMounted(false);
+      }, MOTION.duration.base);
+    },
+    [clearPanelContentSchedule, onExpandedChange],
+  );
+
+  const handleExpand = useCallback(() => {
+    setExpandedState(true);
+  }, [setExpandedState]);
+
+  const handleCollapse = useCallback(() => {
+    setExpandedState(false);
+  }, [setExpandedState]);
 
   useEffect(() => {
     return () => {
-      if (panelMountRafRef.current) {
-        cancelAnimationFrame(panelMountRafRef.current);
-      }
-      if (panelUnmountTimerRef.current) {
-        clearTimeout(panelUnmountTimerRef.current);
-      }
+      clearPanelContentSchedule();
       releaseCompletionSound();
     };
-  }, []);
+  }, [clearPanelContentSchedule]);
 
   useEffect(() => {
     const previousDuration = previousDurationRef.current;
@@ -711,21 +718,20 @@ export function RestTimer({
           effectiveStarted),
   );
 
-  useEffect(() => {
+  const ringAnimation = useMemo(() => {
     if (mode === 'running' && endAtMs && effectiveStarted > 0) {
       const remainingMs = Math.max(0, endAtMs - Date.now());
       const currentProgress = Math.max(
         0,
         Math.min(remainingMs / (effectiveStarted * 1000), 1),
       );
-      cancelAnimation(ringOffsetAnimated);
-      ringOffsetAnimated.value = RING_CIRCUMFERENCE * (1 - currentProgress);
-      ringOffsetAnimated.value = withTiming(RING_CIRCUMFERENCE, {
+      const startOffset = RING_CIRCUMFERENCE * (1 - currentProgress);
+      return {
+        initialOffset: startOffset,
+        targetOffset: RING_CIRCUMFERENCE,
         duration: remainingMs,
         easing: Easing.linear,
-        reduceMotion: ReduceMotion.System,
-      });
-      return;
+      };
     }
 
     const clampedRemaining = Math.max(
@@ -734,13 +740,23 @@ export function RestTimer({
     );
     const targetOffset =
       RING_CIRCUMFERENCE * (1 - clampedRemaining / effectiveStarted);
-    cancelAnimation(ringOffsetAnimated);
-    ringOffsetAnimated.value = withTiming(targetOffset, {
+    return {
+      initialOffset: targetOffset,
+      targetOffset,
       duration: 320,
       easing: Easing.inOut(Easing.cubic),
+    };
+  }, [effectiveStarted, endAtMs, mode, remainingSec]);
+
+  useEffect(() => {
+    cancelAnimation(ringOffsetAnimated);
+    ringOffsetAnimated.value = ringAnimation.initialOffset;
+    ringOffsetAnimated.value = withTiming(ringAnimation.targetOffset, {
+      duration: ringAnimation.duration,
+      easing: ringAnimation.easing,
       reduceMotion: ReduceMotion.System,
     });
-  }, [effectiveStarted, endAtMs, mode, remainingSec, ringOffsetAnimated]);
+  }, [ringAnimation, ringOffsetAnimated]);
 
   const ringAnimatedProps = useAnimatedProps(() => ({
     strokeDashoffset: ringOffsetAnimated.value,
@@ -841,7 +857,7 @@ export function RestTimer({
         pointerEvents={expanded ? 'none' : 'auto'}
         style={[styles.fabContainer, fabAnimatedStyle]}
       >
-        <Pressable style={styles.fab} onPress={() => setExpanded(true)}>
+        <Pressable style={styles.fab} onPress={handleExpand}>
           <View collapsable={false} testID={E2E_IDS.restTimer.open}>
             <Timer size={24} color={tokens.colors.onPrimary} />
           </View>
@@ -860,7 +876,7 @@ export function RestTimer({
             </View>
             <Pressable
               style={styles.closeButton}
-              onPress={() => setExpanded(false)}
+              onPress={handleCollapse}
               hitSlop={10}
             >
               <View collapsable={false} testID={E2E_IDS.restTimer.close}>

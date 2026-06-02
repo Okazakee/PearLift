@@ -1,7 +1,8 @@
+import { Image } from 'expo-image';
 import { Activity, Bell, Sliders, Smartphone } from 'lucide-react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   FadeInDown,
   FadeOutUp,
@@ -86,20 +87,17 @@ export function OnboardingScreen({
         onComplete();
         return;
       }
-      if (!requesting) {
-        setRequesting(true);
+      if (requesting) return;
+      setRequesting(true);
+      try {
         await requestNotificationPermission();
+      } finally {
+        onComplete();
       }
       return;
     }
     setPage((p) => p + 1);
   };
-
-  useEffect(() => {
-    if (requesting && isLastPage) {
-      onComplete();
-    }
-  }, [requesting, isLastPage, onComplete]);
 
   const handleBack = () => {
     if (isFirstPage) return;
@@ -136,7 +134,7 @@ export function OnboardingScreen({
               <Image
                 source={require('../../assets/pearlift_transparent.png')}
                 style={styles.logoImage}
-                resizeMode="contain"
+                contentFit="contain"
               />
             ) : (
               React.createElement(PAGE_CONTENT[page].icon, {

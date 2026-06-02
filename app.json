@@ -81,7 +81,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#111113"
         }
-      ]
+      ],
+      "expo-image"
     ],
     "ios": {
       "bundleIdentifier": "dev.okazakee.pearlift"

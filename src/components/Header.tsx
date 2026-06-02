@@ -1,5 +1,6 @@
+import { Image } from 'expo-image';
 import { Settings } from 'lucide-react-native';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { E2E_IDS } from '@/config/testIds';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
@@ -47,7 +48,7 @@ export function Header({
             <Image
               source={require('../../assets/pearlift_transparent.png')}
               style={styles.logoImage}
-              resizeMode="contain"
+              contentFit="contain"
             />
           </View>
           <View>
