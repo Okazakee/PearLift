@@ -46,6 +46,7 @@
       ],
       "expo-sqlite",
       "expo-localization",
+      "./plugins/with-gradle-jvm-args",
       "./plugins/withSyncBackendBundle",
       "./plugins/with-optional-release-signing",
       "./plugins/with-pearlift-abi-splits",
