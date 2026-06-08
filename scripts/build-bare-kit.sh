@@ -6,8 +6,8 @@ BARE_KIT_SRC="${1:?Usage: $0 <bare-kit-srclib-path>}"
 NDK_PATH="${2:?Usage: $0 <bare-kit-srclib-path> <ndk-path>}"
 BUILD_DIR="${3:-/tmp/bare-kit-build}"
 
-echo "[build-bare-kit] Installing bare-kit npm dependencies..."
-(cd "${BARE_KIT_SRC}" && npm install)
+echo "[build-bare-kit] Installing bare-kit dependencies..."
+(cd "${BARE_KIT_SRC}" && bun install)
 
 echo "[build-bare-kit] Configuring CMake..."
 cmake -S "${BARE_KIT_SRC}" -B "${BUILD_DIR}" \

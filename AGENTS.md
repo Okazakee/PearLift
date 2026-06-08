@@ -26,7 +26,7 @@ src/
   utils/                     # Pure utility functions (math, arrays, errors, timer)
 backend/                     # Bare-rpc sync backend (runs on-device via bare-kit)
 modules/                     # Local Expo native modules (e.g., rest-timer-fgs)
-scripts/                     # Build, release, and dev scripts (invoked via npm scripts)
+scripts/                     # Build, release, and dev scripts (invoked via bun run)
 plugins/                     # Expo config plugins (abi splits, sync backend bundling)
 assets/                      # Static assets (images, fonts)
 docs/                        # Project documentation (privacy policy, release guide)
