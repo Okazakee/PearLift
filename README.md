@@ -29,9 +29,10 @@
 ## Screenshots
 
 <div align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="200" alt="Screenshot 1" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="200" alt="Screenshot 2" />
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="200" alt="Screenshot 3" />
+  <img src="docs/assets/1.webp" width="200" alt="Screenshot 1" />
+  <img src="docs/assets/2.webp" width="200" alt="Screenshot 2" />
+  <img src="docs/assets/3.webp" width="200" alt="Screenshot 3" />
+  <img src="docs/assets/4.webp" width="200" alt="Screenshot 4" />
 </div>
 
 ## Quick Start

@@ -417,7 +417,7 @@ h3 {
 
 .screens-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.15rem;
   align-items: end;
 }
@@ -451,6 +451,10 @@ h3 {
 
 .screen-card-tilt-right {
   transform: rotate(3deg) translateY(0.9rem);
+}
+
+.screen-card-tilt-right2 {
+  transform: rotate(2deg) translateY(-0.15rem);
 }
 
 .list {
