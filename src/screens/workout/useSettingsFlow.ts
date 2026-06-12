@@ -5,14 +5,15 @@ import { APP_CONFIG } from '@/config/app';
 import { IS_E2E } from '@/config/e2e';
 import i18n from '@/i18n';
 import { applyWorkoutMutation, showPrompt } from '@/screens/workout/services';
-import { useWorkoutUiStore } from '@/store/workoutUiStore';
 import type { ThemePreference } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
 import { getErrorMessage, logError } from '@/utils/errors';
 
-export function useSettingsFlow(systemLanguage: string) {
+export function useSettingsFlow(
+  systemLanguage: string,
+  closeSettings: () => void,
+) {
   const { t } = useTranslation();
-  const ui = useWorkoutUiStore();
 
   const handleResetData = () => {
     showPrompt(
@@ -24,7 +25,7 @@ export function useSettingsFlow(systemLanguage: string) {
           label: t('prompts.resetAllData.actions.confirm'),
           tone: 'destructive',
           onPress: () => {
-            ui.setSettingsOpen(false);
+            closeSettings();
             void (async () => {
               try {
                 if (!IS_E2E) {

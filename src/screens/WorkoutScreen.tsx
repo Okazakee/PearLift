@@ -1,6 +1,6 @@
 import { NavigationBar } from 'expo-navigation-bar';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useColorScheme, View } from 'react-native';
 import {
   SafeAreaView,
@@ -45,7 +45,6 @@ import { useSettingsFlow } from '@/screens/workout/useSettingsFlow';
 import { useSyncFlow } from '@/screens/workout/useSyncFlow';
 import { useWorkoutActions } from '@/screens/workout/useWorkoutActions';
 import { useWorkoutDerivedState } from '@/screens/workout/useWorkoutDerivedState';
-import { useImportStore } from '@/store/importStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useWorkoutDataStore } from '@/store/workoutDataStore';
 import { useWorkoutUiStore } from '@/store/workoutUiStore';
@@ -60,6 +59,18 @@ export function WorkoutScreen() {
   const responsiveLayout = useResponsiveLayout();
   const systemScheme = useColorScheme();
   const systemLanguage = useSystemLanguage(SUPPORTED_I18N_LANGUAGE_CODES, 'en');
+  const [exerciseModalOpen, setExerciseModalOpen] = useState(false);
+  const [exerciseModalMode, setExerciseModalMode] = useState<'add' | 'edit'>(
+    'add',
+  );
+  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(
+    null,
+  );
+  const [programSettingsOpen, setProgramSettingsOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [syncDebugOpen, setSyncDebugOpen] = useState(false);
+  const [languageListOpen, setLanguageListOpen] = useState(false);
+  const [timerExpanded, setTimerExpanded] = useState(false);
 
   const snapshot = useWorkoutDataStore((state) => state.snapshot);
   const isReady = useWorkoutDataStore((state) => state.isReady);
@@ -70,25 +81,7 @@ export function WorkoutScreen() {
     (state) => state.localDeviceDisplayName,
   );
   const syncLogs = useSyncStore((state) => state.syncLogs);
-  const importSummary = useImportStore((state) => state.importSummary);
   const promptConfig = useWorkoutUiStore((state) => state.promptConfig);
-  const exerciseModalOpen = useWorkoutUiStore(
-    (state) => state.exerciseModalOpen,
-  );
-  const exerciseModalMode = useWorkoutUiStore(
-    (state) => state.exerciseModalMode,
-  );
-  const programSettingsOpen = useWorkoutUiStore(
-    (state) => state.programSettingsOpen,
-  );
-  const settingsOpen = useWorkoutUiStore((state) => state.settingsOpen);
-  const syncDebugOpen = useWorkoutUiStore((state) => state.syncDebugOpen);
-  const languageListOpen = useWorkoutUiStore((state) => state.languageListOpen);
-  const importPreviewOpen = useWorkoutUiStore(
-    (state) => state.importPreviewOpen,
-  );
-  const timerExpanded = useWorkoutUiStore((state) => state.timerExpanded);
-  const ui = useWorkoutUiStore();
 
   useEffect(() => {
     const preferred = snapshot?.language ?? 'system';
@@ -109,10 +102,17 @@ export function WorkoutScreen() {
   });
   const workoutActions = useWorkoutActions({
     currentWorkout: derived.currentWorkout,
+    editingExerciseId,
+    exerciseModalMode,
+    setEditingExerciseId,
+    setExerciseModalMode,
+    setExerciseModalOpen,
   });
-  const settingsFlow = useSettingsFlow(systemLanguage);
+  const settingsFlow = useSettingsFlow(systemLanguage, () => {
+    setSettingsOpen(false);
+  });
   const backupFlow = useBackupFlow();
-  const syncFlow = useSyncFlow();
+  const syncFlow = useSyncFlow({ settingsOpen, syncDebugOpen });
 
   const sharedSyncModals = (
     <>
@@ -246,7 +246,7 @@ export function WorkoutScreen() {
           topInset={insets.top}
           maxWidth={responsiveLayout.contentMaxWidth}
           syncHealth={syncHealth}
-          onOpenSettings={() => ui.setSettingsOpen(true)}
+          onOpenSettings={() => setSettingsOpen(true)}
           onOpenSyncQuickInfo={() => syncFlow.setSyncQuickInfoOpen(true)}
         />
 
@@ -261,7 +261,7 @@ export function WorkoutScreen() {
           userWeights={derived.userWeights}
           getAdjustedWeight={derived.getAdjustedWeight}
           onWeekChange={workoutActions.handleWeekChange}
-          onOpenProgramSettings={() => ui.setProgramSettingsOpen(true)}
+          onOpenProgramSettings={() => setProgramSettingsOpen(true)}
           onOpenAddExercise={workoutActions.handleOpenAdd}
           onEditExercise={workoutActions.handleOpenEdit}
           onDeleteExercise={workoutActions.handleDeleteExercise}
@@ -282,7 +282,7 @@ export function WorkoutScreen() {
           onDurationChange={workoutActions.handleRestDurationChange}
           fabBottom={derived.layout.timerFabBottom}
           panelBottom={derived.layout.timerPanelBottom}
-          onExpandedChange={ui.setTimerExpanded}
+          onExpandedChange={setTimerExpanded}
         />
 
         <Navigation
@@ -301,7 +301,7 @@ export function WorkoutScreen() {
           mode={exerciseModalMode}
           tokens={derived.tokens}
           initialExercise={workoutActions.editingExercise}
-          onClose={() => ui.setExerciseModalOpen(false)}
+          onClose={() => setExerciseModalOpen(false)}
           onSubmit={(payload) => {
             void workoutActions.handleExerciseSubmit(payload);
           }}
@@ -314,7 +314,7 @@ export function WorkoutScreen() {
           bottomInset={insets.bottom}
           weekConfigs={derived.weekConfigs}
           dayConfigs={derived.dayConfigs}
-          onClose={() => ui.setProgramSettingsOpen(false)}
+          onClose={() => setProgramSettingsOpen(false)}
           onWeekConfigsChange={(nextWeekConfigs) => {
             void applyWorkoutMutation({
               type: 'replaceWeekConfigs',
@@ -331,9 +331,9 @@ export function WorkoutScreen() {
         />
 
         <ImportPreviewModal
-          open={importPreviewOpen}
+          open={backupFlow.importPreviewOpen}
           tokens={derived.tokens}
-          summary={importSummary}
+          summary={backupFlow.importSummary}
           onClose={backupFlow.handleCancelImport}
           onConfirm={() => {
             void backupFlow.handleConfirmImport();
@@ -356,7 +356,7 @@ export function WorkoutScreen() {
           onWeightUnitChange={settingsFlow.handleWeightUnitChange}
           language={derived.currentLanguage}
           onLanguageChange={settingsFlow.handleLanguageChange}
-          onLanguageListOpen={() => ui.setLanguageListOpen(true)}
+          onLanguageListOpen={() => setLanguageListOpen(true)}
           syncState={syncState}
           syncHealth={syncHealth}
           pairedDevices={pairedDevices}
@@ -377,12 +377,12 @@ export function WorkoutScreen() {
           onLeaveRoom={async () => {
             syncFlow.handleLeaveSyncRoom();
           }}
-          onOpenDebug={() => ui.setSyncDebugOpen(true)}
+          onOpenDebug={() => setSyncDebugOpen(true)}
           onOpenLocalBackup={backupFlow.handleOpenLocalBackup}
           onOpenQRBackup={backupFlow.handleOpenQRBackup}
           onResetData={settingsFlow.handleResetData}
           onClose={() => {
-            ui.setSettingsOpen(false);
+            setSettingsOpen(false);
             syncFlow.setSettingsSyncExpanded(false);
           }}
           onOpenGithub={settingsFlow.handleOpenGithub}
@@ -396,7 +396,7 @@ export function WorkoutScreen() {
           onMore={() => {
             syncFlow.setSyncQuickInfoOpen(false);
             syncFlow.setSettingsSyncExpanded(true);
-            ui.setSettingsOpen(true);
+            setSettingsOpen(true);
           }}
           onClose={() => {
             syncFlow.setSyncQuickInfoOpen(false);
@@ -420,7 +420,7 @@ export function WorkoutScreen() {
             syncFlow.clearRecentLogs();
             void refreshSyncLogs();
           }}
-          onClose={() => ui.setSyncDebugOpen(false)}
+          onClose={() => setSyncDebugOpen(false)}
         />
 
         <ShareToDeviceModal
@@ -457,7 +457,7 @@ export function WorkoutScreen() {
           open={languageListOpen}
           tokens={derived.tokens}
           selectedLanguage={derived.currentLanguage}
-          onClose={() => ui.setLanguageListOpen(false)}
+          onClose={() => setLanguageListOpen(false)}
           onSelectLanguage={settingsFlow.handleLanguageChange}
         />
 

@@ -16,7 +16,6 @@ import {
 } from '@/screens/workout/services';
 import { useSyncStore } from '@/store/syncStore';
 import { useWorkoutDataStore } from '@/store/workoutDataStore';
-import { useWorkoutUiStore } from '@/store/workoutUiStore';
 import { summarizeRuntime } from '@/sync/firstSync';
 import { clearRecentLogs } from '@/sync/logger';
 import { decodeSyncRoomInvite, encodeSyncRoomInvite } from '@/sync/roomInvite';
@@ -26,11 +25,14 @@ import {
 } from '@/sync/syncManager';
 import { getErrorMessage } from '@/utils/errors';
 
-export function useSyncFlow() {
+export function useSyncFlow(input: {
+  settingsOpen: boolean;
+  syncDebugOpen: boolean;
+}) {
   const { t } = useTranslation();
   const snapshot = useWorkoutDataStore((state) => state.snapshot);
   const syncStore = useSyncStore();
-  const ui = useWorkoutUiStore();
+  const { settingsOpen, syncDebugOpen } = input;
   const [syncMasterKey, setSyncMasterKey] = useState<string | null>(null);
   const [syncRoomInvite, setSyncRoomInvite] = useState<string | null>(null);
   const [createRoomStarting, setCreateRoomStarting] = useState(false);
@@ -41,7 +43,7 @@ export function useSyncFlow() {
   const [settingsSyncExpanded, setSettingsSyncExpanded] = useState(false);
 
   useEffect(() => {
-    if (!ui.settingsOpen) return;
+    if (!settingsOpen) return;
     void (async () => {
       try {
         const key = await getPairingSecretPayload();
@@ -50,12 +52,12 @@ export function useSyncFlow() {
         setSyncMasterKey(null);
       }
     })();
-  }, [ui.settingsOpen]);
+  }, [settingsOpen]);
 
   useEffect(() => {
-    if (!ui.syncDebugOpen) return;
+    if (!syncDebugOpen) return;
     void refreshSyncLogs();
-  }, [ui.syncDebugOpen]);
+  }, [syncDebugOpen]);
 
   useEffect(() => {
     const sub = AppState.addEventListener('change', (nextState) => {

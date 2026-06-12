@@ -18,19 +18,29 @@ import {
   assembleChunkedPackets,
   decodeQrPayload,
 } from '@/backup/qrBackupCodec';
+import type { ChangeSummary, MigratedBackupResult } from '@/backup/types';
 import { applyWorkoutMutation, showPrompt } from '@/screens/workout/services';
-import { useImportStore } from '@/store/importStore';
 import { useWorkoutDataStore } from '@/store/workoutDataStore';
-import { useWorkoutUiStore } from '@/store/workoutUiStore';
 import { getErrorMessage, logError } from '@/utils/errors';
+
+const EMPTY_IMPORT_SUMMARY: ChangeSummary = {
+  workouts: [],
+  settings: [],
+  weekConfigs: [],
+  dayConfigs: [],
+  totalChanges: 0,
+};
 
 export function useBackupFlow() {
   const { t } = useTranslation();
   const snapshot = useWorkoutDataStore((state) => state.snapshot);
-  const ui = useWorkoutUiStore();
-  const importStore = useImportStore();
   const [shareToDeviceOpen, setShareToDeviceOpen] = useState(false);
   const [scanFromDeviceOpen, setScanFromDeviceOpen] = useState(false);
+  const [pendingImport, setPendingImport] =
+    useState<MigratedBackupResult | null>(null);
+  const [importSummary, setImportSummary] =
+    useState<ChangeSummary>(EMPTY_IMPORT_SUMMARY);
+  const [importPreviewOpen, setImportPreviewOpen] = useState(false);
   const [backupActionMode, setBackupActionMode] = useState<
     'local' | 'qr' | null
   >(null);
@@ -62,9 +72,9 @@ export function useBackupFlow() {
         migrated.backup,
       );
 
-      importStore.setPendingImport(migrated);
-      importStore.setImportSummary(summary);
-      ui.setImportPreviewOpen(true);
+      setPendingImport(migrated);
+      setImportSummary(summary);
+      setImportPreviewOpen(true);
       return true;
     } catch (error) {
       logError('backup/import from payload failed', error);
@@ -76,6 +86,8 @@ export function useBackupFlow() {
   return {
     shareToDeviceOpen,
     scanFromDeviceOpen,
+    importSummary,
+    importPreviewOpen,
     backupActionMode,
     setShareToDeviceOpen,
     setScanFromDeviceOpen,
@@ -185,15 +197,16 @@ export function useBackupFlow() {
     handleScanPayload: async (payload: string) =>
       beginImportFromPayload(payload),
     handleConfirmImport: async () => {
-      if (!importStore.pendingImport) return;
+      if (!pendingImport) return;
       try {
         await applyWorkoutMutation({
           type: 'restoreRuntimeState',
-          runtime: importStore.pendingImport.runtime,
+          runtime: pendingImport.runtime,
           source: 'local-import',
         });
-        ui.setImportPreviewOpen(false);
-        importStore.setPendingImport(null);
+        setImportPreviewOpen(false);
+        setPendingImport(null);
+        setImportSummary(EMPTY_IMPORT_SUMMARY);
       } catch (error) {
         logError('backup/import confirm failed', error);
         showPrompt(
@@ -203,8 +216,9 @@ export function useBackupFlow() {
       }
     },
     handleCancelImport: () => {
-      ui.setImportPreviewOpen(false);
-      importStore.setPendingImport(null);
+      setImportPreviewOpen(false);
+      setPendingImport(null);
+      setImportSummary(EMPTY_IMPORT_SUMMARY);
     },
   };
 }

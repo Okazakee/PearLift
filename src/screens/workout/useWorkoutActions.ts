@@ -5,7 +5,6 @@ import {
   finishOnboarding,
   showPrompt,
 } from '@/screens/workout/services';
-import { useWorkoutUiStore } from '@/store/workoutUiStore';
 import type { Exercise, WorkoutDay } from '@/types';
 
 export function useWorkoutActions(input: {
@@ -14,43 +13,52 @@ export function useWorkoutActions(input: {
     name: string;
     exercises: Exercise[];
   };
+  editingExerciseId: string | null;
+  exerciseModalMode: 'add' | 'edit';
+  setEditingExerciseId: (exerciseId: string | null) => void;
+  setExerciseModalMode: (mode: 'add' | 'edit') => void;
+  setExerciseModalOpen: (open: boolean) => void;
 }) {
-  const { currentWorkout } = input;
+  const {
+    currentWorkout,
+    editingExerciseId,
+    exerciseModalMode,
+    setEditingExerciseId,
+    setExerciseModalMode,
+    setExerciseModalOpen,
+  } = input;
   const { t } = useTranslation();
-  const ui = useWorkoutUiStore();
 
   const editingExercise = useMemo(
     () =>
-      ui.editingExerciseId
+      editingExerciseId
         ? (currentWorkout.exercises.find(
-            (item) => item.id === ui.editingExerciseId,
+            (item) => item.id === editingExerciseId,
           ) ?? null)
         : null,
-    [currentWorkout.exercises, ui.editingExerciseId],
+    [currentWorkout.exercises, editingExerciseId],
   );
 
   const handleOpenAdd = () => {
-    ui.setEditingExerciseId(null);
-    ui.setExerciseModalMode('add');
-    ui.setExerciseModalOpen(true);
+    setEditingExerciseId(null);
+    setExerciseModalMode('add');
+    setExerciseModalOpen(true);
   };
 
   const handleOpenEdit = (exercise: Exercise) => {
-    ui.setEditingExerciseId(exercise.id);
-    ui.setExerciseModalMode('edit');
-    ui.setExerciseModalOpen(true);
+    setEditingExerciseId(exercise.id);
+    setExerciseModalMode('edit');
+    setExerciseModalOpen(true);
   };
 
   const handleExerciseSubmit = async (
     payload: Omit<Exercise, 'id' | 'position' | 'baseWeight'>,
   ) => {
-    const editing = ui.editingExerciseId
-      ? currentWorkout.exercises.find(
-          (item) => item.id === ui.editingExerciseId,
-        )
+    const editing = editingExerciseId
+      ? currentWorkout.exercises.find((item) => item.id === editingExerciseId)
       : null;
 
-    if (ui.exerciseModalMode === 'edit' && editing) {
+    if (exerciseModalMode === 'edit' && editing) {
       await applyWorkoutMutation({
         type: 'editExercise',
         workoutId: currentWorkout.id,
