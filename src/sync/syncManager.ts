@@ -6,7 +6,7 @@ import type {
   WorkoutStoreSnapshot,
 } from '@/storage';
 import { logError } from '@/utils/errors';
-import { createSyncBridge } from '@/sync/bridge';
+import { HolepunchWorkletBridge } from '@/sync/holepunchBridge';
 import { buildHealthSignature } from '@/sync/manager/health';
 import { getLatestSnapshotPayload } from '@/sync/manager/joinResolution';
 import { classifyStartError } from '@/sync/manager/lifecycle';
@@ -105,7 +105,7 @@ class SyncManagerImpl implements SyncManager {
 
   constructor(repository: WorkoutRepository, bridge?: SyncBridge) {
     this.repository = repository;
-    this.bridge = createSyncBridge(bridge);
+    this.bridge = bridge ?? new HolepunchWorkletBridge();
   }
 
   isActive() {

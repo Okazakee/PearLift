@@ -14,16 +14,11 @@ import type {
   WorkoutMutation,
   WorkoutStoreSnapshot,
 } from '@/storage/types';
-import { useImportStore } from '@/store/importStore';
 import { useSyncStore } from '@/store/syncStore';
 import { useWorkoutDataStore } from '@/store/workoutDataStore';
 import { type PromptConfig, useWorkoutUiStore } from '@/store/workoutUiStore';
 import { canonicalizeMutationForSync } from '@/sync/canonicalize';
-import {
-  INITIAL_SYNC_HEALTH,
-  isSyncableMutation,
-  type SyncManager,
-} from '@/sync/types';
+import { isSyncableMutation, type SyncManager } from '@/sync/types';
 import type { PersistedRestTimerStateV1 } from '@/types/timer';
 
 type RuntimeSubscriptions = {
@@ -379,18 +374,4 @@ export async function finishOnboarding() {
   const { repository } = getWorkoutRuntime();
   await repository.markSetupDone();
   await reloadWorkoutSnapshot();
-}
-
-export function resetSyncStoreState() {
-  const syncStore = useSyncStore.getState();
-  syncStore.setSyncHealth({ ...INITIAL_SYNC_HEALTH });
-  syncStore.setSyncStateRow(null);
-  syncStore.setPairedDevices([]);
-  syncStore.setLocalDeviceDisplayName('');
-  syncStore.setSyncLogs([]);
-}
-
-export function clearImportFlow() {
-  useImportStore.getState().resetImportState();
-  useWorkoutUiStore.getState().setImportPreviewOpen(false);
 }

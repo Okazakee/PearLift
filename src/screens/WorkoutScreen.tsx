@@ -36,6 +36,7 @@ import { styles } from '@/screens/styles';
 import {
   applyWorkoutMutation,
   closePrompt,
+  initializeWorkoutRuntime,
   refreshSyncLogs,
   showPrompt,
 } from '@/screens/workout/services';
@@ -43,7 +44,6 @@ import { useBackupFlow } from '@/screens/workout/useBackupFlow';
 import { useSettingsFlow } from '@/screens/workout/useSettingsFlow';
 import { useSyncFlow } from '@/screens/workout/useSyncFlow';
 import { useWorkoutActions } from '@/screens/workout/useWorkoutActions';
-import { useWorkoutBootstrap } from '@/screens/workout/useWorkoutBootstrap';
 import { useWorkoutDerivedState } from '@/screens/workout/useWorkoutDerivedState';
 import { useImportStore } from '@/store/importStore';
 import { useSyncStore } from '@/store/syncStore';
@@ -52,7 +52,9 @@ import { useWorkoutUiStore } from '@/store/workoutUiStore';
 import type { ThemeMode } from '@/theme/tokens';
 
 export function WorkoutScreen() {
-  useWorkoutBootstrap();
+  useEffect(() => {
+    void initializeWorkoutRuntime();
+  }, []);
 
   const insets = useSafeAreaInsets();
   const responsiveLayout = useResponsiveLayout();

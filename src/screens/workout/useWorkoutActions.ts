@@ -6,7 +6,7 @@ import {
   showPrompt,
 } from '@/screens/workout/services';
 import { useWorkoutUiStore } from '@/store/workoutUiStore';
-import type { Exercise, WeightUnit, WorkoutDay } from '@/types';
+import type { Exercise, WorkoutDay } from '@/types';
 
 export function useWorkoutActions(input: {
   currentWorkout: {
@@ -118,12 +118,6 @@ export function useWorkoutActions(input: {
       void applyWorkoutMutation({
         type: 'setRestDuration',
         restDuration: nextDuration,
-      });
-    },
-    handleWeightUnitChange: (nextUnit: WeightUnit) => {
-      void applyWorkoutMutation({
-        type: 'setWeightUnit',
-        weightUnit: nextUnit,
       });
     },
     handleAdjustWeight: (exerciseId: string, delta: number) => {

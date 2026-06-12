@@ -1,4 +1,3 @@
-export * from '@/sync/bridge';
 export * from '@/sync/canonicalize';
 export * from '@/sync/holepunchBridge';
 export * from '@/sync/rpcCommands';

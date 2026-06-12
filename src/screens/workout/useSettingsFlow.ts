@@ -1,4 +1,3 @@
-import * as Clipboard from 'expo-clipboard';
 import * as LocalAuthentication from 'expo-local-authentication';
 import { useTranslation } from 'react-i18next';
 import { Linking } from 'react-native';
@@ -106,6 +105,5 @@ export function useSettingsFlow(systemLanguage: string) {
         );
       }
     },
-    copyToClipboard: Clipboard.setStringAsync,
   };
 }
