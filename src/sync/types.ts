@@ -119,7 +119,6 @@ export interface StartSyncInput {
   dhtBootstrap?: { host: string; port: number } | null;
   debug?: {
     discoveryOnly?: boolean;
-    disableCursorOptimization?: boolean;
   };
 }
 
@@ -142,7 +141,8 @@ export interface SyncBridge {
   stop(): Promise<void>;
   clearStorage(): Promise<void>;
   publish(op: SyncOpEnvelope): Promise<void>;
-  onRemoteOp(cb: (op: SyncOpEnvelope) => void): () => void;
+  getCurrentView(): Promise<SyncOpEnvelope[]>;
+  onViewChanged(cb: () => void): () => void;
   onStatus(cb: (health: SyncHealth) => void): () => void;
   pullLogs?(): Promise<SyncBridgeLogEntry[]>;
 }
@@ -170,7 +170,6 @@ export interface SyncManager {
     mutation: WorkoutMutation,
     snapshot: WorkoutStoreSnapshot | null,
   ): Promise<void>;
-  handleRemoteOp(op: SyncOpEnvelope): Promise<void>;
   getHealth(): SyncHealth;
   onHealth(cb: (health: SyncHealth) => void): () => void;
   onRemoteApplied(cb: () => void): () => void;

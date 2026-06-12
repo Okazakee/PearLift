@@ -1,14 +1,15 @@
 import b4a from 'b4a';
 import cenc from 'compact-encoding';
 import {
+  RPC_SYNC_GET_VIEW,
   RPC_SYNC_GET_LOGS,
   RPC_SYNC_LOG_EVENT,
   RPC_SYNC_PUBLISH,
-  RPC_SYNC_REMOTE_OP_EVENT,
   RPC_SYNC_START,
   RPC_SYNC_STATUS,
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
+  RPC_SYNC_VIEW_CHANGED_EVENT,
 } from '@/sync/rpcCommands';
 import type { SyncRole } from '@/storage/types';
 import type { SyncHealth, SyncOpEnvelope, SyncStatus } from '@/sync/types';
@@ -93,7 +94,6 @@ function assertStartRequest(value: unknown): {
   dhtBootstrap?: { host: string; port: number } | null;
   debug?: {
     discoveryOnly?: boolean;
-    disableCursorOptimization?: boolean;
   };
 } {
   if (!isRecord(value)) {
@@ -127,15 +127,6 @@ function assertStartRequest(value: unknown): {
   ) {
     throw new Error('SYNC_START debug.discoveryOnly must be boolean.');
   }
-  if (
-    isRecord(value.debug) &&
-    value.debug.disableCursorOptimization != null &&
-    typeof value.debug.disableCursorOptimization !== 'boolean'
-  ) {
-    throw new Error(
-      'SYNC_START debug.disableCursorOptimization must be boolean.',
-    );
-  }
   let dhtBootstrap: { host: string; port: number } | null = null;
   if (value.dhtBootstrap != null) {
     if (!isRecord(value.dhtBootstrap)) {
@@ -165,10 +156,6 @@ function assertStartRequest(value: unknown): {
           discoveryOnly:
             typeof value.debug.discoveryOnly === 'boolean'
               ? value.debug.discoveryOnly
-              : undefined,
-          disableCursorOptimization:
-            typeof value.debug.disableCursorOptimization === 'boolean'
-              ? value.debug.disableCursorOptimization
               : undefined,
         }
       : undefined,
@@ -257,6 +244,32 @@ function normalizeLogEntries(value: unknown) {
   return { entries };
 }
 
+function normalizeViewResponse(value: unknown) {
+  if (!isRecord(value)) {
+    return { ops: [] as SyncOpEnvelope[] };
+  }
+  const ops = Array.isArray(value.ops)
+    ? value.ops.map((item) => normalizeSyncOp(item))
+    : [];
+  return { ops };
+}
+
+function normalizeViewChangedEvent(value: unknown) {
+  if (!isRecord(value)) {
+    return {
+      revision: null as string | null,
+      total: 0,
+    };
+  }
+  return {
+    revision: toStringOrNull(value.revision),
+    total:
+      typeof value.total === 'number' && Number.isFinite(value.total)
+        ? Math.max(0, Math.floor(value.total))
+        : 0,
+  };
+}
+
 function normalizeRuntimeLogMessage(value: unknown): RuntimeLogMessage {
   if (!isRecord(value)) {
     throw new Error('SYNC_LOG event payload must be an object.');
@@ -337,6 +350,9 @@ function normalizeForCommand(
     if (command === RPC_SYNC_GET_LOGS) {
       return isRecord(value) ? value : {};
     }
+    if (command === RPC_SYNC_GET_VIEW) {
+      return isRecord(value) ? value : {};
+    }
     return value;
   }
 
@@ -345,18 +361,22 @@ function normalizeForCommand(
     if (
       command === RPC_SYNC_STOP ||
       command === RPC_SYNC_PUBLISH ||
-      command === RPC_SYNC_GET_LOGS
+      command === RPC_SYNC_GET_LOGS ||
+      command === RPC_SYNC_GET_VIEW
     ) {
       if (command === RPC_SYNC_GET_LOGS) return normalizeLogEntries(value);
+      if (command === RPC_SYNC_GET_VIEW) return normalizeViewResponse(value);
       return normalizeAck(value);
     }
     if (command === RPC_SYNC_STATUS) return normalizeHealth(value);
     return value;
   }
 
-  if (command === RPC_SYNC_REMOTE_OP_EVENT) return normalizeSyncOp(value);
   if (command === RPC_SYNC_STATUS_EVENT) return normalizeHealth(value);
   if (command === RPC_SYNC_LOG_EVENT) return normalizeRuntimeLogMessage(value);
+  if (command === RPC_SYNC_VIEW_CHANGED_EVENT) {
+    return normalizeViewChangedEvent(value);
+  }
   return value;
 }
 

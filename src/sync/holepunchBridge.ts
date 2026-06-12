@@ -7,14 +7,15 @@ import { Worklet } from 'react-native-bare-kit';
 import type { SyncLogEntry } from '@/sync/logger';
 import { logSyncError, logSyncEvent } from '@/sync/logger';
 import {
+  RPC_SYNC_GET_VIEW,
   RPC_SYNC_GET_LOGS,
   RPC_SYNC_LOG_EVENT,
   RPC_SYNC_PUBLISH,
-  RPC_SYNC_REMOTE_OP_EVENT,
   RPC_SYNC_START,
   RPC_SYNC_STATUS,
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
+  RPC_SYNC_VIEW_CHANGED_EVENT,
 } from '@/sync/rpcCommands';
 import { decodeRpcPayload, encodeRpcPayload } from '@/sync/rpcEncoding';
 import syncBundle from './sync.bundle.mjs';
@@ -74,7 +75,7 @@ async function requestJson<TReq, TRes>(
 export class HolepunchWorkletBridge implements SyncBridge {
   private worklet: Worklet | null = null;
   private rpc: RpcLike | null = null;
-  private readonly remoteListeners = new Set<(op: SyncOpEnvelope) => void>();
+  private readonly viewChangedListeners = new Set<() => void>();
   private readonly statusListeners = new Set<(health: SyncHealth) => void>();
   private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
   private consecutiveHeartbeatFailures = 0;
@@ -225,30 +226,6 @@ export class HolepunchWorkletBridge implements SyncBridge {
     const rpc = new RPC(worklet.IPC as never, (req: unknown) => {
       const message = req as RuntimeRpcMessage;
       try {
-        if (message.command === RPC_SYNC_REMOTE_OP_EVENT && message.data) {
-          const op = decodeRpcPayload(
-            message.command,
-            'event',
-            message.data,
-          ) as SyncOpEnvelope;
-          logSyncEvent(
-            'info',
-            'bridge',
-            'remote_op_event',
-            'Received remote op event from backend.',
-            {
-              opId: op.opId,
-              deviceId: op.deviceId,
-              lamport: op.lamport,
-              payloadKind: op.payload?.kind ?? null,
-            },
-          );
-          for (const listener of this.remoteListeners) {
-            listener(op);
-          }
-          return;
-        }
-
         if (message.command === RPC_SYNC_STATUS_EVENT && message.data) {
           const raw = decodeRpcPayload(
             message.command,
@@ -305,6 +282,19 @@ export class HolepunchWorkletBridge implements SyncBridge {
             payload.deviceTag,
           );
         }
+
+        if (message.command === RPC_SYNC_VIEW_CHANGED_EVENT && message.data) {
+          decodeRpcPayload(message.command, 'event', message.data);
+          logSyncEvent(
+            'info',
+            'bridge',
+            'view_changed_event',
+            'Received sync view changed event from backend.',
+          );
+          for (const listener of this.viewChangedListeners) {
+            listener();
+          }
+        }
       } catch (error) {
         logSyncError('bridge', 'event_decode_failed', error, {
           command: message.command,
@@ -349,7 +339,6 @@ export class HolepunchWorkletBridge implements SyncBridge {
           bootstrapKeyHexState: input.bootstrapKeyHex ? 'present' : 'absent',
           bootstrapKeyHex: input.bootstrapKeyHex ?? null,
           discoveryOnly: !!input.debug?.discoveryOnly,
-          disableCursorOptimization: !!input.debug?.disableCursorOptimization,
         },
       );
 
@@ -464,10 +453,23 @@ export class HolepunchWorkletBridge implements SyncBridge {
     }
   }
 
-  onRemoteOp(cb: (op: SyncOpEnvelope) => void): () => void {
-    this.remoteListeners.add(cb);
+  async getCurrentView(): Promise<SyncOpEnvelope[]> {
+    if (!this.rpc) {
+      return [];
+    }
+
+    const response = await requestJson<
+      Record<string, never>,
+      { ops?: SyncOpEnvelope[] }
+    >(this.rpc, RPC_SYNC_GET_VIEW, {});
+
+    return Array.isArray(response.ops) ? response.ops : [];
+  }
+
+  onViewChanged(cb: () => void): () => void {
+    this.viewChangedListeners.add(cb);
     return () => {
-      this.remoteListeners.delete(cb);
+      this.viewChangedListeners.delete(cb);
     };
   }
 

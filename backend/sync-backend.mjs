@@ -2,7 +2,7 @@
 
 import Autobase from 'autobase';
 import b4a from 'b4a';
-import { mkdir, readFile, rm, writeFile } from 'bare-fs/promises';
+import { mkdir, rm } from 'bare-fs/promises';
 import { join } from 'bare-path';
 import RPC from 'bare-rpc';
 import Corestore from 'corestore';
@@ -11,13 +11,14 @@ import Hyperswarm from 'hyperswarm';
 import { getStreamError } from 'streamx';
 import {
   RPC_SYNC_GET_LOGS,
+  RPC_SYNC_GET_VIEW,
   RPC_SYNC_LOG_EVENT,
   RPC_SYNC_PUBLISH,
-  RPC_SYNC_REMOTE_OP_EVENT,
   RPC_SYNC_START,
   RPC_SYNC_STATUS,
   RPC_SYNC_STATUS_EVENT,
   RPC_SYNC_STOP,
+  RPC_SYNC_VIEW_CHANGED_EVENT,
 } from './sync-rpc-commands.mjs';
 import { decodeRpcPayload, encodeRpcPayload } from './sync-rpc-encoding.mjs';
 
@@ -31,18 +32,12 @@ let currentTopic = null;
 const peerConnectionCounts = new Map();
 let activeConnections = 0;
 let rpc = null;
-let sentViewLength = 0;
-let sentRemoteOpIds = new Set();
-let sentRemoteOpOrder = [];
-let isFlushing = false;
 let runtimeStatus = 'idle';
 let lastBackendError = null;
 let lastSyncedAt = null;
 let localDeviceId = null;
 let topicHex = null;
 let storageRoot = null;
-let cursorPersistTimer = null;
-let cursorDirty = false;
 let lastDhtBootstrapped = false;
 let reconnectAttempts = 0;
 let stuckSince = null;
@@ -51,7 +46,6 @@ let startedAt = null;
 let rpcHandshakeLogged = false;
 let rejoinInFlight = false;
 let discoveryOnlyMode = false;
-let disableCursorOptimization = false;
 let retryTimer = null;
 let lifecycleQueue = Promise.resolve();
 let lifecyclePhase = 'idle';
@@ -67,7 +61,6 @@ let degradedRetryDelayMs = 10000;
 let degradedRetryTimer = null;
 
 const MAX_LOG_ENTRIES = 100;
-const MAX_SENT_REMOTE_OP_IDS = 5000;
 const MAX_QUEUED_PUBLISH_OPS = 200;
 const HEARTBEAT_INTERVAL_MS = 5000;
 const WATCHDOG_STUCK_THRESHOLD_MS = 45000;
@@ -357,7 +350,6 @@ function createStartFingerprint(config) {
     bootstrapKeyHex: config?.bootstrapKeyHex ?? null,
     storagePath: config?.storagePath ?? null,
     discoveryOnly: !!config?.debug?.discoveryOnly,
-    disableCursorOptimization: !!config?.debug?.disableCursorOptimization,
   });
 }
 
@@ -816,16 +808,30 @@ function emitStatus(status = 'synced', lastError = null) {
   );
 }
 
-function rememberSentRemoteOpId(opKey) {
-  if (sentRemoteOpIds.has(opKey)) return;
-  sentRemoteOpIds.add(opKey);
-  sentRemoteOpOrder.push(opKey);
-  if (sentRemoteOpOrder.length <= MAX_SENT_REMOTE_OP_IDS) return;
-  const overflow = sentRemoteOpOrder.length - MAX_SENT_REMOTE_OP_IDS;
-  const evicted = sentRemoteOpOrder.splice(0, overflow);
-  for (const key of evicted) {
-    sentRemoteOpIds.delete(key);
+async function getCurrentViewOps() {
+  if (!base?.view) {
+    return [];
   }
+  const ops = [];
+  for (let i = 0; i < base.view.length; i += 1) {
+    const op = await base.view.get(i);
+    if (op) {
+      ops.push(op);
+    }
+  }
+  return ops;
+}
+
+function emitViewChanged(reason) {
+  if (!rpc || discoveryOnlyMode) return;
+  const rpcEvent = rpc.event(RPC_SYNC_VIEW_CHANGED_EVENT);
+  rpcEvent.send(
+    encodeRpcPayload(RPC_SYNC_VIEW_CHANGED_EVENT, 'event', {
+      reason,
+      revision: `${Date.now()}:${base?.view?.length ?? 0}`,
+      total: base?.view?.length ?? 0,
+    }),
+  );
 }
 
 function isTransientSocketError(error) {
@@ -837,95 +843,6 @@ function isTransientSocketError(error) {
     message.includes('connection reset') ||
     message.includes('eof')
   );
-}
-
-function cursorPath() {
-  if (!storageRoot) return null;
-  return join(storageRoot, 'sync-cursor.json');
-}
-
-async function loadCursor() {
-  if (disableCursorOptimization) return 0;
-  const path = cursorPath();
-  if (!path || !base?.key) return 0;
-  try {
-    const raw = await readFile(path);
-    const parsed = JSON.parse(b4a.toString(raw));
-    const key = b4a.toString(base.key, 'hex');
-    if (parsed && parsed.key === key && typeof parsed.sent === 'number') {
-      return parsed.sent;
-    }
-  } catch {
-    // no cursor yet
-  }
-  return 0;
-}
-
-function scheduleCursorPersist() {
-  cursorDirty = true;
-  if (cursorPersistTimer) return;
-  cursorPersistTimer = setTimeout(() => {
-    cursorPersistTimer = null;
-    if (!cursorDirty) return;
-    cursorDirty = false;
-    void persistCursor();
-  }, 500);
-}
-
-async function persistCursor() {
-  if (disableCursorOptimization) return;
-  const path = cursorPath();
-  if (!path || !base?.key) return;
-  try {
-    const payload = JSON.stringify({
-      key: b4a.toString(base.key, 'hex'),
-      sent: sentViewLength,
-    });
-    await writeFile(path, payload);
-  } catch (error) {
-    logMajorWarning('cursor', 'persist_failed', getErrorMessage(error));
-  }
-}
-
-async function flushRemoteOps() {
-  if (discoveryOnlyMode) return;
-  if (!rpc || !base?.view) return;
-  if (isFlushing) return;
-
-  isFlushing = true;
-  try {
-    const total = base.view.length;
-    const startIndex = sentViewLength;
-    let flushed = 0;
-    for (let i = startIndex; i < total; i += 1) {
-      const op = await base.view.get(i);
-      if (op?.deviceId && localDeviceId && op.deviceId === localDeviceId) {
-        continue;
-      }
-      const opKey =
-        typeof op?.opId === 'string' ? op.opId : `${i}:${JSON.stringify(op)}`;
-      if (sentRemoteOpIds.has(opKey)) {
-        continue;
-      }
-      rememberSentRemoteOpId(opKey);
-      const rpcEvent = rpc.event(RPC_SYNC_REMOTE_OP_EVENT);
-      rpcEvent.send(encodeRpcPayload(RPC_SYNC_REMOTE_OP_EVENT, 'event', op));
-      flushed += 1;
-    }
-    sentViewLength = Math.max(sentViewLength, total);
-    if (flushed > 0) {
-      lastSyncedAt = new Date().toISOString();
-      emitStatus('synced', null);
-      logMajorEvent('backend', 'remote_flush', 'Remote ops flushed.', {
-        count: flushed,
-        startIndex,
-        total,
-      });
-    }
-    scheduleCursorPersist();
-  } finally {
-    isFlushing = false;
-  }
 }
 
 function topicFromSecretHex(secretHex) {
@@ -1170,12 +1087,6 @@ function startHeartbeat() {
       discovery: getDiscoveryDiagnostics(),
     });
 
-    if (!discoveryOnlyMode && base?.view && base.view.length > sentViewLength) {
-      void flushRemoteOps().catch((error) => {
-        logBackendError('heartbeatFlushRemoteOps', error);
-      });
-    }
-
     const now = Date.now();
     for (const state of socketStates) {
       if (state.closed) continue;
@@ -1248,19 +1159,6 @@ function startHeartbeat() {
 }
 
 async function ensureStopped() {
-  if (cursorPersistTimer) {
-    clearTimeout(cursorPersistTimer);
-    cursorPersistTimer = null;
-  }
-  if (cursorDirty) {
-    try {
-      await persistCursor();
-    } catch {
-      // ignore
-    }
-    cursorDirty = false;
-  }
-
   if (discovery) {
     logMajorEvent(
       'shutdown',
@@ -1313,10 +1211,6 @@ async function ensureStopped() {
   }
   socketStates.clear();
   activeConnections = 0;
-  sentViewLength = 0;
-  sentRemoteOpIds = new Set();
-  sentRemoteOpOrder = [];
-  isFlushing = false;
   appendReady = false;
   clearPublishQueue();
   flushQueuedPublishesInFlight = false;
@@ -1340,7 +1234,6 @@ async function ensureStopped() {
   rpcHandshakeLogged = false;
   rejoinInFlight = false;
   discoveryOnlyMode = false;
-  disableCursorOptimization = false;
   activeDeviceTag = runtimeDeviceTag;
   stopHeartbeat();
   clearRetryTimer();
@@ -1355,7 +1248,6 @@ async function startSync(config) {
   activeDeviceTag = runtimeDeviceTag;
 
   discoveryOnlyMode = !!config?.debug?.discoveryOnly;
-  disableCursorOptimization = !!config?.debug?.disableCursorOptimization;
 
   const topic = topicFromSecretHex(config.pairingSecretHex);
   topicHex = hashSecretHex(config.pairingSecretHex);
@@ -1375,7 +1267,6 @@ async function startSync(config) {
     bootstrapKeyHex: config.bootstrapKeyHex ?? null,
     role: config.role ?? null,
     discoveryOnlyMode,
-    disableCursorOptimization,
   });
 
   if (!discoveryOnlyMode) {
@@ -1414,19 +1305,11 @@ async function startSync(config) {
       );
     }
 
-    const storedCursor = await loadCursor();
-    sentViewLength = disableCursorOptimization
-      ? 0
-      : Math.min(storedCursor, base.view.length);
     logMajorEvent(
-      'cursor',
-      disableCursorOptimization ? 'disabled' : 'restored',
-      disableCursorOptimization
-        ? 'Cursor optimization disabled for debug startup.'
-        : 'Cursor restored from disk.',
+      'view_sync',
+      'full_replay_mode',
+      'Full sync view replay is active.',
       {
-        stored: storedCursor,
-        applied: sentViewLength,
         viewLength: base.view.length,
       },
     );
@@ -1449,23 +1332,16 @@ async function startSync(config) {
     });
 
     base.on('update', () => {
-      void flushRemoteOps().catch((error) => {
-        logBackendError('flushRemoteOps', error);
-        emitStatus('error', getErrorMessage(error));
-      });
+      emitViewChanged('autobase_update');
     });
 
     base.on('writers', () => {
       logMajorEvent('autobase', 'writers_changed', 'Writer set updated.', {
         writerCount: base.writers?.length ?? 0,
       });
-      // Flush any pending remote ops that may now be ready.
-      void flushRemoteOps().catch((error) => {
-        logBackendError('flushRemoteOps', error);
-      });
+      emitViewChanged('writers_changed');
     });
   } else {
-    sentViewLength = 0;
     logMajorEvent(
       'backend',
       'discovery_only_enabled',
@@ -1771,11 +1647,7 @@ async function startSync(config) {
       degraded,
     },
   );
-  if (!discoveryOnlyMode) {
-    void flushRemoteOps().catch((error) => {
-      logBackendError('startFlushRemoteOps', error);
-    });
-  }
+  emitViewChanged('start_ready');
   startHeartbeat();
 
   return {
@@ -1867,6 +1739,11 @@ rpc = new RPC(IPC, async (req) => {
 
     if (req.command === RPC_SYNC_GET_LOGS) {
       safeReply(req, { entries: logRing.slice() });
+      return;
+    }
+
+    if (req.command === RPC_SYNC_GET_VIEW) {
+      safeReply(req, { ops: await getCurrentViewOps() });
       return;
     }
 

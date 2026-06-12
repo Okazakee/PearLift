@@ -36,7 +36,6 @@ import {
   type WeightRow,
 } from '@/storage/repository/runtimeState';
 import {
-  isNewerRevision,
   parseJsonColumn,
   type SyncDeviceRow,
   type SyncIdentityDbRow,
@@ -136,18 +135,13 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
     await this.initialize();
     await this.enqueueWrite(async () => {
       const db = await getDatabase();
-
-      if (ctx.origin === 'remote') {
-        if (!ctx.opId || !ctx.deviceId || typeof ctx.lamport !== 'number') {
-          throw new Error(
-            'Remote mutation requires opId, deviceId, and lamport.',
-          );
-        }
-
-        const alreadyApplied = await this.hasAppliedSyncOpInDb(db, ctx.opId);
-        if (alreadyApplied) {
-          return;
-        }
+      if (
+        ctx.origin === 'remote' &&
+        (!ctx.opId || !ctx.deviceId || typeof ctx.lamport !== 'number')
+      ) {
+        throw new Error(
+          'Remote mutation requires opId, deviceId, and lamport.',
+        );
       }
 
       await db.withTransactionAsync(async () => {
@@ -385,16 +379,6 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           }
           case 'replaceWeekConfigs': {
             const timestamp = ctx.createdAt ?? nowIso();
-            if (
-              ctx.origin === 'remote' &&
-              !(await this.shouldApplyConfigRevision(
-                db,
-                WEEK_CONFIG_REVISION_SETTING,
-                timestamp,
-              ))
-            ) {
-              break;
-            }
             await db.runAsync(
               'DELETE FROM training_blocks WHERE program_id = ?',
               DEFAULT_PROGRAM_ID,
@@ -423,16 +407,6 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           case 'replaceDayConfigs': {
             const runtime = await this.readRuntimeState(db);
             const timestamp = ctx.createdAt ?? nowIso();
-            if (
-              ctx.origin === 'remote' &&
-              !(await this.shouldApplyConfigRevision(
-                db,
-                DAY_CONFIG_REVISION_SETTING,
-                timestamp,
-              ))
-            ) {
-              break;
-            }
             const nextDayConfigs = normalizeDayConfigs(
               [],
               mutation.dayConfigs,
@@ -786,6 +760,64 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
         'DELETE FROM sync_outbox WHERE room_id = ?',
         DEFAULT_ROOM_ID,
       );
+    });
+  }
+
+  async replaceSyncProjection(input: {
+    runtime: PearLiftRuntimeState;
+    devices: Array<SyncDeviceProfile & { lastSeen: string }>;
+    appliedOps: Array<{
+      opId: string;
+      deviceId: string;
+      lamport: number;
+    }>;
+  }): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      const localDeviceDisplayName = await this.readSetting(
+        db,
+        DEVICE_DISPLAY_NAME_SETTING,
+      );
+      const hiddenRows = await db.getAllAsync<{
+        device_id: string;
+        is_hidden: number;
+      }>('SELECT device_id, is_hidden FROM sync_devices');
+      const hiddenByDeviceId = new Map(
+        hiddenRows.map((row) => [row.device_id, row.is_hidden === 1] as const),
+      );
+
+      await db.withTransactionAsync(async () => {
+        await this.replaceAllState(db, input.runtime);
+        await this.writeSetting(db, 'setupDone', 'true');
+        if (localDeviceDisplayName?.trim()) {
+          await this.writeSetting(
+            db,
+            DEVICE_DISPLAY_NAME_SETTING,
+            localDeviceDisplayName.trim(),
+          );
+        }
+        await db.runAsync('DELETE FROM sync_applied_ops');
+
+        for (const op of input.appliedOps) {
+          await this.markSyncOpAppliedInDb(db, op);
+        }
+
+        for (const device of input.devices) {
+          await this.upsertSyncDeviceInDb(db, {
+            deviceId: device.deviceId,
+            displayName: device.displayName,
+            writerKey: device.writerKey ?? null,
+            lastSeen: device.lastSeen,
+            isHidden: hiddenByDeviceId.get(device.deviceId) ?? false,
+          });
+        }
+
+        await this.writeSyncStatePatch(db, {
+          lastSyncedAt: nowIso(),
+          lastError: null,
+        });
+      });
     });
   }
 
@@ -1504,15 +1536,6 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
       key,
     );
     return row?.value ?? null;
-  }
-
-  private async shouldApplyConfigRevision(
-    db: SQLiteDatabase,
-    settingKey: string,
-    incomingRevision: string,
-  ) {
-    const currentRevision = await this.readSetting(db, settingKey);
-    return isNewerRevision(incomingRevision, currentRevision);
   }
 
   private async getExercisesForWorkout(db: SQLiteDatabase, workoutId: string) {

@@ -39,6 +39,15 @@ export interface WorkoutRepositoryPort {
   queuePendingLocalSyncMutation(mutation: SyncMutation): Promise<void>;
   getPendingLocalSyncMutations(): Promise<SyncMutation[]>;
   clearPendingLocalSyncMutations(): Promise<void>;
+  replaceSyncProjection(input: {
+    runtime: PearLiftRuntimeState;
+    devices: Array<SyncDeviceProfile & { lastSeen: string }>;
+    appliedOps: Array<{
+      opId: string;
+      deviceId: string;
+      lamport: number;
+    }>;
+  }): Promise<void>;
   pruneAppliedSyncOps(limit?: number): Promise<void>;
   clearSyncPeerHistory(): Promise<void>;
   leaveSyncRoom(): Promise<void>;
