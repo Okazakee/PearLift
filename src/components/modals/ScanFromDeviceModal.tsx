@@ -1,16 +1,8 @@
-import { fromByteArray } from 'base64-js';
 import { ChevronLeft } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
-import {
-  Camera,
-  CommonResolutions,
-  useCameraDevice,
-  useCameraPermission,
-  usePhotoOutput,
-} from 'react-native-vision-camera';
-import { decodeBase64 } from 'vision-camera-zxing';
+import { Camera } from 'react-native-vision-camera';
 import { AnimatedPressable } from '@/animation/primitives';
 import {
   assembleChunkedPackets,
@@ -18,6 +10,7 @@ import {
 } from '@/backup/qrBackupCodec';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
+import { usePhotoQrScanner } from '@/hooks/usePhotoQrScanner';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
@@ -46,14 +39,6 @@ export function ScanFromDeviceModal({
     () => createStyles(tokens, topInset, bottomInset, layout),
     [tokens, topInset, bottomInset, layout],
   );
-  const permission = useCameraPermission();
-  const device = useCameraDevice('back');
-  const photoOutput = usePhotoOutput({
-    targetResolution: CommonResolutions.LOWEST_4_3,
-    containerFormat: 'jpeg',
-    quality: 0.65,
-    qualityPrioritization: 'speed',
-  });
   const [processing, setProcessing] = useState(false);
   const [scanError, setScanError] = useState<string | null>(null);
   const [chunkTransferId, setChunkTransferId] = useState<string | null>(null);
@@ -63,8 +48,6 @@ export function ScanFromDeviceModal({
     () => new Map(),
   );
   const prevOpenRef = useRef(open);
-  const scanLoopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const captureInFlightRef = useRef(false);
 
   if (open !== prevOpenRef.current) {
     prevOpenRef.current = open;
@@ -77,14 +60,6 @@ export function ScanFromDeviceModal({
       setChunkPayloads(new Map());
     }
   }
-
-  useEffect(() => {
-    return () => {
-      if (scanLoopTimeoutRef.current) {
-        clearTimeout(scanLoopTimeoutRef.current);
-      }
-    };
-  }, []);
 
   const resetChunkState = useCallback(() => {
     setChunkTransferId(null);
@@ -192,78 +167,13 @@ export function ScanFromDeviceModal({
       t,
     ],
   );
+  const { permission, device, photoOutput } = usePhotoQrScanner({
+    open,
+    processing,
+    onPayload: handleScanned,
+  });
 
   const permissionGranted = permission.hasPermission;
-
-  useEffect(() => {
-    if (!open || !permissionGranted || !device) return;
-
-    let cancelled = false;
-
-    const queueNextCapture = (delayMs: number) => {
-      if (scanLoopTimeoutRef.current) {
-        clearTimeout(scanLoopTimeoutRef.current);
-      }
-      scanLoopTimeoutRef.current = setTimeout(() => {
-        if (cancelled) return;
-        void captureAndDecode();
-      }, delayMs);
-    };
-
-    const captureAndDecode = async () => {
-      if (cancelled || captureInFlightRef.current || processing) {
-        queueNextCapture(400);
-        return;
-      }
-
-      captureInFlightRef.current = true;
-      let nextDelayMs = 350;
-
-      try {
-        const photo = await photoOutput.capturePhoto(
-          { enableShutterSound: false },
-          {},
-        );
-        try {
-          const fileData = await photo.getFileDataAsync();
-          const qrResults = await decodeBase64(
-            fromByteArray(new Uint8Array(fileData)),
-            {
-              multiple: true,
-            },
-          );
-          const payload = qrResults.find(
-            (result) => result.barcodeText,
-          )?.barcodeText;
-          if (payload) {
-            nextDelayMs = 900;
-            await handleScanned(payload);
-          }
-        } finally {
-          photo.dispose();
-        }
-      } catch {
-        nextDelayMs = 700;
-      } finally {
-        captureInFlightRef.current = false;
-      }
-
-      if (!cancelled) {
-        queueNextCapture(nextDelayMs);
-      }
-    };
-
-    queueNextCapture(250);
-
-    return () => {
-      cancelled = true;
-      captureInFlightRef.current = false;
-      if (scanLoopTimeoutRef.current) {
-        clearTimeout(scanLoopTimeoutRef.current);
-        scanLoopTimeoutRef.current = null;
-      }
-    };
-  }, [device, handleScanned, open, permissionGranted, photoOutput, processing]);
 
   const content = (
     <View style={styles.container}>

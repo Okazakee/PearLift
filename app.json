@@ -50,7 +50,6 @@
       "./plugins/withSyncBackendBundle",
       "./plugins/with-optional-release-signing",
       "./plugins/with-pearlift-abi-splits",
-      "expo-font",
       [
         "expo-status-bar",
         {
@@ -73,7 +72,6 @@
           "enforceContrast": false
         }
       ],
-      "expo-asset",
       [
         "expo-splash-screen",
         {
