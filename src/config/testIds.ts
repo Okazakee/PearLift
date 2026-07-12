@@ -25,8 +25,32 @@ export const E2E_IDS = {
   },
   workout: {
     addExercise: 'workout.addExercise',
+    logWorkout: 'workout.logWorkout',
+    progressionSuggestionsOpen: 'workout.progressionSuggestionsOpen',
     programSettings: 'workout.programSettings',
+    weekPrevious: 'workout.week.previous',
+    weekNext: 'workout.week.next',
     weekTab: (weekId: number) => `workout.week.${weekId}`,
+  },
+  progressionSuggestion: {
+    apply: (suggestionId: string) =>
+      `progressionSuggestion.${suggestionId}.apply`,
+    skip: (suggestionId: string) =>
+      `progressionSuggestion.${suggestionId}.skip`,
+    weightInput: (suggestionId: string) =>
+      `progressionSuggestion.${suggestionId}.weightInput`,
+  },
+  workoutLog: {
+    close: 'workoutLog.close',
+    save: 'workoutLog.save',
+    setDone: (exerciseId: string, setNumber: number) =>
+      `workoutLog.${exerciseId}.set.${setNumber}.done`,
+    setRir: (exerciseId: string, setNumber: number, value: string) =>
+      `workoutLog.${exerciseId}.set.${setNumber}.rir.${slugify(value)}`,
+    setSkip: (exerciseId: string, setNumber: number) =>
+      `workoutLog.${exerciseId}.set.${setNumber}.skip`,
+    setTarget: (exerciseId: string, setNumber: number) =>
+      `workoutLog.${exerciseId}.set.${setNumber}.target`,
   },
   programSettings: {
     close: 'programSettings.close',
@@ -49,11 +73,18 @@ export const E2E_IDS = {
     dayDelete: (dayId: string) => `programSettings.day.${dayId}.delete`,
     dayIcon: (dayId: string, icon: string) =>
       `programSettings.day.${dayId}.icon.${slugify(icon)}`,
+    dayScheduleType: (dayId: string, type: string) =>
+      `programSettings.day.${dayId}.scheduleType.${slugify(type)}`,
+    dayScheduleWeekday: (dayId: string, weekday: number) =>
+      `programSettings.day.${dayId}.scheduleWeekday.${weekday}`,
+    dayDefaultRest: (dayId: string) =>
+      `programSettings.day.${dayId}.defaultRest`,
     addDay: 'programSettings.day.add',
   },
   exercise: {
     card: (exerciseId: string) => `exercise.${exerciseId}.card`,
     edit: (exerciseId: string) => `exercise.${exerciseId}.edit`,
+    settings: (exerciseId: string) => `exercise.${exerciseId}.settings`,
     delete: (exerciseId: string) => `exercise.${exerciseId}.delete`,
     decrement: (exerciseId: string) => `exercise.${exerciseId}.decrement`,
     increment: (exerciseId: string) => `exercise.${exerciseId}.increment`,
@@ -62,6 +93,8 @@ export const E2E_IDS = {
   },
   exerciseModal: {
     close: 'exercise.modal.close',
+    tabBasic: 'exercise.modal.tab.basic',
+    tabAdvanced: 'exercise.modal.tab.advanced',
     name: 'exercise.modal.name',
     sets: 'exercise.modal.sets',
     reps: 'exercise.modal.reps',

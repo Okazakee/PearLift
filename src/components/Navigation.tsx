@@ -17,6 +17,7 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import type { DayConfig, WorkoutDay } from '@/types';
+import { getDayDisplayInfo } from '@/utils/schedule';
 import { Text } from './AppText';
 
 const iconComponents: Record<
@@ -70,6 +71,7 @@ export function Navigation({
         {dayConfigs.map((item) => {
           const active = currentDay === item.id;
           const IconComponent = iconComponents[dayIconMap[item.icon]];
+          const display = getDayDisplayInfo(item);
           return (
             <Pressable
               key={item.id}
@@ -95,8 +97,15 @@ export function Navigation({
                 )}
               </View>
               <Text style={[styles.label, active && styles.labelActive]}>
-                {item.name}
+                {display.title}
               </Text>
+              {display.metaLabel ? (
+                <Text
+                  style={[styles.metaLabel, active && styles.metaLabelActive]}
+                >
+                  {display.metaLabel}
+                </Text>
+              ) : null}
             </Pressable>
           );
         })}
@@ -159,6 +168,17 @@ function createStyles(
     labelActive: {
       color: tokens.colors.primary,
       fontFamily: 'SpaceGrotesk_600SemiBold',
+    },
+    metaLabel: {
+      color: withAlpha(tokens.colors.textSecondary, 0.78),
+      fontSize: 8.5,
+      fontFamily: 'SpaceGrotesk_500Medium',
+      textAlign: 'center',
+      flexShrink: 1,
+      marginTop: -1,
+    },
+    metaLabelActive: {
+      color: withAlpha(tokens.colors.primary, 0.82),
     },
   });
 }

@@ -4,7 +4,9 @@
     "delete": "Xóa",
     "back": "Quay lại",
     "next": "Tiếp theo",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Đóng",
+    "save": "Lưu"
   },
   "app": {
     "loading": "Đang chuẩn bị dữ liệu tập luyện của bạn"
@@ -30,12 +32,12 @@
     },
     "getStarted": "Bắt đầu",
     "notNow": "Để sau",
-    "skipSync": "Skip",
+    "skipSync": "Bỏ qua",
     "setupSync": "Thiết lập đồng bộ",
     "settingUp": "Đang thiết lập...",
     "syncPrompt": {
-      "title": "Sync across your devices",
-      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+      "title": "Đồng bộ giữa các thiết bị",
+      "description": "Dữ liệu của bạn không bao giờ rời khỏi thiết bị. Bạn có thể thiết lập bất kỳ lúc nào trong Cài đặt."
     }
   },
   "sync": {
@@ -51,104 +53,311 @@
       "scanQr": "Quét mã QR",
       "scanEnableCamera": "Bật máy ảnh",
       "scanHelp": "Hướng máy ảnh của bạn vào mã QR trên thiết bị khác của bạn.",
-      "waitForConnection": "Connection in progress. Scanner paused for stability.",
+      "waitForConnection": "Đang kết nối. Máy quét đã tạm dừng để ổn định.",
       "codePlaceholder": "Nhập mã chia sẻ của bạn",
-      "replaceJoinLabel": "Replace my data with their data",
-      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
+      "replaceJoinLabel": "Thay thế dữ liệu của tôi bằng dữ liệu của họ",
+      "replaceJoinHint": "Trước lần đồng bộ đầu tiên, thao tác này sẽ đặt lại các bài tập, mức tạ và cấu hình chương trình trên thiết bị này.",
       "copy": "Sao chép mã",
-      "copied": "Copied!",
-      "paste": "Paste",
+      "copied": "Đã sao chép!",
+      "paste": "Dán",
       "start": "Bắt đầu đồng bộ hóa",
       "stop": "Dừng đồng bộ hóa",
       "invalidCode": "Mã không hợp lệ. Nó phải có 64 ký tự hex.",
       "connecting": "Searching for peers…",
-      "connectedTitle": "Connected",
-      "connectedSubtitle_one": "{{count}} device in sync group.",
-      "connectedSubtitle_other": "{{count}} devices in sync group.",
-      "viewInfo": "View connection info",
-      "done": "Done"
+      "connectedTitle": "Đã kết nối",
+      "connectedSubtitle_one": "{{count}} thiết bị trong nhóm đồng bộ.",
+      "connectedSubtitle_other": "{{count}} thiết bị trong nhóm đồng bộ.",
+      "viewInfo": "Xem thông tin kết nối",
+      "done": "Xong"
     },
     "info": {
-      "title": "Connection info",
-      "statusLabel": "Status",
+      "title": "Thông tin kết nối",
+      "statusLabel": "Trạng thái",
       "status": {
-        "idle": "Idle",
-        "connecting": "Searching",
-        "synced": "Connected",
-        "error": "Error"
+        "idle": "Chờ",
+        "connecting": "Đang tìm kiếm",
+        "waiting": "Đang chờ",
+        "dht_ready": "DHT sẵn sàng",
+        "peer_connected": "Thiết bị ngang hàng đã kết nối",
+        "handshake_ok": "Bắt tay OK",
+        "replicating": "Đang sao chép",
+        "synced": "Đã kết nối",
+        "error": "Lỗi"
       },
       "peers": "Peers",
       "bootstrapped": "DHT",
-      "bootstrappedYes": "Reachable",
-      "bootstrappedNo": "Waiting",
+      "bootstrappedYes": "Có thể kết nối",
+      "bootstrappedNo": "Đang chờ",
       "lastSync": "Last peer sync",
-      "never": "Never",
-      "thisDevice": "This device",
-      "deviceId": "Device ID",
-      "localKey": "Local key",
-      "syncGroup": "Sync group",
-      "autobaseKey": "Autobase key",
-      "topic": "Topic",
+      "never": "Chưa bao giờ",
+      "thisDevice": "Thiết bị này",
+      "deviceId": "ID thiết bị",
+      "localKey": "Khóa cục bộ",
+      "syncGroup": "Nhóm đồng bộ",
+      "autobaseKey": "Khóa Autobase",
+      "topic": "Chủ đề",
       "connectedPeers": "Connected peers",
       "noPeers": "No peers connected.",
-      "storagePath": "Storage",
-      "copy": "Copy",
-      "copied": "Copied",
-      "refresh": "Refresh",
-      "reconnectAttempts": "Reconnect attempts",
+      "storagePath": "Bộ nhớ",
+      "copy": "Sao chép",
+      "copied": "Đã sao chép",
+      "refresh": "Làm mới",
+      "reconnectAttempts": "Số lần kết nối lại",
       "debugLog": {
-        "title": "Debug log",
-        "refresh": "Refresh",
-        "empty": "No log entries yet."
+        "title": "Nhật ký gỡ lỗi",
+        "refresh": "Làm mới",
+        "empty": "Chưa có mục nhật ký nào."
       }
     },
     "toast": {
-      "newPeerTitle": "New device connected",
+      "newPeerTitle": "Thiết bị mới đã kết nối",
       "newPeerMessage": "A paired device joined the sync group."
     },
     "quick": {
-      "title": "Sync Status",
-      "statusLabel": "Status",
+      "title": "Trạng thái đồng bộ",
+      "statusLabel": "Trạng thái",
       "button": {
-        "issue": "Issue",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync"
+        "issue": "Sự cố",
+        "connected": "Đã kết nối",
+        "connecting": "Đang kết nối",
+        "off": "Đồng bộ"
       },
       "state": {
-        "issue": "Issue detected",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync off"
+        "issue": "Phát hiện sự cố",
+        "connected": "Đã kết nối",
+        "connecting": "Đang kết nối",
+        "off": "Đã tắt đồng bộ"
       },
       "summary": {
-        "issue": "Sync needs attention",
-        "connected_one": "Connected to {{count}} device",
-        "connected_other": "Connected to {{count}} devices",
-        "connecting": "Looking for devices",
-        "off": "Sync is off"
+        "issue": "Đồng bộ cần được chú ý",
+        "connected_one": "Đã kết nối với {{count}} thiết bị",
+        "connected_other": "Đã kết nối với {{count}} thiết bị",
+        "connecting": "Đang tìm kiếm thiết bị",
+        "off": "Đồng bộ đã tắt"
       },
       "description": {
-        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
-        "connected": "Your device is syncing with the group.",
-        "connecting": "Searching for your sync group.",
-        "off": "Sync is currently disabled on this device."
+        "issue": "Đồng bộ cần được chú ý. Mở cài đặt hoặc chẩn đoán để khắc phục.",
+        "connected": "Thiết bị của bạn đang đồng bộ với nhóm.",
+        "connecting": "Đang tìm kiếm nhóm đồng bộ của bạn.",
+        "off": "Đồng bộ hiện đang tắt trên thiết bị này."
       },
-      "lastSyncAt": "Last sync: {{at}}",
-      "lastSyncNever": "Last sync: never",
+      "dht": "DHT",
+      "dhtReady": "Sẵn sàng",
+      "dhtBootstrapping": "Đang khởi tạo…",
+      "dhtError": "Lỗi",
+      "dhtInactive": "Không hoạt động",
+      "dhtWaiting": "Đang chờ",
+      "status": "Trạng thái",
+      "peers": "Đồng đẳng",
+      "peersConnected": "{{count}} đã kết nối",
+      "peersNone": "Không có",
+      "connectionsActive": "{{count}} đang hoạt động",
+      "connectionsNone": "Không có",
+      "more": "Thêm",
+      "lastSyncAt": "Đồng bộ lần cuối: {{at}}",
+      "lastSyncNever": "Đồng bộ lần cuối: chưa bao giờ",
       "actions": {
-        "setup": "Set up sync",
-        "pair": "Pair new device",
-        "manage": "Manage devices",
-        "openHub": "Open Sync Hub",
-        "troubleshoot": "Troubleshoot",
-        "stop": "Stop sync"
+        "setup": "Thiết lập đồng bộ",
+        "pair": "Ghép nối thiết bị mới",
+        "manage": "Quản lý thiết bị",
+        "openHub": "Mở Sync Hub",
+        "troubleshoot": "Khắc phục sự cố",
+        "stop": "Dừng đồng bộ"
       }
+    },
+    "manage": {
+      "title": "Đồng bộ thiết bị",
+      "subtitle": "Quản lý thiết lập nhóm và bảo trì đồng bộ tại một nơi.",
+      "roomSetup": "Thiết lập nhóm",
+      "roomSetupHint": "Chọn xem thiết bị này tạo nhóm mới hay tham gia nhóm đã có.",
+      "onboardingTitle": "Không đám mây. Không tài khoản.",
+      "onboardingMessage": "PearLift đồng bộ bài tập trực tiếp giữa các thiết bị — ngang hàng. Dữ liệu của bạn không bao giờ chạm máy chủ. Tất cả những gì bạn cần là cùng Wi‑Fi hoặc ở gần nhau cho lần kết nối đầu tiên.",
+      "onboardingDismiss": "Đã hiểu",
+      "createRoom": "Tạo nhóm",
+      "joinRoom": "Tham gia nhóm",
+      "roomActive": "Nhóm đang hoạt động",
+      "status": "Trạng thái đồng bộ",
+      "turnOn": "Bật",
+      "turnOff": "Tắt",
+      "refresh": "Làm mới",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Chủ nhóm",
+        "joiner": "Thành viên"
+      },
+      "binding": {
+        "unconfigured": "Chưa cấu hình",
+        "pending_first_sync": "Đang chờ đồng bộ lần đầu",
+        "active": "Đang hoạt động",
+        "conflict_requires_decision": "Cần quyết định của bạn",
+        "active_conflict_requires_decision": "Xung đột đồng bộ cần quyết định của bạn"
+      },
+      "thisDeviceCode": "Mã thiết bị này: {{code}}",
+      "deviceCode": "Mã {{code}}",
+      "deviceNamePlaceholder": "Đặt tên cho thiết bị này",
+      "saveDeviceName": "Lưu tên thiết bị",
+      "deviceNameSyncPending": "Tên thiết bị đã được lưu cục bộ. Đồng bộ sẽ thử chia sẻ lại với các thiết bị khác sau.",
+      "masterKey": "Mã đồng bộ",
+      "masterKeyHint": "Sử dụng cùng một mã đồng bộ 64 ký tự trên mọi thiết bị cần chia sẻ dữ liệu.",
+      "masterKeyPlaceholder": "Dán hoặc chỉnh sửa mã đồng bộ 64 ký tự",
+      "showQR": "Hiển thị mã QR",
+      "copyKey": "Sao chép mã",
+      "applyKey": "Áp dụng mã",
+      "leaveRoom": "Rời nhóm",
+      "leaveRoomConfirmTitle": "Rời khỏi nhóm này?",
+      "leaveRoomConfirmMessage": "Thao tác này tắt đồng bộ, xóa ràng buộc nhóm hiện tại trên thiết bị này và xóa lịch sử kết nối nhóm cục bộ.",
+      "syncedDevices": "{{count}} thiết bị",
+      "syncedDevicesTitle": "Thiết bị",
+      "noDevices": "Chưa có thiết bị nào đồng bộ.",
+      "showMore": "Hiển thị thêm {{count}}",
+      "lastSeen": "Hoạt động cuối {{at}}",
+      "lastSyncAt": "Đồng bộ lần cuối {{at}}",
+      "removeDevice": "Xóa khỏi danh sách",
+      "removeDeviceConfirmTitle": "Xóa thiết bị này khỏi danh sách?",
+      "removeDeviceConfirmMessage": "Thao tác này chỉ ẩn thiết bị khỏi danh sách trên thiết bị này. Thiết bị có thể xuất hiện lại nếu đồng bộ với nhóm này sau.",
+      "debug": "Thông tin gỡ lỗi",
+      "never": "Chưa bao giờ"
+    },
+    "create": {
+      "title": "Tạo nhóm",
+      "subtitle": "Thiết bị này tạo một nhóm đồng bộ mới và có thể chia sẻ mã đồng bộ với các thiết bị khác.",
+      "room": "Nhóm mới",
+      "explainer": "Sử dụng khi thiết bị này nên xác định nhóm ban đầu và mời các thiết bị khác.",
+      "datasetSummary": "Thiết bị này hiện có {{workouts}} bài tập và {{exercises}} bài tập thể dục.",
+      "masterKey": "Mã đồng bộ",
+      "inviteStarting": "Đang khởi tạo nhóm và tạo mã QR mời…",
+      "invitePending": "Bắt đầu nhóm để tạo mã QR mời.",
+      "copy": "Sao chép mã",
+      "startRoom": "Bắt đầu nhóm này"
+    },
+    "join": {
+      "title": "Tham gia nhóm",
+      "subtitle": "Sử dụng mã đồng bộ từ thiết bị khác để kết nối thiết bị này với cùng nhóm đồng bộ.",
+      "preflight": "Trước khi tham gia",
+      "localSummary": "Thiết bị này hiện có {{workouts}} bài tập và {{exercises}} bài tập thể dục.",
+      "remoteSummaryHint": "Nếu cả hai thiết bị đã có nhiều thay đổi chồng lấn, PearLift sẽ hỏi bạn muốn giữ bộ dữ liệu nào.",
+      "masterKey": "Mã đồng bộ",
+      "keyPlaceholder": "Dán mã đồng bộ 64 ký tự",
+      "paste": "Dán",
+      "scanQr": "Quét mã QR",
+      "scanHelp": "Hướng camera vào mã QR chứa mã đồng bộ.",
+      "invalidKey": "Mã đồng bộ không hợp lệ. Nó phải có 64 ký tự hex.",
+      "keyValid": "Mã mời hợp lệ",
+      "pasteSuccess": "Đã dán từ bảng tạm",
+      "pasteEmpty": "Bảng tạm trống",
+      "joinRoom": "Tham gia nhóm"
+    },
+    "decision": {
+      "title": "Chọn dữ liệu đồng bộ đầu tiên",
+      "subtitle": "Cả hai bên đều chứa dữ liệu có ý nghĩa. Chọn đường cơ sở mà nhóm này nên giữ.",
+      "thisDevice": "Thiết bị này",
+      "roomData": "Dữ liệu nhóm",
+      "datasetSummary": "{{workouts}} bài tập · {{exercises}} bài tập thể dục",
+      "conflictTitle": "Phát hiện thay đổi chồng lấn",
+      "conflictWorkouts": "Bài tập",
+      "conflictExercises": "Bài tập thể dục",
+      "conflictSummary": "Phát hiện {{workouts}} bài tập trùng lặp và {{exercises}} bài tập thể dục trùng lặp.",
+      "configConflictSummary": "{{weeks}} cấu hình tuần trùng, {{days}} cấu hình ngày trùng, {{backlog}} bản cập nhật nhóm đang chờ.",
+      "useThisDeviceHint": "Thao tác này công bố thiết bị này làm đường cơ sở của nhóm.",
+      "useRoomDataHint": "Thao tác này thay thế dữ liệu bài tập trên thiết bị này trong khi giữ nguyên tùy chọn ứng dụng.",
+      "useMerge": "Hợp nhất cả hai",
+      "useMergeHint": "Kết hợp dữ liệu từ thiết bị này và nhóm khi không có trùng lặp.",
+      "mergeUnavailableHint": "Một số bài tập hoặc bài tập thể dục tồn tại trên cả hai thiết bị với giá trị khác nhau, vì vậy không thể hợp nhất.",
+      "useThisDevice": "Sử dụng dữ liệu của thiết bị này",
+      "useRoomData": "Sử dụng dữ liệu nhóm"
+    },
+    "debug": {
+      "title": "Thông tin gỡ lỗi đồng bộ",
+      "subtitle": "Trạng thái thời gian chạy, chi tiết kết nối và nhật ký đồng bộ gần đây.",
+      "snapshot": "Ảnh chụp thời gian chạy",
+      "connections": "Kết nối",
+      "lastError": "Lỗi cuối cùng",
+      "logs": "Nhật ký gần đây",
+      "logCount": "Hiển thị {{shown}} trên {{total}} mục nhật ký",
+      "clear": "Xóa"
     }
   },
   "workout": {
     "weekDay": "Tuần {{week}} - Ngày {{day}}",
-    "addExercise": "Thêm bài tập"
+    "addExercise": "Thêm bài tập",
+    "logWorkout": "Ghi lại bài tập",
+    "progressionSuggestions": "Gợi ý",
+    "suggestedToday": "Gợi ý hôm nay: {{workout}}",
+    "showDetails": "Hiển thị chi tiết",
+    "hideDetails": "Ẩn chi tiết",
+    "details": {
+      "notes": "Ghi chú",
+      "tempo": "Nhịp độ",
+      "equipment": "Thiết bị",
+      "primaryMuscles": "Cơ chính",
+      "secondaryMuscles": "Cơ phụ",
+      "technique": "Kỹ thuật",
+      "cues": "Hướng dẫn",
+      "perSetTargets": "Mục tiêu mỗi set",
+      "progression": "Tiến triển",
+      "weekOverrides": "Ghi đè tuần",
+      "active": "Đang hoạt động",
+      "intensity": "Cường độ",
+      "target": "Mục tiêu",
+      "estimatedOneRepMax": "1RM ước tính",
+      "notSet": "Chưa đặt",
+      "intensityRange": "Khoảng cường độ",
+      "weightSettings": "Cài đặt cân nặng",
+      "weightMode": "Chế độ cân nặng",
+      "increment": "Mức tăng",
+      "exerciseSettings": "Cài đặt bài tập"
+    }
+  },
+  "workoutLog": {
+    "title": "Nhật ký bài tập",
+    "subtitle": "{{workout}} · Tuần {{week}}",
+    "progress": "Đã ghi {{logged}} / {{total}} set",
+    "loading": "Đang tải nhật ký bài tập…",
+    "done": "Xong",
+    "skip": "Bỏ qua",
+    "save": "Lưu nhật ký",
+    "saving": "Đang lưu…",
+    "useTarget": "Hoàn thành với mục tiêu",
+    "reset": "Đặt lại",
+    "setLabel": "Hiệp {{set}}",
+    "targetRir": "RIR mục tiêu {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Cân nặng thực tế",
+    "actualReps": "Số lần thực tế",
+    "leftReps": "Số lần bên trái",
+    "rightReps": "Số lần bên phải",
+    "perSideReps": "Mỗi bên",
+    "sharedReps": "Chia sẻ",
+    "actualRir": "RIR thực tế",
+    "errors": {
+      "load": "Không thể tải nhật ký bài tập này.",
+      "save": "Không thể lưu nhật ký bài tập này."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Gợi ý tiến triển",
+    "subtitle": "Áp dụng mức tạ tiếp theo ngay hoặc để tạm hoãn sau.",
+    "current": "Cân nặng hiện tại",
+    "next": "Cân nặng tiếp theo",
+    "reason": "Lý do: {{reason}}",
+    "apply": "Áp dụng",
+    "skip": "Bỏ qua"
+  },
+  "exerciseSettings": {
+    "title": "Cài đặt bài tập",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Cân nặng tập",
+    "weightMode": "Chế độ cân nặng",
+    "increment": "Mức tăng",
+    "estimatedOneRepMax": "1RM ước tính",
+    "notes": "Ghi chú",
+    "history": "Lịch sử gần đây",
+    "linkedVariants": "Biến thể liên kết",
+    "historyLoading": "Đang tải lịch sử…",
+    "historyEmpty": "Chưa có buổi tập nào được ghi lại.",
+    "historyError": "Không thể tải lịch sử.",
+    "historySets": "{{completed}} / {{total}} set",
+    "historyBestReps": "Tốt nhất {{reps}} lần"
   },
   "restTimer": {
     "title": "Đồng hồ nghỉ ngơi",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Cài đặt chương trình",
     "tabs": {
+      "program": "Chương trình",
       "weeks": "Tuần",
       "days": "Ngày"
+    },
+    "program": {
+      "name": "Tên chương trình",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Phụ đề",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Mục tiêu",
+      "goalPlaceholder": "Sức mạnh và phì đại",
+      "description": "Mô tả",
+      "descriptionPlaceholder": "Ghi chú tùy chọn về khối tập luyện này",
+      "sourceType": "Nguồn",
+      "sourceLabel": "Nhãn nguồn",
+      "sourceLabelPlaceholder": "PDF của huấn luyện viên, mẫu hoặc ghi chú",
+      "startDate": "Ngày bắt đầu",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Thời lượng (tuần)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Nghỉ mặc định (giây)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Mô hình tiến triển",
+      "frequencySummary": "Mục tiêu hàng tuần",
+      "frequencyGroupPlaceholder": "Nhóm cơ",
+      "frequencyTarget": "Mục tiêu mỗi tuần",
+      "frequencyPerWeek_one": "{{count}}x / tuần",
+      "frequencyPerWeek_other": "{{count}}x / tuần",
+      "addFrequencyTarget": "Thêm mục tiêu hàng tuần",
+      "progressionModels": {
+        "simple_load_modifier": "Đơn giản",
+        "exercise_rules": "Quy tắc",
+        "mixed": "Hỗn hợp",
+        "manual": "Thủ công"
+      },
+      "sourceTypes": {
+        "manual": "Thủ công",
+        "coach": "Huấn luyện viên",
+        "template": "Mẫu",
+        "imported_pdf": "PDF đã nhập",
+        "imported_json": "JSON đã nhập"
+      }
     },
     "week": {
       "namePlaceholder": "Tên tuần",
       "loadModifier": "Bộ điều chỉnh tải",
+      "volumeModifier": "Bộ điều chỉnh khối lượng",
       "rir": "RIR (Số lần lặp dự trữ)",
+      "notes": "Ghi chú tuần",
+      "notesPlaceholder": "Ghi chú tùy chọn cho tuần này",
       "baseline": "Cơ sở",
       "addWeek": "Thêm tuần",
       "deleteTitle": "Xóa tuần",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Ngày {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Biểu tượng",
+      "schedule": "Lịch trình",
+      "pickDay": "Chọn ngày",
+      "pickWindow": "Chọn các ngày",
       "iconMore": "Thêm",
       "iconRefresh": "Làm mới",
+      "scheduleTypes": {
+        "unscheduled": "Bất kỳ",
+        "fixed_day": "Cố định",
+        "day_window": "Khung thời gian"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "T2",
+          "tue": "T3",
+          "wed": "T4",
+          "thu": "T5",
+          "fri": "T6",
+          "sat": "T7",
+          "sun": "CN"
+        },
+        "narrow": {
+          "mon": "T2",
+          "tue": "T3",
+          "wed": "T4",
+          "thu": "T5",
+          "fri": "T6",
+          "sat": "T7",
+          "sun": "CN"
+        }
+      },
       "addDay": "Thêm ngày",
       "deleteTitle": "Xóa ngày",
       "deleteMessage": "Xóa \"{{name}}\"? Điều này sẽ xóa nó khỏi tất cả các tuần."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Thêm bài tập",
     "titleEdit": "Sửa bài tập",
+    "tabs": {
+      "basic": "Cơ bản",
+      "advanced": "Nâng cao"
+    },
     "name": "Tên",
     "namePlaceholder": "Tên bài tập",
     "muscleGroup": "Nhóm cơ",
@@ -202,11 +487,52 @@
     "reps": "Số lần lặp",
     "notes": "Ghi chú",
     "notesPlaceholder": "Ghi chú tùy chọn...",
+    "advanced": {
+      "show": "Hiển thị trường nâng cao",
+      "hide": "Ẩn trường nâng cao",
+      "rest": "Nghỉ (giây)",
+      "restUseDefault": "Mặc định chung",
+      "restCustom": "Tùy chỉnh",
+      "restPlaceholder": "180",
+      "rir": "RIR mục tiêu",
+      "rirPlaceholder": "1-2",
+      "intensity": "Cường độ",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Nhịp độ",
+      "tempoPlaceholder": "Eccentrica 2 giây",
+      "progressionRule": "Quy tắc tiến triển",
+      "progressionRulePlaceholder": "+5kg khi tất cả set đạt số lần tối đa với RIR 2",
+      "unilateral": "Chế độ một bên",
+      "unilateralPlaceholder": "mỗi chân, mỗi bên, trái/phải, xen kẽ",
+      "equipment": "Thiết bị",
+      "equipmentPlaceholder": "Barbell, dumbbell, cable, máy",
+      "primaryMuscles": "Cơ chính",
+      "primaryMusclesPlaceholder": "Mỗi dòng một cơ",
+      "secondaryMuscles": "Cơ phụ",
+      "secondaryMusclesPlaceholder": "Mỗi dòng một cơ",
+      "canonicalExerciseId": "ID bài tập chuẩn",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Nhãn biến thể",
+      "variantLabelPlaceholder": "Buổi B",
+      "aliases": "Bí danh",
+      "aliasesPlaceholder": "Mỗi dòng một bí danh",
+      "sessionSpecific": "Theo buổi",
+      "sessionSpecificToggle": "Theo dõi như biến thể chỉ trong buổi này",
+      "technicalNotes": "Ghi chú kỹ thuật",
+      "technicalNotesPlaceholder": "Mỗi dòng một ghi chú",
+      "executionCues": "Hướng dẫn thực hiện",
+      "executionCuesPlaceholder": "Mỗi dòng một hướng dẫn",
+      "perSetTargets": "Mục tiêu mỗi set",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Đẩy đến kiệt sức",
+      "weekOverrides": "Ghi đè tuần",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Thêm một set"
+    },
     "submitAdd": "Thêm bài tập",
     "submitEdit": "Lưu thay đổi",
     "errors": {
       "nameRequired": "Tên bài tập là bắt buộc.",
-      "setsInvalid": "Số set phải là số nguyên dương hợp lệ."
+      "setsInvalid": "Số set phải là số nguyên dương hợp lệ.",
+      "restInvalid": "Nghỉ phải là số nguyên không âm hợp lệ."
     }
   },
   "settings": {
@@ -247,24 +573,29 @@
       "peers_one": "{{count}} thiết bị ngang hàng đã kết nối",
       "peers_other": "{{count}} thiết bị ngang hàng đã kết nối",
       "stopSync": "Dừng đồng bộ",
-      "connectionInfo": "Connection info",
-      "openSyncHub": "Open Sync Hub"
+      "connectionInfo": "Thông tin kết nối",
+      "openSyncHub": "Mở Sync Hub"
     },
     "syncStatus": {
-      "title": "Sync Status",
-      "status": "Status",
-      "syncingWith_one": "Syncing with {{count}} device",
-      "syncingWith_other": "Syncing with {{count}} devices",
-      "off": "Sync is off",
-      "lastSuccessfulSync": "Last successful sync",
-      "manage": "Manage Sync"
+      "title": "Trạng thái đồng bộ",
+      "status": "Trạng thái",
+      "enabled": "Đồng bộ đang bật",
+      "disabled": "Đồng bộ đang tắt",
+      "syncingWith_one": "Đang đồng bộ với {{count}} thiết bị",
+      "syncingWith_other": "Đang đồng bộ với {{count}} thiết bị",
+      "off": "Đồng bộ đang tắt",
+      "lastSuccessfulSync": "Đồng bộ thành công lần cuối",
+      "manage": "Quản lý đồng bộ"
     },
     "localBackup": {
       "title": "Sao lưu",
       "export": "Lưu bản sao lưu vào thiết bị",
       "import": "Khôi phục từ bản sao lưu",
+      "shareBackup": "Chia sẻ bản sao lưu",
       "shareToDevice": "Chia sẻ sang thiết bị khác",
-      "scanFromDevice": "Quét từ thiết bị khác"
+      "scanFromDevice": "Quét từ thiết bị khác",
+      "localSaveRestore": "Lưu / Khôi phục cục bộ",
+      "qrShareRestore": "Chia sẻ / Khôi phục QR"
     },
     "pairingDevices": {
       "title": "Pairing & Devices",
@@ -272,16 +603,16 @@
       "count_other": "{{count}} paired devices"
     },
     "syncAdvanced": {
-      "title": "Sync Hub",
-      "description": "Debug logs and device identifiers for troubleshooting."
+      "title": "Trung tâm đồng bộ",
+      "description": "Nhật ký gỡ lỗi và mã định danh thiết bị để khắc phục sự cố."
     },
     "syncHub": {
-      "title": "Sync Hub",
-      "overview": "Overview",
-      "ids": "Device & Group IDs",
-      "connections": "Connections",
-      "localWriterKey": "Local writer key",
-      "management": "Management"
+      "title": "Trung tâm đồng bộ",
+      "overview": "Tổng quan",
+      "ids": "ID thiết bị & nhóm",
+      "connections": "Kết nối",
+      "localWriterKey": "Khóa ghi cục bộ",
+      "management": "Quản lý"
     },
     "data": {
       "title": "Dữ liệu",
@@ -297,7 +628,7 @@
       "title": "Thông tin ứng dụng",
       "name": "Tên",
       "version": "Phiên bản",
-      "build": "Build",
+      "build": "Bản dựng",
       "buildType": "Loại build"
     }
   },
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Xem trước nhập",
+    "titleWithProgram": "Nhập: {{program}}",
     "changesDetected": "Phát hiện {{count}} thay đổi.",
     "noChanges": "Không phát hiện thay đổi nào. Sao lưu giống với dữ liệu hiện tại.",
+    "modeHint": "Nhập dưới dạng mới giữ kế hoạch hiện tại có sẵn. Thay thế chương trình đang hoạt động sẽ ghi đè kế hoạch hiện tại trên thiết bị này.",
+    "stats": {
+      "workouts": "Bài tập cần cập nhật",
+      "exercises": "Bài tập thể dục cần tạo hoặc cập nhật",
+      "preservedWeights": "Mức tạ được giữ lại",
+      "needsWeight": "Cần cân nặng ban đầu"
+    },
+    "exerciseStatus": {
+      "matching": "Bài tập khớp",
+      "changed": "Bài tập đã thay đổi",
+      "new": "Bài tập mới",
+      "removed": "Bài tập đã xóa"
+    },
     "sections": {
+      "exerciseStatus": "Trạng thái bài tập",
+      "preservedWeights": "Mức tạ được giữ lại",
+      "missingWeights": "Bài tập mới không có cân nặng đã lưu",
+      "removedExercises": "Đã xóa khỏi chương trình đang hoạt động",
       "workouts": "Bài tập",
+      "program": "Chương trình",
       "settings": "Cài đặt",
       "weeks": "Tuần",
       "days": "Ngày"
     },
+    "currentWeightKept": "Cân nặng hiện tại được giữ lại",
+    "noPreviousWeight": "Không tìm thấy cân nặng trước đó",
     "cancel": "Hủy",
-    "confirm": "Nhập sao lưu"
+    "confirm": "Nhập sao lưu",
+    "importAsNewProgram": "Nhập làm chương trình mới",
+    "replaceActiveProgram": "Thay thế chương trình đang hoạt động"
+  },
+  "programLibrary": {
+    "title": "Chương trình",
+    "summary": "{{count}} chương trình đã lưu",
+    "active": "Đang hoạt động",
+    "empty": "Chưa có chương trình nào được lưu."
   },
   "deviceTransfer": {
     "shareTitle": "Chia sẻ sang thiết bị khác",
     "shareDescription": "Trên thiết bị kia: Cài đặt → Sao lưu → Quét từ thiết bị khác.",
+    "shareChunkCounter": "Phần {{current}}/{{total}}",
+    "shareChunkHint": "Giữ cả hai thiết bị ổn định. Mã QR tự động xoay.",
+    "pauseRotation": "Tạm dừng xoay",
+    "resumeRotation": "Tiếp tục xoay",
     "scanTitle": "Quét từ thiết bị khác",
     "scanDescription": "Hướng camera vào mã QR sao lưu của PearLift.",
+    "chunkProgress": "Tiến trình quét: {{received}}/{{total}}",
+    "transferCorrupted": "Truyền QR không đạt kiểm tra toàn vẹn. Vui lòng quét lại từ phần đầu tiên.",
     "cameraPermissionTitle": "Cần quyền camera",
     "cameraPermissionMessage": "Cho phép truy cập camera để quét mã QR sao lưu.",
     "cameraPermissionButton": "Cho phép Camera",
+    "cameraUnavailableTitle": "Máy ảnh không khả dụng",
+    "cameraUnavailableMessage": "PearLift không thể truy cập máy ảnh sau khả dụng trên thiết bị này.",
     "invalidQr": "Mã QR này không giống bản sao lưu của PearLift.",
     "tooLarge": "Bản sao lưu quá lớn để chứa trong một mã QR. Hãy dùng “Lưu bản sao lưu vào thiết bị” thay thế."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Chia sẻ không khả dụng trên thiết bị/nền tảng này."
     },
     "importBackup": {
-      "failedTitle": "Nhập thất bại"
+      "failedTitle": "Nhập thất bại",
+      "confirmReplaceTitle": "Thay thế chương trình đang hoạt động?",
+      "confirmReplaceMessage": "Thao tác này sẽ thay thế chương trình đang hoạt động hiện tại bằng \"{{program}}\" trên thiết bị này. Các mức tạ trùng khớp hiện có sẽ được giữ lại nếu có thể.",
+      "confirmReplaceAction": "Thay thế chương trình"
     },
     "forgetDevice": {
       "authPromptMessage": "Xác nhận để quên thiết bị",

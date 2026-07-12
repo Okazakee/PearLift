@@ -4,7 +4,9 @@
     "delete": "Verwijderen",
     "back": "Terug",
     "next": "Volgende",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Sluiten",
+    "save": "Opslaan"
   },
   "app": {
     "loading": "Je trainingsgegevens worden voorbereid"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Inactief",
         "connecting": "Zoeken",
+        "waiting": "Wachten",
+        "dht_ready": "DHT gereed",
+        "peer_connected": "Peer verbonden",
+        "handshake_ok": "Handshake voltooid",
+        "replicating": "Repliceren",
         "synced": "Verbonden",
         "error": "Fout"
       },
@@ -134,6 +141,19 @@
         "connecting": "Zoeken naar uw synchronisatiegroep.",
         "off": "Synchronisatie is momenteel uitgeschakeld op dit apparaat."
       },
+      "dht": "DHT",
+      "dhtReady": "Gereed",
+      "dhtBootstrapping": "Opstarten…",
+      "dhtError": "Fout",
+      "dhtInactive": "Inactief",
+      "dhtWaiting": "Wachten",
+      "status": "Status",
+      "peers": "Peers",
+      "peersConnected": "{{count}} verbonden",
+      "peersNone": "Geen",
+      "connectionsActive": "{{count}} actief",
+      "connectionsNone": "Geen",
+      "more": "Meer",
       "lastSyncAt": "Laatste synchronisatie: {{at}}",
       "lastSyncNever": "Laatste synchronisatie: nooit",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Probleemoplossing",
         "stop": "Synchronisatie stoppen"
       }
+    },
+    "manage": {
+      "title": "Apparaatsynchronisatie",
+      "subtitle": "Groepsopzet en synchronisatie-onderhoud op één plek.",
+      "roomSetup": "Groepsopzet",
+      "roomSetupHint": "Kies of dit apparaat een nieuwe groep start of lid wordt van een bestaande.",
+      "onboardingTitle": "Geen cloud. Geen account.",
+      "onboardingMessage": "PearLift synchroniseert uw trainingen rechtstreeks tussen uw apparaten — peer-to-peer. Uw gegevens verlaten nooit een server. U hoeft alleen maar op dezelfde Wi‑Fi of in de buurt te zijn voor de eerste verbinding.",
+      "onboardingDismiss": "Begrepen",
+      "createRoom": "Groep aanmaken",
+      "joinRoom": "Groep deelnemen",
+      "roomActive": "Groep actief",
+      "status": "Synchronisatiestatus",
+      "turnOn": "Inschakelen",
+      "turnOff": "Uitschakelen",
+      "refresh": "Vernieuwen",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Groepseigenaar",
+        "joiner": "Lid"
+      },
+      "binding": {
+        "unconfigured": "Niet geconfigureerd",
+        "pending_first_sync": "Wachten op eerste synchronisatie",
+        "active": "Actief",
+        "conflict_requires_decision": "Vraagt uw beslissing",
+        "active_conflict_requires_decision": "Sync-conflict vraagt uw beslissing"
+      },
+      "thisDeviceCode": "Code van dit apparaat: {{code}}",
+      "deviceCode": "Code {{code}}",
+      "deviceNamePlaceholder": "Geef dit apparaat een naam",
+      "saveDeviceName": "Apparaatnaam opslaan",
+      "deviceNameSyncPending": "Apparaatnaam is lokaal opgeslagen. Synchronisatie probeert deze binnenkort met peers te delen.",
+      "masterKey": "Synchronisatiecode",
+      "masterKeyHint": "Gebruik dezelfde 64-teken synchronisatiecode op elk apparaat dat gegevens moet delen.",
+      "masterKeyPlaceholder": "Plak of bewerk de 64-teken synchronisatiecode",
+      "showQR": "QR-code tonen",
+      "copyKey": "Code kopiëren",
+      "applyKey": "Code toepassen",
+      "leaveRoom": "Groep verlaten",
+      "leaveRoomConfirmTitle": "Deze groep verlaten?",
+      "leaveRoomConfirmMessage": "Dit schakelt synchronisatie uit, wist de huidige groepsbinding op dit apparaat en verwijdert de lokale groepsverbindingsgeschiedenis.",
+      "syncedDevices": "{{count}} apparaten",
+      "syncedDevicesTitle": "Apparaten",
+      "noDevices": "Nog geen apparaten gesynchroniseerd.",
+      "showMore": "Nog {{count}} tonen",
+      "lastSeen": "Laatst gezien {{at}}",
+      "lastSyncAt": "Laatste synchronisatie {{at}}",
+      "removeDevice": "Verwijderen uit lijst",
+      "removeDeviceConfirmTitle": "Dit apparaat uit de lijst verwijderen?",
+      "removeDeviceConfirmMessage": "Dit verbergt het apparaat alleen op dit apparaat uit deze lijst. Het kan opnieuw verschijnen als het later met deze groep synchroniseert.",
+      "debug": "Debug-informatie",
+      "never": "Nooit"
+    },
+    "create": {
+      "title": "Groep aanmaken",
+      "subtitle": "Dit apparaat start een nieuwe synchronisatiegroep en kan de synchronisatiecode met andere apparaten delen.",
+      "room": "Nieuwe groep",
+      "explainer": "Gebruik dit wanneer dit apparaat de initiële groep moet definiëren en de anderen uitnodigen.",
+      "datasetSummary": "Dit apparaat heeft momenteel {{workouts}} trainingen en {{exercises}} oefeningen.",
+      "masterKey": "Synchronisatiecode",
+      "inviteStarting": "Groep starten en QR-uitnodiging genereren…",
+      "invitePending": "Start de groep om de QR-uitnodiging te genereren.",
+      "copy": "Code kopiëren",
+      "startRoom": "Deze groep starten"
+    },
+    "join": {
+      "title": "Groep deelnemen",
+      "subtitle": "Gebruik de synchronisatiecode van een ander apparaat om dit apparaat met dezelfde synchronisatiegroep te verbinden.",
+      "preflight": "Voor het deelnemen",
+      "localSummary": "Dit apparaat heeft momenteel {{workouts}} trainingen en {{exercises}} oefeningen.",
+      "remoteSummaryHint": "Als beide apparaten al veel overlappende wijzigingen hebben, zal PearLift vragen welke dataset behouden moet blijven.",
+      "masterKey": "Synchronisatiecode",
+      "keyPlaceholder": "Plak de 64-teken synchronisatiecode",
+      "paste": "Plakken",
+      "scanQr": "QR-code scannen",
+      "scanHelp": "Richt de camera op de QR-code met de synchronisatiecode.",
+      "invalidKey": "Ongeldige synchronisatiecode. Het moet 64 hexadecimale tekens zijn.",
+      "keyValid": "Geldige uitnodigingscode",
+      "pasteSuccess": "Geplakt vanuit klembord",
+      "pasteEmpty": "Klembord is leeg",
+      "joinRoom": "Groep deelnemen"
+    },
+    "decision": {
+      "title": "Kies eerste synchronisatiegegevens",
+      "subtitle": "Beide kanten bevatten al betekenisvolle gegevens. Kies welke basislijn deze groep moet behouden.",
+      "thisDevice": "Dit apparaat",
+      "roomData": "Groepsgegevens",
+      "datasetSummary": "{{workouts}} trainingen · {{exercises}} oefeningen",
+      "conflictTitle": "Overlappende wijzigingen gedetecteerd",
+      "conflictWorkouts": "Trainingen",
+      "conflictExercises": "Oefeningen",
+      "conflictSummary": "{{workouts}} trainingsoverlappingen en {{exercises}} oefeningsoverlappingen gedetecteerd.",
+      "configConflictSummary": "{{weeks}} weekconfig-overlappingen, {{days}} dagconfig-overlappingen, {{backlog}} groepsupdates wachtend.",
+      "useThisDeviceHint": "Dit publiceert dit apparaat als de groepsbasislijn.",
+      "useRoomDataHint": "Dit vervangt trainingsgegevens op dit apparaat terwijl app-voorkeuren behouden blijven.",
+      "useMerge": "Beide samenvoegen",
+      "useMergeHint": "Voeg gegevens van dit apparaat en de groep samen wanneer er geen overlappingen zijn.",
+      "mergeUnavailableHint": "Sommige trainingen of oefeningen bestaan op beide apparaten met verschillende waarden, dus samenvoegen is niet mogelijk.",
+      "useThisDevice": "Gebruik gegevens van dit apparaat",
+      "useRoomData": "Gebruik groepsgegevens"
+    },
+    "debug": {
+      "title": "Sync debug-informatie",
+      "subtitle": "Runtime-status, verbindingsdetails en recente synchronisatielogboeken.",
+      "snapshot": "Runtime-momentopname",
+      "connections": "Verbindingen",
+      "lastError": "Laatste fout",
+      "logs": "Recente logboeken",
+      "logCount": "{{shown}} van {{total}} logboekvermeldingen weergegeven",
+      "clear": "Wissen"
     }
   },
   "workout": {
-    "weekDay": "Week {{week}} - {{day}}",
-    "addExercise": "Oefening toevoegen"
+    "weekDay": "Week {{week}} - Dag {{day}}",
+    "addExercise": "Oefening toevoegen",
+    "logWorkout": "Training loggen",
+    "progressionSuggestions": "Suggesties",
+    "suggestedToday": "Vandaag voorgesteld: {{workout}}",
+    "showDetails": "Details tonen",
+    "hideDetails": "Details verbergen",
+    "details": {
+      "notes": "Notities",
+      "tempo": "Tempo",
+      "equipment": "Apparatuur",
+      "primaryMuscles": "Primaire spieren",
+      "secondaryMuscles": "Secundaire spieren",
+      "technique": "Techniek",
+      "cues": "Aanwijzingen",
+      "perSetTargets": "Per-set doelen",
+      "progression": "Progressie",
+      "weekOverrides": "Week-overschrijvingen",
+      "active": "Actief",
+      "intensity": "Intensiteit",
+      "target": "Doel",
+      "estimatedOneRepMax": "Geschatte 1RM",
+      "notSet": "Niet ingesteld",
+      "intensityRange": "Intensiteitsbereik",
+      "weightSettings": "Gewichtsinstellingen",
+      "weightMode": "Gewichtsmodus",
+      "increment": "Verhoging",
+      "exerciseSettings": "Oefeningsinstellingen"
+    }
+  },
+  "workoutLog": {
+    "title": "Trainingslogboek",
+    "subtitle": "{{workout}} · Week {{week}}",
+    "progress": "{{logged}} / {{total}} sets gelogd",
+    "loading": "Trainingslogboek laden…",
+    "done": "Gereed",
+    "skip": "Overslaan",
+    "save": "Logboek opslaan",
+    "saving": "Opslaan…",
+    "useTarget": "Voltooien met doel",
+    "reset": "Resetten",
+    "setLabel": "Set {{set}}",
+    "targetRir": "Doel RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Werkelijk gewicht",
+    "actualReps": "Werkelijke herhalingen",
+    "leftReps": "Linker herhalingen",
+    "rightReps": "Rechter herhalingen",
+    "perSideReps": "Per zijde",
+    "sharedReps": "Gedeeld",
+    "actualRir": "Werkelijke RIR",
+    "errors": {
+      "load": "Kon dit trainingslogboek niet laden.",
+      "save": "Kon dit trainingslogboek niet opslaan."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progressiesuggesties",
+    "subtitle": "Pas de volgende belasting nu toe of laat het in behandeling voor later.",
+    "current": "Huidig gewicht",
+    "next": "Volgend gewicht",
+    "reason": "Reden: {{reason}}",
+    "apply": "Toepassen",
+    "skip": "Overslaan"
+  },
+  "exerciseSettings": {
+    "title": "Oefeningsinstellingen",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Werkgewicht",
+    "weightMode": "Gewichtsmodus",
+    "increment": "Verhoging",
+    "estimatedOneRepMax": "Geschatte 1RM",
+    "notes": "Notities",
+    "history": "Recente geschiedenis",
+    "linkedVariants": "Gekoppelde varianten",
+    "historyLoading": "Geschiedenis laden…",
+    "historyEmpty": "Nog geen gelogde sessies.",
+    "historyError": "Kon geschiedenis niet laden.",
+    "historySets": "{{completed}} / {{total}} sets",
+    "historyBestReps": "Beste {{reps}} herhalingen"
   },
   "restTimer": {
     "title": "Rusttimer",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Programma-instellingen",
     "tabs": {
+      "program": "Programma",
       "weeks": "Weken",
       "days": "Dagen"
+    },
+    "program": {
+      "name": "Programmanaam",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Ondertitel",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Doel",
+      "goalPlaceholder": "Kracht en hypertrofie",
+      "description": "Beschrijving",
+      "descriptionPlaceholder": "Optionele notities over dit trainingsblok",
+      "sourceType": "Bron",
+      "sourceLabel": "Bronlabel",
+      "sourceLabelPlaceholder": "Coach-PDF, sjabloon of notitie",
+      "startDate": "Startdatum",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Duur (weken)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Standaard rust (sec)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progressiemodel",
+      "frequencySummary": "Wekelijkse doelen",
+      "frequencyGroupPlaceholder": "Spiergroep",
+      "frequencyTarget": "Doel per week",
+      "frequencyPerWeek_one": "{{count}}x / week",
+      "frequencyPerWeek_other": "{{count}}x / week",
+      "addFrequencyTarget": "Wekelijks doel toevoegen",
+      "progressionModels": {
+        "simple_load_modifier": "Eenvoudig",
+        "exercise_rules": "Regels",
+        "mixed": "Gemengd",
+        "manual": "Handmatig"
+      },
+      "sourceTypes": {
+        "manual": "Handmatig",
+        "coach": "Coach",
+        "template": "Sjabloon",
+        "imported_pdf": "Geïmporteerde PDF",
+        "imported_json": "Geïmporteerde JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Weeknaam",
       "loadModifier": "Belastingswijziging",
+      "volumeModifier": "Volumewijziging",
       "rir": "RIR (Reserve herhalingen)",
+      "notes": "Weeknotities",
+      "notesPlaceholder": "Optionele notities voor deze week",
       "baseline": "Basis",
       "addWeek": "Week toevoegen",
       "deleteTitle": "Week verwijderen",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Dag {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Pictogram",
+      "schedule": "Schema",
+      "pickDay": "Kies dag",
+      "pickWindow": "Kies dagen",
       "iconMore": "Meer",
       "iconRefresh": "Vernieuwen",
+      "scheduleTypes": {
+        "unscheduled": "Elke",
+        "fixed_day": "Vast",
+        "day_window": "Venster"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "ma",
+          "tue": "di",
+          "wed": "wo",
+          "thu": "do",
+          "fri": "vr",
+          "sat": "za",
+          "sun": "zo"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "D",
+          "wed": "W",
+          "thu": "D",
+          "fri": "V",
+          "sat": "Z",
+          "sun": "Z"
+        }
+      },
       "addDay": "Dag toevoegen",
       "deleteTitle": "Dag verwijderen",
       "deleteMessage": "\"{{name}}\" verwijderen? Dit verwijdert het uit alle weken."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Oefening toevoegen",
     "titleEdit": "Oefening bewerken",
+    "tabs": {
+      "basic": "Basis",
+      "advanced": "Geavanceerd"
+    },
     "name": "Naam",
     "namePlaceholder": "Oefennaam",
     "muscleGroup": "Spiergroep",
@@ -202,11 +487,52 @@
     "reps": "Herhalingen",
     "notes": "Notities",
     "notesPlaceholder": "Optionele notities...",
+    "advanced": {
+      "show": "Toon geavanceerde velden",
+      "hide": "Verberg geavanceerde velden",
+      "rest": "Rust (sec)",
+      "restUseDefault": "Globale standaard",
+      "restCustom": "Aangepast",
+      "restPlaceholder": "180",
+      "rir": "RIR-doel",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensiteit",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "Progressieregel",
+      "progressionRulePlaceholder": "+5kg wanneer alle sets de top herhalingen halen met 2 RIR",
+      "unilateral": "Unilaterale modus",
+      "unilateralPlaceholder": "per been, per zijde, links/rechts, afwisselend",
+      "equipment": "Apparatuur",
+      "equipmentPlaceholder": "Barbell, dumbbell, kabel, machine",
+      "primaryMuscles": "Primaire spieren",
+      "primaryMusclesPlaceholder": "Eén spier per regel",
+      "secondaryMuscles": "Secundaire spieren",
+      "secondaryMusclesPlaceholder": "Eén spier per regel",
+      "canonicalExerciseId": "Canonieke oefening-ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Variantelabel",
+      "variantLabelPlaceholder": "Sessie B",
+      "aliases": "Aliassen",
+      "aliasesPlaceholder": "Eén alias per regel",
+      "sessionSpecific": "Sessiespecifiek",
+      "sessionSpecificToggle": "Volgen als sessie-only variant",
+      "technicalNotes": "Technische notities",
+      "technicalNotesPlaceholder": "Eén notitie per regel",
+      "executionCues": "Uitvoeringsaanwijzingen",
+      "executionCuesPlaceholder": "Eén aanwijzing per regel",
+      "perSetTargets": "Per-set doelen",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Week-overschrijvingen",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "Oefening toevoegen",
     "submitEdit": "Wijzigingen opslaan",
     "errors": {
       "nameRequired": "Oefennaam is vereist.",
-      "setsInvalid": "Sets moeten een geldig positief geheel getal zijn."
+      "setsInvalid": "Sets moeten een geldig positief geheel getal zijn.",
+      "restInvalid": "Rust moet een geldig niet-negatief geheel getal zijn."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Synchronisatiestatus",
       "status": "Status",
+      "enabled": "Sync staat aan",
+      "disabled": "Sync staat uit",
       "syncingWith_one": "Synchroniseren met {{count}} apparaat",
       "syncingWith_other": "Synchroniseren met {{count}} apparaten",
       "off": "Sync is uit",
@@ -263,8 +591,11 @@
       "title": "Back-up",
       "export": "Back-up opslaan op apparaat",
       "import": "Herstellen vanuit back-up",
+      "shareBackup": "Back-up delen",
       "shareToDevice": "Delen met ander apparaat",
-      "scanFromDevice": "Scannen vanaf ander apparaat"
+      "scanFromDevice": "Scannen vanaf ander apparaat",
+      "localSaveRestore": "Lokaal Opslaan / Herstellen",
+      "qrShareRestore": "QR Delen / Herstellen"
     },
     "pairingDevices": {
       "title": "Koppelen en apparaten",
@@ -272,11 +603,11 @@
       "count_other": "{{count}} gekoppelde apparaten"
     },
     "syncAdvanced": {
-      "title": "Sync Hub",
+      "title": "Sync-hub",
       "description": "Debuglogboeken en apparaat-ID's voor probleemoplossing."
     },
     "syncHub": {
-      "title": "Sync Hub",
+      "title": "Sync-hub",
       "overview": "Overzicht",
       "ids": "Apparaat- en groeps-ID's",
       "connections": "Verbindingen",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Import voorbeeld",
+    "titleWithProgram": "Importeren: {{program}}",
     "changesDetected": "{{count}} wijziging(en) gedetecteerd.",
     "noChanges": "Geen wijzigingen gedetecteerd. Back-up is identiek aan huidige gegevens.",
+    "modeHint": "Importeren als nieuw houdt het huidige plan beschikbaar. Actief programma vervangen overschrijft het huidige plan op dit apparaat.",
+    "stats": {
+      "workouts": "Trainingen om bij te werken",
+      "exercises": "Oefeningen om aan te maken of bij te werken",
+      "preservedWeights": "Gewichten behouden",
+      "needsWeight": "Startgewicht nodig"
+    },
+    "exerciseStatus": {
+      "matching": "Overeenkomende oefeningen",
+      "changed": "Gewijzigde oefeningen",
+      "new": "Nieuwe oefeningen",
+      "removed": "Verwijderde oefeningen"
+    },
     "sections": {
+      "exerciseStatus": "Oefeningstatus",
+      "preservedWeights": "Behouden gewichten",
+      "missingWeights": "Nieuwe oefeningen zonder opgeslagen gewicht",
+      "removedExercises": "Verwijderd uit actief programma",
       "workouts": "Trainingen",
+      "program": "Programma",
       "settings": "Instellingen",
       "weeks": "Weken",
       "days": "Dagen"
     },
+    "currentWeightKept": "Huidig gewicht behouden",
+    "noPreviousWeight": "Geen vorig gewicht gevonden",
     "cancel": "Annuleren",
-    "confirm": "Back-up importeren"
+    "confirm": "Back-up importeren",
+    "importAsNewProgram": "Importeren als nieuw programma",
+    "replaceActiveProgram": "Actief programma vervangen"
+  },
+  "programLibrary": {
+    "title": "Programma's",
+    "summary": "{{count}} opgeslagen programma('s)",
+    "active": "Actief",
+    "empty": "Nog geen opgeslagen programma's."
   },
   "deviceTransfer": {
     "shareTitle": "Delen met ander apparaat",
     "shareDescription": "Op het andere apparaat: Instellingen → Back-up → Scannen vanaf ander apparaat.",
+    "shareChunkCounter": "Deel {{current}}/{{total}}",
+    "shareChunkHint": "Houd beide apparaten stil. QR draait automatisch.",
+    "pauseRotation": "Rotatie pauzeren",
+    "resumeRotation": "Rotatie hervatten",
     "scanTitle": "Scannen vanaf ander apparaat",
     "scanDescription": "Richt je camera op de PearLift-back-up QR-code.",
+    "chunkProgress": "Scanvoortgang: {{received}}/{{total}}",
+    "transferCorrupted": "QR-overdracht doorstond de integriteitscontrole niet. Scan opnieuw vanaf het eerste deel.",
     "cameraPermissionTitle": "Cameratoestemming vereist",
     "cameraPermissionMessage": "Sta cameratoegang toe om een back-up QR-code te scannen.",
     "cameraPermissionButton": "Camera toestaan",
+    "cameraUnavailableTitle": "Camera niet beschikbaar",
+    "cameraUnavailableMessage": "PearLift heeft geen toegang tot een bruikbare camera op dit apparaat.",
     "invalidQr": "Die QR-code lijkt geen PearLift-back-up te zijn.",
     "tooLarge": "De back-up is te groot voor één QR-code. Gebruik in plaats daarvan “Back-up opslaan op apparaat”."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Delen is niet beschikbaar op dit apparaat/platform."
     },
     "importBackup": {
-      "failedTitle": "Import mislukt"
+      "failedTitle": "Import mislukt",
+      "confirmReplaceTitle": "Actief programma vervangen?",
+      "confirmReplaceMessage": "Dit vervangt uw huidige actieve programma door \"{{program}}\" op dit apparaat. Bestaande overeenkomende gewichten worden waar mogelijk behouden.",
+      "confirmReplaceAction": "Programma vervangen"
     },
     "forgetDevice": {
       "authPromptMessage": "Bevestig om het apparaat te vergeten",

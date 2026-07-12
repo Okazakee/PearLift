@@ -1,16 +1,22 @@
 import { Image } from 'expo-image';
-import { Settings } from 'lucide-react-native';
+import { Layers3, Settings } from 'lucide-react-native';
+import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { E2E_IDS } from '@/config/testIds';
 import type { SyncHealth } from '@/sync/types';
 import type { ThemeTokens } from '@/theme/tokens';
+import type { TrainingProgram } from '@/types';
+import { formatFrequencySummarySummary } from '@/utils/program';
 import { Text } from './AppText';
 
 interface HeaderProps {
   tokens: ThemeTokens;
   topInset: number;
   maxWidth?: number;
+  program?: TrainingProgram | null;
+  showProgramLibraryAction?: boolean;
   syncHealth?: SyncHealth | null;
+  onOpenProgramLibrary?: () => void;
   onOpenSettings: () => void;
   onOpenSyncQuickInfo?: () => void;
 }
@@ -19,11 +25,18 @@ export function Header({
   tokens,
   topInset,
   maxWidth,
+  program,
+  showProgramLibraryAction = false,
   syncHealth,
+  onOpenProgramLibrary,
   onOpenSettings,
   onOpenSyncQuickInfo,
 }: HeaderProps) {
+  const { t } = useTranslation();
   const styles = createStyles(tokens, topInset, maxWidth);
+  const frequencySummary = formatFrequencySummarySummary(
+    program?.frequencySummary,
+  );
 
   const statusTone =
     syncHealth?.status === 'synced'
@@ -53,10 +66,31 @@ export function Header({
           </View>
           <View>
             <Text style={styles.title}>PearLift</Text>
+            {program &&
+            (program.name !== 'Main Program' ||
+              !!program.subtitle ||
+              !!program.goal) ? (
+              <Text style={styles.programLine}>
+                {program.subtitle
+                  ? `${program.name} · ${program.subtitle}`
+                  : program.name}
+              </Text>
+            ) : null}
+            {frequencySummary ? (
+              <Text style={styles.targetsLine}>
+                {t('programSettings.program.frequencySummary')}:{' '}
+                {frequencySummary}
+              </Text>
+            ) : null}
           </View>
         </View>
 
         <View style={styles.actionsRow}>
+          {showProgramLibraryAction && onOpenProgramLibrary ? (
+            <Pressable onPress={onOpenProgramLibrary} style={styles.iconButton}>
+              <Layers3 size={18} color={tokens.colors.textSecondary} />
+            </Pressable>
+          ) : null}
           {syncHealth ? (
             <Pressable
               onPress={onOpenSyncQuickInfo ?? onOpenSettings}
@@ -123,6 +157,21 @@ function createStyles(
       fontSize: 18,
       fontWeight: '700',
       lineHeight: 22,
+    },
+    programLine: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '600',
+      lineHeight: 18,
+      marginTop: 1,
+    },
+    targetsLine: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label - 1,
+      fontWeight: '500',
+      lineHeight: 16,
+      marginTop: 2,
+      maxWidth: 240,
     },
     actionsRow: {
       flexDirection: 'row',

@@ -4,7 +4,9 @@
     "delete": "حذف",
     "back": "رجوع",
     "next": "التالي",
-    "ok": "حسنًا"
+    "ok": "حسنًا",
+    "close": "إغلاق",
+    "save": "حفظ"
   },
   "app": {
     "loading": "جاري إعداد بيانات التدريب الخاصة بك"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "خامل",
         "connecting": "جارٍ البحث",
+        "waiting": "في الانتظار",
+        "dht_ready": "DHT جاهز",
+        "peer_connected": "تم اتصال النظير",
+        "handshake_ok": "تمت المصافحة",
+        "replicating": "جاري النسخ",
         "synced": "متصل",
         "error": "خطأ"
       },
@@ -134,6 +141,19 @@
         "connecting": "جارٍ البحث عن مجموعة المزامنة الخاصة بك.",
         "off": "المزامنة معطلة حاليًا على هذا الجهاز."
       },
+      "dht": "DHT",
+      "dhtReady": "جاهز",
+      "dhtBootstrapping": "جاري التمهيد…",
+      "dhtError": "خطأ",
+      "dhtInactive": "غير نشط",
+      "dhtWaiting": "في الانتظار",
+      "status": "الحالة",
+      "peers": "الأقران",
+      "peersConnected": "{{count}} متصل",
+      "peersNone": "لا يوجد",
+      "connectionsActive": "{{count}} نشط",
+      "connectionsNone": "لا يوجد",
+      "more": "المزيد",
       "lastSyncAt": "آخر مزامنة: {{at}}",
       "lastSyncNever": "آخر مزامنة: أبدًا",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "استكشاف المشكلات وإصلاحها",
         "stop": "إيقاف المزامنة"
       }
+    },
+    "manage": {
+      "title": "مزامنة الأجهزة",
+      "subtitle": "حافظ على إعداد المجموعة وصيانة المزامنة في مكان واحد.",
+      "roomSetup": "إعداد المجموعة",
+      "roomSetupHint": "اختر ما إذا كان هذا الجهاز يبدأ مجموعة جديدة أو ينضم إلى مجموعة موجودة بالفعل.",
+      "onboardingTitle": "لا سحابة. لا حساب.",
+      "onboardingMessage": "PearLift يزامن تمارينك مباشرة بين أجهزتك — من نظير إلى نظير. بياناتك لا تلمس أي خادم أبدًا. كل ما تحتاجه هو أن تكون على نفس شبكة Wi‑Fi أو قريبًا للاتصال الأول.",
+      "onboardingDismiss": "فهمت",
+      "createRoom": "إنشاء مجموعة",
+      "joinRoom": "الانضمام إلى مجموعة",
+      "roomActive": "المجموعة نشطة",
+      "status": "حالة المزامنة",
+      "turnOn": "تشغيل",
+      "turnOff": "إيقاف",
+      "refresh": "تحديث",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "مالك المجموعة",
+        "joiner": "عضو"
+      },
+      "binding": {
+        "unconfigured": "غير مهيأ",
+        "pending_first_sync": "انتظار المزامنة الأولى",
+        "active": "نشط",
+        "conflict_requires_decision": "يحتاج قرارك",
+        "active_conflict_requires_decision": "تعارض المزامنة يحتاج قرارك"
+      },
+      "thisDeviceCode": "رمز هذا الجهاز: {{code}}",
+      "deviceCode": "الرمز {{code}}",
+      "deviceNamePlaceholder": "تسمية هذا الجهاز",
+      "saveDeviceName": "حفظ اسم الجهاز",
+      "deviceNameSyncPending": "تم حفظ اسم الجهاز محليًا. ستعيد المزامنة محاولة مشاركته مع الأقران قريبًا.",
+      "masterKey": "رمز المزامنة",
+      "masterKeyHint": "استخدم نفس رمز المزامنة المكون من 64 حرفًا على كل جهاز يجب أن يشارك البيانات.",
+      "masterKeyPlaceholder": "الصق أو حرر رمز المزامنة المكون من 64 حرفًا",
+      "showQR": "إظهار رمز QR",
+      "copyKey": "نسخ الرمز",
+      "applyKey": "تطبيق الرمز",
+      "leaveRoom": "مغادرة المجموعة",
+      "leaveRoomConfirmTitle": "مغادرة هذه المجموعة؟",
+      "leaveRoomConfirmMessage": "يؤدي هذا إلى إيقاف المزامنة، ومسح ربط المجموعة الحالي على هذا الجهاز، وإزالة سجل اتصال المجموعة المحلي.",
+      "syncedDevices": "{{count}} أجهزة",
+      "syncedDevicesTitle": "الأجهزة",
+      "noDevices": "لم تتم مزامنة أي أجهزة بعد.",
+      "showMore": "إظهار {{count}} المزيد",
+      "lastSeen": "آخر ظهور {{at}}",
+      "lastSyncAt": "آخر مزامنة {{at}}",
+      "removeDevice": "إزالة من القائمة",
+      "removeDeviceConfirmTitle": "إزالة هذا الجهاز من القائمة؟",
+      "removeDeviceConfirmMessage": "يؤدي هذا إلى إخفاء الجهاز من هذه القائمة على هذا الجهاز فقط. يمكن أن يظهر مرة أخرى إذا تمت مزامنته مع هذه المجموعة لاحقًا.",
+      "debug": "معلومات التصحيح",
+      "never": "أبدًا"
+    },
+    "create": {
+      "title": "إنشاء مجموعة",
+      "subtitle": "يبدأ هذا الجهاز مجموعة مزامنة جديدة ويمكنه مشاركة رمز المزامنة مع الأجهزة الأخرى.",
+      "room": "مجموعة جديدة",
+      "explainer": "استخدم هذا عندما يجب أن يحدد هذا الجهاز المجموعة الأولية ويدعو الآخرين.",
+      "datasetSummary": "يحتوي هذا الجهاز حاليًا على {{workouts}} تمرين و{{exercises}} تمرين موزون.",
+      "masterKey": "رمز المزامنة",
+      "inviteStarting": "بدء المجموعة وإنشاء دعوة QR…",
+      "invitePending": "ابدأ المجموعة لإنشاء دعوة QR.",
+      "copy": "نسخ الرمز",
+      "startRoom": "بدء هذه المجموعة"
+    },
+    "join": {
+      "title": "الانضمام إلى مجموعة",
+      "subtitle": "استخدم رمز المزامنة من جهاز آخر لتوصيل هذا الجهاز بنفس مجموعة المزامنة.",
+      "preflight": "قبل الانضمام",
+      "localSummary": "يحتوي هذا الجهاز حاليًا على {{workouts}} تمرين و{{exercises}} تمرين موزون.",
+      "remoteSummaryHint": "إذا كان كلا الجهازين يحتويان بالفعل على الكثير من التغييرات المتداخلة، فسيطلب PearLift تحديد مجموعة البيانات التي تريد الاحتفاظ بها.",
+      "masterKey": "رمز المزامنة",
+      "keyPlaceholder": "الصق رمز المزامنة المكون من 64 حرفًا",
+      "paste": "لصق",
+      "scanQr": "مسح QR",
+      "scanHelp": "وجّه الكاميرا نحو رمز QR الذي يحتوي على رمز المزامنة.",
+      "invalidKey": "رمز مزامنة غير صالح. يجب أن يكون 64 حرفًا سداسيًا عشريًا.",
+      "keyValid": "رمز دعوة صالح",
+      "pasteSuccess": "تم اللصق من الحافظة",
+      "pasteEmpty": "الحافظة فارغة",
+      "joinRoom": "الانضمام إلى مجموعة"
+    },
+    "decision": {
+      "title": "اختيار بيانات المزامنة الأولى",
+      "subtitle": "كلا الجانبين يحتوي بالفعل على بيانات هادفة. اختر أي قاعدة يجب أن تحتفظ بها هذه المجموعة.",
+      "thisDevice": "هذا الجهاز",
+      "roomData": "بيانات المجموعة",
+      "datasetSummary": "{{workouts}} تمرين · {{exercises}} تمرين موزون",
+      "conflictTitle": "تم الكشف عن تغييرات متداخلة",
+      "conflictWorkouts": "التمارين",
+      "conflictExercises": "التمارين الموزونة",
+      "conflictSummary": "تم الكشف عن {{workouts}} تداخل في التمارين و{{exercises}} تداخل في التمارين الموزونة.",
+      "configConflictSummary": "{{weeks}} تداخل في تكوين الأسابيع، {{days}} تداخل في تكوين الأيام، {{backlog}} تحديثات المجموعة في الانتظار.",
+      "useThisDeviceHint": "ينشر هذا الجهاز كقاعدة للمجموعة.",
+      "useRoomDataHint": "يستبدل بيانات التمارين على هذا الجهاز مع الحفاظ على تفضيلات التطبيق.",
+      "useMerge": "دمج الاثنين",
+      "useMergeHint": "دمج البيانات من هذا الجهاز والمجموعة عندما لا يكون هناك تداخلات.",
+      "mergeUnavailableHint": "بعض التمارين أو التمارين الموزونة موجودة على كلا الجهازين بقيم مختلفة، لذا لا يمكن الدمج.",
+      "useThisDevice": "استخدام بيانات هذا الجهاز",
+      "useRoomData": "استخدام بيانات المجموعة"
+    },
+    "debug": {
+      "title": "معلومات تصحيح المزامنة",
+      "subtitle": "حالة التشغيل، تفاصيل الاتصال، وسجلات المزامنة الحديثة.",
+      "snapshot": "لقطة تشغيل",
+      "connections": "الاتصالات",
+      "lastError": "آخر خطأ",
+      "logs": "السجلات الحديثة",
+      "logCount": "عرض {{shown}} من {{total}} إدخالات السجل",
+      "clear": "مسح"
     }
   },
   "workout": {
     "weekDay": "الأسبوع {{week}} - اليوم {{day}}",
-    "addExercise": "إضافة تمرين"
+    "addExercise": "إضافة تمرين",
+    "logWorkout": "تسجيل التمرين",
+    "progressionSuggestions": "الاقتراحات",
+    "suggestedToday": "المقترح اليوم: {{workout}}",
+    "showDetails": "إظهار التفاصيل",
+    "hideDetails": "إخفاء التفاصيل",
+    "details": {
+      "notes": "ملاحظات",
+      "tempo": "الإيقاع",
+      "equipment": "المعدات",
+      "primaryMuscles": "العضلات الأساسية",
+      "secondaryMuscles": "العضلات الثانوية",
+      "technique": "التقنية",
+      "cues": "التوجيهات",
+      "perSetTargets": "أهداف كل مجموعة",
+      "progression": "التطور",
+      "weekOverrides": "تجاوزات الأسبوع",
+      "active": "نشط",
+      "intensity": "الشدة",
+      "target": "الهدف",
+      "estimatedOneRepMax": "أقصى تكرار تقديري (1RM)",
+      "notSet": "غير مضبوط",
+      "intensityRange": "نطاق الشدة",
+      "weightSettings": "إعدادات الوزن",
+      "weightMode": "وضع الوزن",
+      "increment": "الزيادة",
+      "exerciseSettings": "إعدادات التمرين"
+    }
+  },
+  "workoutLog": {
+    "title": "سجل التمرين",
+    "subtitle": "{{workout}} · الأسبوع {{week}}",
+    "progress": "{{logged}} / {{total}} مجموعات مسجلة",
+    "loading": "جاري تحميل سجل التمرين…",
+    "done": "تم",
+    "skip": "تخطي",
+    "save": "حفظ السجل",
+    "saving": "جاري الحفظ…",
+    "useTarget": "إكمال بالهدف",
+    "reset": "إعادة تعيين",
+    "setLabel": "مجموعة {{set}}",
+    "targetRir": "RIR الهدف {{rir}}",
+    "targetSummary": "{{sets}} × {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "الوزن الفعلي",
+    "actualReps": "التكرارات الفعلية",
+    "leftReps": "تكرارات اليسار",
+    "rightReps": "تكرارات اليمين",
+    "perSideReps": "لكل جانب",
+    "sharedReps": "مشترك",
+    "actualRir": "RIR الفعلي",
+    "errors": {
+      "load": "تعذر تحميل سجل التمرين هذا.",
+      "save": "تعذر حفظ سجل التمرين هذا."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "اقتراحات التطور",
+    "subtitle": "طبق الحمل التالي الآن أو اتركه معلقًا لوقت لاحق.",
+    "current": "الوزن الحالي",
+    "next": "الوزن التالي",
+    "reason": "السبب: {{reason}}",
+    "apply": "تطبيق",
+    "skip": "تخطي"
+  },
+  "exerciseSettings": {
+    "title": "إعدادات التمرين",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "وزن العمل",
+    "weightMode": "وضع الوزن",
+    "increment": "الزيادة",
+    "estimatedOneRepMax": "أقصى تكرار تقديري (1RM)",
+    "notes": "ملاحظات",
+    "history": "التاريخ الحديث",
+    "linkedVariants": "المتغيرات المرتبطة",
+    "historyLoading": "جاري تحميل التاريخ…",
+    "historyEmpty": "لا توجد جلسات مسجلة بعد.",
+    "historyError": "تعذر تحميل التاريخ.",
+    "historySets": "{{completed}} / {{total}} مجموعات",
+    "historyBestReps": "أفضل {{reps}} تكرارات"
   },
   "restTimer": {
     "title": "مؤقت الراحة",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "إعدادات البرنامج",
     "tabs": {
+      "program": "البرنامج",
       "weeks": "الأسابيع",
       "days": "الأيام"
+    },
+    "program": {
+      "name": "اسم البرنامج",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "العنوان الفرعي",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "الهدف",
+      "goalPlaceholder": "القوة والتضخم العضلي",
+      "description": "الوصف",
+      "descriptionPlaceholder": "ملاحظات اختيارية حول هذه الكتلة التدريبية",
+      "sourceType": "المصدر",
+      "sourceLabel": "تسمية المصدر",
+      "sourceLabelPlaceholder": "PDF مدرب، قالب، أو ملاحظة",
+      "startDate": "تاريخ البدء",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "المدة (أسابيع)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "الراحة الافتراضية (ثوانٍ)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "نموذج التطور",
+      "frequencySummary": "الأهداف الأسبوعية",
+      "frequencyGroupPlaceholder": "مجموعة العضلات",
+      "frequencyTarget": "الهدف أسبوعيًا",
+      "frequencyPerWeek_one": "{{count}} مرة / أسبوع",
+      "frequencyPerWeek_other": "{{count}} مرة / أسبوع",
+      "addFrequencyTarget": "إضافة هدف أسبوعي",
+      "progressionModels": {
+        "simple_load_modifier": "بسيط",
+        "exercise_rules": "قواعد",
+        "mixed": "مختلط",
+        "manual": "يدوي"
+      },
+      "sourceTypes": {
+        "manual": "يدوي",
+        "coach": "مدرب",
+        "template": "قالب",
+        "imported_pdf": "PDF مستورد",
+        "imported_json": "JSON مستورد"
+      }
     },
     "week": {
       "namePlaceholder": "اسم الأسبوع",
       "loadModifier": "معدّل الحمل",
+      "volumeModifier": "معدّل الحجم",
       "rir": "RIR (التكرارات الاحتياطية)",
+      "notes": "ملاحظات الأسبوع",
+      "notesPlaceholder": "ملاحظات اختيارية لهذا الأسبوع",
       "baseline": "الخط الأساسي",
       "addWeek": "إضافة أسبوع",
       "deleteTitle": "حذف أسبوع",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "اليوم {{number}}",
+      "sessionLabelPlaceholder": "أ",
       "icon": "أيقونة",
+      "schedule": "الجدول",
+      "pickDay": "اختيار يوم",
+      "pickWindow": "اختيار أيام",
       "iconMore": "المزيد",
       "iconRefresh": "تحديث",
+      "scheduleTypes": {
+        "unscheduled": "أي يوم",
+        "fixed_day": "محدد",
+        "day_window": "نافذة"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "إثن",
+          "tue": "ثلاث",
+          "wed": "أربع",
+          "thu": "خميس",
+          "fri": "جمعة",
+          "sat": "سبت",
+          "sun": "أحد"
+        },
+        "narrow": {
+          "mon": "إ",
+          "tue": "ث",
+          "wed": "أ",
+          "thu": "خ",
+          "fri": "ج",
+          "sat": "س",
+          "sun": "أ"
+        }
+      },
       "addDay": "إضافة يوم",
       "deleteTitle": "حذف يوم",
       "deleteMessage": "حذف \"{{name}}\"؟ سيؤدي هذا إلى إزالته من جميع الأسابيع."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "إضافة تمرين",
     "titleEdit": "تعديل تمرين",
+    "tabs": {
+      "basic": "أساسي",
+      "advanced": "متقدم"
+    },
     "name": "الاسم",
     "namePlaceholder": "اسم التمرين",
     "muscleGroup": "مجموعة العضلات",
@@ -202,11 +487,52 @@
     "reps": "التكرارات",
     "notes": "ملاحظات",
     "notesPlaceholder": "ملاحظات اختيارية...",
+    "advanced": {
+      "show": "إظهار الحقول المتقدمة",
+      "hide": "إخفاء الحقول المتقدمة",
+      "rest": "الراحة (ثوانٍ)",
+      "restUseDefault": "افتراضي عام",
+      "restCustom": "مخصص",
+      "restPlaceholder": "180",
+      "rir": "هدف RIR",
+      "rirPlaceholder": "1-2",
+      "intensity": "الشدة",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "الإيقاع",
+      "tempoPlaceholder": "لا مركزي 2 ثانية",
+      "progressionRule": "قاعدة التطور",
+      "progressionRulePlaceholder": "+5 كجم عندما تصل جميع المجموعات إلى أقصى تكرارات مع 2 RIR",
+      "unilateral": "الوضع الأحادي الجانب",
+      "unilateralPlaceholder": "لكل رجل، لكل جانب، يسار/يمين، بالتناوب",
+      "equipment": "المعدات",
+      "equipmentPlaceholder": "بار، دمبل، كابل، جهاز",
+      "primaryMuscles": "العضلات الأساسية",
+      "primaryMusclesPlaceholder": "عضلة واحدة في كل سطر",
+      "secondaryMuscles": "العضلات الثانوية",
+      "secondaryMusclesPlaceholder": "عضلة واحدة في كل سطر",
+      "canonicalExerciseId": "معرف التمرين الأساسي",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "تسمية المتغير",
+      "variantLabelPlaceholder": "الجلسة ب",
+      "aliases": "الأسماء المستعارة",
+      "aliasesPlaceholder": "اسم مستعار واحد في كل سطر",
+      "sessionSpecific": "خاص بالجلسة",
+      "sessionSpecificToggle": "تتبع كمتغير خاص بالجلسة فقط",
+      "technicalNotes": "ملاحظات فنية",
+      "technicalNotesPlaceholder": "ملاحظة واحدة في كل سطر",
+      "executionCues": "توجيهات التنفيذ",
+      "executionCuesPlaceholder": "توجيه واحد في كل سطر",
+      "perSetTargets": "أهداف كل مجموعة",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=الدفع للفشل",
+      "weekOverrides": "تجاوزات الأسبوع",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=إضافة مجموعة"
+    },
     "submitAdd": "إضافة تمرين",
     "submitEdit": "حفظ التغييرات",
     "errors": {
       "nameRequired": "اسم التمرين مطلوب.",
-      "setsInvalid": "يجب أن تكون المجموعات عدداً صحيحاً موجباً."
+      "setsInvalid": "يجب أن تكون المجموعات عدداً صحيحاً موجباً.",
+      "restInvalid": "يجب أن تكون الراحة عددًا صحيحًا غير سالب."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "حالة المزامنة",
       "status": "الحالة",
+      "enabled": "المزامنة مفعلة",
+      "disabled": "المزامنة معطلة",
       "syncingWith_one": "جارٍ المزامنة مع جهاز واحد",
       "syncingWith_other": "جارٍ المزامنة مع {{count}} أجهزة",
       "off": "المزامنة متوقفة",
@@ -263,8 +591,11 @@
       "title": "النسخ الاحتياطي",
       "export": "حفظ النسخة الاحتياطية على الجهاز",
       "import": "استعادة من النسخة الاحتياطية",
+      "shareBackup": "مشاركة النسخة الاحتياطية",
       "shareToDevice": "مشاركة إلى جهاز آخر",
-      "scanFromDevice": "مسح من جهاز آخر"
+      "scanFromDevice": "مسح من جهاز آخر",
+      "localSaveRestore": "حفظ/استعادة محلي",
+      "qrShareRestore": "مشاركة/استعادة QR"
     },
     "pairingDevices": {
       "title": "الإقران والأجهزة",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "معاينة الاستيراد",
+    "titleWithProgram": "استيراد: {{program}}",
     "changesDetected": "تم اكتشاف {{count}} تغيير(ات).",
     "noChanges": "لم يتم اكتشاف تغييرات. النسخة الاحتياطية مطابقة للبيانات الحالية.",
+    "modeHint": "الاستيراد كجديد يحافظ على الخطة الحالية متاحة. استبدال البرنامج النشط يستبدل الخطة الحالية على هذا الجهاز.",
+    "stats": {
+      "workouts": "تمارين للتحديث",
+      "exercises": "تمارين للإنشاء أو التحديث",
+      "preservedWeights": "الأوزان المحفوظة",
+      "needsWeight": "تحتاج وزن بداية"
+    },
+    "exerciseStatus": {
+      "matching": "التمارين المتطابقة",
+      "changed": "التمارين المعدلة",
+      "new": "تمارين جديدة",
+      "removed": "تمارين محذوفة"
+    },
     "sections": {
+      "exerciseStatus": "حالة التمارين",
+      "preservedWeights": "الأوزان المحفوظة",
+      "missingWeights": "تمارين جديدة بدون وزن محفوظ",
+      "removedExercises": "محذوفة من البرنامج النشط",
       "workouts": "التمارين",
+      "program": "البرنامج",
       "settings": "الإعدادات",
       "weeks": "الأسابيع",
       "days": "الأيام"
     },
+    "currentWeightKept": "تم الاحتفاظ بالوزن الحالي",
+    "noPreviousWeight": "لم يتم العثور على وزن سابق",
     "cancel": "إلغاء",
-    "confirm": "استيراد النسخة الاحتياطية"
+    "confirm": "استيراد النسخة الاحتياطية",
+    "importAsNewProgram": "استيراد كبرنامج جديد",
+    "replaceActiveProgram": "استبدال البرنامج النشط"
+  },
+  "programLibrary": {
+    "title": "البرامج",
+    "summary": "{{count}} برنامج محفوظ",
+    "active": "نشط",
+    "empty": "لا توجد برامج محفوظة حتى الآن."
   },
   "deviceTransfer": {
     "shareTitle": "مشاركة إلى جهاز آخر",
     "shareDescription": "على الجهاز الآخر، افتح الإعدادات → النسخ الاحتياطي → المسح من جهاز آخر.",
+    "shareChunkCounter": "الجزء {{current}}/{{total}}",
+    "shareChunkHint": "حافظ على ثبات كلا الجهازين. يتم تدوير QR تلقائيًا.",
+    "pauseRotation": "إيقاف التدوير مؤقتًا",
+    "resumeRotation": "استئناف التدوير",
     "scanTitle": "مسح من جهاز آخر",
     "scanDescription": "وجّه الكاميرا إلى رمز QR لنسخة PearLift الاحتياطية.",
+    "chunkProgress": "تقدم المسح: {{received}}/{{total}}",
+    "transferCorrupted": "فشل فحص سلامة نقل QR. يرجى المسح من الجزء الأول مرة أخرى.",
     "cameraPermissionTitle": "يلزم إذن الكاميرا",
     "cameraPermissionMessage": "اسمح بالوصول إلى الكاميرا لمسح رمز QR للنسخة الاحتياطية.",
     "cameraPermissionButton": "السماح بالكاميرا",
+    "cameraUnavailableTitle": "الكاميرا غير متاحة",
+    "cameraUnavailableMessage": "لم تتمكن PearLift من الوصول إلى كاميرا خلفية قابلة للاستخدام على هذا الجهاز.",
     "invalidQr": "هذا الرمز لا يبدو كرمز QR لنسخة احتياطية من PearLift.",
     "tooLarge": "النسخة الاحتياطية كبيرة جدًا لتلائم رمز QR واحد. استخدم «حفظ النسخة الاحتياطية على الجهاز» بدلًا من ذلك."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "المشاركة غير متاحة على هذا الجهاز/المنصة."
     },
     "importBackup": {
-      "failedTitle": "فشل الاستيراد"
+      "failedTitle": "فشل الاستيراد",
+      "confirmReplaceTitle": "استبدال البرنامج النشط؟",
+      "confirmReplaceMessage": "سيؤدي هذا إلى استبدال برنامجك النشط الحالي بـ\"{{program}}\" على هذا الجهاز. يتم الاحتفاظ بالأوزان المطابقة الحالية حيثما أمكن.",
+      "confirmReplaceAction": "استبدال البرنامج"
     },
     "forgetDevice": {
       "authPromptMessage": "تأكيد لنسيان الجهاز",

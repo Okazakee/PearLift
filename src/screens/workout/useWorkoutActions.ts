@@ -52,7 +52,7 @@ export function useWorkoutActions(input: {
   };
 
   const handleExerciseSubmit = async (
-    payload: Omit<Exercise, 'id' | 'position' | 'baseWeight'>,
+    payload: Omit<Exercise, 'position' | 'baseWeight'>,
   ) => {
     const editing = editingExerciseId
       ? currentWorkout.exercises.find((item) => item.id === editingExerciseId)

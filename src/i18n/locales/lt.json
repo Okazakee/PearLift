@@ -4,7 +4,9 @@
     "delete": "Ištrinti",
     "back": "Atgal",
     "next": "Kitas",
-    "ok": "Gerai"
+    "ok": "Gerai",
+    "close": "Uždaryti",
+    "save": "Išsaugoti"
   },
   "app": {
     "loading": "Rengiami treniruočių duomenys"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Nebeltas",
         "connecting": "Jungiama",
+        "waiting": "Laukiama",
+        "dht_ready": "DHT paruoštas",
+        "peer_connected": "Lygiarangiškas prijungtas",
+        "handshake_ok": "Rankos paspaudimas OK",
+        "replicating": "Replikuojama",
         "synced": "Prisijungta",
         "error": "Klaida"
       },
@@ -134,6 +141,19 @@
         "connecting": "Ieškoma sinchronizavimo grupės.",
         "off": "Sinchronizavimas šiuo metu išjungtas šiame įrenginyje."
       },
+      "dht": "DHT",
+      "dhtReady": "Paruoštas",
+      "dhtBootstrapping": "Įkėlimas…",
+      "dhtError": "Klaida",
+      "dhtInactive": "Neaktyvus",
+      "dhtWaiting": "Laukiama",
+      "status": "Būsena",
+      "peers": "Lygiarangiškiai",
+      "peersConnected": "{{count}} prijungta",
+      "peersNone": "Nėra",
+      "connectionsActive": "{{count}} aktyvūs",
+      "connectionsNone": "Nėra",
+      "more": "Daugiau",
       "lastSyncAt": "Paskutinis sinchronizavimas: {{at}}",
       "lastSyncNever": "Paskutinis sinchronizavimas: niekada",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Šalinti triktis",
         "stop": "Sustabdyti sinchronizavimą"
       }
+    },
+    "manage": {
+      "title": "Įrenginių sinchronizavimas",
+      "subtitle": "Laikykite grupės sąranką ir sinchronizavimo priežiūrą vienoje vietoje.",
+      "roomSetup": "Grupės sąranka",
+      "roomSetupHint": "Pasirinkite, ar šis įrenginys pradeda naują grupę, ar prisijungia prie jau esamos.",
+      "onboardingTitle": "Be debesies. Be paskyros.",
+      "onboardingMessage": "PearLift sinchronizuoja jūsų treniruotes tiesiogiai tarp jūsų įrenginių — peer-to-peer. Jūsų duomenys niekada nepatenka į serverį. Viskas, ko jums reikia, yra būti tame pačiame Wi‑Fi tinkle arba šalia pirmajam prisijungimui.",
+      "onboardingDismiss": "Supratau",
+      "createRoom": "Sukurti grupę",
+      "joinRoom": "Prisijungti prie grupės",
+      "roomActive": "Grupė aktyvi",
+      "status": "Sinchronizavimo būsena",
+      "turnOn": "Įjungti",
+      "turnOff": "Išjungti",
+      "refresh": "Atnaujinti",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Grupės savininkas",
+        "joiner": "Narys"
+      },
+      "binding": {
+        "unconfigured": "Nesukonfigūruota",
+        "pending_first_sync": "Laukiama pirmojo sinchronizavimo",
+        "active": "Aktyvus",
+        "conflict_requires_decision": "Reikalingas jūsų sprendimas",
+        "active_conflict_requires_decision": "Sinchronizavimo konfliktui reikalingas jūsų sprendimas"
+      },
+      "thisDeviceCode": "Šio įrenginio kodas: {{code}}",
+      "deviceCode": "Kodas {{code}}",
+      "deviceNamePlaceholder": "Pavadinkite šį įrenginį",
+      "saveDeviceName": "Išsaugoti įrenginio pavadinimą",
+      "deviceNameSyncPending": "Įrenginio pavadinimas išsaugotas vietoje. Sinchronizavimas netrukus bandys jį bendrinti su lygiarangiškais.",
+      "masterKey": "Sinchronizavimo kodas",
+      "masterKeyHint": "Naudokite tą patį 64 simbolių sinchronizavimo kodą kiekviename įrenginyje, kuris turėtų bendrinti duomenis.",
+      "masterKeyPlaceholder": "Įklijuokite arba redaguokite 64 simbolių sinchronizavimo kodą",
+      "showQR": "Rodyti QR kodą",
+      "copyKey": "Kopijuoti kodą",
+      "applyKey": "Taikyti kodą",
+      "leaveRoom": "Palikti grupę",
+      "leaveRoomConfirmTitle": "Palikti šią grupę?",
+      "leaveRoomConfirmMessage": "Tai išjungia sinchronizavimą, išvalo dabartinį grupės susiejimą šiame įrenginyje ir pašalina vietinę grupės prisijungimų istoriją.",
+      "syncedDevices": "{{count}} įrenginių",
+      "syncedDevicesTitle": "Įrenginiai",
+      "noDevices": "Nė vienas įrenginys dar nėra sinchronizavęs.",
+      "showMore": "Rodyti dar {{count}}",
+      "lastSeen": "Paskutinį kartą matytas {{at}}",
+      "lastSyncAt": "Paskutinis sinchronizavimas {{at}}",
+      "removeDevice": "Pašalinti iš sąrašo",
+      "removeDeviceConfirmTitle": "Pašalinti šį įrenginį iš sąrašo?",
+      "removeDeviceConfirmMessage": "Tai paslepia įrenginį iš šio sąrašo tik šiame įrenginyje. Jis gali vėl pasirodyti, jei vėliau sinchronizuosis su šia grupe.",
+      "debug": "Derinimo informacija",
+      "never": "Niekada"
+    },
+    "create": {
+      "title": "Sukurti grupę",
+      "subtitle": "Šis įrenginys pradeda naują sinchronizavimo grupę ir gali bendrinti sinchronizavimo kodą su kitais įrenginiais.",
+      "room": "Nauja grupė",
+      "explainer": "Naudokite, kai šis įrenginys turėtų apibrėžti pradinę grupę ir pakviesti kitus.",
+      "datasetSummary": "Šis įrenginys šiuo metu turi {{workouts}} treniruotes ir {{exercises}} pratimus.",
+      "masterKey": "Sinchronizavimo kodas",
+      "inviteStarting": "Pradedama grupė ir generuojamas QR kvietimas…",
+      "invitePending": "Pradėkite grupę, kad sugeneruotumėte QR kvietimą.",
+      "copy": "Kopijuoti kodą",
+      "startRoom": "Pradėti šią grupę"
+    },
+    "join": {
+      "title": "Prisijungti prie grupės",
+      "subtitle": "Naudokite kito įrenginio sinchronizavimo kodą, kad prijungtumėte šį įrenginį prie tos pačios sinchronizavimo grupės.",
+      "preflight": "Prieš prisijungiant",
+      "localSummary": "Šis įrenginys šiuo metu turi {{workouts}} treniruotes ir {{exercises}} pratimus.",
+      "remoteSummaryHint": "Jei abiejuose įrenginiuose jau yra daug persidengiančių pakeitimų, PearLift paklaus, kurį duomenų rinkinį išlaikyti.",
+      "masterKey": "Sinchronizavimo kodas",
+      "keyPlaceholder": "Įklijuokite 64 simbolių sinchronizavimo kodą",
+      "paste": "Įklijuoti",
+      "scanQr": "Skanuoti QR",
+      "scanHelp": "Nukreipkite kamerą į QR kodą, kuriame yra sinchronizavimo kodas.",
+      "invalidKey": "Neteisingas sinchronizavimo kodas. Jį turi sudaryti 64 šešioliktainiai simboliai.",
+      "keyValid": "Galiojantis kvietimo kodas",
+      "pasteSuccess": "Įklijuota iš iškarpinės",
+      "pasteEmpty": "Iškarpinė tuščia",
+      "joinRoom": "Prisijungti prie grupės"
+    },
+    "decision": {
+      "title": "Pasirinkite pirmuosius sinchronizavimo duomenis",
+      "subtitle": "Abiejose pusėse jau yra reikšmingų duomenų. Pasirinkite, kurią pradinę liniją ši grupė turėtų išlaikyti.",
+      "thisDevice": "Šis įrenginys",
+      "roomData": "Grupės duomenys",
+      "datasetSummary": "{{workouts}} treniruotės · {{exercises}} pratimai",
+      "conflictTitle": "Aptikti persidengiantys pakeitimai",
+      "conflictWorkouts": "Treniruotės",
+      "conflictExercises": "Pratimai",
+      "conflictSummary": "Aptikta {{workouts}} treniruočių ir {{exercises}} pratimų persidengimų.",
+      "configConflictSummary": "{{weeks}} savaitės konfigūracijų persidengimai, {{days}} dienos konfigūracijų persidengimai, {{backlog}} grupės atnaujinimų laukia.",
+      "useThisDeviceHint": "Tai paskelbia šį įrenginį grupės pradine linija.",
+      "useRoomDataHint": "Tai pakeičia treniruočių duomenis šiame įrenginyje, išlaikant programos nuostatas.",
+      "useMerge": "Sujungti abu",
+      "useMergeHint": "Sujungti duomenis iš šio įrenginio ir grupės, kai nėra persidengimų.",
+      "mergeUnavailableHint": "Kai kurios treniruotės ar pratimai egzistuoja abiejuose įrenginiuose su skirtingomis reikšmėmis, todėl sujungimas neįmanomas.",
+      "useThisDevice": "Naudoti šio įrenginio duomenis",
+      "useRoomData": "Naudoti grupės duomenis"
+    },
+    "debug": {
+      "title": "Sinchronizavimo derinimo informacija",
+      "subtitle": "Vykdymo būsena, ryšio informacija ir naujausi sinchronizavimo žurnalai.",
+      "snapshot": "Vykdymo momento nuotrauka",
+      "connections": "Ryšiai",
+      "lastError": "Paskutinė klaida",
+      "logs": "Naujausi žurnalai",
+      "logCount": "Rodoma {{shown}} iš {{total}} žurnalo įrašų",
+      "clear": "Išvalyti"
     }
   },
   "workout": {
     "weekDay": "Savaita {{week}} - {{day}}",
-    "addExercise": "Pridėti pratimą"
+    "addExercise": "Pridėti pratimą",
+    "logWorkout": "Registruoti treniruotę",
+    "progressionSuggestions": "Pasiūlymai",
+    "suggestedToday": "Šiandien siūloma: {{workout}}",
+    "showDetails": "Rodyti detales",
+    "hideDetails": "Slėpti detales",
+    "details": {
+      "notes": "Pastabos",
+      "tempo": "Tempas",
+      "equipment": "Įranga",
+      "primaryMuscles": "Pirminiai raumenys",
+      "secondaryMuscles": "Antriniai raumenys",
+      "technique": "Technika",
+      "cues": "Užuominos",
+      "perSetTargets": "Setų tikslai",
+      "progression": "Progresavimas",
+      "weekOverrides": "Savaičių pakeitimai",
+      "active": "Aktyvus",
+      "intensity": "Intensyvumas",
+      "target": "Tikslas",
+      "estimatedOneRepMax": "Numatomas 1RM",
+      "notSet": "Nenustatyta",
+      "intensityRange": "Intensyvumo diapazonas",
+      "weightSettings": "Svorio nustatymai",
+      "weightMode": "Svorio režimas",
+      "increment": "Prieaugis",
+      "exerciseSettings": "Pratimų nustatymai"
+    }
+  },
+  "workoutLog": {
+    "title": "Treniruočių žurnalas",
+    "subtitle": "{{workout}} · Savaitė {{week}}",
+    "progress": "{{logged}} / {{total}} setų užregistruota",
+    "loading": "Įkeliamas treniruotės žurnalas…",
+    "done": "Atlikta",
+    "skip": "Praleisti",
+    "save": "Išsaugoti žurnalą",
+    "saving": "Išsaugoma…",
+    "useTarget": "Užbaigti su tikslu",
+    "reset": "Atstatyti",
+    "setLabel": "Setas {{set}}",
+    "targetRir": "Tikslinis RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Faktinis svoris",
+    "actualReps": "Faktiniai kartojimai",
+    "leftReps": "Kairės kartojimai",
+    "rightReps": "Dešinės kartojimai",
+    "perSideReps": "Vienai pusei",
+    "sharedReps": "Bendri",
+    "actualRir": "Faktinis RIR",
+    "errors": {
+      "load": "Nepavyko įkelti šio treniruotės žurnalo.",
+      "save": "Nepavyko išsaugoti šio treniruotės žurnalo."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progresavimo pasiūlymai",
+    "subtitle": "Pritaikykite kitą krūvį dabar arba palikite laukiantį vėlesniam laikui.",
+    "current": "Dabartinis svoris",
+    "next": "Kitas svoris",
+    "reason": "Priežastis: {{reason}}",
+    "apply": "Pritaikyti",
+    "skip": "Praleisti"
+  },
+  "exerciseSettings": {
+    "title": "Pratimų nustatymai",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Darbinis svoris",
+    "weightMode": "Svorio režimas",
+    "increment": "Prieaugis",
+    "estimatedOneRepMax": "Numatomas 1RM",
+    "notes": "Pastabos",
+    "history": "Naujausia istorija",
+    "linkedVariants": "Susieti variantai",
+    "historyLoading": "Įkeliama istorija…",
+    "historyEmpty": "Dar nėra užregistruotų sesijų.",
+    "historyError": "Nepavyko įkelti istorijos.",
+    "historySets": "{{completed}} / {{total}} setų",
+    "historyBestReps": "Geriausi {{reps}} kartojimai"
   },
   "restTimer": {
     "title": "Pertraukos laikmatis",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Programos nustatymai",
     "tabs": {
+      "program": "Programa",
       "weeks": "Savaitės",
       "days": "Dienos"
+    },
+    "program": {
+      "name": "Programos pavadinimas",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Paantraštė",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Tikslas",
+      "goalPlaceholder": "Jėga ir hipertrofija",
+      "description": "Aprašymas",
+      "descriptionPlaceholder": "Neprivalomos pastabos apie šį treniruočių bloką",
+      "sourceType": "Šaltinis",
+      "sourceLabel": "Šaltinio etiketė",
+      "sourceLabelPlaceholder": "Trenerio PDF, šablonas ar pastaba",
+      "startDate": "Pradžios data",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Trukmė (savaitės)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Numatytasis poilsis (sek)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progresavimo modelis",
+      "frequencySummary": "Savaitiniai tikslai",
+      "frequencyGroupPlaceholder": "Raumenų grupė",
+      "frequencyTarget": "Tikslas per savaitę",
+      "frequencyPerWeek_one": "{{count}}x / savaitę",
+      "frequencyPerWeek_other": "{{count}}x / savaitę",
+      "addFrequencyTarget": "Pridėti savaitinį tikslą",
+      "progressionModels": {
+        "simple_load_modifier": "Paprastas",
+        "exercise_rules": "Taisyklės",
+        "mixed": "Mišrus",
+        "manual": "Rankinis"
+      },
+      "sourceTypes": {
+        "manual": "Rankinis",
+        "coach": "Treneris",
+        "template": "Šablonas",
+        "imported_pdf": "Importuotas PDF",
+        "imported_json": "Importuotas JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Savaitės pavadinimas",
       "loadModifier": "Apkrovos modifikatorius",
+      "volumeModifier": "Apimties modifikatorius",
       "rir": "RIR (Rezervo kartojimai)",
+      "notes": "Savaitės pastabos",
+      "notesPlaceholder": "Neprivalomos pastabos šiai savaitei",
       "baseline": "Pagrindas",
       "addWeek": "Pridėti savaitę",
       "deleteTitle": "Ištrinti savaitę",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Diena {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Piktograma",
+      "schedule": "Tvarkaraštis",
+      "pickDay": "Pasirinkti dieną",
+      "pickWindow": "Pasirinkti dienas",
       "iconMore": "Daugiau",
       "iconRefresh": "Atnaujinti",
+      "scheduleTypes": {
+        "unscheduled": "Bet kuri",
+        "fixed_day": "Fiksuota",
+        "day_window": "Langas"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Pr",
+          "tue": "A",
+          "wed": "T",
+          "thu": "K",
+          "fri": "Pn",
+          "sat": "Š",
+          "sun": "S"
+        },
+        "narrow": {
+          "mon": "Pr",
+          "tue": "A",
+          "wed": "T",
+          "thu": "A",
+          "fri": "Pn",
+          "sat": "Š",
+          "sun": "Š"
+        }
+      },
       "addDay": "Pridėti dieną",
       "deleteTitle": "Ištrinti dieną",
       "deleteMessage": "Ištrinti \"{{name}}\"? Tai pašalins ją iš visų savaičių."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Pridėti pratimą",
     "titleEdit": "Redaguoti pratimą",
+    "tabs": {
+      "basic": "Pagrindinis",
+      "advanced": "Išplėstinis"
+    },
     "name": "Pavadinimas",
     "namePlaceholder": "Pratimo pavadinimas",
     "muscleGroup": "Raumenų grupė",
@@ -202,11 +487,52 @@
     "reps": "Kartojimai",
     "notes": "Pastabos",
     "notesPlaceholder": "Neprivalomos pastabos...",
+    "advanced": {
+      "show": "Rodyti išplėstinius laukus",
+      "hide": "Slėpti išplėstinius laukus",
+      "rest": "Poilsis (sek)",
+      "restUseDefault": "Pasaulinis numatytasis",
+      "restCustom": "Pasirinktinis",
+      "restPlaceholder": "180",
+      "rir": "RIR tikslas",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensyvumas",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempas",
+      "tempoPlaceholder": "Eccentrica 2 sek",
+      "progressionRule": "Progresavimo taisyklė",
+      "progressionRulePlaceholder": "+5kg, kai visi setai pasiekia aukščiausius kartojimus su 2 RIR",
+      "unilateral": "Vienpusis režimas",
+      "unilateralPlaceholder": "kojos, pusės, kairė/dešinė, pakaitomis",
+      "equipment": "Įranga",
+      "equipmentPlaceholder": "Štanga, hanteliai, trosas, treniruoklis",
+      "primaryMuscles": "Pirminiai raumenys",
+      "primaryMusclesPlaceholder": "Po vieną raumenį eilutėje",
+      "secondaryMuscles": "Antriniai raumenys",
+      "secondaryMusclesPlaceholder": "Po vieną raumenį eilutėje",
+      "canonicalExerciseId": "Kanoninis pratimo ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Varianto etiketė",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Alternatyvūs pavadinimai",
+      "aliasesPlaceholder": "Po vieną alternatyvų pavadinimą eilutėje",
+      "sessionSpecific": "Sesijos specifinis",
+      "sessionSpecificToggle": "Sekti kaip tik sesijos variantą",
+      "technicalNotes": "Techninės pastabos",
+      "technicalNotesPlaceholder": "Po vieną pastabą eilutėje",
+      "executionCues": "Atlikimo užuominos",
+      "executionCuesPlaceholder": "Po vieną užuominą eilutėje",
+      "perSetTargets": "Setų tikslai",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; pastabos=Spausti iki nesėkmės",
+      "weekOverrides": "Savaičių pakeitimai",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; pastabos=Pridėti vieną setą"
+    },
     "submitAdd": "Pridėti pratimą",
     "submitEdit": "Išsaugoti pakeitimus",
     "errors": {
       "nameRequired": "Pratimo pavadinimas yra būtinas.",
-      "setsInvalid": "Setai turi būti teigiamas sveikasis skaičius."
+      "setsInvalid": "Setai turi būti teigiamas sveikasis skaičius.",
+      "restInvalid": "Poilsis turi būti galiojantis neneigiamas sveikasis skaičius."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Sinchronizavimo būsena",
       "status": "Būsena",
+      "enabled": "Sinchronizavimas įjungtas",
+      "disabled": "Sinchronizavimas išjungtas",
       "syncingWith_one": "Sinchronizuojama su {{count}} įrenginiu",
       "syncingWith_other": "Sinchronizuojama su {{count}} įrenginiais",
       "off": "Sinchronizavimas išjungtas",
@@ -263,8 +591,11 @@
       "title": "Atsarginė kopija",
       "export": "Išsaugoti atsarginę kopiją įrenginyje",
       "import": "Atkurti iš atsarginės kopijos",
+      "shareBackup": "Bendrinti atsarginę kopiją",
       "shareToDevice": "Bendrinti su kitu įrenginiu",
-      "scanFromDevice": "Nuskaityti iš kito įrenginio"
+      "scanFromDevice": "Nuskaityti iš kito įrenginio",
+      "localSaveRestore": "Vietinis išsaugojimas / atkūrimas",
+      "qrShareRestore": "QR bendrinimas / atkūrimas"
     },
     "pairingDevices": {
       "title": "Susiejimas ir įrenginiai",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Importo peržiūra",
+    "titleWithProgram": "Importas: {{program}}",
     "changesDetected": "Nustatyta {{count}} pakeitimų(ų).",
     "noChanges": "Nepastebėta jokių pakeitimų. Atsarginė kopija yra identi dabartiniams duomenims.",
+    "modeHint": "Importavimas kaip naujas palieka dabartinį planą prieinamą. Aktyvios programos pakeitimas perrašo dabartinį planą šiame įrenginyje.",
+    "stats": {
+      "workouts": "Atnaujintinos treniruotės",
+      "exercises": "Sukurtini arba atnaujintini pratimai",
+      "preservedWeights": "Išsaugoti svoriai",
+      "needsWeight": "Reikia pradinio svorio"
+    },
+    "exerciseStatus": {
+      "matching": "Atitinkantys pratimai",
+      "changed": "Pakeisti pratimai",
+      "new": "Nauji pratimai",
+      "removed": "Pašalinti pratimai"
+    },
     "sections": {
+      "exerciseStatus": "Pratimų būsena",
+      "preservedWeights": "Išsaugoti svoriai",
+      "missingWeights": "Nauji pratimai be išsaugoto svorio",
+      "removedExercises": "Pašalinta iš aktyvios programos",
       "workouts": "Treniruotės",
+      "program": "Programa",
       "settings": "Nustatymai",
       "weeks": "Savaitės",
       "days": "Dienos"
     },
+    "currentWeightKept": "Dabartinis svoris išlaikytas",
+    "noPreviousWeight": "Ankstesnis svoris nerastas",
     "cancel": "Atšaukti",
-    "confirm": "Importuoti atsarginę kopiją"
+    "confirm": "Importuoti atsarginę kopiją",
+    "importAsNewProgram": "Importuoti kaip naują programą",
+    "replaceActiveProgram": "Pakeisti aktyvią programą"
+  },
+  "programLibrary": {
+    "title": "Programos",
+    "summary": "{{count}} išsaugota programa(os)",
+    "active": "Aktyvus",
+    "empty": "Dar nėra išsaugotų programų."
   },
   "deviceTransfer": {
     "shareTitle": "Bendrinti su kitu įrenginiu",
     "shareDescription": "Kitame įrenginyje: Nustatymai → Atsarginė kopija → Nuskaityti iš kito įrenginio.",
+    "shareChunkCounter": "Dalis {{current}}/{{total}}",
+    "shareChunkHint": "Laikykite abu įrenginius nejudančius. QR sukasi automatiškai.",
+    "pauseRotation": "Pristabdyti sukimą",
+    "resumeRotation": "Tęsti sukimą",
     "scanTitle": "Nuskaityti iš kito įrenginio",
     "scanDescription": "Nukreipkite kamerą į PearLift atsarginės kopijos QR kodą.",
+    "chunkProgress": "Skenavimo eiga: {{received}}/{{total}}",
+    "transferCorrupted": "QR perdavimo vientisumo patikra nepavyko. Prašome nuskaityti iš pirmos dalies dar kartą.",
     "cameraPermissionTitle": "Reikalingas kameros leidimas",
     "cameraPermissionMessage": "Leiskite naudoti kamerą atsarginės kopijos QR kodui nuskaityti.",
     "cameraPermissionButton": "Leisti kamerą",
+    "cameraUnavailableTitle": "Kamera nepasiekiama",
+    "cameraUnavailableMessage": "PearLift negalėjo pasiekti naudojamos galinės kameros šiame įrenginyje.",
     "invalidQr": "Šis QR kodas nepanašus į PearLift atsarginę kopiją.",
     "tooLarge": "Atsarginė kopija per didelė vienam QR kodui. Vietoje to naudokite „Išsaugoti atsarginę kopiją įrenginyje“."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Bendrinimas nepasiekiamas šiame įrenginyje/platformoje."
     },
     "importBackup": {
-      "failedTitle": "Importavimas nepavyko"
+      "failedTitle": "Importavimas nepavyko",
+      "confirmReplaceTitle": "Pakeisti aktyvią programą?",
+      "confirmReplaceMessage": "Tai pakeis jūsų dabartinę aktyvią programą \"{{program}}\" šiame įrenginyje. Esami atitinkantys svoriai išsaugomi, kai įmanoma.",
+      "confirmReplaceAction": "Pakeisti programą"
     },
     "forgetDevice": {
       "authPromptMessage": "Patvirtinkite, kad pamiršite įrenginį",

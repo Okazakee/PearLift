@@ -1,13 +1,19 @@
 import { fromByteArray, toByteArray } from 'base64-js';
 import pako from 'pako';
+import { toPearLiftBackupCollection } from '@/backup/serialization';
 import type {
+  BackupProgramCollection,
   PearLiftBackupExercise,
-  PearLiftBackupV3,
+  PearLiftBackupV4,
   PearLiftBackupWorkout,
   PearLiftRuntimeState,
 } from '@/backup/types';
 import type {
   DayConfig,
+  ExerciseAdvanced,
+  ExerciseWeightMode,
+  TrainingProgram,
+  UserExerciseSettingsMap,
   UserWeights,
   WeekConfig,
   WorkoutDay,
@@ -31,6 +37,13 @@ type CompactExercise = [
   muscleGroup: string,
   notes?: string,
   position?: number,
+  advanced?: ExerciseAdvanced,
+  identity?: {
+    canonicalExerciseId?: string;
+    aliases?: string[];
+    variantLabel?: string;
+    sessionSpecific?: true;
+  },
 ];
 
 type CompactWorkout = [
@@ -38,6 +51,7 @@ type CompactWorkout = [
   name: string,
   description: string,
   exercises: CompactExercise[],
+  defaultRestSeconds?: number,
 ];
 
 type CompactWeekConfig = [
@@ -45,10 +59,28 @@ type CompactWeekConfig = [
   name: string,
   loadModifier: number,
   rir: number,
+  volumeModifier?: number,
+  notes?: string | null,
 ];
 
-type CompactDayConfig = [id: string, name: string, icon: string];
+type CompactDayConfig = [
+  id: string,
+  name: string,
+  sessionLabel: string | null,
+  icon: string,
+  schedule?: DayConfig['schedule'],
+];
 type CompactWeight = [exerciseId: string, weight: number];
+type CompactUserExerciseSetting = [
+  exerciseId: string,
+  workingWeight: number | null,
+  weightUnit: 'kg' | 'lb',
+  weightMode: string,
+  incrementKg?: number | null,
+  estimatedOneRepMax?: number | null,
+  notes?: string | null,
+  updatedAt?: string,
+];
 type CompactSettings = [
   currentWeek: number,
   currentDay: WorkoutDay,
@@ -60,11 +92,19 @@ type CompactSettings = [
 interface CompactBackupV1 {
   v: 1;
   e: string;
+  p?: TrainingProgram | null;
   w: CompactWorkout[];
   uw?: CompactWeight[];
+  ues?: CompactUserExerciseSetting[];
   wc?: CompactWeekConfig[];
   dc?: CompactDayConfig[];
   s: CompactSettings;
+}
+
+function isBackupProgramCollection(
+  value: PearLiftRuntimeState | BackupProgramCollection,
+): value is BackupProgramCollection {
+  return 'programs' in value && Array.isArray(value.programs);
 }
 
 interface SingleEnvelope {
@@ -123,6 +163,18 @@ function coerceThemeMode(value: unknown): CompactSettings[3] {
     : 'dark';
 }
 
+function coerceWeightMode(value: unknown): ExerciseWeightMode {
+  return value === 'total' ||
+    value === 'per_hand' ||
+    value === 'per_side' ||
+    value === 'machine_stack' ||
+    value === 'bodyweight' ||
+    value === 'assisted' ||
+    value === 'custom'
+    ? value
+    : 'total';
+}
+
 function toCompactExercise(
   exercise: PearLiftBackupExercise,
   index: number,
@@ -145,11 +197,36 @@ function toCompactExercise(
     compact.push(notes);
   }
 
-  if (position !== index) {
+  if (position !== index || exercise.advanced) {
     if (notes.length === 0) {
       compact.push('');
     }
     compact.push(position);
+  }
+
+  if (exercise.advanced) {
+    compact.push(exercise.advanced);
+  }
+
+  if (
+    exercise.canonicalExerciseId ||
+    exercise.aliases?.length ||
+    exercise.variantLabel ||
+    exercise.sessionSpecific
+  ) {
+    if (!exercise.advanced) {
+      while (compact.length < 9) {
+        compact.push(undefined);
+      }
+    }
+    compact.push({
+      ...(exercise.canonicalExerciseId
+        ? { canonicalExerciseId: exercise.canonicalExerciseId }
+        : {}),
+      ...(exercise.aliases?.length ? { aliases: exercise.aliases } : {}),
+      ...(exercise.variantLabel ? { variantLabel: exercise.variantLabel } : {}),
+      ...(exercise.sessionSpecific ? { sessionSpecific: true } : {}),
+    });
   }
 
   return compact;
@@ -159,7 +236,15 @@ function toCompactWorkout(workout: WorkoutSession): CompactWorkout {
   const exercises = workout.exercises.map((exercise, index) =>
     toCompactExercise(exercise, index),
   );
-  return [workout.id, workout.name, workout.description, exercises];
+  return workout.defaultRestSeconds != null
+    ? [
+        workout.id,
+        workout.name,
+        workout.description,
+        exercises,
+        workout.defaultRestSeconds,
+      ]
+    : [workout.id, workout.name, workout.description, exercises];
 }
 
 function toCompactWeights(weights: UserWeights): CompactWeight[] {
@@ -171,28 +256,59 @@ function toCompactWeights(weights: UserWeights): CompactWeight[] {
   return entries;
 }
 
+function toCompactUserExerciseSettings(
+  settings: UserExerciseSettingsMap | undefined,
+): CompactUserExerciseSetting[] {
+  if (!settings) {
+    return [];
+  }
+
+  return Object.values(settings).map((item) => [
+    item.exerciseId,
+    item.workingWeight ?? null,
+    item.weightUnit,
+    item.weightMode,
+    item.incrementKg ?? null,
+    item.estimatedOneRepMax ?? null,
+    item.notes ?? null,
+    item.updatedAt,
+  ]);
+}
+
 function toCompactWeekConfigs(weekConfigs: WeekConfig[]): CompactWeekConfig[] {
   return weekConfigs.map((week) => [
     week.id,
     week.name,
     week.loadModifier,
     week.rir,
+    week.volumeModifier ?? 1,
+    week.notes ?? null,
   ]);
 }
 
 function toCompactDayConfigs(dayConfigs: DayConfig[]): CompactDayConfig[] {
-  return dayConfigs.map((day) => [day.id, day.name, day.icon]);
+  return dayConfigs.map((day) => [
+    day.id,
+    day.name,
+    day.sessionLabel ?? null,
+    day.icon,
+    day.schedule,
+  ]);
 }
 
 function toCompactBackup(state: PearLiftRuntimeState): CompactBackupV1 {
   const exportedAt = new Date().toISOString();
   const compactWeights = toCompactWeights(state.userWeights);
+  const compactUserExerciseSettings = toCompactUserExerciseSettings(
+    state.userExerciseSettings,
+  );
   const compactWeekConfigs = toCompactWeekConfigs(state.weekConfigs);
   const compactDayConfigs = toCompactDayConfigs(state.dayConfigs);
 
   const compact: CompactBackupV1 = {
     v: 1,
     e: exportedAt,
+    p: state.program ?? null,
     w: state.workouts.map(toCompactWorkout),
     s: [
       state.currentWeek,
@@ -205,6 +321,10 @@ function toCompactBackup(state: PearLiftRuntimeState): CompactBackupV1 {
 
   if (compactWeights.length > 0) {
     compact.uw = compactWeights;
+  }
+
+  if (compactUserExerciseSettings.length > 0) {
+    compact.ues = compactUserExerciseSettings;
   }
 
   if (compactWeekConfigs.length > 0) {
@@ -235,6 +355,8 @@ function fromCompactExercise(
     muscleGroup,
     notesValue,
     positionValue,
+    advancedValue,
+    identityValue,
   ] = compact;
 
   const notes =
@@ -246,12 +368,38 @@ function fromCompactExercise(
   return {
     id: String(id ?? `exercise-${fallbackIndex}`),
     name: String(name ?? 'Exercise'),
+    ...(isRecord(identityValue) &&
+    typeof identityValue.canonicalExerciseId === 'string' &&
+    identityValue.canonicalExerciseId.trim().length > 0
+      ? { canonicalExerciseId: identityValue.canonicalExerciseId.trim() }
+      : {}),
+    ...(isRecord(identityValue) && Array.isArray(identityValue.aliases)
+      ? {
+          aliases: identityValue.aliases
+            .map((item) => (typeof item === 'string' ? item.trim() : ''))
+            .filter((item) => item.length > 0),
+        }
+      : {}),
+    ...(isRecord(identityValue) &&
+    typeof identityValue.variantLabel === 'string' &&
+    identityValue.variantLabel.trim().length > 0
+      ? { variantLabel: identityValue.variantLabel.trim() }
+      : {}),
+    ...(isRecord(identityValue) && identityValue.sessionSpecific === true
+      ? { sessionSpecific: true }
+      : {}),
     sets: Number.isFinite(Number(sets)) ? Number(sets) : 2,
     reps: String(reps ?? '8-10'),
     baseWeight: Number.isFinite(Number(baseWeight)) ? Number(baseWeight) : 0,
     muscleGroup: String(muscleGroup ?? 'Full Body'),
     notes,
     position,
+    advanced:
+      typeof advancedValue === 'object' &&
+      advancedValue !== null &&
+      !Array.isArray(advancedValue)
+        ? (advancedValue as ExerciseAdvanced)
+        : undefined,
   };
 }
 
@@ -260,7 +408,7 @@ function fromCompactWorkout(compact: unknown): PearLiftBackupWorkout {
     throw new Error('Invalid compact workout payload.');
   }
 
-  const [id, name, description, exercisesValue] = compact;
+  const [id, name, description, exercisesValue, defaultRestSeconds] = compact;
   const exercises = Array.isArray(exercisesValue)
     ? exercisesValue.map((exercise, index) =>
         fromCompactExercise(exercise, index),
@@ -271,6 +419,10 @@ function fromCompactWorkout(compact: unknown): PearLiftBackupWorkout {
     id: String(id ?? 'workout'),
     name: String(name ?? 'Workout'),
     description: String(description ?? ''),
+    ...(Number.isFinite(Number(defaultRestSeconds)) &&
+    Number(defaultRestSeconds) >= 0
+      ? { defaultRestSeconds: Number(defaultRestSeconds) }
+      : {}),
     exercises,
   };
 }
@@ -291,6 +443,54 @@ function fromCompactWeights(compact: unknown): UserWeights {
   return userWeights;
 }
 
+function fromCompactUserExerciseSettings(
+  compact: unknown,
+): UserExerciseSettingsMap | undefined {
+  if (!Array.isArray(compact)) {
+    return undefined;
+  }
+
+  const settings: UserExerciseSettingsMap = {};
+  for (const item of compact) {
+    if (!Array.isArray(item) || item.length < 4) continue;
+    const [
+      exerciseId,
+      workingWeight,
+      weightUnit,
+      weightMode,
+      incrementKg,
+      estimatedOneRepMax,
+      notes,
+      updatedAt,
+    ] = item;
+    const key = String(exerciseId ?? '').trim();
+    if (!key) continue;
+    settings[key] = {
+      exerciseId: key,
+      ...(Number.isFinite(Number(workingWeight))
+        ? { workingWeight: Number(workingWeight) }
+        : {}),
+      weightUnit: weightUnit === 'lb' ? 'lb' : 'kg',
+      weightMode: coerceWeightMode(weightMode),
+      ...(Number.isFinite(Number(incrementKg))
+        ? { incrementKg: Number(incrementKg) }
+        : {}),
+      ...(Number.isFinite(Number(estimatedOneRepMax))
+        ? { estimatedOneRepMax: Number(estimatedOneRepMax) }
+        : {}),
+      ...(typeof notes === 'string' && notes.trim().length > 0
+        ? { notes: notes.trim() }
+        : {}),
+      updatedAt:
+        typeof updatedAt === 'string' && updatedAt.trim().length > 0
+          ? updatedAt
+          : new Date().toISOString(),
+    };
+  }
+
+  return Object.keys(settings).length > 0 ? settings : undefined;
+}
+
 function fromCompactWeekConfigs(compact: unknown): WeekConfig[] {
   if (!Array.isArray(compact)) {
     return [];
@@ -299,14 +499,20 @@ function fromCompactWeekConfigs(compact: unknown): WeekConfig[] {
   const weekConfigs: WeekConfig[] = [];
   for (const item of compact) {
     if (!Array.isArray(item)) continue;
-    const [id, name, loadModifier, rir] = item;
+    const [id, name, loadModifier, rir, volumeModifier, notes] = item;
     weekConfigs.push({
       id: Number.isFinite(Number(id)) ? Number(id) : weekConfigs.length + 1,
       name: String(name ?? `Week ${weekConfigs.length + 1}`),
       loadModifier: Number.isFinite(Number(loadModifier))
         ? Number(loadModifier)
         : 1,
+      ...(Number.isFinite(Number(volumeModifier))
+        ? { volumeModifier: Number(volumeModifier) }
+        : {}),
       rir: Number.isFinite(Number(rir)) ? Number(rir) : 2,
+      ...(typeof notes === 'string' && notes.trim().length > 0
+        ? { notes: notes.trim() }
+        : {}),
     });
   }
   return weekConfigs;
@@ -320,17 +526,30 @@ function fromCompactDayConfigs(compact: unknown): DayConfig[] {
   const dayConfigs: DayConfig[] = [];
   for (const item of compact) {
     if (!Array.isArray(item)) continue;
-    const [id, name, icon] = item;
+    const [id, name, third, fourth, fifth] = item;
+    const usesSessionLabel = item.length >= 5;
+    const sessionLabel = usesSessionLabel ? third : null;
+    const icon = usesSessionLabel ? fourth : third;
+    const schedule = usesSessionLabel ? fifth : fourth;
     dayConfigs.push({
       id: String(id ?? `day-${dayConfigs.length + 1}`),
       name: String(name ?? `Day ${dayConfigs.length + 1}`),
+      ...(typeof sessionLabel === 'string' && sessionLabel.trim().length > 0
+        ? { sessionLabel: sessionLabel.trim() }
+        : {}),
       icon: String(icon ?? 'FitnessCenter'),
+      schedule:
+        typeof schedule === 'object' &&
+        schedule !== null &&
+        !Array.isArray(schedule)
+          ? (schedule as DayConfig['schedule'])
+          : undefined,
     });
   }
   return dayConfigs;
 }
 
-function fromCompactBackup(compact: unknown): PearLiftBackupV3 {
+function fromCompactBackup(compact: unknown): PearLiftBackupV4 {
   if (!isRecord(compact) || compact.v !== 1) {
     throw new Error('Unsupported compact backup version.');
   }
@@ -345,16 +564,29 @@ function fromCompactBackup(compact: unknown): PearLiftBackupV3 {
     : 150;
   const themeMode = coerceThemeMode(settings[3]);
   const weightUnit = settings[4] === 'lb' ? 'lb' : 'kg';
+  const userExerciseSettings = fromCompactUserExerciseSettings(compact.ues);
 
   return {
-    version: 3,
+    version: 4,
     exportedAt:
       typeof compact.e === 'string' ? compact.e : new Date().toISOString(),
+    app: {
+      name: 'PearLift',
+      platform: 'mobile',
+      backupFormat: 'pearlift.backup.v4',
+    },
     data: {
+      program:
+        typeof compact.p === 'object' &&
+        compact.p !== null &&
+        !Array.isArray(compact.p)
+          ? (compact.p as TrainingProgram)
+          : null,
       workouts: Array.isArray(compact.w)
         ? compact.w.map(fromCompactWorkout)
         : [],
       userWeights: fromCompactWeights(compact.uw),
+      ...(userExerciseSettings ? { userExerciseSettings } : {}),
       weekConfigs: fromCompactWeekConfigs(compact.wc),
       dayConfigs: fromCompactDayConfigs(compact.dc),
       settings: {
@@ -478,23 +710,41 @@ function decodeCompressedPayload(
     throw new Error('Invalid compressed QR payload.');
   }
 
-  let compact: unknown;
+  let parsedPayload: unknown;
   try {
-    compact = JSON.parse(compactJson);
+    parsedPayload = JSON.parse(compactJson);
   } catch {
-    throw new Error('Invalid compact backup payload.');
+    throw new Error('Invalid QR backup payload.');
   }
 
-  const backup = fromCompactBackup(compact);
+  if (
+    isRecord(parsedPayload) &&
+    typeof parsedPayload.version === 'number' &&
+    isRecord(parsedPayload.data)
+  ) {
+    return JSON.stringify(parsedPayload);
+  }
+
+  const backup = fromCompactBackup(parsedPayload);
   return JSON.stringify(backup);
 }
 
 export function encodeBackupForQr(
-  state: PearLiftRuntimeState,
+  input: PearLiftRuntimeState | BackupProgramCollection,
 ): EncodedQrTransfer {
-  const compact = toCompactBackup(state);
-  const compactJson = JSON.stringify(compact);
-  const compressed = pako.gzip(compactJson);
+  const payload = isBackupProgramCollection(input)
+    ? (() => {
+        const backup = toPearLiftBackupCollection({
+          ...input,
+          programs: input.programs.map((programState) => ({
+            ...programState,
+            sessionLogs: [],
+          })),
+        });
+        return JSON.stringify(backup);
+      })()
+    : JSON.stringify(toCompactBackup(input));
+  const compressed = pako.gzip(payload);
   const checksum = toCrc32Hex(compressed);
   const base64Payload = fromByteArray(compressed);
 

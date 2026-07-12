@@ -4,7 +4,9 @@
     "delete": "Dzēst",
     "back": "Atpakaļ",
     "next": "Tālāk",
-    "ok": "Labi"
+    "ok": "Labi",
+    "close": "Aizvērt",
+    "save": "Saglabāt"
   },
   "app": {
     "loading": "Treniņu datu sagatavošana"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Gaidīšana",
         "connecting": "Meklēšana",
+        "waiting": "Gaida",
+        "dht_ready": "DHT gatavs",
+        "peer_connected": "Partneris savienots",
+        "handshake_ok": "Rokasspiediens OK",
+        "replicating": "Replicē",
         "synced": "Savienots",
         "error": "Kļūda"
       },
@@ -134,6 +141,19 @@
         "connecting": "Meklē jūsu sinhronizācijas grupu.",
         "off": "Sinhronizācija pašlaik ir atspējota šajā ierīcē."
       },
+      "dht": "DHT",
+      "dhtReady": "Gatavs",
+      "dhtBootstrapping": "Ielāde…",
+      "dhtError": "Kļūda",
+      "dhtInactive": "Neaktīvs",
+      "dhtWaiting": "Gaida",
+      "status": "Statuss",
+      "peers": "Partneri",
+      "peersConnected": "{{count}} savienots",
+      "peersNone": "Nav",
+      "connectionsActive": "{{count}} aktīvi",
+      "connectionsNone": "Nav",
+      "more": "Vairāk",
       "lastSyncAt": "Pēdējā sinhronizācija: {{at}}",
       "lastSyncNever": "Pēdējā sinhronizācija: nekad",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Novērst problēmas",
         "stop": "Apturēt sinhronizāciju"
       }
+    },
+    "manage": {
+      "title": "Ierīču sinhronizācija",
+      "subtitle": "Glabājiet grupas iestatīšanu un sinhronizācijas uzturēšanu vienuviet.",
+      "roomSetup": "Grupas iestatīšana",
+      "roomSetupHint": "Izvēlieties, vai šī ierīce sāk jaunu grupu vai pievienojas jau esošai.",
+      "onboardingTitle": "Bez mākoņa. Bez konta.",
+      "onboardingMessage": "PearLift sinhronizē jūsu treniņus tieši starp jūsu ierīcēm — peer-to-peer. Jūsu dati nekad nenonāk serverī. Viss, kas nepieciešams, ir atrasties vienā Wi‑Fi tīklā vai tuvumā pirmajam savienojumam.",
+      "onboardingDismiss": "Sapratu",
+      "createRoom": "Izveidot grupu",
+      "joinRoom": "Pievienoties grupai",
+      "roomActive": "Grupa aktīva",
+      "status": "Sinhronizācijas statuss",
+      "turnOn": "Ieslēgt",
+      "turnOff": "Izslēgt",
+      "refresh": "Atjaunot",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Grupas īpašnieks",
+        "joiner": "Dalībnieks"
+      },
+      "binding": {
+        "unconfigured": "Nav konfigurēts",
+        "pending_first_sync": "Gaida pirmo sinhronizāciju",
+        "active": "Aktīvs",
+        "conflict_requires_decision": "Nepieciešams jūsu lēmums",
+        "active_conflict_requires_decision": "Sinhronizācijas konfliktam nepieciešams jūsu lēmums"
+      },
+      "thisDeviceCode": "Šīs ierīces kods: {{code}}",
+      "deviceCode": "Kods {{code}}",
+      "deviceNamePlaceholder": "Nosauciet šo ierīci",
+      "saveDeviceName": "Saglabāt ierīces nosaukumu",
+      "deviceNameSyncPending": "Ierīces nosaukums tika saglabāts lokāli. Sinhronizācija drīz mēģinās to kopīgot ar partneriem.",
+      "masterKey": "Sinhronizācijas kods",
+      "masterKeyHint": "Izmantojiet to pašu 64 rakstzīmju sinhronizācijas kodu katrā ierīcē, kurai jākopīgo dati.",
+      "masterKeyPlaceholder": "Ielīmējiet vai rediģējiet 64 rakstzīmju sinhronizācijas kodu",
+      "showQR": "Rādīt QR kodu",
+      "copyKey": "Kopēt kodu",
+      "applyKey": "Lietot kodu",
+      "leaveRoom": "Atstāt grupu",
+      "leaveRoomConfirmTitle": "Atstāt šo grupu?",
+      "leaveRoomConfirmMessage": "Tas izslēdz sinhronizāciju, notīra pašreizējo grupas saistību šajā ierīcē un noņem lokālo grupas savienojumu vēsturi.",
+      "syncedDevices": "{{count}} ierīces",
+      "syncedDevicesTitle": "Ierīces",
+      "noDevices": "Vēl nav sinhronizēta neviena ierīce.",
+      "showMore": "Rādīt vēl {{count}}",
+      "lastSeen": "Pēdējoreiz redzēts {{at}}",
+      "lastSyncAt": "Pēdējā sinhronizācija {{at}}",
+      "removeDevice": "Noņemt no saraksta",
+      "removeDeviceConfirmTitle": "Noņemt šo ierīci no saraksta?",
+      "removeDeviceConfirmMessage": "Tas paslēpj ierīci no šī saraksta tikai šajā ierīcē. Tā var parādīties atkal, ja tā vēlāk sinhronizēsies ar šo grupu.",
+      "debug": "Atkļūdošanas informācija",
+      "never": "Nekad"
+    },
+    "create": {
+      "title": "Izveidot grupu",
+      "subtitle": "Šī ierīce sāk jaunu sinhronizācijas grupu un var kopīgot sinhronizācijas kodu ar citām ierīcēm.",
+      "room": "Jauna grupa",
+      "explainer": "Izmantojiet, kad šai ierīcei jānosaka sākotnējā grupa un jāuzaicina citas.",
+      "datasetSummary": "Šai ierīcei pašlaik ir {{workouts}} treniņi un {{exercises}} vingrinājumi.",
+      "masterKey": "Sinhronizācijas kods",
+      "inviteStarting": "Uzsāk grupu un ģenerē QR ielūgumu…",
+      "invitePending": "Sāciet grupu, lai ģenerētu QR ielūgumu.",
+      "copy": "Kopēt kodu",
+      "startRoom": "Sākt šo grupu"
+    },
+    "join": {
+      "title": "Pievienoties grupai",
+      "subtitle": "Izmantojiet sinhronizācijas kodu no citas ierīces, lai pievienotu šo ierīci tai pašai sinhronizācijas grupai.",
+      "preflight": "Pirms pievienošanās",
+      "localSummary": "Šai ierīcei pašlaik ir {{workouts}} treniņi un {{exercises}} vingrinājumi.",
+      "remoteSummaryHint": "Ja abās ierīcēs jau ir daudz pārklājošu izmaiņu, PearLift jautās, kuru datu kopu saglabāt.",
+      "masterKey": "Sinhronizācijas kods",
+      "keyPlaceholder": "Ielīmējiet 64 rakstzīmju sinhronizācijas kodu",
+      "paste": "Ielīmēt",
+      "scanQr": "Skenēt QR",
+      "scanHelp": "Pavērsiet kameru pret QR kodu, kas satur sinhronizācijas kodu.",
+      "invalidKey": "Nederīgs sinhronizācijas kods. Tam jābūt 64 heksa rakstzīmēm.",
+      "keyValid": "Derīgs ielūguma kods",
+      "pasteSuccess": "Ielīmēts no starpliktuves",
+      "pasteEmpty": "Starpliktuve ir tukša",
+      "joinRoom": "Pievienoties grupai"
+    },
+    "decision": {
+      "title": "Izvēlieties pirmos sinhronizācijas datus",
+      "subtitle": "Abās pusēs jau ir nozīmīgi dati. Izvēlieties, kuru bāzes līniju šai grupai saglabāt.",
+      "thisDevice": "Šī ierīce",
+      "roomData": "Grupas dati",
+      "datasetSummary": "{{workouts}} treniņi · {{exercises}} vingrinājumi",
+      "conflictTitle": "Konstatētas pārklāšanās izmaiņas",
+      "conflictWorkouts": "Treniņi",
+      "conflictExercises": "Vingrinājumi",
+      "conflictSummary": "Tika konstatētas {{workouts}} treniņu un {{exercises}} vingrinājumu pārklāšanās.",
+      "configConflictSummary": "{{weeks}} nedēļas konfigurācijas pārklāšanās, {{days}} dienas konfigurācijas pārklāšanās, {{backlog}} grupas atjauninājumu gaida.",
+      "useThisDeviceHint": "Tas publicē šo ierīci kā grupas bāzes līniju.",
+      "useRoomDataHint": "Tas aizstāj treniņu datus šajā ierīcē, saglabājot lietotņu preferences.",
+      "useMerge": "Apvienot abus",
+      "useMergeHint": "Apvienojiet datus no šīs ierīces un grupas, ja nav pārklāšanās.",
+      "mergeUnavailableHint": "Daži treniņi vai vingrinājumi pastāv abās ierīcēs ar dažādām vērtībām, tāpēc apvienošana nav iespējama.",
+      "useThisDevice": "Izmantot šīs ierīces datus",
+      "useRoomData": "Izmantot grupas datus"
+    },
+    "debug": {
+      "title": "Sinhronizācijas atkļūdošanas informācija",
+      "subtitle": "Izpildlaika statuss, savienojuma dati un nesenās sinhronizācijas žurnāli.",
+      "snapshot": "Izpildlaika momentuzņēmums",
+      "connections": "Savienojumi",
+      "lastError": "Pēdējā kļūda",
+      "logs": "Nesenie žurnāli",
+      "logCount": "Tiek rādīts {{shown}} no {{total}} žurnāla ierakstiem",
+      "clear": "Notīrīt"
     }
   },
   "workout": {
     "weekDay": "Nedēļa {{week}} - {{day}}",
-    "addExercise": "Pievienot vingrojumu"
+    "addExercise": "Pievienot vingrojumu",
+    "logWorkout": "Reģistrēt treniņu",
+    "progressionSuggestions": "Ieteikumi",
+    "suggestedToday": "Šodien ieteikts: {{workout}}",
+    "showDetails": "Rādīt detaļas",
+    "hideDetails": "Slēpt detaļas",
+    "details": {
+      "notes": "Piezīmes",
+      "tempo": "Temps",
+      "equipment": "Aprīkojums",
+      "primaryMuscles": "Primārie muskuļi",
+      "secondaryMuscles": "Sekundārie muskuļi",
+      "technique": "Tehnika",
+      "cues": "Norādes",
+      "perSetTargets": "Mērķi katram komplektam",
+      "progression": "Progresija",
+      "weekOverrides": "Nedēļas pārrakstīšana",
+      "active": "Aktīvs",
+      "intensity": "Intensitāte",
+      "target": "Mērķis",
+      "estimatedOneRepMax": "Aprēķinātais 1RM",
+      "notSet": "Nav iestatīts",
+      "intensityRange": "Intensitātes diapazons",
+      "weightSettings": "Svara iestatījumi",
+      "weightMode": "Svara režīms",
+      "increment": "Pieaugums",
+      "exerciseSettings": "Vingrinājumu iestatījumi"
+    }
+  },
+  "workoutLog": {
+    "title": "Treniņu žurnāls",
+    "subtitle": "{{workout}} · Nedēļa {{week}}",
+    "progress": "{{logged}} / {{total}} komplekti reģistrēti",
+    "loading": "Ielādē treniņu žurnālu…",
+    "done": "Gatavs",
+    "skip": "Izlaist",
+    "save": "Saglabāt žurnālu",
+    "saving": "Saglabā…",
+    "useTarget": "Pabeigt ar mērķi",
+    "reset": "Atiestatīt",
+    "setLabel": "Komplekts {{set}}",
+    "targetRir": "Mērķa RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Faktiskais svars",
+    "actualReps": "Faktiskie atkārtojumi",
+    "leftReps": "Kreisie atkārtojumi",
+    "rightReps": "Labie atkārtojumi",
+    "perSideReps": "Katrā pusē",
+    "sharedReps": "Kopīgs",
+    "actualRir": "Faktiskais RIR",
+    "errors": {
+      "load": "Nevarēja ielādēt šo treniņu žurnālu.",
+      "save": "Nevarēja saglabāt šo treniņu žurnālu."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progresijas ieteikumi",
+    "subtitle": "Pielietot nākamo slodzi tagad vai atstāt to gaidīšanā vēlākam laikam.",
+    "current": "Pašreizējais svars",
+    "next": "Nākamais svars",
+    "reason": "Iemesls: {{reason}}",
+    "apply": "Pielietot",
+    "skip": "Izlaist"
+  },
+  "exerciseSettings": {
+    "title": "Vingrinājumu iestatījumi",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Darba svars",
+    "weightMode": "Svara režīms",
+    "increment": "Pieaugums",
+    "estimatedOneRepMax": "Aprēķinātais 1RM",
+    "notes": "Piezīmes",
+    "history": "Nesena vēsture",
+    "linkedVariants": "Saistītie varianti",
+    "historyLoading": "Ielādē vēsturi…",
+    "historyEmpty": "Vēl nav reģistrētu sesiju.",
+    "historyError": "Nevarēja ielādēt vēsturi.",
+    "historySets": "{{completed}} / {{total}} komplekti",
+    "historyBestReps": "Labākie {{reps}} atkārtojumi"
   },
   "restTimer": {
     "title": "Atpūtas taimeris",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Programmas iestatījumi",
     "tabs": {
+      "program": "Programma",
       "weeks": "Nedēļas",
       "days": "Dienas"
+    },
+    "program": {
+      "name": "Programmas nosaukums",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Apakšvirsraksts",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Mērķis",
+      "goalPlaceholder": "Spēks un hipertrofija",
+      "description": "Apraksts",
+      "descriptionPlaceholder": "Neobligātas piezīmes par šo treniņu bloku",
+      "sourceType": "Avots",
+      "sourceLabel": "Avota etiķete",
+      "sourceLabelPlaceholder": "Trenera PDF, veidne vai piezīme",
+      "startDate": "Sākuma datums",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Ilgums (nedēļas)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Noklusējuma atpūta (sek)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progresijas modelis",
+      "frequencySummary": "Nedēļas mērķi",
+      "frequencyGroupPlaceholder": "Muskuļu grupa",
+      "frequencyTarget": "Mērķis nedēļā",
+      "frequencyPerWeek_one": "{{count}}x / nedēļā",
+      "frequencyPerWeek_other": "{{count}}x / nedēļā",
+      "addFrequencyTarget": "Pievienot nedēļas mērķi",
+      "progressionModels": {
+        "simple_load_modifier": "Vienkāršs",
+        "exercise_rules": "Noteikumi",
+        "mixed": "Jaukts",
+        "manual": "Manuāls"
+      },
+      "sourceTypes": {
+        "manual": "Manuāls",
+        "coach": "Treneris",
+        "template": "Veidne",
+        "imported_pdf": "Importēts PDF",
+        "imported_json": "Importēts JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Nedēļas nosaukums",
       "loadModifier": "Slodzes modifikators",
+      "volumeModifier": "Apjoma modifikators",
       "rir": "RIR (Rezerves atkārtojumi)",
+      "notes": "Nedēļas piezīmes",
+      "notesPlaceholder": "Neobligātas piezīmes šai nedēļai",
       "baseline": "Bāzes līnija",
       "addWeek": "Pievienot nedēļu",
       "deleteTitle": "Dzēst nedēļu",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Diena {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikona",
+      "schedule": "Grafiks",
+      "pickDay": "Izvēlēties dienu",
+      "pickWindow": "Izvēlēties dienas",
       "iconMore": "Vairāk",
       "iconRefresh": "Atjaunot",
+      "scheduleTypes": {
+        "unscheduled": "Jebkurš",
+        "fixed_day": "Fiksēts",
+        "day_window": "Logs"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "P",
+          "tue": "O",
+          "wed": "T",
+          "thu": "C",
+          "fri": "Pk",
+          "sat": "S",
+          "sun": "Sv"
+        },
+        "narrow": {
+          "mon": "P",
+          "tue": "O",
+          "wed": "T",
+          "thu": "O",
+          "fri": "Pk",
+          "sat": "S",
+          "sun": "S"
+        }
+      },
       "addDay": "Pievienot dienu",
       "deleteTitle": "Dzēst dienu",
       "deleteMessage": "Dzēst \"{{name}}\"? Tas to noņems no visām nedēļām."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Pievienot vingrojumu",
     "titleEdit": "Rediģēt vingrojumu",
+    "tabs": {
+      "basic": "Pamata",
+      "advanced": "Papildu"
+    },
     "name": "Nosaukums",
     "namePlaceholder": "Vingrojuma nosaukums",
     "muscleGroup": "Muskuļu grupa",
@@ -202,11 +487,52 @@
     "reps": "Atkārtojumi",
     "notes": "Piezīmes",
     "notesPlaceholder": "Neobligātas piezīmes...",
+    "advanced": {
+      "show": "Rādīt papildu laukus",
+      "hide": "Slēpt papildu laukus",
+      "rest": "Atpūta (sek)",
+      "restUseDefault": "Globālais noklusējums",
+      "restCustom": "Pielāgots",
+      "restPlaceholder": "180",
+      "rir": "RIR mērķis",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensitāte",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Temps",
+      "tempoPlaceholder": "Eccentrica 2 sek",
+      "progressionRule": "Progresijas noteikums",
+      "progressionRulePlaceholder": "+5kg, kad visi komplekti sasniedz augstākos atkārtojumus ar 2 RIR",
+      "unilateral": "Vienpusējs režīms",
+      "unilateralPlaceholder": "uz kāju, uz pusi, kreisā/labā, pamīšus",
+      "equipment": "Aprīkojums",
+      "equipmentPlaceholder": "Stienis, hanteles, trose, trenažieris",
+      "primaryMuscles": "Primārie muskuļi",
+      "primaryMusclesPlaceholder": "Viens muskulis rindā",
+      "secondaryMuscles": "Sekundārie muskuļi",
+      "secondaryMusclesPlaceholder": "Viens muskulis rindā",
+      "canonicalExerciseId": "Kanoniskais vingrinājuma ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Varianta etiķete",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Aizstājvārdi",
+      "aliasesPlaceholder": "Viens aizstājvārds rindā",
+      "sessionSpecific": "Sesijas specifisks",
+      "sessionSpecificToggle": "Izsekot kā tikai sesijas variantu",
+      "technicalNotes": "Tehniskās piezīmes",
+      "technicalNotesPlaceholder": "Viena piezīme rindā",
+      "executionCues": "Izpildes norādes",
+      "executionCuesPlaceholder": "Viena norāde rindā",
+      "perSetTargets": "Mērķi katram komplektam",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; piezīmes=Spied līdz neveiksmei",
+      "weekOverrides": "Nedēļas pārrakstīšana",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; piezīmes=Pievienot vienu komplektu"
+    },
     "submitAdd": "Pievienot vingrojumu",
     "submitEdit": "Saglabāt izmaiņas",
     "errors": {
       "nameRequired": "Vingrojuma nosaukums ir obligāts.",
-      "setsInvalid": "Komplektiem jābūt derīgam pozitīvam veselajam skaitlim."
+      "setsInvalid": "Komplektiem jābūt derīgam pozitīvam veselajam skaitlim.",
+      "restInvalid": "Atpūtai jābūt derīgam nenegatīvam veselam skaitlim."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Sinhronizācijas statuss",
       "status": "Statuss",
+      "enabled": "Sinhronizācija ir ieslēgta",
+      "disabled": "Sinhronizācija ir izslēgta",
       "syncingWith_one": "Sinhronizē ar {{count}} ierīci",
       "syncingWith_other": "Sinhronizē ar {{count}} ierīcēm",
       "off": "Sinhronizācija ir izslēgta",
@@ -263,8 +591,11 @@
       "title": "Dublējums",
       "export": "Saglabāt dublējumu ierīcē",
       "import": "Atjaunot no dublējuma",
+      "shareBackup": "Kopīgot dublējumu",
       "shareToDevice": "Kopīgot uz citu ierīci",
-      "scanFromDevice": "Skenēt no citas ierīces"
+      "scanFromDevice": "Skenēt no citas ierīces",
+      "localSaveRestore": "Lokālā saglabāšana / atjaunošana",
+      "qrShareRestore": "QR kopīgošana / atjaunošana"
     },
     "pairingDevices": {
       "title": "Savienošana un ierīces",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Importa priekšskatījums",
+    "titleWithProgram": "Imports: {{program}}",
     "changesDetected": "Konstatētas {{count}} izmaiņas.",
     "noChanges": "Nav konstatētu izmaiņu. Dublējums ir identisks pašreizējiem datiem.",
+    "modeHint": "Importēšana kā jauna saglabā pašreizējo plānu pieejamu. Aktīvās programmas aizstāšana pārraksta pašreizējo plānu šajā ierīcē.",
+    "stats": {
+      "workouts": "Atjaunināmie treniņi",
+      "exercises": "Izveidojamie vai atjaunināmie vingrinājumi",
+      "preservedWeights": "Saglabātie svari",
+      "needsWeight": "Nepieciešams sākuma svars"
+    },
+    "exerciseStatus": {
+      "matching": "Atbilstošie vingrinājumi",
+      "changed": "Mainītie vingrinājumi",
+      "new": "Jauni vingrinājumi",
+      "removed": "Noņemtie vingrinājumi"
+    },
     "sections": {
+      "exerciseStatus": "Vingrinājumu statuss",
+      "preservedWeights": "Saglabātie svari",
+      "missingWeights": "Jauni vingrinājumi bez saglabāta svara",
+      "removedExercises": "Noņemts no aktīvās programmas",
       "workouts": "Treniņi",
+      "program": "Programma",
       "settings": "Iestatījumi",
       "weeks": "Nedēļas",
       "days": "Dienas"
     },
+    "currentWeightKept": "Pašreizējais svars saglabāts",
+    "noPreviousWeight": "Iepriekšējais svars nav atrasts",
     "cancel": "Atcelt",
-    "confirm": "Importēt dublējumu"
+    "confirm": "Importēt dublējumu",
+    "importAsNewProgram": "Importēt kā jaunu programmu",
+    "replaceActiveProgram": "Aizstāt aktīvo programmu"
+  },
+  "programLibrary": {
+    "title": "Programmas",
+    "summary": "{{count}} saglabātā programma(s)",
+    "active": "Aktīvs",
+    "empty": "Vēl nav saglabātu programmu."
   },
   "deviceTransfer": {
     "shareTitle": "Kopīgot uz citu ierīci",
     "shareDescription": "Citā ierīcē: Iestatījumi → Dublējums → Skenēt no citas ierīces.",
+    "shareChunkCounter": "Vienums {{current}}/{{total}}",
+    "shareChunkHint": "Turiet abas ierīces nekustīgi. QR automātiski mainās.",
+    "pauseRotation": "Apturēt rotāciju",
+    "resumeRotation": "Atsākt rotāciju",
     "scanTitle": "Skenēt no citas ierīces",
     "scanDescription": "Vērst kameru uz PearLift dublējuma QR kodu.",
+    "chunkProgress": "Skenēšanas progress: {{received}}/{{total}}",
+    "transferCorrupted": "QR pārsūtīšana neizturēja integritātes pārbaudi. Lūdzu, skenējiet no pirmā vienuma vēlreiz.",
     "cameraPermissionTitle": "Nepieciešama kameras atļauja",
     "cameraPermissionMessage": "Atļaujiet kamerai skenēt dublējuma QR kodu.",
     "cameraPermissionButton": "Atļaut kameru",
+    "cameraUnavailableTitle": "Kamera nav pieejama",
+    "cameraUnavailableMessage": "PearLift nevarēja piekļūt izmantojamai aizmugurējai kamerai šajā ierīcē.",
     "invalidQr": "Šis QR kods neizskatās pēc PearLift dublējuma.",
     "tooLarge": "Dublējums ir pārāk liels vienam QR kodam. Izmantojiet “Saglabāt dublējumu ierīcē”."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Kopīgošana nav pieejama šajā ierīcē/platformā."
     },
     "importBackup": {
-      "failedTitle": "Imports neizdevās"
+      "failedTitle": "Imports neizdevās",
+      "confirmReplaceTitle": "Aizstāt aktīvo programmu?",
+      "confirmReplaceMessage": "Tas aizstās jūsu pašreizējo aktīvo programmu ar \"{{program}}\" šajā ierīcē. Esošie atbilstošie svari tiek saglabāti, ja iespējams.",
+      "confirmReplaceAction": "Aizstāt programmu"
     },
     "forgetDevice": {
       "authPromptMessage": "Apstipriniet, lai aizmirstu ierīci",

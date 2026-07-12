@@ -14,7 +14,8 @@ interface ImportPreviewModalProps {
   tokens: ThemeTokens;
   summary: ChangeSummary;
   onClose: () => void;
-  onConfirm: () => void;
+  onImportAsNewProgram: () => void;
+  onReplaceActiveProgram: () => void;
 }
 
 export function ImportPreviewModal({
@@ -22,7 +23,8 @@ export function ImportPreviewModal({
   tokens,
   summary,
   onClose,
-  onConfirm,
+  onImportAsNewProgram,
+  onReplaceActiveProgram,
 }: ImportPreviewModalProps) {
   const { t } = useTranslation();
   const layout = useResponsiveLayout();
@@ -39,7 +41,11 @@ export function ImportPreviewModal({
       <View style={styles.header}>
         <View style={styles.titleRow}>
           <Eye size={18} color={tokens.colors.primary} />
-          <Text style={styles.title}>{t('importPreview.title')}</Text>
+          <Text style={styles.title}>
+            {t('importPreview.titleWithProgram', {
+              program: summary.programName,
+            })}
+          </Text>
         </View>
         <Pressable style={styles.closeButton} onPress={onClose} hitSlop={8}>
           <X size={18} color={tokens.colors.textSecondary} />
@@ -51,8 +57,141 @@ export function ImportPreviewModal({
           ? t('importPreview.changesDetected', { count: summary.totalChanges })
           : t('importPreview.noChanges')}
       </Text>
+      <Text style={styles.summaryHint}>{t('importPreview.modeHint')}</Text>
 
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <View style={styles.statsGrid}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{summary.incomingWorkoutCount}</Text>
+            <Text style={styles.statLabel}>
+              {t('importPreview.stats.workouts')}
+            </Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {summary.incomingExerciseCount}
+            </Text>
+            <Text style={styles.statLabel}>
+              {t('importPreview.stats.exercises')}
+            </Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {summary.preservedWeights.length}
+            </Text>
+            <Text style={styles.statLabel}>
+              {t('importPreview.stats.preservedWeights')}
+            </Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>
+              {summary.missingWeightExercises.length}
+            </Text>
+            <Text style={styles.statLabel}>
+              {t('importPreview.stats.needsWeight')}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {t('importPreview.sections.exerciseStatus')}
+          </Text>
+          <View style={styles.row}>
+            <Text style={styles.rowName}>
+              {t('importPreview.exerciseStatus.matching')}
+            </Text>
+            <Text style={styles.rowMeta}>
+              {summary.matchingExercises.length}
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.rowName}>
+              {t('importPreview.exerciseStatus.changed')}
+            </Text>
+            <Text style={styles.rowMeta}>
+              {summary.changedExercises.length}
+            </Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.rowName}>
+              {t('importPreview.exerciseStatus.new')}
+            </Text>
+            <Text style={styles.rowMeta}>{summary.newExercises.length}</Text>
+          </View>
+          <View style={styles.row}>
+            <Text style={styles.rowName}>
+              {t('importPreview.exerciseStatus.removed')}
+            </Text>
+            <Text style={styles.rowMeta}>
+              {summary.removedExercises.length}
+            </Text>
+          </View>
+        </View>
+
+        {summary.preservedWeights.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.preservedWeights')}
+            </Text>
+            {summary.preservedWeights.map((item) => (
+              <View
+                key={`${item.workoutId}:${item.exerciseId}`}
+                style={styles.exerciseRow}
+              >
+                <View style={styles.exerciseCopy}>
+                  <Text style={styles.rowName}>{item.name}</Text>
+                  <Text style={styles.rowSubtle}>{item.workoutName}</Text>
+                </View>
+                <Text style={styles.rowMeta}>
+                  {t('importPreview.currentWeightKept')}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {summary.missingWeightExercises.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.missingWeights')}
+            </Text>
+            {summary.missingWeightExercises.map((item) => (
+              <View
+                key={`${item.workoutId}:${item.exerciseId}`}
+                style={styles.exerciseRow}
+              >
+                <View style={styles.exerciseCopy}>
+                  <Text style={styles.rowName}>{item.name}</Text>
+                  <Text style={styles.rowSubtle}>{item.workoutName}</Text>
+                </View>
+                <Text style={styles.rowMeta}>
+                  {t('importPreview.noPreviousWeight')}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {summary.removedExercises.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.removedExercises')}
+            </Text>
+            {summary.removedExercises.map((item) => (
+              <View
+                key={`${item.workoutId}:${item.exerciseId}`}
+                style={styles.exerciseRow}
+              >
+                <View style={styles.exerciseCopy}>
+                  <Text style={styles.rowName}>{item.name}</Text>
+                  <Text style={styles.rowSubtle}>{item.workoutName}</Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
         {summary.workouts.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>
@@ -75,6 +214,22 @@ export function ImportPreviewModal({
               {t('importPreview.sections.settings')}
             </Text>
             {summary.settings.map((item) => (
+              <View key={item.key} style={styles.row}>
+                <Text style={styles.rowName}>{item.key}</Text>
+                <Text style={styles.rowMeta}>
+                  {item.from} {'->'} {item.to}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {summary.programMetadata.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {t('importPreview.sections.program')}
+            </Text>
+            {summary.programMetadata.map((item) => (
               <View key={item.key} style={styles.row}>
                 <Text style={styles.rowName}>{item.key}</Text>
                 <Text style={styles.rowMeta}>
@@ -122,8 +277,18 @@ export function ImportPreviewModal({
         <Pressable style={styles.cancelButton} onPress={onClose}>
           <Text style={styles.cancelText}>{t('importPreview.cancel')}</Text>
         </Pressable>
-        <Pressable style={styles.confirmButton} onPress={onConfirm}>
-          <Text style={styles.confirmText}>{t('importPreview.confirm')}</Text>
+        <Pressable
+          style={styles.secondaryActionButton}
+          onPress={onReplaceActiveProgram}
+        >
+          <Text style={styles.secondaryActionText}>
+            {t('importPreview.replaceActiveProgram')}
+          </Text>
+        </Pressable>
+        <Pressable style={styles.confirmButton} onPress={onImportAsNewProgram}>
+          <Text style={styles.confirmText}>
+            {t('importPreview.importAsNewProgram')}
+          </Text>
         </Pressable>
       </View>
     </AnimatedModalShell>
@@ -181,11 +346,40 @@ function createStyles(
       color: tokens.colors.textSecondary,
       fontSize: tokens.type.body,
     },
+    summaryHint: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+    },
     scroll: {
       maxHeight: 360,
     },
     content: {
       gap: tokens.spacing.sm,
+    },
+    statsGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: tokens.spacing.sm,
+    },
+    statCard: {
+      minWidth: '47%',
+      flex: 1,
+      padding: tokens.spacing.sm,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.06),
+      gap: tokens.spacing.xs,
+    },
+    statValue: {
+      color: tokens.colors.textPrimary,
+      fontSize: tokens.type.title,
+      fontWeight: '700',
+    },
+    statLabel: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
+      fontWeight: '600',
     },
     section: {
       gap: tokens.spacing.xs,
@@ -206,11 +400,25 @@ function createStyles(
       justifyContent: 'space-between',
       gap: tokens.spacing.sm,
     },
+    exerciseRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: tokens.spacing.sm,
+    },
+    exerciseCopy: {
+      flex: 1,
+      gap: 2,
+    },
     rowName: {
       color: tokens.colors.textPrimary,
       fontSize: tokens.type.body,
       fontWeight: '500',
       flex: 1,
+    },
+    rowSubtle: {
+      color: tokens.colors.textSecondary,
+      fontSize: tokens.type.label,
     },
     rowMeta: {
       color: tokens.colors.textSecondary,
@@ -238,8 +446,24 @@ function createStyles(
       fontSize: tokens.type.body,
       fontWeight: '600',
     },
+    secondaryActionButton: {
+      minWidth: 150,
+      minHeight: 40,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: withAlpha(tokens.colors.accentDanger, 0.08),
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: tokens.spacing.md,
+    },
+    secondaryActionText: {
+      color: tokens.colors.accentDanger,
+      fontSize: tokens.type.body,
+      fontWeight: '700',
+    },
     confirmButton: {
-      minWidth: 128,
+      minWidth: 170,
       minHeight: 40,
       borderRadius: tokens.radius.md,
       backgroundColor: tokens.colors.primary,

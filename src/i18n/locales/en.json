@@ -5,7 +5,8 @@
     "back": "Back",
     "next": "Next",
     "ok": "OK",
-    "close": "Close"
+    "close": "Close",
+    "save": "Save"
   },
   "app": {
     "loading": "Preparing your training data"
@@ -278,7 +279,85 @@
   },
   "workout": {
     "weekDay": "Week {{week}} - {{day}}",
-    "addExercise": "Add Exercise"
+    "addExercise": "Add Exercise",
+    "logWorkout": "Log workout",
+    "progressionSuggestions": "Suggestions",
+    "suggestedToday": "Suggested today: {{workout}}",
+    "showDetails": "Show details",
+    "hideDetails": "Hide details",
+    "details": {
+      "notes": "Notes",
+      "tempo": "Tempo",
+      "equipment": "Equipment",
+      "primaryMuscles": "Primary muscles",
+      "secondaryMuscles": "Secondary muscles",
+      "technique": "Technique",
+      "cues": "Cues",
+      "perSetTargets": "Per-set targets",
+      "progression": "Progression",
+      "weekOverrides": "Week overrides",
+      "active": "Active",
+      "intensity": "Intensity",
+      "target": "Target",
+      "estimatedOneRepMax": "Estimated 1RM",
+      "notSet": "Not set",
+      "intensityRange": "Intensity range",
+      "weightSettings": "Weight settings",
+      "weightMode": "Weight mode",
+      "increment": "Increment",
+      "exerciseSettings": "Exercise settings"
+    }
+  },
+  "workoutLog": {
+    "title": "Workout log",
+    "subtitle": "{{workout}} · Week {{week}}",
+    "progress": "{{logged}} / {{total}} sets logged",
+    "loading": "Loading workout log…",
+    "done": "Done",
+    "skip": "Skip",
+    "save": "Save log",
+    "saving": "Saving…",
+    "useTarget": "Complete with target",
+    "reset": "Reset",
+    "setLabel": "Set {{set}}",
+    "targetRir": "Target RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Actual weight",
+    "actualReps": "Actual reps",
+    "leftReps": "Left reps",
+    "rightReps": "Right reps",
+    "perSideReps": "Per side",
+    "sharedReps": "Shared",
+    "actualRir": "Actual RIR",
+    "errors": {
+      "load": "Could not load this workout log.",
+      "save": "Could not save this workout log."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progression suggestions",
+    "subtitle": "Apply the next load now or leave it pending for later.",
+    "current": "Current weight",
+    "next": "Next weight",
+    "reason": "Reason: {{reason}}",
+    "apply": "Apply",
+    "skip": "Skip"
+  },
+  "exerciseSettings": {
+    "title": "Exercise settings",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Working weight",
+    "weightMode": "Weight mode",
+    "increment": "Increment",
+    "estimatedOneRepMax": "Estimated 1RM",
+    "notes": "Notes",
+    "history": "Recent history",
+    "linkedVariants": "Linked variants",
+    "historyLoading": "Loading history…",
+    "historyEmpty": "No logged sessions yet.",
+    "historyError": "Could not load history.",
+    "historySets": "{{completed}} / {{total}} sets",
+    "historyBestReps": "Best {{reps}} reps"
   },
   "restTimer": {
     "title": "Rest Timer",
@@ -300,13 +379,56 @@
   "programSettings": {
     "title": "Program Settings",
     "tabs": {
+      "program": "Program",
       "weeks": "Weeks",
       "days": "Days"
+    },
+    "program": {
+      "name": "Program name",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Subtitle",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Goal",
+      "goalPlaceholder": "Strength and hypertrophy",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional notes about this training block",
+      "sourceType": "Source",
+      "sourceLabel": "Source label",
+      "sourceLabelPlaceholder": "Coach PDF, template, or note",
+      "startDate": "Start date",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Duration (weeks)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Default rest (sec)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progression model",
+      "frequencySummary": "Weekly targets",
+      "frequencyGroupPlaceholder": "Muscle group",
+      "frequencyTarget": "Target per week",
+      "frequencyPerWeek_one": "{{count}}x / week",
+      "frequencyPerWeek_other": "{{count}}x / week",
+      "addFrequencyTarget": "Add weekly target",
+      "progressionModels": {
+        "simple_load_modifier": "Simple",
+        "exercise_rules": "Rules",
+        "mixed": "Mixed",
+        "manual": "Manual"
+      },
+      "sourceTypes": {
+        "manual": "Manual",
+        "coach": "Coach",
+        "template": "Template",
+        "imported_pdf": "Imported PDF",
+        "imported_json": "Imported JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Week name",
       "loadModifier": "Load Modifier",
+      "volumeModifier": "Volume Modifier",
       "rir": "RIR (Reps in reserve)",
+      "notes": "Week notes",
+      "notesPlaceholder": "Optional notes for this week",
       "baseline": "Baseline",
       "addWeek": "Add Week",
       "deleteTitle": "Delete week",
@@ -314,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Day {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Icon",
+      "schedule": "Schedule",
+      "pickDay": "Pick day",
+      "pickWindow": "Pick days",
       "iconMore": "More",
       "iconRefresh": "Refresh",
+      "scheduleTypes": {
+        "unscheduled": "Any",
+        "fixed_day": "Fixed",
+        "day_window": "Window"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat",
+          "sun": "Sun"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "W",
+          "thu": "T",
+          "fri": "F",
+          "sat": "S",
+          "sun": "S"
+        }
+      },
       "addDay": "Add Day",
       "deleteTitle": "Delete day",
       "deleteMessage": "Delete \"{{name}}\"? This removes it from all weeks."
@@ -325,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Add Exercise",
     "titleEdit": "Edit Exercise",
+    "tabs": {
+      "basic": "Basic",
+      "advanced": "Advanced"
+    },
     "name": "Name",
     "namePlaceholder": "Exercise name",
     "muscleGroup": "Muscle Group",
@@ -332,11 +487,52 @@
     "reps": "Reps",
     "notes": "Notes",
     "notesPlaceholder": "Optional notes...",
+    "advanced": {
+      "show": "Show advanced fields",
+      "hide": "Hide advanced fields",
+      "rest": "Rest (sec)",
+      "restUseDefault": "Global default",
+      "restCustom": "Custom",
+      "restPlaceholder": "180",
+      "rir": "RIR target",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensity",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "Progression rule",
+      "progressionRulePlaceholder": "+5kg when all sets hit top reps with 2 RIR",
+      "unilateral": "Unilateral mode",
+      "unilateralPlaceholder": "per leg, per side, left/right, alternating",
+      "equipment": "Equipment",
+      "equipmentPlaceholder": "Barbell, dumbbell, cable, machine",
+      "primaryMuscles": "Primary muscles",
+      "primaryMusclesPlaceholder": "One muscle per line",
+      "secondaryMuscles": "Secondary muscles",
+      "secondaryMusclesPlaceholder": "One muscle per line",
+      "canonicalExerciseId": "Canonical exercise ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Variant label",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Aliases",
+      "aliasesPlaceholder": "One alias per line",
+      "sessionSpecific": "Session-specific",
+      "sessionSpecificToggle": "Track as session-only variant",
+      "technicalNotes": "Technical notes",
+      "technicalNotesPlaceholder": "One note per line",
+      "executionCues": "Execution cues",
+      "executionCuesPlaceholder": "One cue per line",
+      "perSetTargets": "Per-set targets",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Week overrides",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "Add Exercise",
     "submitEdit": "Save Changes",
     "errors": {
       "nameRequired": "Exercise name is required.",
-      "setsInvalid": "Sets must be a valid positive integer."
+      "setsInvalid": "Sets must be a valid positive integer.",
+      "restInvalid": "Rest must be a valid non-negative integer."
     }
   },
   "settings": {
@@ -452,16 +648,45 @@
   },
   "importPreview": {
     "title": "Import Preview",
+    "titleWithProgram": "Import: {{program}}",
     "changesDetected": "{{count}} change(s) detected.",
     "noChanges": "No changes detected. Backup is identical to current data.",
+    "modeHint": "Import as new keeps the current plan available. Replace active program overwrites the current plan on this device.",
+    "stats": {
+      "workouts": "Workouts to update",
+      "exercises": "Exercises to create or update",
+      "preservedWeights": "Weights preserved",
+      "needsWeight": "Need starting weight"
+    },
+    "exerciseStatus": {
+      "matching": "Matching exercises",
+      "changed": "Changed exercises",
+      "new": "New exercises",
+      "removed": "Removed exercises"
+    },
     "sections": {
+      "exerciseStatus": "Exercise status",
+      "preservedWeights": "Preserved weights",
+      "missingWeights": "New exercises without a saved weight",
+      "removedExercises": "Removed from active program",
       "workouts": "Workouts",
+      "program": "Program",
       "settings": "Settings",
       "weeks": "Weeks",
       "days": "Days"
     },
+    "currentWeightKept": "Current weight kept",
+    "noPreviousWeight": "No previous weight found",
     "cancel": "Cancel",
-    "confirm": "Import Backup"
+    "confirm": "Import Backup",
+    "importAsNewProgram": "Import as New Program",
+    "replaceActiveProgram": "Replace Active Program"
+  },
+  "programLibrary": {
+    "title": "Programs",
+    "summary": "{{count}} saved program(s)",
+    "active": "Active",
+    "empty": "No saved programs yet."
   },
   "deviceTransfer": {
     "shareTitle": "Share to another device",
@@ -520,7 +745,10 @@
       "sharingUnavailableMessage": "Sharing is not available on this device/platform."
     },
     "importBackup": {
-      "failedTitle": "Import failed"
+      "failedTitle": "Import failed",
+      "confirmReplaceTitle": "Replace active program?",
+      "confirmReplaceMessage": "This will replace your current active program with \"{{program}}\" on this device. Existing matching weights are preserved where possible.",
+      "confirmReplaceAction": "Replace program"
     },
     "forgetDevice": {
       "authPromptMessage": "Confirm to forget device",

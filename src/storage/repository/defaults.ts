@@ -6,7 +6,12 @@ import {
   defaultWeekConfigs,
   defaultWorkouts,
 } from '@/data/workouts';
-import type { DayConfig, WeightUnit, WorkoutSession } from '@/types';
+import type {
+  DayConfig,
+  TrainingProgram,
+  WeightUnit,
+  WorkoutSession,
+} from '@/types';
 
 export const DEFAULT_PROGRAM_ID = 'main-program';
 export const DEFAULT_ROOM_ID = 'default';
@@ -55,11 +60,26 @@ export function cloneDefaultWorkouts(): WorkoutSession[] {
   return JSON.parse(JSON.stringify(defaultWorkouts)) as WorkoutSession[];
 }
 
+export function buildDefaultProgram(
+  workouts: WorkoutSession[],
+): TrainingProgram {
+  return {
+    id: DEFAULT_PROGRAM_ID,
+    name: 'Main Program',
+    description: 'Primary training program',
+    scheduleType: 'fixed_weekly',
+    workoutIds: workouts.map((workout) => workout.id),
+    progressionModel: 'simple_load_modifier',
+  };
+}
+
 export function buildDefaultRuntimeState(): PearLiftRuntimeState {
   const workouts = cloneDefaultWorkouts();
   return {
+    program: buildDefaultProgram(workouts),
     workouts,
     userWeights: buildInitialWeights(workouts),
+    userExerciseSettings: {},
     weekConfigs: defaultWeekConfigs,
     dayConfigs: defaultDayConfigs,
     currentWeek: 1,
@@ -81,6 +101,7 @@ export function buildResetWorkoutDataState(
     themeMode: current.themeMode,
     weightUnit: current.weightUnit,
     language: current.language,
+    userExerciseSettings: current.userExerciseSettings ?? {},
   };
 }
 

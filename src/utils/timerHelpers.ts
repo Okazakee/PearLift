@@ -1,3 +1,4 @@
+import { MAX_DURATION, MIN_DURATION } from '@/config/timer';
 import type { PersistedRestTimerStateV1, RestTimerMode } from '@/types/timer';
 
 export function formatSeconds(seconds: number): string {
@@ -59,4 +60,72 @@ export function safeParsePersistedState(
   } catch {
     return null;
   }
+}
+
+interface AdjustRestTimerDurationInput {
+  mode: RestTimerMode;
+  configuredDuration: number;
+  startedDurationSec: number;
+  endAtMs: number | null;
+  delta: number;
+  nowMs?: number;
+}
+
+interface AdjustRestTimerDurationResult {
+  mode: RestTimerMode;
+  configuredDuration: number;
+  remainingSec: number;
+  startedDurationSec: number;
+  endAtMs: number | null;
+  persistDefaultDuration: boolean;
+  rescheduleNotification: boolean;
+}
+
+export function adjustRestTimerDuration(
+  input: AdjustRestTimerDurationInput,
+): AdjustRestTimerDurationResult {
+  const configuredDuration = Math.max(
+    MIN_DURATION,
+    Math.min(MAX_DURATION, input.configuredDuration + input.delta),
+  );
+  const durationDelta = configuredDuration - input.configuredDuration;
+
+  if (input.mode === 'running' && input.endAtMs != null) {
+    const nextEndAtMs = input.endAtMs + durationDelta * 1000;
+    const nowMs = input.nowMs ?? Date.now();
+    return {
+      mode: 'running',
+      configuredDuration,
+      remainingSec: Math.max(0, Math.ceil((nextEndAtMs - nowMs) / 1000)),
+      startedDurationSec: Math.max(
+        MIN_DURATION,
+        input.startedDurationSec + durationDelta,
+      ),
+      endAtMs: nextEndAtMs,
+      persistDefaultDuration: false,
+      rescheduleNotification: true,
+    };
+  }
+
+  if (input.mode === 'paused') {
+    return {
+      mode: 'paused',
+      configuredDuration,
+      remainingSec: configuredDuration,
+      startedDurationSec: configuredDuration,
+      endAtMs: null,
+      persistDefaultDuration: false,
+      rescheduleNotification: false,
+    };
+  }
+
+  return {
+    mode: input.mode === 'complete' ? 'idle' : input.mode,
+    configuredDuration,
+    remainingSec: configuredDuration,
+    startedDurationSec: configuredDuration,
+    endAtMs: null,
+    persistDefaultDuration: true,
+    rescheduleNotification: false,
+  };
 }

@@ -1,30 +1,80 @@
 import { normalizeExercise } from '@/backup/normalization';
 import type {
   ChangeSummary,
-  PearLiftBackupV3,
+  ExerciseImportChange,
+  PearLiftBackupV4,
+  PearLiftRuntimeState,
+  PreservedWeightChange,
   SettingChange,
 } from '@/backup/types';
 import type { DayConfig, Exercise, WeekConfig } from '@/types';
 
-function serializeExerciseForDiff(exercise: Exercise, weight: number) {
+function serializeExerciseForDiff(exercise: Exercise) {
   return [
+    exercise.canonicalExerciseId ?? '',
     exercise.name,
+    JSON.stringify(exercise.aliases ?? []),
+    exercise.variantLabel ?? '',
+    exercise.sessionSpecific === true ? '1' : '0',
     exercise.sets,
     exercise.reps,
     exercise.baseWeight,
     exercise.muscleGroup,
     exercise.notes,
-    weight,
+    JSON.stringify(exercise.advanced ?? null),
   ].join('|');
 }
 
-function getWorkoutMap(workouts: PearLiftBackupV3['data']['workouts']) {
+function getWorkoutMap(workouts: PearLiftBackupV4['data']['workouts']) {
   return new Map(workouts.map((workout) => [workout.id, workout]));
 }
 
+function readMeaningfulWeight(
+  weights: PearLiftBackupV4['data']['userWeights'],
+  exerciseId: string,
+) {
+  const value = weights[exerciseId];
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function hasStartingWeight(
+  exercise: Exercise,
+  weights: PearLiftBackupV4['data']['userWeights'],
+) {
+  return (
+    readMeaningfulWeight(weights, exercise.id) != null ||
+    exercise.baseWeight > 0
+  );
+}
+
+function toExerciseChange(
+  workoutId: string,
+  workoutName: string,
+  exercise: Exercise,
+): ExerciseImportChange {
+  return {
+    exerciseId: exercise.id,
+    name: exercise.name,
+    workoutId,
+    workoutName,
+  };
+}
+
+function toPreservedWeightChange(
+  workoutId: string,
+  workoutName: string,
+  exercise: Exercise,
+  weight: number,
+): PreservedWeightChange {
+  return {
+    ...toExerciseChange(workoutId, workoutName, exercise),
+    weight,
+  };
+}
+
 function buildSettingDiff(
-  current: PearLiftBackupV3,
-  incoming: PearLiftBackupV3,
+  current: PearLiftBackupV4,
+  incoming: PearLiftBackupV4,
 ): SettingChange[] {
   const changes: SettingChange[] = [];
   const a = current.data.settings;
@@ -81,16 +131,105 @@ function buildSettingDiff(
   return changes;
 }
 
+function formatProgramValue(value: string | number | null | undefined) {
+  if (value == null) {
+    return '-';
+  }
+  const normalized = String(value).trim();
+  return normalized.length > 0 ? normalized : '-';
+}
+
+function formatFrequencySummary(
+  value:
+    | Array<{
+        muscleGroup?: unknown;
+        targetPerWeek?: unknown;
+      }>
+    | undefined,
+) {
+  if (!Array.isArray(value) || value.length === 0) {
+    return '-';
+  }
+
+  return value
+    .map((item) =>
+      typeof item?.muscleGroup === 'string' &&
+      Number.isFinite(item?.targetPerWeek)
+        ? `${item.muscleGroup} ${item.targetPerWeek}x/wk`
+        : null,
+    )
+    .filter((item): item is string => item != null)
+    .join(', ');
+}
+
+function buildProgramMetadataDiff(
+  current: PearLiftBackupV4,
+  incoming: PearLiftBackupV4,
+): SettingChange[] {
+  const a = current.data.program ?? null;
+  const b = incoming.data.program ?? null;
+  const changes: SettingChange[] = [];
+
+  const pushChange = (
+    key: string,
+    from: string | number | null | undefined,
+    to: string | number | null | undefined,
+  ) => {
+    if ((from ?? '') === (to ?? '')) {
+      return;
+    }
+    changes.push({
+      key,
+      from: formatProgramValue(from),
+      to: formatProgramValue(to),
+    });
+  };
+
+  pushChange('Program Name', a?.name, b?.name);
+  pushChange('Subtitle', a?.subtitle, b?.subtitle);
+  pushChange('Goal', a?.goal, b?.goal);
+  pushChange('Description', a?.description, b?.description);
+  pushChange('Start Date', a?.startDate, b?.startDate);
+  pushChange('Duration', a?.durationWeeks, b?.durationWeeks);
+  pushChange('Schedule Type', a?.scheduleType, b?.scheduleType);
+  pushChange('Progression Model', a?.progressionModel, b?.progressionModel);
+  pushChange(
+    'Program Default Rest',
+    a?.defaultRestSeconds,
+    b?.defaultRestSeconds,
+  );
+
+  const fromSource = a?.source?.label ?? a?.source?.type ?? null;
+  const toSource = b?.source?.label ?? b?.source?.type ?? null;
+  pushChange('Source', fromSource, toSource);
+
+  const fromFrequency = formatFrequencySummary(a?.frequencySummary);
+  const toFrequency = formatFrequencySummary(b?.frequencySummary);
+  if (fromFrequency !== toFrequency) {
+    changes.push({
+      key: 'Frequency Summary',
+      from: fromFrequency,
+      to: toFrequency,
+    });
+  }
+
+  return changes;
+}
+
 function formatWeekConfig(value: WeekConfig) {
   const loadPct = Math.round((value.loadModifier - 1) * 100);
   const loadLabel =
     loadPct === 0 ? '0%' : loadPct > 0 ? `+${loadPct}%` : `${loadPct}%`;
-  return `${value.name} (RIR ${value.rir}, Load ${loadLabel})`;
+  const volumePct = Math.round(((value.volumeModifier ?? 1) - 1) * 100);
+  const volumeLabel =
+    volumePct === 0 ? '0%' : volumePct > 0 ? `+${volumePct}%` : `${volumePct}%`;
+  const notesLabel = value.notes ? `, Notes ${value.notes}` : '';
+  return `${value.name} (RIR ${value.rir}, Load ${loadLabel}, Volume ${volumeLabel}${notesLabel})`;
 }
 
 function buildWeekConfigDiff(
-  current: PearLiftBackupV3,
-  incoming: PearLiftBackupV3,
+  current: PearLiftBackupV4,
+  incoming: PearLiftBackupV4,
 ): SettingChange[] {
   const a = current.data.weekConfigs ?? [];
   const b = incoming.data.weekConfigs ?? [];
@@ -116,7 +255,9 @@ function buildWeekConfigDiff(
     if (
       from.name !== to.name ||
       from.rir !== to.rir ||
-      from.loadModifier !== to.loadModifier
+      from.loadModifier !== to.loadModifier ||
+      (from.volumeModifier ?? 1) !== (to.volumeModifier ?? 1) ||
+      (from.notes ?? '') !== (to.notes ?? '')
     ) {
       changes.push({
         key,
@@ -130,12 +271,57 @@ function buildWeekConfigDiff(
 }
 
 function formatDayConfig(value: DayConfig) {
-  return `${value.name} (${value.id}, ${value.icon})`;
+  const scheduleLabel = formatDaySchedule(value.schedule);
+  return `${value.sessionLabel ? `${value.sessionLabel} · ` : ''}${value.name} (${value.id}, ${value.icon}${scheduleLabel ? `, ${scheduleLabel}` : ''})`;
+}
+
+function formatWeekdayShort(weekday: number) {
+  switch (weekday) {
+    case 1:
+      return 'Mon';
+    case 2:
+      return 'Tue';
+    case 3:
+      return 'Wed';
+    case 4:
+      return 'Thu';
+    case 5:
+      return 'Fri';
+    case 6:
+      return 'Sat';
+    case 7:
+      return 'Sun';
+    default:
+      return String(weekday);
+  }
+}
+
+function formatDaySchedule(schedule: DayConfig['schedule']) {
+  if (!schedule) {
+    return '';
+  }
+
+  switch (schedule.type) {
+    case 'fixed_day':
+      return schedule.label ?? formatWeekdayShort(schedule.preferredDay ?? 0);
+    case 'day_window':
+      return (
+        schedule.label ??
+        (schedule.daysOfWeek?.map((day) => formatWeekdayShort(day)).join('/') ||
+          '')
+      );
+    case 'rotation':
+      return schedule.label ?? 'Rotation';
+    case 'unscheduled':
+      return '';
+    default:
+      return '';
+  }
 }
 
 function buildDayConfigDiff(
-  current: PearLiftBackupV3,
-  incoming: PearLiftBackupV3,
+  current: PearLiftBackupV4,
+  incoming: PearLiftBackupV4,
 ): SettingChange[] {
   const a = current.data.dayConfigs ?? [];
   const b = incoming.data.dayConfigs ?? [];
@@ -158,7 +344,12 @@ function buildDayConfigDiff(
       continue;
     }
     if (!from || !to) continue;
-    if (from.name !== to.name || from.icon !== to.icon) {
+    if (
+      from.name !== to.name ||
+      from.sessionLabel !== to.sessionLabel ||
+      from.icon !== to.icon ||
+      formatDaySchedule(from.schedule) !== formatDaySchedule(to.schedule)
+    ) {
       changes.push({
         key,
         from: formatDayConfig(from),
@@ -171,14 +362,24 @@ function buildDayConfigDiff(
 }
 
 export function computeImportDiff(
-  current: PearLiftBackupV3,
-  incoming: PearLiftBackupV3,
+  current: PearLiftBackupV4,
+  incoming: PearLiftBackupV4,
 ): ChangeSummary {
   const changes: ChangeSummary = {
+    programName: incoming.data.program?.name ?? 'Imported Program',
     workouts: [],
+    matchingExercises: [],
+    changedExercises: [],
+    newExercises: [],
+    removedExercises: [],
+    preservedWeights: [],
+    missingWeightExercises: [],
+    programMetadata: [],
     settings: [],
     weekConfigs: [],
     dayConfigs: [],
+    incomingWorkoutCount: 0,
+    incomingExerciseCount: 0,
     totalChanges: 0,
   };
 
@@ -192,6 +393,25 @@ export function computeImportDiff(
 
     if (!currentWorkout && incomingWorkout) {
       const added = incomingWorkout.exercises.length;
+      for (const [index, exercise] of incomingWorkout.exercises.entries()) {
+        const normalized = normalizeExercise(exercise, index);
+        changes.newExercises.push(
+          toExerciseChange(
+            incomingWorkout.id,
+            incomingWorkout.name,
+            normalized,
+          ),
+        );
+        if (!hasStartingWeight(normalized, incoming.data.userWeights)) {
+          changes.missingWeightExercises.push(
+            toExerciseChange(
+              incomingWorkout.id,
+              incomingWorkout.name,
+              normalized,
+            ),
+          );
+        }
+      }
       changes.workouts.push({
         workoutId: incomingWorkout.id,
         name: incomingWorkout.name,
@@ -205,6 +425,12 @@ export function computeImportDiff(
 
     if (currentWorkout && !incomingWorkout) {
       const removed = currentWorkout.exercises.length;
+      for (const [index, exercise] of currentWorkout.exercises.entries()) {
+        const normalized = normalizeExercise(exercise, index);
+        changes.removedExercises.push(
+          toExerciseChange(currentWorkout.id, currentWorkout.name, normalized),
+        );
+      }
       changes.workouts.push({
         workoutId: currentWorkout.id,
         name: currentWorkout.name,
@@ -220,16 +446,14 @@ export function computeImportDiff(
 
     const currentExercises = new Map(
       currentWorkout.exercises.map((exercise, index) => {
-        const weight = current.data.userWeights[exercise.id] ?? 0;
         const normalized = normalizeExercise(exercise, index);
-        return [exercise.id, serializeExerciseForDiff(normalized, weight)];
+        return [exercise.id, normalized];
       }),
     );
     const incomingExercises = new Map(
       incomingWorkout.exercises.map((exercise, index) => {
-        const weight = incoming.data.userWeights[exercise.id] ?? 0;
         const normalized = normalizeExercise(exercise, index);
-        return [exercise.id, serializeExerciseForDiff(normalized, weight)];
+        return [exercise.id, normalized];
       }),
     );
 
@@ -242,11 +466,72 @@ export function computeImportDiff(
     ]);
 
     for (const id of exerciseIds) {
-      const a = currentExercises.get(id);
-      const b = incomingExercises.get(id);
-      if (!a && b) added += 1;
-      else if (a && !b) removed += 1;
-      else if (a && b && a !== b) modified += 1;
+      const currentExercise = currentExercises.get(id);
+      const incomingExercise = incomingExercises.get(id);
+      if (!currentExercise && incomingExercise) {
+        added += 1;
+        changes.newExercises.push(
+          toExerciseChange(
+            incomingWorkout.id,
+            incomingWorkout.name,
+            incomingExercise,
+          ),
+        );
+        if (!hasStartingWeight(incomingExercise, incoming.data.userWeights)) {
+          changes.missingWeightExercises.push(
+            toExerciseChange(
+              incomingWorkout.id,
+              incomingWorkout.name,
+              incomingExercise,
+            ),
+          );
+        }
+      } else if (currentExercise && !incomingExercise) {
+        removed += 1;
+        changes.removedExercises.push(
+          toExerciseChange(
+            currentWorkout.id,
+            currentWorkout.name,
+            currentExercise,
+          ),
+        );
+      } else if (currentExercise && incomingExercise) {
+        const preservedWeight = readMeaningfulWeight(
+          current.data.userWeights,
+          incomingExercise.id,
+        );
+        if (preservedWeight != null) {
+          changes.preservedWeights.push(
+            toPreservedWeightChange(
+              incomingWorkout.id,
+              incomingWorkout.name,
+              incomingExercise,
+              preservedWeight,
+            ),
+          );
+        }
+
+        const before = serializeExerciseForDiff(currentExercise);
+        const after = serializeExerciseForDiff(incomingExercise);
+        if (before === after) {
+          changes.matchingExercises.push(
+            toExerciseChange(
+              incomingWorkout.id,
+              incomingWorkout.name,
+              incomingExercise,
+            ),
+          );
+        } else {
+          modified += 1;
+          changes.changedExercises.push(
+            toExerciseChange(
+              incomingWorkout.id,
+              incomingWorkout.name,
+              incomingExercise,
+            ),
+          );
+        }
+      }
     }
 
     if (added > 0 || removed > 0 || modified > 0) {
@@ -261,6 +546,9 @@ export function computeImportDiff(
     }
   }
 
+  changes.programMetadata = buildProgramMetadataDiff(current, incoming);
+  changes.totalChanges += changes.programMetadata.length;
+
   changes.settings = buildSettingDiff(current, incoming);
   changes.totalChanges += changes.settings.length;
 
@@ -269,6 +557,33 @@ export function computeImportDiff(
 
   changes.dayConfigs = buildDayConfigDiff(current, incoming);
   changes.totalChanges += changes.dayConfigs.length;
+  changes.incomingWorkoutCount = changes.workouts.length;
+  changes.incomingExerciseCount =
+    changes.newExercises.length + changes.changedExercises.length;
 
   return changes;
+}
+
+export function prepareImportRuntime(
+  current: PearLiftRuntimeState,
+  incoming: PearLiftRuntimeState,
+): PearLiftRuntimeState {
+  const nextWeights = { ...incoming.userWeights };
+
+  for (const workout of incoming.workouts) {
+    for (const exercise of workout.exercises) {
+      const preservedWeight = readMeaningfulWeight(
+        current.userWeights,
+        exercise.id,
+      );
+      if (preservedWeight != null) {
+        nextWeights[exercise.id] = preservedWeight;
+      }
+    }
+  }
+
+  return {
+    ...incoming,
+    userWeights: nextWeights,
+  };
 }

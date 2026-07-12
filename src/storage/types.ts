@@ -3,6 +3,8 @@ import type { ThemePreference } from '@/theme/tokens';
 import type {
   DayConfig,
   Exercise,
+  ProgramSummary,
+  TrainingProgram,
   WeekConfig,
   WeightUnit,
   WorkoutDay,
@@ -23,6 +25,30 @@ export type WorkoutMutation =
   | { type: 'setRestDuration'; restDuration: number }
   | { type: 'setWeightUnit'; weightUnit: WeightUnit }
   | { type: 'setLanguage'; language: string }
+  | {
+      type: 'setProgramMetadata';
+      updates: Partial<
+        Pick<
+          TrainingProgram,
+          | 'name'
+          | 'subtitle'
+          | 'goal'
+          | 'description'
+          | 'source'
+          | 'startDate'
+          | 'durationWeeks'
+          | 'scheduleType'
+          | 'frequencySummary'
+          | 'progressionModel'
+          | 'defaultRestSeconds'
+        >
+      >;
+    }
+  | {
+      type: 'setWorkoutDefaultRest';
+      workoutId: WorkoutDay;
+      defaultRestSeconds?: number;
+    }
   | { type: 'setExerciseWeight'; exerciseId: string; value: number }
   | { type: 'adjustExerciseWeight'; exerciseId: string; delta: number }
   | {
@@ -140,5 +166,7 @@ export interface PairedDevice {
 }
 
 export interface WorkoutStoreSnapshot extends PearLiftRuntimeState {
+  availablePrograms?: ProgramSummary[];
   isSetupDone: boolean;
+  currentDaySelectedAt?: string | null;
 }

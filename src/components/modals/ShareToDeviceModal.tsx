@@ -13,7 +13,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { AnimatedPressable } from '@/animation/primitives';
 import { encodeBackupForQr } from '@/backup/qrBackupCodec';
-import type { PearLiftRuntimeState } from '@/backup/types';
+import type { BackupProgramCollection } from '@/backup/types';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
 import { E2E_IDS } from '@/config/testIds';
@@ -28,7 +28,7 @@ interface ShareToDeviceModalProps {
   tokens: ThemeTokens;
   topInset: number;
   bottomInset: number;
-  runtimeState: PearLiftRuntimeState | null;
+  backupCollection: BackupProgramCollection | null;
   onClose: () => void;
 }
 
@@ -37,7 +37,7 @@ export function ShareToDeviceModal({
   tokens,
   topInset,
   bottomInset,
-  runtimeState,
+  backupCollection,
   onClose,
 }: ShareToDeviceModalProps) {
   const { t } = useTranslation();
@@ -49,7 +49,9 @@ export function ShareToDeviceModal({
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const prevOpenRef = useRef(open);
-  const prevRuntimeStateRef = useRef<PearLiftRuntimeState | null>(runtimeState);
+  const prevBackupCollectionRef = useRef<BackupProgramCollection | null>(
+    backupCollection,
+  );
 
   if (open !== prevOpenRef.current) {
     prevOpenRef.current = open;
@@ -59,16 +61,16 @@ export function ShareToDeviceModal({
     }
   }
 
-  if (open && runtimeState !== prevRuntimeStateRef.current) {
-    prevRuntimeStateRef.current = runtimeState;
+  if (open && backupCollection !== prevBackupCollectionRef.current) {
+    prevBackupCollectionRef.current = backupCollection;
     setActiveIndex(0);
     setPaused(false);
-  } else if (!open && prevRuntimeStateRef.current !== runtimeState) {
-    prevRuntimeStateRef.current = runtimeState;
+  } else if (!open && prevBackupCollectionRef.current !== backupCollection) {
+    prevBackupCollectionRef.current = backupCollection;
   }
 
   const encodedTransfer = useMemo(() => {
-    if (!runtimeState) {
+    if (!backupCollection) {
       return {
         packets: [] as string[],
         isChunked: false,
@@ -77,7 +79,7 @@ export function ShareToDeviceModal({
     }
 
     try {
-      const encoded = encodeBackupForQr(runtimeState);
+      const encoded = encodeBackupForQr(backupCollection);
       return {
         packets: encoded.packets,
         isChunked: encoded.mode === 'chunked',
@@ -90,7 +92,7 @@ export function ShareToDeviceModal({
         encodeError: getErrorMessage(error),
       };
     }
-  }, [runtimeState]);
+  }, [backupCollection]);
 
   const packets = encodedTransfer.packets;
   const isChunked = encodedTransfer.isChunked;

@@ -1,11 +1,15 @@
 import * as Crypto from 'expo-crypto';
 import type { SQLiteDatabase } from 'expo-sqlite';
 import { alignWorkoutsToDays } from '@/backup/normalization';
-import type { PearLiftRuntimeState } from '@/backup/types';
-import { defaultDayConfigs, defaultWeekConfigs } from '@/data/workouts';
+import type {
+  BackupProgramCollection,
+  PearLiftRuntimeState,
+} from '@/backup/types';
+import { defaultDayConfigs } from '@/data/workouts';
 import { getDatabase } from '@/storage/database';
 import {
   buildDefaultDeviceName,
+  buildDefaultProgram,
   buildDefaultRuntimeState,
   buildResetWorkoutDataState,
   cloneDefaultWorkouts,
@@ -26,12 +30,17 @@ import {
 } from '@/storage/repository/defaults';
 import {
   type AppSettingRow,
+  buildDayConfigSchedule,
   buildExerciseMap,
+  buildTrainingProgram,
+  buildUserExerciseSettings,
   buildUserWeights,
   type ExerciseRow,
   type ExerciseTargetRow,
   type ProgramDayRow,
+  type ProgramRow,
   toSettingsMap,
+  type UserExerciseSettingsRow,
   type WeekConfigRow,
   type WeightRow,
 } from '@/storage/repository/runtimeState';
@@ -55,9 +64,51 @@ import type {
   WorkoutStoreSnapshot,
 } from '@/storage/types';
 import type { SyncDeviceProfile, SyncMutation } from '@/sync/types';
+import type {
+  ExerciseAdvanced,
+  ProgramSummary,
+  TrainingProgram,
+  UserExerciseSettings,
+  WorkoutSessionLog,
+} from '@/types';
 import { roundToPrecision } from '@/utils/math';
+import {
+  buildImportedProgramId,
+  remapImportedProgram,
+} from '@/utils/programImport';
 
 export { getLanguageNativeName } from '@/storage/repository/defaults';
+
+function serializeExerciseAdvanced(advanced?: ExerciseAdvanced): string | null {
+  return advanced ? JSON.stringify(advanced) : null;
+}
+
+function serializeExerciseAliases(aliases?: string[]): string | null {
+  return aliases?.length ? JSON.stringify(aliases) : null;
+}
+
+function serializeFrequencySummary(program?: TrainingProgram | null) {
+  return program?.frequencySummary
+    ? JSON.stringify(program.frequencySummary)
+    : null;
+}
+
+function serializeProgramSource(program?: TrainingProgram | null) {
+  return program?.source ? JSON.stringify(program.source) : null;
+}
+
+type WorkoutSessionLogRow = {
+  payload_json: string;
+};
+
+function parseWorkoutSessionLog(value: string): WorkoutSessionLog | null {
+  try {
+    return JSON.parse(value) as WorkoutSessionLog;
+  } catch {
+    // ignore malformed stored workout logs
+    return null;
+  }
+}
 
 class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
   private initialized = false;
@@ -99,11 +150,21 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
 
   async getSnapshot(): Promise<WorkoutStoreSnapshot> {
     await this.initialize();
-    const runtime = await this.readRuntimeState();
-    const isSetupDone = await this.isSetupDone();
+    const db = await getDatabase();
+    const [runtime, availablePrograms, isSetupDone, currentDaySelectedAtRow] =
+      await Promise.all([
+        this.readRuntimeState(db),
+        this.readProgramSummaries(db),
+        this.isSetupDone(),
+        db.getFirstAsync<{ value: string }>(
+          "SELECT value FROM user_preferences WHERE key = 'currentDaySelectedAt'",
+        ),
+      ]);
     return {
       ...runtime,
+      availablePrograms,
       isSetupDone,
+      currentDaySelectedAt: currentDaySelectedAtRow?.value ?? null,
     };
   }
 
@@ -126,6 +187,200 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
   async getRuntimeState(): Promise<PearLiftRuntimeState> {
     await this.initialize();
     return this.readRuntimeState();
+  }
+
+  async getBackupProgramCollection(): Promise<BackupProgramCollection> {
+    await this.initialize();
+    const db = await getDatabase();
+    return this.readBackupProgramCollection(db);
+  }
+
+  async getAvailablePrograms(): Promise<ProgramSummary[]> {
+    await this.initialize();
+    const db = await getDatabase();
+    return this.readProgramSummaries(db);
+  }
+
+  async setActiveProgram(programId: string): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.withTransactionAsync(async () => {
+        const timestamp = nowIso();
+        await db.runAsync(
+          `UPDATE programs
+           SET is_active = CASE WHEN id = ? THEN 1 ELSE 0 END,
+               updated_at = ?
+           WHERE deleted_at IS NULL`,
+          programId,
+          timestamp,
+        );
+        await this.normalizeSelectedProgramState(db, programId, timestamp);
+      });
+    });
+  }
+
+  async importProgram(input: {
+    runtime: PearLiftRuntimeState;
+    sessionLogs: WorkoutSessionLog[];
+    mode: 'import_as_new' | 'replace_active';
+    activate?: boolean;
+  }): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      await db.withTransactionAsync(async () => {
+        if (input.mode === 'replace_active') {
+          await this.replaceActiveProgramState(
+            db,
+            input.runtime,
+            input.sessionLogs,
+          );
+        } else {
+          await this.insertImportedProgramState(
+            db,
+            input.runtime,
+            input.sessionLogs,
+            input.activate ?? true,
+          );
+        }
+        await this.writeSetting(db, 'setupDone', 'true');
+      });
+    });
+  }
+
+  async saveWorkoutSessionLog(log: WorkoutSessionLog): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      const updatedAt = nowIso();
+      await db.runAsync(
+        `INSERT INTO workout_session_logs (
+            id,
+            program_id,
+            workout_id,
+            workout_name_snapshot,
+            started_at,
+            completed_at,
+            week_number,
+            payload_json,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(id) DO UPDATE SET
+            program_id = excluded.program_id,
+            workout_id = excluded.workout_id,
+            workout_name_snapshot = excluded.workout_name_snapshot,
+            started_at = excluded.started_at,
+            completed_at = excluded.completed_at,
+            week_number = excluded.week_number,
+            payload_json = excluded.payload_json,
+            updated_at = excluded.updated_at`,
+        log.id,
+        log.programId ?? null,
+        log.workoutId,
+        log.workoutNameSnapshot,
+        log.startedAt,
+        log.completedAt ?? null,
+        log.weekNumber ?? null,
+        JSON.stringify(log),
+        updatedAt,
+      );
+    });
+  }
+
+  async saveUserExerciseSettings(
+    settings: UserExerciseSettings,
+  ): Promise<void> {
+    await this.initialize();
+    await this.enqueueWrite(async () => {
+      const db = await getDatabase();
+      const updatedAt = settings.updatedAt || nowIso();
+
+      await db.runAsync(
+        `INSERT INTO user_exercise_settings (
+            exercise_id,
+            working_weight,
+            weight_unit,
+            weight_mode,
+            increment_kg,
+            estimated_one_rep_max,
+            notes,
+            updated_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          ON CONFLICT(exercise_id) DO UPDATE SET
+            working_weight = excluded.working_weight,
+            weight_unit = excluded.weight_unit,
+            weight_mode = excluded.weight_mode,
+            increment_kg = excluded.increment_kg,
+            estimated_one_rep_max = excluded.estimated_one_rep_max,
+            notes = excluded.notes,
+            updated_at = excluded.updated_at`,
+        settings.exerciseId,
+        settings.workingWeight ?? null,
+        settings.weightUnit,
+        settings.weightMode,
+        settings.incrementKg ?? null,
+        settings.estimatedOneRepMax ?? null,
+        settings.notes ?? null,
+        updatedAt,
+      );
+
+      if (settings.workingWeight != null) {
+        await db.runAsync(
+          `INSERT INTO exercise_weights (exercise_id, value, updated_at)
+             VALUES (?, ?, ?)
+             ON CONFLICT(exercise_id) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`,
+          settings.exerciseId,
+          Math.max(0, roundToPrecision(settings.workingWeight, 3)),
+          updatedAt,
+        );
+      }
+    });
+  }
+
+  async getWorkoutSessionLogs(input?: {
+    workoutId?: string;
+    limit?: number | null;
+  }): Promise<WorkoutSessionLog[]> {
+    await this.initialize();
+    const db = await getDatabase();
+    const hasLimit = input?.limit !== null;
+    const limit = Math.max(1, input?.limit ?? 50);
+    const rows = input?.workoutId
+      ? hasLimit
+        ? await db.getAllAsync<WorkoutSessionLogRow>(
+            `SELECT payload_json
+             FROM workout_session_logs
+             WHERE workout_id = ?
+             ORDER BY COALESCE(completed_at, started_at) DESC
+             LIMIT ?`,
+            input.workoutId,
+            limit,
+          )
+        : await db.getAllAsync<WorkoutSessionLogRow>(
+            `SELECT payload_json
+             FROM workout_session_logs
+             WHERE workout_id = ?
+             ORDER BY COALESCE(completed_at, started_at) DESC`,
+            input.workoutId,
+          )
+      : hasLimit
+        ? await db.getAllAsync<WorkoutSessionLogRow>(
+            `SELECT payload_json
+             FROM workout_session_logs
+             ORDER BY COALESCE(completed_at, started_at) DESC
+             LIMIT ?`,
+            limit,
+          )
+        : await db.getAllAsync<WorkoutSessionLogRow>(
+            `SELECT payload_json
+             FROM workout_session_logs
+             ORDER BY COALESCE(completed_at, started_at) DESC`,
+          );
+
+    return rows
+      .map((row) => parseWorkoutSessionLog(row.payload_json))
+      .filter((row): row is WorkoutSessionLog => row !== null);
   }
 
   async applyMutation(
@@ -159,7 +414,19 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
             break;
           }
           case 'setCurrentDay': {
-            await this.writeSetting(db, 'currentDay', mutation.currentDay);
+            const timestamp = nowIso();
+            await this.writeSetting(
+              db,
+              'currentDay',
+              mutation.currentDay,
+              timestamp,
+            );
+            await this.writeSetting(
+              db,
+              'currentDaySelectedAt',
+              timestamp,
+              timestamp,
+            );
             break;
           }
           case 'setRestDuration': {
@@ -176,6 +443,130 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           }
           case 'setLanguage': {
             await this.writeSetting(db, 'language', mutation.language);
+            break;
+          }
+          case 'setProgramMetadata': {
+            const currentProgram = await db.getFirstAsync<ProgramRow>(
+              `SELECT
+                 id,
+                 name,
+                 subtitle,
+                 goal,
+                 description,
+                 source_json,
+                 start_date,
+                 duration_weeks,
+                 schedule_type,
+                 progression_model,
+                 frequency_summary_json,
+                 default_rest_seconds,
+                 updated_at
+               FROM programs
+               WHERE deleted_at IS NULL AND is_active = 1
+               ORDER BY sort_order ASC
+               LIMIT 1`,
+            );
+            if (!currentProgram) {
+              break;
+            }
+            const timestamp = nowIso();
+            const hasName = Object.hasOwn(mutation.updates, 'name');
+            const hasSubtitle = Object.hasOwn(mutation.updates, 'subtitle');
+            const hasGoal = Object.hasOwn(mutation.updates, 'goal');
+            const hasDescription = Object.hasOwn(
+              mutation.updates,
+              'description',
+            );
+            const hasSource = Object.hasOwn(mutation.updates, 'source');
+            const hasStartDate = Object.hasOwn(mutation.updates, 'startDate');
+            const hasDurationWeeks = Object.hasOwn(
+              mutation.updates,
+              'durationWeeks',
+            );
+            const hasScheduleType = Object.hasOwn(
+              mutation.updates,
+              'scheduleType',
+            );
+            const hasProgressionModel = Object.hasOwn(
+              mutation.updates,
+              'progressionModel',
+            );
+            const hasFrequencySummary = Object.hasOwn(
+              mutation.updates,
+              'frequencySummary',
+            );
+            const hasDefaultRestSeconds = Object.hasOwn(
+              mutation.updates,
+              'defaultRestSeconds',
+            );
+            await db.runAsync(
+              `UPDATE programs
+               SET
+                 name = ?,
+                 subtitle = ?,
+                 goal = ?,
+                 description = ?,
+                 source_json = ?,
+                 start_date = ?,
+                 duration_weeks = ?,
+                 schedule_type = ?,
+                 progression_model = ?,
+                 frequency_summary_json = ?,
+               default_rest_seconds = ?,
+               updated_at = ?
+               WHERE id = ?`,
+              hasName
+                ? (mutation.updates.name ?? currentProgram.name)
+                : currentProgram.name,
+              hasSubtitle
+                ? (mutation.updates.subtitle ?? null)
+                : currentProgram.subtitle,
+              hasGoal ? (mutation.updates.goal ?? null) : currentProgram.goal,
+              hasDescription
+                ? (mutation.updates.description ?? null)
+                : currentProgram.description,
+              hasSource
+                ? mutation.updates.source
+                  ? JSON.stringify(mutation.updates.source)
+                  : null
+                : currentProgram.source_json,
+              hasStartDate
+                ? (mutation.updates.startDate ?? null)
+                : currentProgram.start_date,
+              hasDurationWeeks
+                ? (mutation.updates.durationWeeks ?? null)
+                : currentProgram.duration_weeks,
+              hasScheduleType
+                ? (mutation.updates.scheduleType ?? null)
+                : currentProgram.schedule_type,
+              hasProgressionModel
+                ? (mutation.updates.progressionModel ?? null)
+                : currentProgram.progression_model,
+              hasFrequencySummary
+                ? mutation.updates.frequencySummary &&
+                  mutation.updates.frequencySummary.length > 0
+                  ? JSON.stringify(mutation.updates.frequencySummary)
+                  : null
+                : currentProgram.frequency_summary_json,
+              hasDefaultRestSeconds
+                ? (mutation.updates.defaultRestSeconds ?? null)
+                : currentProgram.default_rest_seconds,
+              timestamp,
+              currentProgram.id,
+            );
+            break;
+          }
+          case 'setWorkoutDefaultRest': {
+            await db.runAsync(
+              `UPDATE program_days
+               SET
+                 default_rest_seconds = ?,
+                 updated_at = ?
+               WHERE id = ? AND deleted_at IS NULL`,
+              mutation.defaultRestSeconds ?? null,
+              nowIso(),
+              mutation.workoutId,
+            );
             break;
           }
           case 'setExerciseWeight': {
@@ -247,13 +638,18 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
             const timestamp = nowIso();
             await db.runAsync(
               `INSERT INTO exercises (
-              id, program_day_id, name, muscle_group, notes, sort_order, updated_at, deleted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
+              id, program_day_id, canonical_exercise_id, name, aliases_json, variant_label, session_specific, muscle_group, notes, advanced_json, sort_order, updated_at, deleted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
               exerciseId,
               mutation.workoutId,
+              mutation.exercise.canonicalExerciseId ?? null,
               mutation.exercise.name,
+              serializeExerciseAliases(mutation.exercise.aliases),
+              mutation.exercise.variantLabel ?? null,
+              mutation.exercise.sessionSpecific ? 1 : 0,
               mutation.exercise.muscleGroup,
               mutation.exercise.notes,
+              serializeExerciseAdvanced(mutation.exercise.advanced),
               nextPosition,
               timestamp,
             );
@@ -279,7 +675,7 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           }
           case 'editExercise': {
             const current = await db.getFirstAsync<ExerciseRow>(
-              `SELECT id, program_day_id, name, muscle_group, notes, sort_order
+              `SELECT id, program_day_id, canonical_exercise_id, name, aliases_json, variant_label, session_specific, muscle_group, notes, advanced_json, sort_order
              FROM exercises WHERE id = ? AND deleted_at IS NULL`,
               mutation.exerciseId,
             );
@@ -293,20 +689,48 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
             );
             const next = {
               ...current,
+              canonical_exercise_id: Object.hasOwn(
+                mutation.updates,
+                'canonicalExerciseId',
+              )
+                ? (mutation.updates.canonicalExerciseId ?? null)
+                : current.canonical_exercise_id,
               name: mutation.updates.name ?? current.name,
+              aliases_json: Object.hasOwn(mutation.updates, 'aliases')
+                ? serializeExerciseAliases(mutation.updates.aliases)
+                : current.aliases_json,
+              variant_label: Object.hasOwn(mutation.updates, 'variantLabel')
+                ? (mutation.updates.variantLabel ?? null)
+                : current.variant_label,
+              session_specific: Object.hasOwn(
+                mutation.updates,
+                'sessionSpecific',
+              )
+                ? mutation.updates.sessionSpecific
+                  ? 1
+                  : 0
+                : current.session_specific,
               muscle_group:
                 mutation.updates.muscleGroup ?? current.muscle_group,
               notes: mutation.updates.notes ?? current.notes,
+              advanced_json: Object.hasOwn(mutation.updates, 'advanced')
+                ? serializeExerciseAdvanced(mutation.updates.advanced)
+                : current.advanced_json,
               sort_order: mutation.updates.position ?? current.sort_order,
             };
             const timestamp = nowIso();
             await db.runAsync(
               `UPDATE exercises
-             SET name = ?, muscle_group = ?, notes = ?, sort_order = ?, updated_at = ?
+             SET canonical_exercise_id = ?, name = ?, aliases_json = ?, variant_label = ?, session_specific = ?, muscle_group = ?, notes = ?, advanced_json = ?, sort_order = ?, updated_at = ?
              WHERE id = ?`,
+              next.canonical_exercise_id,
               next.name,
+              next.aliases_json,
+              next.variant_label,
+              next.session_specific,
               next.muscle_group,
               next.notes,
+              next.advanced_json,
               next.sort_order,
               timestamp,
               mutation.exerciseId,
@@ -379,19 +803,33 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           }
           case 'replaceWeekConfigs': {
             const timestamp = ctx.createdAt ?? nowIso();
+            const activeProgramId = await this.readActiveProgramId(db);
             await db.runAsync(
               'DELETE FROM training_blocks WHERE program_id = ?',
-              DEFAULT_PROGRAM_ID,
+              activeProgramId,
             );
             for (const [index, week] of mutation.weekConfigs.entries()) {
               await db.runAsync(
-                `INSERT INTO training_blocks (id, program_id, name, load_modifier, rir, sort_order, updated_at, deleted_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
-                index + 1,
-                DEFAULT_PROGRAM_ID,
+                `INSERT INTO training_blocks (
+                  program_id,
+                  week_number,
+                  name,
+                  load_modifier,
+                  volume_modifier,
+                  rir,
+                  notes,
+                  sort_order,
+                  updated_at,
+                  deleted_at
+                )
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+                activeProgramId,
+                week.id,
                 week.name,
                 week.loadModifier,
+                week.volumeModifier ?? 1,
                 week.rir,
+                week.notes ?? null,
                 index,
                 timestamp,
               );
@@ -406,6 +844,7 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           }
           case 'replaceDayConfigs': {
             const runtime = await this.readRuntimeState(db);
+            const activeProgramId = runtime.program?.id ?? DEFAULT_PROGRAM_ID;
             const timestamp = ctx.createdAt ?? nowIso();
             const nextDayConfigs = normalizeDayConfigs(
               [],
@@ -429,7 +868,7 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
             const existingDays = await db.getAllAsync<{ id: string }>(
               `SELECT id FROM program_days
                WHERE deleted_at IS NULL AND program_id = ?`,
-              DEFAULT_PROGRAM_ID,
+              activeProgramId,
             );
             for (const day of existingDays) {
               if (keepDayIds.has(day.id)) continue;
@@ -456,29 +895,38 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
                   id,
                   program_id,
                   day_label,
+                  session_label,
                   icon,
+                  schedule_json,
                   workout_name,
                   workout_description,
+                  default_rest_seconds,
                   sort_order,
                   updated_at,
                   deleted_at
                 )
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)
                ON CONFLICT(id) DO UPDATE SET
                  program_id = excluded.program_id,
                  day_label = excluded.day_label,
+                 session_label = excluded.session_label,
                  icon = excluded.icon,
+                 schedule_json = excluded.schedule_json,
                  workout_name = excluded.workout_name,
                  workout_description = excluded.workout_description,
+                 default_rest_seconds = excluded.default_rest_seconds,
                  sort_order = excluded.sort_order,
                  updated_at = excluded.updated_at,
                  deleted_at = NULL`,
                 workout.id,
-                DEFAULT_PROGRAM_ID,
+                activeProgramId,
                 dayConfig?.name ?? workout.name,
+                dayConfig?.sessionLabel ?? null,
                 dayConfig?.icon ?? 'FitnessCenter',
+                dayConfig?.schedule ? JSON.stringify(dayConfig.schedule) : null,
                 workout.name,
                 workout.description,
+                workout.defaultRestSeconds ?? null,
                 index,
                 timestamp,
               );
@@ -979,21 +1427,9 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
     runtime: PearLiftRuntimeState,
   ) {
     const timestamp = nowIso();
-    const normalizedDayConfigs = normalizeDayConfigs(
-      runtime.workouts,
-      runtime.dayConfigs,
-    );
-    const alignedWorkouts = alignWorkoutsToDays(
-      runtime.workouts,
-      normalizedDayConfigs,
-    );
-    const safeCurrentDay = normalizedDayConfigs.some(
-      (day) => day.id === runtime.currentDay,
-    )
-      ? runtime.currentDay
-      : (normalizedDayConfigs[0]?.id ?? 'push');
 
     await db.execAsync(`
+      DELETE FROM user_exercise_settings;
       DELETE FROM exercise_weights;
       DELETE FROM exercise_targets;
       DELETE FROM exercises;
@@ -1003,19 +1439,114 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
       DELETE FROM user_preferences;
     `);
 
+    await this.insertProgramState(db, runtime, {
+      timestamp,
+      sortOrder: 0,
+      isActive: true,
+    });
+    await this.writeRuntimePreferences(db, runtime, timestamp);
+  }
+
+  private async writeRuntimePreferences(
+    db: SQLiteDatabase,
+    runtime: PearLiftRuntimeState,
+    timestamp: string,
+  ) {
+    const normalizedDayConfigs = normalizeDayConfigs(
+      runtime.workouts,
+      runtime.dayConfigs,
+    );
+    const safeCurrentDay = normalizedDayConfigs.some(
+      (day) => day.id === runtime.currentDay,
+    )
+      ? runtime.currentDay
+      : (normalizedDayConfigs[0]?.id ?? 'push');
+
+    await this.writeSetting(
+      db,
+      'currentWeek',
+      String(runtime.currentWeek),
+      timestamp,
+    );
+    await this.writeSetting(db, 'currentDay', safeCurrentDay, timestamp);
+    await this.writeSetting(db, 'currentDaySelectedAt', '', timestamp);
+    await this.writeSetting(
+      db,
+      'restDuration',
+      String(Math.max(0, runtime.restDuration)),
+      timestamp,
+    );
+    await this.writeSetting(db, 'themeMode', runtime.themeMode, timestamp);
+    await this.writeSetting(
+      db,
+      'weightUnit',
+      runtime.weightUnit ?? 'kg',
+      timestamp,
+    );
+    await this.writeSetting(db, 'language', runtime.language, timestamp);
+  }
+
+  private async insertProgramState(
+    db: SQLiteDatabase,
+    runtime: PearLiftRuntimeState,
+    input: {
+      timestamp: string;
+      sortOrder: number;
+      isActive: boolean;
+    },
+  ) {
+    const { timestamp, sortOrder, isActive } = input;
+    const activeProgram =
+      runtime.program ?? buildDefaultProgram(runtime.workouts);
+    const normalizedDayConfigs = normalizeDayConfigs(
+      runtime.workouts,
+      runtime.dayConfigs,
+    );
+    const alignedWorkouts = alignWorkoutsToDays(
+      runtime.workouts,
+      normalizedDayConfigs,
+    );
+
+    if (isActive) {
+      await db.runAsync(
+        'UPDATE programs SET is_active = 0, updated_at = ? WHERE deleted_at IS NULL',
+        timestamp,
+      );
+    }
+
     await db.runAsync(
       `INSERT INTO programs (
           id,
           name,
+          subtitle,
+          goal,
           description,
+          source_json,
+          start_date,
+          duration_weeks,
+          schedule_type,
+          progression_model,
+          frequency_summary_json,
+          default_rest_seconds,
           is_active,
           sort_order,
           updated_at,
           deleted_at
-        ) VALUES (?, ?, ?, 1, 0, ?, NULL)`,
-      DEFAULT_PROGRAM_ID,
-      'Main Program',
-      'Primary training program',
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+      activeProgram.id,
+      activeProgram.name,
+      activeProgram.subtitle ?? null,
+      activeProgram.goal ?? null,
+      activeProgram.description ?? 'Primary training program',
+      serializeProgramSource(activeProgram),
+      activeProgram.startDate ?? null,
+      activeProgram.durationWeeks ?? null,
+      activeProgram.scheduleType ?? null,
+      activeProgram.progressionModel ?? null,
+      serializeFrequencySummary(activeProgram),
+      activeProgram.defaultRestSeconds ?? null,
+      isActive ? 1 : 0,
+      sortOrder,
       timestamp,
     );
 
@@ -1027,20 +1558,26 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
             id,
             program_id,
             day_label,
+            session_label,
             icon,
+            schedule_json,
             workout_name,
             workout_description,
+            default_rest_seconds,
             sort_order,
             updated_at,
             deleted_at
           )
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
         workout.id,
-        DEFAULT_PROGRAM_ID,
+        activeProgram.id,
         dayConfig?.name ?? workout.name,
+        dayConfig?.sessionLabel ?? null,
         dayConfig?.icon ?? 'FitnessCenter',
+        dayConfig?.schedule ? JSON.stringify(dayConfig.schedule) : null,
         workout.name,
         workout.description,
+        workout.defaultRestSeconds ?? null,
         index,
         timestamp,
       );
@@ -1051,13 +1588,18 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
       for (const [position, exercise] of orderedExercises.entries()) {
         await db.runAsync(
           `INSERT INTO exercises (
-              id, program_day_id, name, muscle_group, notes, sort_order, updated_at, deleted_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
+              id, program_day_id, canonical_exercise_id, name, aliases_json, variant_label, session_specific, muscle_group, notes, advanced_json, sort_order, updated_at, deleted_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
           exercise.id,
           workout.id,
+          exercise.canonicalExerciseId ?? null,
           exercise.name,
+          serializeExerciseAliases(exercise.aliases),
+          exercise.variantLabel ?? null,
+          exercise.sessionSpecific ? 1 : 0,
           exercise.muscleGroup,
           exercise.notes,
+          serializeExerciseAdvanced(exercise.advanced),
           position,
           timestamp,
         );
@@ -1082,137 +1624,653 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
           runtime.userWeights[exercise.id] ?? exercise.baseWeight ?? 0,
           timestamp,
         );
+        const exerciseSettings = runtime.userExerciseSettings?.[exercise.id];
+        if (exerciseSettings) {
+          await db.runAsync(
+            `INSERT INTO user_exercise_settings (
+                exercise_id,
+                working_weight,
+                weight_unit,
+                weight_mode,
+                increment_kg,
+                estimated_one_rep_max,
+                notes,
+                updated_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+            exercise.id,
+            exerciseSettings.workingWeight ?? null,
+            exerciseSettings.weightUnit,
+            exerciseSettings.weightMode,
+            exerciseSettings.incrementKg ?? null,
+            exerciseSettings.estimatedOneRepMax ?? null,
+            exerciseSettings.notes ?? null,
+            exerciseSettings.updatedAt || timestamp,
+          );
+        }
       }
     }
 
     for (const [index, week] of runtime.weekConfigs.entries()) {
       await db.runAsync(
         `INSERT INTO training_blocks (
-            id,
             program_id,
+            week_number,
             name,
             load_modifier,
+            volume_modifier,
             rir,
+            notes,
             sort_order,
             updated_at,
             deleted_at
           )
-           VALUES (?, ?, ?, ?, ?, ?, ?, NULL)`,
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL)`,
+        activeProgram.id,
         week.id,
-        DEFAULT_PROGRAM_ID,
         week.name,
         week.loadModifier,
+        week.volumeModifier ?? 1,
         week.rir,
+        week.notes ?? null,
         index,
         timestamp,
       );
     }
+  }
 
-    await this.writeSetting(
-      db,
-      'currentWeek',
-      String(runtime.currentWeek),
-      timestamp,
+  private async readProgramSummaries(
+    db: SQLiteDatabase,
+  ): Promise<ProgramSummary[]> {
+    const rows = await db.getAllAsync<
+      ProgramRow & { is_active: number; workout_count: number }
+    >(
+      `SELECT
+         p.id,
+         p.name,
+         p.subtitle,
+         p.goal,
+         p.description,
+         p.source_json,
+         p.start_date,
+         p.duration_weeks,
+         p.schedule_type,
+         p.progression_model,
+         p.frequency_summary_json,
+         p.default_rest_seconds,
+         p.updated_at,
+         p.is_active,
+         COUNT(d.id) as workout_count
+       FROM programs p
+       LEFT JOIN program_days d
+         ON d.program_id = p.id
+        AND d.deleted_at IS NULL
+       WHERE p.deleted_at IS NULL
+       GROUP BY
+         p.id,
+         p.name,
+         p.subtitle,
+         p.goal,
+         p.description,
+         p.source_json,
+         p.start_date,
+         p.duration_weeks,
+         p.schedule_type,
+         p.progression_model,
+         p.frequency_summary_json,
+         p.default_rest_seconds,
+         p.updated_at,
+         p.is_active
+       ORDER BY p.is_active DESC, p.sort_order ASC, p.updated_at DESC`,
     );
-    await this.writeSetting(db, 'currentDay', safeCurrentDay, timestamp);
-    await this.writeSetting(
-      db,
-      'restDuration',
-      String(Math.max(0, runtime.restDuration)),
-      timestamp,
+
+    return rows.map((row) => ({
+      ...(buildTrainingProgram(row, []) ?? {
+        id: row.id,
+        name: row.name,
+        description: row.description,
+        workoutIds: [],
+      }),
+      isActive: row.is_active === 1,
+      workoutCount: row.workout_count ?? 0,
+    }));
+  }
+
+  private async insertImportedProgramState(
+    db: SQLiteDatabase,
+    runtime: PearLiftRuntimeState,
+    sessionLogs: WorkoutSessionLog[],
+    activate: boolean,
+  ) {
+    const timestamp = nowIso();
+    const existingProgramIds = new Set(
+      (
+        await db.getAllAsync<{ id: string }>(
+          'SELECT id FROM programs WHERE deleted_at IS NULL',
+        )
+      ).map((row) => row.id),
     );
-    await this.writeSetting(db, 'themeMode', runtime.themeMode, timestamp);
-    await this.writeSetting(
-      db,
-      'weightUnit',
-      runtime.weightUnit ?? 'kg',
-      timestamp,
+    const nextProgramId = buildImportedProgramId(
+      runtime.program?.id ?? DEFAULT_PROGRAM_ID,
+      existingProgramIds,
     );
-    await this.writeSetting(db, 'language', runtime.language, timestamp);
+    const imported = remapImportedProgram({
+      runtime,
+      sessionLogs,
+      programId: nextProgramId,
+      prefixChildIds: true,
+    });
+    const maxSortOrderRow = await db.getFirstAsync<{
+      sort_order: number | null;
+    }>(
+      'SELECT MAX(sort_order) as sort_order FROM programs WHERE deleted_at IS NULL',
+    );
+    const sortOrder = (maxSortOrderRow?.sort_order ?? -1) + 1;
+
+    await this.insertProgramState(db, imported.runtime, {
+      timestamp,
+      sortOrder,
+      isActive: activate,
+    });
+
+    for (const log of imported.sessionLogs) {
+      await this.saveWorkoutSessionLogInTransaction(db, log, timestamp);
+    }
+
+    if (activate) {
+      await this.writeRuntimePreferences(db, imported.runtime, timestamp);
+    }
+  }
+
+  private async replaceActiveProgramState(
+    db: SQLiteDatabase,
+    runtime: PearLiftRuntimeState,
+    sessionLogs: WorkoutSessionLog[],
+  ) {
+    const timestamp = nowIso();
+    const activeProgramId = await this.readActiveProgramId(db);
+
+    await this.deleteProgramState(db, activeProgramId);
+
+    const existingProgramIds = new Set(
+      (
+        await db.getAllAsync<{ id: string }>(
+          `SELECT id
+           FROM programs
+           WHERE deleted_at IS NULL`,
+        )
+      ).map((row) => row.id),
+    );
+    const existingWorkoutIds = new Set(
+      (
+        await db.getAllAsync<{ id: string }>(
+          'SELECT id FROM program_days WHERE deleted_at IS NULL',
+        )
+      ).map((row) => row.id),
+    );
+    const existingExerciseIds = new Set(
+      (
+        await db.getAllAsync<{ id: string }>(
+          'SELECT id FROM exercises WHERE deleted_at IS NULL',
+        )
+      ).map((row) => row.id),
+    );
+    const nextProgramId = buildImportedProgramId(
+      runtime.program?.id ?? DEFAULT_PROGRAM_ID,
+      existingProgramIds,
+    );
+    const hasChildIdConflicts = runtime.workouts.some(
+      (workout) =>
+        existingWorkoutIds.has(workout.id) ||
+        workout.exercises.some((exercise) =>
+          existingExerciseIds.has(exercise.id),
+        ),
+    );
+    const imported =
+      nextProgramId === (runtime.program?.id ?? DEFAULT_PROGRAM_ID) &&
+      !hasChildIdConflicts
+        ? { runtime, sessionLogs }
+        : remapImportedProgram({
+            runtime,
+            sessionLogs,
+            programId: nextProgramId,
+            prefixChildIds: true,
+          });
+    const maxSortOrderRow = await db.getFirstAsync<{
+      sort_order: number | null;
+    }>(
+      'SELECT MIN(sort_order) as sort_order FROM programs WHERE deleted_at IS NULL',
+    );
+    const sortOrder = maxSortOrderRow?.sort_order ?? 0;
+
+    await this.insertProgramState(db, imported.runtime, {
+      timestamp,
+      sortOrder,
+      isActive: true,
+    });
+
+    for (const log of imported.sessionLogs) {
+      await this.saveWorkoutSessionLogInTransaction(db, log, timestamp);
+    }
+
+    await this.writeRuntimePreferences(db, imported.runtime, timestamp);
+  }
+
+  private async deleteProgramState(db: SQLiteDatabase, programId: string) {
+    const dayIds = await db.getAllAsync<{ id: string }>(
+      `SELECT id
+       FROM program_days
+       WHERE program_id = ? AND deleted_at IS NULL`,
+      programId,
+    );
+
+    for (const day of dayIds) {
+      const exerciseIds = await db.getAllAsync<{ id: string }>(
+        `SELECT id
+         FROM exercises
+         WHERE program_day_id = ? AND deleted_at IS NULL`,
+        day.id,
+      );
+      for (const exercise of exerciseIds) {
+        await db.runAsync(
+          'DELETE FROM user_exercise_settings WHERE exercise_id = ?',
+          exercise.id,
+        );
+        await db.runAsync(
+          'DELETE FROM exercise_weights WHERE exercise_id = ?',
+          exercise.id,
+        );
+        await db.runAsync(
+          'DELETE FROM exercise_targets WHERE exercise_id = ?',
+          exercise.id,
+        );
+      }
+      await db.runAsync(
+        'DELETE FROM exercises WHERE program_day_id = ?',
+        day.id,
+      );
+    }
+
+    await db.runAsync(
+      'DELETE FROM training_blocks WHERE program_id = ?',
+      programId,
+    );
+    for (const day of dayIds) {
+      await db.runAsync(
+        'DELETE FROM workout_session_logs WHERE workout_id = ?',
+        day.id,
+      );
+    }
+    await db.runAsync(
+      'DELETE FROM workout_session_logs WHERE program_id = ?',
+      programId,
+    );
+    await db.runAsync(
+      'DELETE FROM program_days WHERE program_id = ?',
+      programId,
+    );
+    await db.runAsync('DELETE FROM programs WHERE id = ?', programId);
+  }
+
+  private async saveWorkoutSessionLogInTransaction(
+    db: SQLiteDatabase,
+    log: WorkoutSessionLog,
+    updatedAt: string,
+  ) {
+    await db.runAsync(
+      `INSERT INTO workout_session_logs (
+          id,
+          program_id,
+          workout_id,
+          workout_name_snapshot,
+          started_at,
+          completed_at,
+          week_number,
+          payload_json,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          program_id = excluded.program_id,
+          workout_id = excluded.workout_id,
+          workout_name_snapshot = excluded.workout_name_snapshot,
+          started_at = excluded.started_at,
+          completed_at = excluded.completed_at,
+          week_number = excluded.week_number,
+          payload_json = excluded.payload_json,
+          updated_at = excluded.updated_at`,
+      log.id,
+      log.programId ?? null,
+      log.workoutId,
+      log.workoutNameSnapshot,
+      log.startedAt,
+      log.completedAt ?? null,
+      log.weekNumber ?? null,
+      JSON.stringify(log),
+      updatedAt,
+    );
+  }
+
+  private async normalizeSelectedProgramState(
+    db: SQLiteDatabase,
+    programId: string,
+    timestamp: string,
+  ) {
+    const selectedDayIds = await db.getAllAsync<{ id: string }>(
+      `SELECT id
+       FROM program_days
+       WHERE program_id = ? AND deleted_at IS NULL
+       ORDER BY sort_order ASC`,
+      programId,
+    );
+    const currentDay = await this.readSetting(db, 'currentDay');
+    const currentWeek = parseNumber(
+      await this.readSetting(db, 'currentWeek'),
+      1,
+    );
+    const weekCountRow = await db.getFirstAsync<{ total: number }>(
+      `SELECT COUNT(*) as total
+       FROM training_blocks
+       WHERE program_id = ? AND deleted_at IS NULL`,
+      programId,
+    );
+    const safeDay = selectedDayIds.some((row) => row.id === currentDay)
+      ? (currentDay ??
+        selectedDayIds[0]?.id ??
+        defaultDayConfigs[0]?.id ??
+        'push')
+      : (selectedDayIds[0]?.id ?? defaultDayConfigs[0]?.id ?? 'push');
+    const weekCount = weekCountRow?.total ?? 0;
+    const safeWeek =
+      weekCount > 0
+        ? Math.min(Math.max(1, currentWeek), weekCount)
+        : Math.max(1, currentWeek);
+
+    await this.writeSetting(db, 'currentDay', safeDay, timestamp);
+    await this.writeSetting(db, 'currentWeek', String(safeWeek), timestamp);
   }
 
   private async readRuntimeState(
     dbArg?: SQLiteDatabase,
+    programIdArg?: string,
   ): Promise<PearLiftRuntimeState> {
     const db = dbArg ?? (await getDatabase());
+    const program = programIdArg
+      ? await db.getFirstAsync<ProgramRow>(
+          `SELECT
+             id,
+             name,
+             subtitle,
+             goal,
+             description,
+             source_json,
+             start_date,
+             duration_weeks,
+             schedule_type,
+             progression_model,
+             frequency_summary_json,
+             default_rest_seconds,
+             updated_at
+           FROM programs
+           WHERE deleted_at IS NULL AND id = ?
+           LIMIT 1`,
+          programIdArg,
+        )
+      : await db.getFirstAsync<ProgramRow>(
+          `SELECT
+             id,
+             name,
+             subtitle,
+             goal,
+             description,
+             source_json,
+             start_date,
+             duration_weeks,
+             schedule_type,
+             progression_model,
+             frequency_summary_json,
+             default_rest_seconds,
+             updated_at
+           FROM programs
+           WHERE deleted_at IS NULL AND is_active = 1
+           ORDER BY sort_order ASC
+           LIMIT 1`,
+        );
+    const activeProgramId = program?.id ?? DEFAULT_PROGRAM_ID;
     const workouts = await db.getAllAsync<ProgramDayRow>(
       `SELECT
          id,
          day_label,
+         session_label,
          icon,
+         schedule_json,
          workout_name,
          workout_description,
+         default_rest_seconds,
          sort_order
        FROM program_days
-       WHERE deleted_at IS NULL
+       WHERE deleted_at IS NULL AND program_id = ?
        ORDER BY sort_order ASC`,
+      activeProgramId,
     );
     const exercises = await db.getAllAsync<ExerciseRow>(
-      `SELECT id, program_day_id, name, muscle_group, notes, sort_order
-       FROM exercises
-       WHERE deleted_at IS NULL
-       ORDER BY program_day_id ASC, sort_order ASC`,
+      `SELECT
+         e.id,
+         e.program_day_id,
+         e.canonical_exercise_id,
+         e.name,
+         e.aliases_json,
+         e.variant_label,
+         e.session_specific,
+         e.muscle_group,
+         e.notes,
+         e.advanced_json,
+         e.sort_order
+       FROM exercises e
+       INNER JOIN program_days d
+         ON d.id = e.program_day_id
+       WHERE e.deleted_at IS NULL
+         AND d.deleted_at IS NULL
+         AND d.program_id = ?
+       ORDER BY e.program_day_id ASC, e.sort_order ASC`,
+      activeProgramId,
     );
     const exerciseTargets = await db.getAllAsync<ExerciseTargetRow>(
-      `SELECT exercise_id, sets, reps, base_weight
-       FROM exercise_targets`,
+      `SELECT
+         t.exercise_id,
+         t.sets,
+         t.reps,
+         t.base_weight
+       FROM exercise_targets t
+       INNER JOIN exercises e
+         ON e.id = t.exercise_id
+       INNER JOIN program_days d
+         ON d.id = e.program_day_id
+       WHERE e.deleted_at IS NULL
+         AND d.deleted_at IS NULL
+         AND d.program_id = ?`,
+      activeProgramId,
     );
     const weights = await db.getAllAsync<WeightRow>(
-      'SELECT exercise_id, value FROM exercise_weights',
+      `SELECT
+         w.exercise_id,
+         w.value
+       FROM exercise_weights w
+       INNER JOIN exercises e
+         ON e.id = w.exercise_id
+       INNER JOIN program_days d
+         ON d.id = e.program_day_id
+       WHERE e.deleted_at IS NULL
+         AND d.deleted_at IS NULL
+         AND d.program_id = ?`,
+      activeProgramId,
     );
+    const userExerciseSettingsRows =
+      await db.getAllAsync<UserExerciseSettingsRow>(
+        `SELECT
+           s.exercise_id,
+           s.working_weight,
+           s.weight_unit,
+           s.weight_mode,
+           s.increment_kg,
+           s.estimated_one_rep_max,
+           s.notes,
+           s.updated_at
+         FROM user_exercise_settings s
+         INNER JOIN exercises e
+           ON e.id = s.exercise_id
+         INNER JOIN program_days d
+           ON d.id = e.program_day_id
+         WHERE e.deleted_at IS NULL
+           AND d.deleted_at IS NULL
+           AND d.program_id = ?`,
+        activeProgramId,
+      );
     const weekConfigs = await db.getAllAsync<WeekConfigRow>(
-      `SELECT id, name, load_modifier, rir, sort_order FROM training_blocks
+      `SELECT
+         week_number,
+         name,
+         load_modifier,
+         volume_modifier,
+         rir,
+         notes,
+         sort_order
+       FROM training_blocks
        WHERE deleted_at IS NULL AND program_id = ?
-       ORDER BY sort_order ASC, id ASC`,
-      DEFAULT_PROGRAM_ID,
+       ORDER BY sort_order ASC, week_number ASC`,
+      activeProgramId,
     );
-    const settings = await db.getAllAsync<AppSettingRow>(
-      'SELECT key, value FROM user_preferences',
-    );
+    const settingsMap = await this.readSettingsMap(db);
 
     const exerciseMap = buildExerciseMap(exercises, exerciseTargets);
     const userWeights = buildUserWeights(weights);
+    const userExerciseSettings = buildUserExerciseSettings(
+      userExerciseSettingsRows,
+    );
 
     const runtimeWorkouts = workouts.map((workout) => ({
       id: workout.id,
       name: workout.workout_name,
       description: workout.workout_description,
+      ...(workout.default_rest_seconds != null
+        ? { defaultRestSeconds: workout.default_rest_seconds }
+        : {}),
       exercises: (exerciseMap.get(workout.id) ?? []).sort(
         (a, b) => a.position - b.position,
       ),
     }));
 
-    const settingsMap = toSettingsMap(settings);
-
     return {
+      program:
+        buildTrainingProgram(
+          program,
+          workouts.map((workout) => workout.id),
+        ) ??
+        buildDefaultProgram(
+          runtimeWorkouts.length > 0 ? runtimeWorkouts : cloneDefaultWorkouts(),
+        ),
       workouts:
         runtimeWorkouts.length > 0 ? runtimeWorkouts : cloneDefaultWorkouts(),
       userWeights,
-      weekConfigs:
-        weekConfigs.length > 0
-          ? weekConfigs.map((week) => ({
-              id: week.id,
-              name: week.name,
-              loadModifier: week.load_modifier,
-              rir: week.rir,
-            }))
-          : defaultWeekConfigs,
+      userExerciseSettings,
+      weekConfigs: weekConfigs.map((week) => ({
+        id: week.week_number,
+        name: week.name,
+        loadModifier: week.load_modifier,
+        ...(week.volume_modifier != null
+          ? { volumeModifier: week.volume_modifier }
+          : {}),
+        rir: week.rir,
+        ...(week.notes ? { notes: week.notes } : {}),
+      })),
       dayConfigs:
         workouts.length > 0
           ? workouts.map((day) => ({
               id: day.id,
               name: day.day_label,
+              ...(day.session_label ? { sessionLabel: day.session_label } : {}),
               icon: day.icon,
+              schedule: buildDayConfigSchedule(day.schedule_json),
             }))
           : defaultDayConfigs,
       currentWeek: parseNumber(settingsMap.get('currentWeek'), 1),
-      currentDay:
-        settingsMap.get('currentDay') ?? defaultDayConfigs[0]?.id ?? 'push',
+      currentDay: workouts.some(
+        (day) => day.id === settingsMap.get('currentDay'),
+      )
+        ? (settingsMap.get('currentDay') ?? defaultDayConfigs[0]?.id ?? 'push')
+        : (workouts[0]?.id ?? defaultDayConfigs[0]?.id ?? 'push'),
       restDuration: parseNumber(settingsMap.get('restDuration'), 150),
       themeMode: coerceThemeMode(settingsMap.get('themeMode')),
       weightUnit: coerceWeightUnit(settingsMap.get('weightUnit')),
       language: coerceLanguage(settingsMap.get('language')),
     };
+  }
+
+  private async readBackupProgramCollection(
+    db: SQLiteDatabase,
+  ): Promise<BackupProgramCollection> {
+    const [programRows, settingsMap, allLogs] = await Promise.all([
+      db.getAllAsync<ProgramRow & { is_active: number }>(
+        `SELECT
+           id,
+           name,
+           subtitle,
+           goal,
+           description,
+           source_json,
+           start_date,
+           duration_weeks,
+           schedule_type,
+           progression_model,
+           frequency_summary_json,
+           default_rest_seconds,
+           updated_at,
+           is_active
+         FROM programs
+         WHERE deleted_at IS NULL
+         ORDER BY is_active DESC, sort_order ASC, updated_at DESC`,
+      ),
+      this.readSettingsMap(db),
+      this.getWorkoutSessionLogs({ limit: null }),
+    ]);
+
+    const programStates = await Promise.all(
+      programRows.map(async (programRow) => {
+        const runtime = await this.readRuntimeState(db, programRow.id);
+        return {
+          ...runtime,
+          program:
+            runtime.program ??
+            buildDefaultProgram(
+              runtime.workouts.length > 0
+                ? runtime.workouts
+                : cloneDefaultWorkouts(),
+            ),
+          sessionLogs: allLogs.filter(
+            (log) =>
+              log.programId === programRow.id ||
+              runtime.workouts.some((workout) => workout.id === log.workoutId),
+          ),
+          currentWeek: parseNumber(settingsMap.get('currentWeek'), 1),
+          restDuration: parseNumber(settingsMap.get('restDuration'), 150),
+          themeMode: coerceThemeMode(settingsMap.get('themeMode')),
+          weightUnit: coerceWeightUnit(settingsMap.get('weightUnit')),
+          language: coerceLanguage(settingsMap.get('language')),
+        };
+      }),
+    );
+
+    return {
+      programs: programStates,
+      activeProgramId:
+        programRows.find((programRow) => programRow.is_active === 1)?.id ??
+        null,
+    };
+  }
+
+  private async readSettingsMap(db: SQLiteDatabase) {
+    const settings = await db.getAllAsync<AppSettingRow>(
+      'SELECT key, value FROM user_preferences',
+    );
+    return toSettingsMap(settings);
   }
 
   private async ensureSyncIdentityStateRow(db: SQLiteDatabase) {
@@ -1540,7 +2598,7 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
 
   private async getExercisesForWorkout(db: SQLiteDatabase, workoutId: string) {
     return db.getAllAsync<ExerciseRow>(
-      `SELECT id, program_day_id, name, muscle_group, notes, sort_order
+      `SELECT id, program_day_id, canonical_exercise_id, name, aliases_json, variant_label, session_specific, muscle_group, notes, advanced_json, sort_order
        FROM exercises WHERE program_day_id = ? AND deleted_at IS NULL
        ORDER BY sort_order ASC`,
       workoutId,
@@ -1558,6 +2616,17 @@ class WorkoutRepositoryImpl implements WorkoutRepositoryPort {
         exercise.id,
       );
     }
+  }
+
+  private async readActiveProgramId(db: SQLiteDatabase) {
+    const row = await db.getFirstAsync<{ id: string }>(
+      `SELECT id
+       FROM programs
+       WHERE deleted_at IS NULL AND is_active = 1
+       ORDER BY sort_order ASC
+       LIMIT 1`,
+    );
+    return row?.id ?? DEFAULT_PROGRAM_ID;
   }
 }
 

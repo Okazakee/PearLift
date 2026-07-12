@@ -11,23 +11,42 @@ import {
   computeImportDiff,
   getBackupFileName,
   parseAndMigrateBackup,
-  serializePearLiftBackupV3,
+  prepareImportRuntime,
+  serializePearLiftBackupCollection,
   toPearLiftBackupV3,
 } from '@/backup/localBackup';
 import {
   assembleChunkedPackets,
   decodeQrPayload,
 } from '@/backup/qrBackupCodec';
-import type { ChangeSummary, MigratedBackupResult } from '@/backup/types';
-import { applyWorkoutMutation, showPrompt } from '@/screens/workout/services';
+import type {
+  BackupProgramCollection,
+  ChangeSummary,
+  MigratedBackupResult,
+} from '@/backup/types';
+import {
+  getBackupProgramCollection,
+  importProgram,
+  showPrompt,
+} from '@/screens/workout/services';
 import { useWorkoutDataStore } from '@/store/workoutDataStore';
 import { getErrorMessage, logError } from '@/utils/errors';
 
 const EMPTY_IMPORT_SUMMARY: ChangeSummary = {
+  programName: 'Imported Program',
   workouts: [],
+  matchingExercises: [],
+  changedExercises: [],
+  newExercises: [],
+  removedExercises: [],
+  preservedWeights: [],
+  missingWeightExercises: [],
+  programMetadata: [],
   settings: [],
   weekConfigs: [],
   dayConfigs: [],
+  incomingWorkoutCount: 0,
+  incomingExerciseCount: 0,
   totalChanges: 0,
 };
 
@@ -35,6 +54,8 @@ export function useBackupFlow() {
   const { t } = useTranslation();
   const snapshot = useWorkoutDataStore((state) => state.snapshot);
   const [shareToDeviceOpen, setShareToDeviceOpen] = useState(false);
+  const [shareTransferCollection, setShareTransferCollection] =
+    useState<BackupProgramCollection | null>(null);
   const [scanFromDeviceOpen, setScanFromDeviceOpen] = useState(false);
   const [pendingImport, setPendingImport] =
     useState<MigratedBackupResult | null>(null);
@@ -44,6 +65,71 @@ export function useBackupFlow() {
   const [backupActionMode, setBackupActionMode] = useState<
     'local' | 'qr' | null
   >(null);
+
+  const applyPendingImport = async (
+    mode: 'import_as_new' | 'replace_active',
+  ) => {
+    if (!pendingImport) return;
+    try {
+      const activeProgramId =
+        pendingImport.collection.activeProgramId ??
+        pendingImport.collection.programs[0]?.program.id ??
+        pendingImport.runtime.program?.id ??
+        null;
+      const inactivePrograms = pendingImport.collection.programs.filter(
+        (programState) => programState.program.id !== activeProgramId,
+      );
+
+      if (mode === 'replace_active') {
+        await importProgram({
+          runtime: pendingImport.runtime,
+          sessionLogs: pendingImport.sessionLogs,
+          mode,
+          activate: true,
+        });
+      } else {
+        for (const programState of inactivePrograms) {
+          await importProgram({
+            runtime: programState,
+            sessionLogs: programState.sessionLogs,
+            mode: 'import_as_new',
+            activate: false,
+          });
+        }
+
+        const activeProgramState =
+          pendingImport.collection.programs.find(
+            (programState) => programState.program.id === activeProgramId,
+          ) ?? pendingImport.collection.programs[0];
+        if (activeProgramState) {
+          await importProgram({
+            runtime: activeProgramState,
+            sessionLogs: activeProgramState.sessionLogs,
+            mode: 'import_as_new',
+            activate: true,
+          });
+        }
+      }
+
+      if (mode === 'replace_active') {
+        for (const programState of inactivePrograms) {
+          await importProgram({
+            runtime: programState,
+            sessionLogs: programState.sessionLogs,
+            mode: 'import_as_new',
+            activate: false,
+          });
+        }
+      }
+
+      setImportPreviewOpen(false);
+      setPendingImport(null);
+      setImportSummary(EMPTY_IMPORT_SUMMARY);
+    } catch (error) {
+      logError('backup/import confirm failed', error);
+      showPrompt(t('prompts.importBackup.failedTitle'), getErrorMessage(error));
+    }
+  };
 
   const beginImportFromPayload = async (payload: string) => {
     if (!snapshot) return false;
@@ -71,8 +157,12 @@ export function useBackupFlow() {
         toPearLiftBackupV3(snapshot),
         migrated.backup,
       );
+      const runtime = prepareImportRuntime(snapshot, migrated.runtime);
 
-      setPendingImport(migrated);
+      setPendingImport({
+        ...migrated,
+        runtime,
+      });
       setImportSummary(summary);
       setImportPreviewOpen(true);
       return true;
@@ -85,13 +175,31 @@ export function useBackupFlow() {
 
   return {
     shareToDeviceOpen,
+    shareTransferCollection,
     scanFromDeviceOpen,
     importSummary,
     importPreviewOpen,
     backupActionMode,
-    setShareToDeviceOpen,
     setScanFromDeviceOpen,
     setBackupActionMode,
+    handleOpenShareToDevice: async () => {
+      if (!snapshot) return;
+      try {
+        const collection = await getBackupProgramCollection();
+        setShareTransferCollection(collection);
+        setShareToDeviceOpen(true);
+      } catch (error) {
+        logError('backup/qr-export prepare failed', error);
+        showPrompt(
+          t('prompts.exportBackup.failedTitle'),
+          getErrorMessage(error),
+        );
+      }
+    },
+    handleCloseShareToDevice: () => {
+      setShareToDeviceOpen(false);
+      setShareTransferCollection(null);
+    },
     handleOpenLocalBackup: () => {
       setBackupActionMode('local');
     },
@@ -102,7 +210,8 @@ export function useBackupFlow() {
       if (!snapshot) return;
       try {
         const fileName = getBackupFileName();
-        const payload = serializePearLiftBackupV3(snapshot);
+        const collection = await getBackupProgramCollection();
+        const payload = serializePearLiftBackupCollection(collection);
 
         if (mode === 'save') {
           const permissions =
@@ -196,24 +305,31 @@ export function useBackupFlow() {
     },
     handleScanPayload: async (payload: string) =>
       beginImportFromPayload(payload),
-    handleConfirmImport: async () => {
+    handleImportAsNewProgram: async () => {
       if (!pendingImport) return;
-      try {
-        await applyWorkoutMutation({
-          type: 'restoreRuntimeState',
-          runtime: pendingImport.runtime,
-          source: 'local-import',
-        });
-        setImportPreviewOpen(false);
-        setPendingImport(null);
-        setImportSummary(EMPTY_IMPORT_SUMMARY);
-      } catch (error) {
-        logError('backup/import confirm failed', error);
-        showPrompt(
-          t('prompts.importBackup.failedTitle'),
-          getErrorMessage(error),
-        );
-      }
+      await applyPendingImport('import_as_new');
+    },
+    handleReplaceActiveProgram: async () => {
+      if (!pendingImport) return;
+      showPrompt(
+        t('prompts.importBackup.confirmReplaceTitle'),
+        t('prompts.importBackup.confirmReplaceMessage', {
+          program: importSummary.programName,
+        }),
+        [
+          {
+            label: t('common.cancel'),
+            tone: 'cancel',
+          },
+          {
+            label: t('prompts.importBackup.confirmReplaceAction'),
+            tone: 'destructive',
+            onPress: () => {
+              void applyPendingImport('replace_active');
+            },
+          },
+        ],
+      );
     },
     handleCancelImport: () => {
       setImportPreviewOpen(false);

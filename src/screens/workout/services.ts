@@ -1,4 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import type {
+  BackupProgramCollection,
+  PearLiftRuntimeState,
+} from '@/backup/types';
 import { getE2EDhtBootstrap } from '@/config/e2e';
 import { REST_TIMER_PERSIST_KEY } from '@/config/timer';
 import i18n from '@/i18n';
@@ -8,6 +12,7 @@ import {
   ensureWorkoutRuntime,
   getWorkoutRuntime,
 } from '@/screens/workout/runtime';
+import { nowIso } from '@/storage/repository/defaults';
 import type {
   SyncFirstSyncResolution,
   SyncRole,
@@ -19,6 +24,7 @@ import { useWorkoutDataStore } from '@/store/workoutDataStore';
 import { type PromptConfig, useWorkoutUiStore } from '@/store/workoutUiStore';
 import { canonicalizeMutationForSync } from '@/sync/canonicalize';
 import { isSyncableMutation, type SyncManager } from '@/sync/types';
+import type { UserExerciseSettings, WorkoutSessionLog } from '@/types';
 import type { PersistedRestTimerStateV1 } from '@/types/timer';
 
 type RuntimeSubscriptions = {
@@ -149,13 +155,24 @@ function applyOptimisticUpdate(
     case 'setCurrentWeek':
       return { ...snapshot, currentWeek: mutation.currentWeek };
     case 'setCurrentDay':
-      return { ...snapshot, currentDay: mutation.currentDay };
+      return {
+        ...snapshot,
+        currentDay: mutation.currentDay,
+        currentDaySelectedAt: nowIso(),
+      };
     case 'setRestDuration':
       return { ...snapshot, restDuration: mutation.restDuration };
     case 'setWeightUnit':
       return { ...snapshot, weightUnit: mutation.weightUnit };
     case 'setLanguage':
       return { ...snapshot, language: mutation.language };
+    case 'setProgramMetadata':
+      return {
+        ...snapshot,
+        program: snapshot.program
+          ? { ...snapshot.program, ...mutation.updates }
+          : snapshot.program,
+      };
     case 'setExerciseWeight':
       return {
         ...snapshot,
@@ -224,6 +241,54 @@ export async function reloadWorkoutSnapshot() {
   await loadSnapshot();
 }
 
+export async function saveWorkoutSessionLog(log: WorkoutSessionLog) {
+  const { repository } = getWorkoutRuntime();
+  await repository.saveWorkoutSessionLog(log);
+}
+
+export async function getAvailablePrograms() {
+  const { repository } = getWorkoutRuntime();
+  return repository.getAvailablePrograms();
+}
+
+export async function setActiveProgram(programId: string) {
+  const { repository } = getWorkoutRuntime();
+  await repository.setActiveProgram(programId);
+  await loadSnapshot();
+}
+
+export async function importProgram(input: {
+  runtime: PearLiftRuntimeState;
+  sessionLogs: WorkoutSessionLog[];
+  mode: 'import_as_new' | 'replace_active';
+  activate?: boolean;
+}) {
+  const { repository } = getWorkoutRuntime();
+  await repository.importProgram(input);
+  await loadSnapshot();
+}
+
+export async function getBackupProgramCollection(): Promise<BackupProgramCollection> {
+  const { repository } = getWorkoutRuntime();
+  return repository.getBackupProgramCollection();
+}
+
+export async function getRecentWorkoutSessionLogs(limit = 120) {
+  const { repository } = getWorkoutRuntime();
+  return repository.getWorkoutSessionLogs({ limit });
+}
+
+export async function getAllWorkoutSessionLogs() {
+  const { repository } = getWorkoutRuntime();
+  return repository.getWorkoutSessionLogs({ limit: null });
+}
+
+export async function saveUserExerciseSettings(settings: UserExerciseSettings) {
+  const { repository } = getWorkoutRuntime();
+  await repository.saveUserExerciseSettings(settings);
+  await loadSnapshot();
+}
+
 export async function applyWorkoutMutation(mutation: WorkoutMutation) {
   const { repository, syncManager } = getWorkoutRuntime();
   const dataStore = useWorkoutDataStore.getState();
@@ -235,6 +300,7 @@ export async function applyWorkoutMutation(mutation: WorkoutMutation) {
     mutation.type === 'setRestDuration' ||
     mutation.type === 'setWeightUnit' ||
     mutation.type === 'setLanguage' ||
+    mutation.type === 'setProgramMetadata' ||
     mutation.type === 'setExerciseWeight' ||
     mutation.type === 'adjustExerciseWeight';
 

@@ -4,7 +4,9 @@
     "delete": "Sil",
     "back": "Geri",
     "next": "İleri",
-    "ok": "Tamam"
+    "ok": "Tamam",
+    "close": "Kapat",
+    "save": "Kaydet"
   },
   "app": {
     "loading": "Antrenman verileriniz hazırlanıyor"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Boşta",
         "connecting": "Aranıyor",
+        "waiting": "Bekliyor",
+        "dht_ready": "DHT hazır",
+        "peer_connected": "Eş bağlandı",
+        "handshake_ok": "El sıkışma tamam",
+        "replicating": "Çoğaltılıyor",
         "synced": "Bağlandı",
         "error": "Hata"
       },
@@ -134,6 +141,19 @@
         "connecting": "Senkronizasyon grubunuz aranıyor.",
         "off": "Senkronizasyon şu anda bu cihazda devre dışı."
       },
+      "dht": "DHT",
+      "dhtReady": "Hazır",
+      "dhtBootstrapping": "Başlatılıyor…",
+      "dhtError": "Hata",
+      "dhtInactive": "Devre dışı",
+      "dhtWaiting": "Bekliyor",
+      "status": "Durum",
+      "peers": "Eşler",
+      "peersConnected": "{{count}} bağlı",
+      "peersNone": "Yok",
+      "connectionsActive": "{{count}} aktif",
+      "connectionsNone": "Yok",
+      "more": "Daha fazla",
       "lastSyncAt": "Son senkronizasyon: {{at}}",
       "lastSyncNever": "Son senkronizasyon: hiç",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Sorun giderme",
         "stop": "Senkronizasyonu durdur"
       }
+    },
+    "manage": {
+      "title": "Cihaz senkronizasyonu",
+      "subtitle": "Grup kurulumu ve senkronizasyon bakımını tek bir yerde tutun.",
+      "roomSetup": "Grup kurulumu",
+      "roomSetupHint": "Bu cihazın yeni bir grup başlatmasını veya mevcut bir gruba katılmasını seçin.",
+      "onboardingTitle": "Bulut yok. Hesap yok.",
+      "onboardingMessage": "PearLift antrenmanlarınızı doğrudan cihazlarınız arasında senkronize eder — eşler arası. Verileriniz asla bir sunucuya dokunmaz. Tek ihtiyacınız ilk bağlantı için aynı Wi‑Fi ağında veya yakında olmaktır.",
+      "onboardingDismiss": "Anladım",
+      "createRoom": "Grup oluştur",
+      "joinRoom": "Gruba katıl",
+      "roomActive": "Grup aktif",
+      "status": "Senkronizasyon durumu",
+      "turnOn": "Aç",
+      "turnOff": "Kapat",
+      "refresh": "Yenile",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Grup sahibi",
+        "joiner": "Üye"
+      },
+      "binding": {
+        "unconfigured": "Yapılandırılmamış",
+        "pending_first_sync": "İlk senkronizasyon bekleniyor",
+        "active": "Aktif",
+        "conflict_requires_decision": "Kararınızı bekliyor",
+        "active_conflict_requires_decision": "Senkronizasyon çakışması kararınızı bekliyor"
+      },
+      "thisDeviceCode": "Bu cihaz kodu: {{code}}",
+      "deviceCode": "Kod {{code}}",
+      "deviceNamePlaceholder": "Bu cihazı adlandır",
+      "saveDeviceName": "Cihaz adını kaydet",
+      "deviceNameSyncPending": "Cihaz adı yerel olarak kaydedildi. Senkronizasyon kısa süre içinde eşlerle paylaşmayı tekrar deneyecek.",
+      "masterKey": "Senkronizasyon kodu",
+      "masterKeyHint": "Veri paylaşması gereken her cihazda aynı 64 karakterli senkronizasyon kodunu kullanın.",
+      "masterKeyPlaceholder": "64 karakterli senkronizasyon kodunu yapıştırın veya düzenleyin",
+      "showQR": "QR kodunu göster",
+      "copyKey": "Kodu kopyala",
+      "applyKey": "Kodu uygula",
+      "leaveRoom": "Gruptan ayrıl",
+      "leaveRoomConfirmTitle": "Bu gruptan ayrıl?",
+      "leaveRoomConfirmMessage": "Bu, senkronizasyonu kapatır, bu cihazdaki mevcut grup bağını temizler ve yerel grup bağlantı geçmişini kaldırır.",
+      "syncedDevices": "{{count}} cihaz",
+      "syncedDevicesTitle": "Cihazlar",
+      "noDevices": "Henüz senkronize olmuş cihaz yok.",
+      "showMore": "{{count}} tane daha göster",
+      "lastSeen": "Son görülme {{at}}",
+      "lastSyncAt": "Son senkronizasyon {{at}}",
+      "removeDevice": "Listeden kaldır",
+      "removeDeviceConfirmTitle": "Bu cihaz listeden kaldırılsın mı?",
+      "removeDeviceConfirmMessage": "Bu, cihazı yalnızca bu cihazdaki listeden gizler. Daha sonra bu grupla senkronize olursa tekrar görünebilir.",
+      "debug": "Hata ayıklama bilgisi",
+      "never": "Hiçbir zaman"
+    },
+    "create": {
+      "title": "Grup oluştur",
+      "subtitle": "Bu cihaz yeni bir senkronizasyon grubu başlatır ve senkronizasyon kodunu diğer cihazlarla paylaşabilir.",
+      "room": "Yeni grup",
+      "explainer": "Bu cihazın ilk grubu tanımlamasını ve diğerlerini davet etmesini istediğinizde kullanın.",
+      "datasetSummary": "Bu cihazda {{workouts}} antrenman ve {{exercises}} egzersiz bulunuyor.",
+      "masterKey": "Senkronizasyon kodu",
+      "inviteStarting": "Grup başlatılıyor ve QR davetiyesi oluşturuluyor…",
+      "invitePending": "QR davetiyesi oluşturmak için grubu başlatın.",
+      "copy": "Kodu kopyala",
+      "startRoom": "Bu grubu başlat"
+    },
+    "join": {
+      "title": "Gruba katıl",
+      "subtitle": "Başka bir cihazdaki senkronizasyon kodunu kullanarak bu cihazı aynı senkronizasyon grubuna bağlayın.",
+      "preflight": "Katılmadan önce",
+      "localSummary": "Bu cihazda {{workouts}} antrenman ve {{exercises}} egzersiz bulunuyor.",
+      "remoteSummaryHint": "Her iki cihazda da çok sayıda örtüşen değişiklik varsa, PearLift hangi veri kümesinin korunacağını soracaktır.",
+      "masterKey": "Senkronizasyon kodu",
+      "keyPlaceholder": "64 karakterli senkronizasyon kodunu yapıştırın",
+      "paste": "Yapıştır",
+      "scanQr": "QR tara",
+      "scanHelp": "Kamerayı senkronizasyon kodunu içeren QR koduna doğrultun.",
+      "invalidKey": "Geçersiz senkronizasyon kodu. 64 hex karakterden oluşmalıdır.",
+      "keyValid": "Geçerli davet kodu",
+      "pasteSuccess": "Panodan yapıştırıldı",
+      "pasteEmpty": "Pano boş",
+      "joinRoom": "Gruba katıl"
+    },
+    "decision": {
+      "title": "İlk senkronizasyon verisini seçin",
+      "subtitle": "Her iki taraf da anlamlı veriler içeriyor. Bu grubun hangi temeli kullanacağını seçin.",
+      "thisDevice": "Bu cihaz",
+      "roomData": "Grup verisi",
+      "datasetSummary": "{{workouts}} antrenman · {{exercises}} egzersiz",
+      "conflictTitle": "Örtüşen değişiklikler tespit edildi",
+      "conflictWorkouts": "Antrenmanlar",
+      "conflictExercises": "Egzersizler",
+      "conflictSummary": "{{workouts}} antrenman ve {{exercises}} egzersiz örtüşmesi tespit edildi.",
+      "configConflictSummary": "{{weeks}} hafta yapılandırma örtüşmesi, {{days}} gün yapılandırma örtüşmesi, {{backlog}} grup güncellemesi bekliyor.",
+      "useThisDeviceHint": "Bu, bu cihazı grup temeli olarak yayınlar.",
+      "useRoomDataHint": "Bu, uygulama tercihlerini koruyarak bu cihazdaki antrenman verilerini değiştirir.",
+      "useMerge": "İkisini birleştir",
+      "useMergeHint": "Örtüşme olmadığında bu cihaz ve gruptaki verileri birleştirin.",
+      "mergeUnavailableHint": "Bazı antrenmanlar veya egzersizler her iki cihazda farklı değerlerle bulunduğundan birleştirme mümkün değil.",
+      "useThisDevice": "Bu cihazın verilerini kullan",
+      "useRoomData": "Grup verilerini kullan"
+    },
+    "debug": {
+      "title": "Senkronizasyon hata ayıklama bilgisi",
+      "subtitle": "Çalışma zamanı durumu, bağlantı detayları ve son senkronizasyon günlükleri.",
+      "snapshot": "Çalışma zamanı anlık görüntüsü",
+      "connections": "Bağlantılar",
+      "lastError": "Son hata",
+      "logs": "Son günlükler",
+      "logCount": "{{total}} günlük girişinden {{shown}} tanesi gösteriliyor",
+      "clear": "Temizle"
     }
   },
   "workout": {
     "weekDay": "Hafta {{week}} - Gün {{day}}",
-    "addExercise": "Egzersiz ekle"
+    "addExercise": "Egzersiz ekle",
+    "logWorkout": "Antrenmanı kaydet",
+    "progressionSuggestions": "Öneriler",
+    "suggestedToday": "Bugün önerilen: {{workout}}",
+    "showDetails": "Detayları göster",
+    "hideDetails": "Detayları gizle",
+    "details": {
+      "notes": "Notlar",
+      "tempo": "Hız",
+      "equipment": "Ekipman",
+      "primaryMuscles": "Birincil kaslar",
+      "secondaryMuscles": "İkincil kaslar",
+      "technique": "Teknik",
+      "cues": "İşaretler",
+      "perSetTargets": "Set başına hedefler",
+      "progression": "İlerleme",
+      "weekOverrides": "Hafta geçersiz kılmaları",
+      "active": "Aktif",
+      "intensity": "Yoğunluk",
+      "target": "Hedef",
+      "estimatedOneRepMax": "Tahmini 1TM",
+      "notSet": "Ayarlanmamış",
+      "intensityRange": "Yoğunluk aralığı",
+      "weightSettings": "Ağırlık ayarları",
+      "weightMode": "Ağırlık modu",
+      "increment": "Artış",
+      "exerciseSettings": "Egzersiz ayarları"
+    }
+  },
+  "workoutLog": {
+    "title": "Antrenman günlüğü",
+    "subtitle": "{{workout}} · Hafta {{week}}",
+    "progress": "{{logged}} / {{total}} set kaydedildi",
+    "loading": "Antrenman günlüğü yükleniyor…",
+    "done": "Tamam",
+    "skip": "Atla",
+    "save": "Günlüğü kaydet",
+    "saving": "Kaydediliyor…",
+    "useTarget": "Hedefle tamamla",
+    "reset": "Sıfırla",
+    "setLabel": "Set {{set}}",
+    "targetRir": "Hedef RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Gerçek ağırlık",
+    "actualReps": "Gerçek tekrarlar",
+    "leftReps": "Sol tekrarlar",
+    "rightReps": "Sağ tekrarlar",
+    "perSideReps": "Her taraf",
+    "sharedReps": "Paylaşılan",
+    "actualRir": "Gerçek RIR",
+    "errors": {
+      "load": "Bu antrenman günlüğü yüklenemedi.",
+      "save": "Bu antrenman günlüğü kaydedilemedi."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "İlerleme önerileri",
+    "subtitle": "Bir sonraki yükü şimdi uygulayın veya daha sonraya bırakın.",
+    "current": "Mevcut ağırlık",
+    "next": "Sonraki ağırlık",
+    "reason": "Sebep: {{reason}}",
+    "apply": "Uygula",
+    "skip": "Atla"
+  },
+  "exerciseSettings": {
+    "title": "Egzersiz ayarları",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Çalışma ağırlığı",
+    "weightMode": "Ağırlık modu",
+    "increment": "Artış",
+    "estimatedOneRepMax": "Tahmini 1TM",
+    "notes": "Notlar",
+    "history": "Son geçmiş",
+    "linkedVariants": "Bağlı varyantlar",
+    "historyLoading": "Geçmiş yükleniyor…",
+    "historyEmpty": "Henüz kaydedilmiş oturum yok.",
+    "historyError": "Geçmiş yüklenemedi.",
+    "historySets": "{{completed}} / {{total}} set",
+    "historyBestReps": "En iyi {{reps}} tekrar"
   },
   "restTimer": {
     "title": "Dinlenme zamanlayıcısı",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Program ayarları",
     "tabs": {
+      "program": "Program",
       "weeks": "Haftalar",
       "days": "Günler"
+    },
+    "program": {
+      "name": "Program adı",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Alt başlık",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Hedef",
+      "goalPlaceholder": "Kuvvet ve hipertrofi",
+      "description": "Açıklama",
+      "descriptionPlaceholder": "Bu antrenman bloğu hakkında isteğe bağlı notlar",
+      "sourceType": "Kaynak",
+      "sourceLabel": "Kaynak etiketi",
+      "sourceLabelPlaceholder": "Koç PDF, şablon veya not",
+      "startDate": "Başlangıç tarihi",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Süre (hafta)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Varsayılan dinlenme (sn)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "İlerleme modeli",
+      "frequencySummary": "Haftalık hedefler",
+      "frequencyGroupPlaceholder": "Kas grubu",
+      "frequencyTarget": "Haftalık hedef",
+      "frequencyPerWeek_one": "{{count}}x / hafta",
+      "frequencyPerWeek_other": "{{count}}x / hafta",
+      "addFrequencyTarget": "Haftalık hedef ekle",
+      "progressionModels": {
+        "simple_load_modifier": "Basit",
+        "exercise_rules": "Kurallar",
+        "mixed": "Karma",
+        "manual": "Manuel"
+      },
+      "sourceTypes": {
+        "manual": "Manuel",
+        "coach": "Koç",
+        "template": "Şablon",
+        "imported_pdf": "İçe Aktarılan PDF",
+        "imported_json": "İçe Aktarılan JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Hafta adı",
       "loadModifier": "Yük değiştirici",
+      "volumeModifier": "Hacim değiştirici",
       "rir": "RIR (Rezerv tekrarlar)",
+      "notes": "Hafta notları",
+      "notesPlaceholder": "Bu hafta için isteğe bağlı notlar",
       "baseline": "Temel",
       "addWeek": "Hafta ekle",
       "deleteTitle": "Haftayı sil",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Gün {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "İkon",
+      "schedule": "Program",
+      "pickDay": "Gün seç",
+      "pickWindow": "Gün aralığı seç",
       "iconMore": "Daha fazla",
       "iconRefresh": "Yenile",
+      "scheduleTypes": {
+        "unscheduled": "Herhangi",
+        "fixed_day": "Sabit",
+        "day_window": "Aralık"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Pzt",
+          "tue": "Sal",
+          "wed": "Çar",
+          "thu": "Per",
+          "fri": "Cum",
+          "sat": "Cmt",
+          "sun": "Paz"
+        },
+        "narrow": {
+          "mon": "P",
+          "tue": "S",
+          "wed": "Ç",
+          "thu": "P",
+          "fri": "C",
+          "sat": "C",
+          "sun": "P"
+        }
+      },
       "addDay": "Gün ekle",
       "deleteTitle": "Günü sil",
       "deleteMessage": "\"{{name}}\" silinsin mi? Bu tüm haftalardan kaldırır."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Egzersiz ekle",
     "titleEdit": "Egzersizi düzenle",
+    "tabs": {
+      "basic": "Temel",
+      "advanced": "Gelişmiş"
+    },
     "name": "Ad",
     "namePlaceholder": "Egzersiz adı",
     "muscleGroup": "Kas grubu",
@@ -202,11 +487,52 @@
     "reps": "Tekrarlar",
     "notes": "Notlar",
     "notesPlaceholder": "İsteğe bağlı notlar...",
+    "advanced": {
+      "show": "Gelişmiş alanları göster",
+      "hide": "Gelişmiş alanları gizle",
+      "rest": "Dinlenme (sn)",
+      "restUseDefault": "Genel varsayılan",
+      "restCustom": "Özel",
+      "restPlaceholder": "180",
+      "rir": "RIR hedefi",
+      "rirPlaceholder": "1-2",
+      "intensity": "Yoğunluk",
+      "intensityPlaceholder": "80-85% 1TM",
+      "tempo": "Hız",
+      "tempoPlaceholder": "Eksantrik 2 sn",
+      "progressionRule": "İlerleme kuralı",
+      "progressionRulePlaceholder": "+5kg tüm setler 2 RIR ile üst tekrarlara ulaştığında",
+      "unilateral": "Tek taraflı mod",
+      "unilateralPlaceholder": "bacak başına, yan başına, sol/sağ, dönüşümlü",
+      "equipment": "Ekipman",
+      "equipmentPlaceholder": "Bar, dambıl, kablo, makine",
+      "primaryMuscles": "Birincil kaslar",
+      "primaryMusclesPlaceholder": "Her satıra bir kas",
+      "secondaryMuscles": "İkincil kaslar",
+      "secondaryMusclesPlaceholder": "Her satıra bir kas",
+      "canonicalExerciseId": "Kanonik egzersiz ID'si",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Varyant etiketi",
+      "variantLabelPlaceholder": "Oturum B",
+      "aliases": "Takma adlar",
+      "aliasesPlaceholder": "Her satıra bir takma ad",
+      "sessionSpecific": "Oturuma özel",
+      "sessionSpecificToggle": "Yalnızca oturum varyantı olarak takip et",
+      "technicalNotes": "Teknik notlar",
+      "technicalNotesPlaceholder": "Her satıra bir not",
+      "executionCues": "Uygulama işaretleri",
+      "executionCuesPlaceholder": "Her satıra bir işaret",
+      "perSetTargets": "Set başına hedefler",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Başarısızlığa it",
+      "weekOverrides": "Hafta geçersiz kılmaları",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Bir set ekle"
+    },
     "submitAdd": "Egzersiz ekle",
     "submitEdit": "Değişiklikleri kaydet",
     "errors": {
       "nameRequired": "Egzersiz adı gereklidir.",
-      "setsInvalid": "Setler geçerli pozitif tam sayı olmalıdır."
+      "setsInvalid": "Setler geçerli pozitif tam sayı olmalıdır.",
+      "restInvalid": "Dinlenme geçerli negatif olmayan bir tam sayı olmalıdır."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Senkronizasyon Durumu",
       "status": "Durum",
+      "enabled": "Senkronizasyon açık",
+      "disabled": "Senkronizasyon kapalı",
       "syncingWith_one": "{{count}} cihazla senkronize ediliyor",
       "syncingWith_other": "{{count}} cihazla senkronize ediliyor",
       "off": "Senkronizasyon kapalı",
@@ -263,8 +591,11 @@
       "title": "Yedek",
       "export": "Yedeği cihaza kaydet",
       "import": "Yedekten geri yükle",
+      "shareBackup": "Yedeği paylaş",
       "shareToDevice": "Başka cihaza paylaş",
-      "scanFromDevice": "Başka cihazdan tara"
+      "scanFromDevice": "Başka cihazdan tara",
+      "localSaveRestore": "Yerel Kaydet / Geri Yükle",
+      "qrShareRestore": "QR Paylaş / Geri Yükle"
     },
     "pairingDevices": {
       "title": "Eşleştirme ve Cihazlar",
@@ -297,7 +628,7 @@
       "title": "Uygulama bilgileri",
       "name": "Ad",
       "version": "Sürüm",
-      "build": "Build",
+      "build": "Yapı",
       "buildType": "Build türü"
     }
   },
@@ -317,27 +648,64 @@
   },
   "importPreview": {
     "title": "İçe aktarma önizlemesi",
+    "titleWithProgram": "İçe Aktar: {{program}}",
     "changesDetected": "{{count}} değişiklik tespit edildi.",
     "noChanges": "Değişiklik tespit edilmedi. Yedek, mevcut verilerle aynı.",
+    "modeHint": "Yeni olarak içe aktarmak mevcut planı kullanılabilir tutar. Aktif programı değiştirmek bu cihazdaki mevcut planın üzerine yazar.",
+    "stats": {
+      "workouts": "Güncellenecek antrenmanlar",
+      "exercises": "Oluşturulacak veya güncellenecek egzersizler",
+      "preservedWeights": "Korunan ağırlıklar",
+      "needsWeight": "Başlangıç ağırlığı gerekli"
+    },
+    "exerciseStatus": {
+      "matching": "Eşleşen egzersizler",
+      "changed": "Değişen egzersizler",
+      "new": "Yeni egzersizler",
+      "removed": "Kaldırılan egzersizler"
+    },
     "sections": {
+      "exerciseStatus": "Egzersiz durumu",
+      "preservedWeights": "Korunan ağırlıklar",
+      "missingWeights": "Kaydedilmiş ağırlığı olmayan yeni egzersizler",
+      "removedExercises": "Aktif programdan kaldırıldı",
       "workouts": "Antrenmanlar",
+      "program": "Program",
       "settings": "Ayarlar",
       "weeks": "Haftalar",
       "days": "Günler"
     },
+    "currentWeightKept": "Mevcut ağırlık korundu",
+    "noPreviousWeight": "Önceki ağırlık bulunamadı",
     "cancel": "İptal",
-    "confirm": "Yedeği içe aktar"
+    "confirm": "Yedeği içe aktar",
+    "importAsNewProgram": "Yeni Program Olarak İçe Aktar",
+    "replaceActiveProgram": "Aktif Programı Değiştir"
+  },
+  "programLibrary": {
+    "title": "Programlar",
+    "summary": "{{count}} kaydedilmiş program",
+    "active": "Aktif",
+    "empty": "Henüz kaydedilmiş program yok."
   },
   "deviceTransfer": {
     "shareTitle": "Başka cihaza paylaş",
     "shareDescription": "Diğer cihazda: Ayarlar → Yedek → Başka cihazdan tara.",
+    "shareChunkCounter": "Parça {{current}}/{{total}}",
+    "shareChunkHint": "Her iki cihazı da sabit tutun. QR otomatik olarak döner.",
+    "pauseRotation": "Dönüşü duraklat",
+    "resumeRotation": "Dönüşü sürdür",
     "scanTitle": "Başka cihazdan tara",
     "scanDescription": "Kameranızı PearLift yedek QR koduna doğrultun.",
+    "chunkProgress": "Tarama ilerlemesi: {{received}}/{{total}}",
+    "transferCorrupted": "QR aktarımı bütünlük kontrolünü geçemedi. Lütfen ilk parçadan tekrar tarayın.",
     "cameraPermissionTitle": "Kamera izni gerekli",
     "cameraPermissionMessage": "Yedek QR kodunu taramak için kamera erişimine izin verin.",
     "cameraPermissionButton": "Kameraya izin ver",
+    "cameraUnavailableTitle": "Kamera kullanılamıyor",
+    "cameraUnavailableMessage": "PearLift bu cihazda kullanılabilir bir arka kameraya erişemedi.",
     "invalidQr": "Bu QR kodu PearLift yedeği gibi görünmüyor.",
-    "tooLarge": "Yedek tek bir QR koda sığmayacak kadar büyük. Bunun yerine “Yedeği cihaza kaydet” seçeneğini kullanın."
+    "tooLarge": "Yedek tek bir QR koda sığmayacak kadar büyük. Bunun yerine \"Yedeği cihaza kaydet\" seçeneğini kullanın."
   },
   "prompts": {
     "deleteExercise": {
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Paylaşım bu cihazda/platformda kullanılamıyor."
     },
     "importBackup": {
-      "failedTitle": "İçe aktarma başarısız"
+      "failedTitle": "İçe aktarma başarısız",
+      "confirmReplaceTitle": "Aktif program değiştirilsin mi?",
+      "confirmReplaceMessage": "Bu, bu cihazdaki mevcut aktif programı \"{{program}}\" ile değiştirecektir. Mümkün olduğunda mevcut eşleşen ağırlıklar korunur.",
+      "confirmReplaceAction": "Programı değiştir"
     },
     "forgetDevice": {
       "authPromptMessage": "Cihazı unutmayı onayla",

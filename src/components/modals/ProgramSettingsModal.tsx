@@ -24,11 +24,19 @@ import { AnimatedPressable } from '@/animation/primitives';
 import { AnimatedModalShell } from '@/components/AnimatedModalShell';
 import { AnimatedScreenModal } from '@/components/AnimatedScreenModal';
 import { E2E_IDS } from '@/config/testIds';
-import { dayIconMap, dayIconOptions } from '@/data/workouts';
+import { dayIconMap, dayIconOptions, muscleGroups } from '@/data/workouts';
 import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
-import type { DayConfig, WeekConfig } from '@/types';
+import type {
+  DayConfig,
+  MuscleFrequencyTarget,
+  TrainingProgram,
+  WeekConfig,
+  WorkoutSchedule,
+  WorkoutSession,
+} from '@/types';
+import { normalizeFrequencySummaryEntries } from '@/utils/program';
 import { Text, TextInput } from '../AppText';
 
 interface ProgramSettingsModalProps {
@@ -36,11 +44,34 @@ interface ProgramSettingsModalProps {
   tokens: ThemeTokens;
   topInset: number;
   bottomInset: number;
+  program?: TrainingProgram | null;
   weekConfigs: WeekConfig[];
   dayConfigs: DayConfig[];
+  workouts: WorkoutSession[];
   onClose: () => void;
+  onProgramChange: (
+    value: Partial<
+      Pick<
+        TrainingProgram,
+        | 'name'
+        | 'subtitle'
+        | 'goal'
+        | 'description'
+        | 'source'
+        | 'startDate'
+        | 'durationWeeks'
+        | 'progressionModel'
+        | 'frequencySummary'
+        | 'defaultRestSeconds'
+      >
+    >,
+  ) => void;
   onWeekConfigsChange: (value: WeekConfig[]) => void;
   onDayConfigsChange: (value: DayConfig[]) => void;
+  onWorkoutDefaultRestChange: (
+    workoutId: string,
+    defaultRestSeconds?: number,
+  ) => void;
   onPrompt: (
     title: string,
     message: string,
@@ -53,9 +84,20 @@ interface ProgramSettingsModalProps {
 }
 
 type WeekDraft = WeekConfig & { uiKey: string };
+type FrequencyTargetDraft = MuscleFrequencyTarget & { uiKey: string };
 
-const MAX_WEEKS = 4;
 const MAX_DAYS = 7;
+const MAX_FREQUENCY_TARGETS = 8;
+const WEEKDAY_VALUES = [1, 2, 3, 4, 5, 6, 7] as const;
+const WEEKDAY_KEY_SUFFIXES = [
+  'mon',
+  'tue',
+  'wed',
+  'thu',
+  'fri',
+  'sat',
+  'sun',
+] as const;
 
 const dayIconComponents: Record<
   string,
@@ -71,28 +113,69 @@ const dayIconComponents: Record<
   Repeat,
   Star,
 };
+const progressionModelOptions = [
+  'simple_load_modifier',
+  'exercise_rules',
+  'mixed',
+  'manual',
+] as const;
+const sourceTypeOptions = [
+  'manual',
+  'coach',
+  'template',
+  'imported_pdf',
+  'imported_json',
+] as const;
 
 export function ProgramSettingsModal({
   open,
   tokens,
   topInset,
   bottomInset,
+  program,
   weekConfigs,
   dayConfigs,
+  workouts,
   onClose,
+  onProgramChange,
   onWeekConfigsChange,
   onDayConfigsChange,
+  onWorkoutDefaultRestChange,
   onPrompt,
 }: ProgramSettingsModalProps) {
   const layout = useResponsiveLayout();
-  const [activeTab, setActiveTab] = useState<'weeks' | 'days'>('weeks');
+  const [activeTab, setActiveTab] = useState<'program' | 'weeks' | 'days'>(
+    'program',
+  );
   const [draftWeeks, setDraftWeeks] = useState<WeekDraft[]>([]);
   const [draftDays, setDraftDays] = useState<DayConfig[]>([]);
+  const [draftWorkoutRestById, setDraftWorkoutRestById] = useState<
+    Record<string, string>
+  >({});
+  const [draftFrequencySummary, setDraftFrequencySummary] = useState<
+    FrequencyTargetDraft[]
+  >([]);
+  const [draftProgram, setDraftProgram] = useState({
+    name: '',
+    subtitle: '',
+    goal: '',
+    description: '',
+    sourceType: 'manual' as NonNullable<TrainingProgram['source']>['type'],
+    sourceLabel: '',
+    sourceImportedAt: '',
+    startDate: '',
+    durationWeeks: '',
+    defaultRestSeconds: '',
+    progressionModel: 'simple_load_modifier' as NonNullable<
+      TrainingProgram['progressionModel']
+    >,
+  });
   const [editingLoadWeekKey, setEditingLoadWeekKey] = useState<string | null>(
     null,
   );
   const [editingLoadText, setEditingLoadText] = useState('');
   const weekUiKeyCounterRef = useRef(0);
+  const frequencyUiKeyCounterRef = useRef(0);
   const dayIdCounterRef = useRef(0);
   const wasOpenRef = useRef(false);
 
@@ -101,11 +184,35 @@ export function ProgramSettingsModal({
     () => createStyles(tokens, topInset, bottomInset, layout),
     [tokens, topInset, bottomInset, layout],
   );
+  const getShortWeekdayLabel = useCallback(
+    (weekday: number) =>
+      t(
+        `programSettings.day.weekdays.short.${
+          WEEKDAY_KEY_SUFFIXES[weekday - 1] ?? 'mon'
+        }`,
+      ),
+    [t],
+  );
+  const getNarrowWeekdayLabel = useCallback(
+    (weekday: number) =>
+      t(
+        `programSettings.day.weekdays.narrow.${
+          WEEKDAY_KEY_SUFFIXES[weekday - 1] ?? 'mon'
+        }`,
+      ),
+    [t],
+  );
 
   const createWeekUiKey = useCallback(() => {
     const next = weekUiKeyCounterRef.current;
     weekUiKeyCounterRef.current += 1;
     return `week-ui-${next}`;
+  }, []);
+
+  const createFrequencyUiKey = useCallback(() => {
+    const next = frequencyUiKeyCounterRef.current;
+    frequencyUiKeyCounterRef.current += 1;
+    return `frequency-ui-${next}`;
   }, []);
 
   const toWeekConfigs = useCallback(
@@ -114,7 +221,9 @@ export function ProgramSettingsModal({
         id: i + 1,
         name: w.name,
         loadModifier: w.loadModifier,
+        volumeModifier: w.volumeModifier,
         rir: w.rir,
+        notes: w.notes,
       })),
     [],
   );
@@ -125,6 +234,7 @@ export function ProgramSettingsModal({
     setEditingLoadText('');
     if (open) {
       weekUiKeyCounterRef.current = 0;
+      frequencyUiKeyCounterRef.current = 0;
       dayIdCounterRef.current = 0;
       setDraftWeeks(
         weekConfigs.map((w, i) => ({
@@ -134,8 +244,67 @@ export function ProgramSettingsModal({
         })),
       );
       setDraftDays(dayConfigs);
+      setDraftWorkoutRestById(
+        Object.fromEntries(
+          workouts.map((workout) => [
+            workout.id,
+            workout.defaultRestSeconds != null
+              ? String(workout.defaultRestSeconds)
+              : '',
+          ]),
+        ),
+      );
+      setDraftFrequencySummary(
+        (program?.frequencySummary ?? []).map((item) => ({
+          ...item,
+          uiKey: createFrequencyUiKey(),
+        })),
+      );
+      setDraftProgram({
+        name: program?.name ?? '',
+        subtitle: program?.subtitle ?? '',
+        goal: program?.goal ?? '',
+        description: program?.description ?? '',
+        sourceType: program?.source?.type ?? 'manual',
+        sourceLabel: program?.source?.label ?? '',
+        sourceImportedAt: program?.source?.importedAt ?? '',
+        startDate: program?.startDate ?? '',
+        durationWeeks:
+          program?.durationWeeks != null ? String(program.durationWeeks) : '',
+        defaultRestSeconds:
+          program?.defaultRestSeconds != null
+            ? String(program.defaultRestSeconds)
+            : '',
+        progressionModel: program?.progressionModel ?? 'simple_load_modifier',
+      });
     }
   }
+
+  const handleWorkoutRestChange = useCallback(
+    (workoutId: string, value: string) => {
+      const sanitized = value.replace(/[^0-9]/g, '');
+      setDraftWorkoutRestById((prev) => ({
+        ...prev,
+        [workoutId]: sanitized,
+      }));
+      onWorkoutDefaultRestChange(
+        workoutId,
+        sanitized.trim().length > 0 ? Number(sanitized) : undefined,
+      );
+    },
+    [onWorkoutDefaultRestChange],
+  );
+
+  const commitFrequencySummary = useCallback(
+    (
+      next: Array<Pick<FrequencyTargetDraft, 'muscleGroup' | 'targetPerWeek'>>,
+    ) => {
+      onProgramChange({
+        frequencySummary: normalizeFrequencySummaryEntries(next),
+      });
+    },
+    [onProgramChange],
+  );
 
   const updateWeek = useCallback(
     (uiKey: string, update: Partial<WeekConfig>) => {
@@ -152,7 +321,6 @@ export function ProgramSettingsModal({
 
   const addWeek = useCallback(() => {
     setDraftWeeks((prev) => {
-      if (prev.length >= MAX_WEEKS) return prev;
       const nextId = prev.length + 1;
       const next: WeekDraft[] = [
         ...prev,
@@ -160,6 +328,7 @@ export function ProgramSettingsModal({
           id: nextId,
           name: `Week ${nextId}`,
           loadModifier: 1,
+          volumeModifier: 1,
           rir: 2,
           uiKey: createWeekUiKey(),
         },
@@ -183,7 +352,6 @@ export function ProgramSettingsModal({
             tone: 'destructive',
             onPress: () => {
               setDraftWeeks((prev) => {
-                if (prev.length <= 1) return prev;
                 const next = prev
                   .filter((w) => w.uiKey !== uiKey)
                   .map((w, i) => ({ ...w, id: i + 1 }));
@@ -207,6 +375,13 @@ export function ProgramSettingsModal({
       });
     },
     [onDayConfigsChange],
+  );
+
+  const updateDaySchedule = useCallback(
+    (id: string, schedule: WorkoutSchedule | undefined) => {
+      updateDay(id, { schedule });
+    },
+    [updateDay],
   );
 
   const addDay = useCallback(() => {
@@ -260,6 +435,11 @@ export function ProgramSettingsModal({
         loadPct === 0
           ? t('programSettings.week.baseline')
           : `${loadPct > 0 ? '+' : ''}${loadPct}%`;
+      const volumePct = Math.round(((week.volumeModifier ?? 1) - 1) * 100);
+      const volumeLabel =
+        volumePct === 0
+          ? t('programSettings.week.baseline')
+          : `${volumePct > 0 ? '+' : ''}${volumePct}%`;
 
       return (
         <View
@@ -280,13 +460,8 @@ export function ProgramSettingsModal({
               />
 
               <AnimatedPressable
-                style={[
-                  styles.rowButton,
-                  styles.rowButtonDelete,
-                  draftWeeks.length <= 1 && styles.rowButtonDisabled,
-                ]}
+                style={[styles.rowButton, styles.rowButtonDelete]}
                 hitSlop={8}
-                disabled={draftWeeks.length <= 1}
                 onPress={() => removeWeek(week.uiKey)}
                 pointerEvents="box-only"
                 testID={E2E_IDS.programSettings.weekDelete(week.id)}
@@ -394,12 +569,56 @@ export function ProgramSettingsModal({
                 );
               })}
             </View>
+
+            <Text style={styles.sectionLabel}>
+              {t('programSettings.week.volumeModifier')}
+            </Text>
+            <View style={styles.loadControlRow}>
+              <AnimatedPressable
+                style={styles.stepButton}
+                onPress={() => {
+                  const nextPct = Math.max(-50, Math.min(50, volumePct - 5));
+                  updateWeek(week.uiKey, {
+                    volumeModifier: 1 + nextPct / 100,
+                  });
+                }}
+              >
+                <Minus size={18} color={tokens.colors.textSecondary} />
+              </AnimatedPressable>
+              <View style={styles.loadValueWrap}>
+                <Text style={styles.loadValue}>{volumeLabel}</Text>
+              </View>
+              <AnimatedPressable
+                style={styles.stepButton}
+                onPress={() => {
+                  const nextPct = Math.max(-50, Math.min(50, volumePct + 5));
+                  updateWeek(week.uiKey, {
+                    volumeModifier: 1 + nextPct / 100,
+                  });
+                }}
+              >
+                <Plus size={18} color={tokens.colors.textSecondary} />
+              </AnimatedPressable>
+            </View>
+
+            <Text style={styles.sectionLabel}>
+              {t('programSettings.week.notes')}
+            </Text>
+            <TextInput
+              value={week.notes ?? ''}
+              onChangeText={(text) =>
+                updateWeek(week.uiKey, { notes: text.trim() || undefined })
+              }
+              style={[styles.input, styles.textareaCompact]}
+              placeholder={t('programSettings.week.notesPlaceholder')}
+              placeholderTextColor={tokens.colors.textMuted}
+              multiline
+            />
           </View>
         </View>
       );
     },
     [
-      draftWeeks.length,
       removeWeek,
       styles,
       t,
@@ -419,6 +638,14 @@ export function ProgramSettingsModal({
         ...visibleIcons,
         '__custom__',
       ];
+      const scheduleType = day.schedule?.type ?? 'unscheduled';
+      const selectedWeekdays =
+        scheduleType === 'fixed_day'
+          ? day.schedule?.preferredDay != null
+            ? [day.schedule.preferredDay]
+            : []
+          : (day.schedule?.daysOfWeek ?? []);
+      const workoutRestValue = draftWorkoutRestById[day.id] ?? '';
 
       const renderSlot = (slot: string | '__custom__') => {
         if (slot === '__custom__') {
@@ -471,6 +698,73 @@ export function ProgramSettingsModal({
         );
       };
 
+      const setScheduleType = (
+        nextType: 'unscheduled' | 'fixed_day' | 'day_window',
+      ) => {
+        if (nextType === 'unscheduled') {
+          updateDaySchedule(day.id, undefined);
+          return;
+        }
+
+        if (nextType === 'fixed_day') {
+          const preferredDay =
+            day.schedule?.preferredDay ?? day.schedule?.daysOfWeek?.[0] ?? 1;
+          updateDaySchedule(day.id, {
+            type: 'fixed_day',
+            preferredDay,
+            label: getShortWeekdayLabel(preferredDay),
+          });
+          return;
+        }
+
+        const daysOfWeek =
+          day.schedule?.daysOfWeek && day.schedule.daysOfWeek.length > 0
+            ? day.schedule.daysOfWeek
+            : day.schedule?.preferredDay != null
+              ? [day.schedule.preferredDay]
+              : [1];
+        updateDaySchedule(day.id, {
+          type: 'day_window',
+          daysOfWeek,
+          preferredDay: daysOfWeek[0],
+          label: daysOfWeek
+            .map((weekday) => getShortWeekdayLabel(weekday))
+            .join('/'),
+        });
+      };
+
+      const toggleWeekday = (weekday: number) => {
+        if (scheduleType === 'fixed_day') {
+          updateDaySchedule(day.id, {
+            type: 'fixed_day',
+            preferredDay: weekday,
+            label: getShortWeekdayLabel(weekday),
+          });
+          return;
+        }
+
+        if (scheduleType !== 'day_window') {
+          return;
+        }
+
+        const currentDays = day.schedule?.daysOfWeek ?? [];
+        const nextDays = currentDays.includes(weekday)
+          ? currentDays.filter((value) => value !== weekday)
+          : [...currentDays, weekday].sort((a, b) => a - b);
+        if (nextDays.length === 0) {
+          updateDaySchedule(day.id, undefined);
+          return;
+        }
+        updateDaySchedule(day.id, {
+          type: 'day_window',
+          daysOfWeek: nextDays,
+          preferredDay: nextDays.includes(day.schedule?.preferredDay ?? -1)
+            ? day.schedule?.preferredDay
+            : nextDays[0],
+          label: nextDays.map((value) => getShortWeekdayLabel(value)).join('/'),
+        });
+      };
+
       return (
         <View
           style={styles.card}
@@ -489,6 +783,19 @@ export function ProgramSettingsModal({
                 multiline={false}
                 returnKeyType="done"
                 testID={E2E_IDS.programSettings.dayName(day.id)}
+              />
+              <TextInput
+                value={day.sessionLabel ?? ''}
+                onChangeText={(text) =>
+                  updateDay(day.id, {
+                    sessionLabel: text.trim() || undefined,
+                  })
+                }
+                style={styles.sessionLabelInput}
+                placeholder={t('programSettings.day.sessionLabelPlaceholder')}
+                placeholderTextColor={tokens.colors.textMuted}
+                multiline={false}
+                returnKeyType="done"
               />
               <AnimatedPressable
                 style={[
@@ -512,19 +819,109 @@ export function ProgramSettingsModal({
             <View style={styles.iconGrid}>
               {slots.map((slot) => renderSlot(slot))}
             </View>
+
+            <Text style={styles.sectionLabel}>
+              {t('programSettings.day.schedule')}
+            </Text>
+            <View style={styles.scheduleTypeRow}>
+              {(['unscheduled', 'fixed_day', 'day_window'] as const).map(
+                (value) => {
+                  const active = scheduleType === value;
+                  return (
+                    <AnimatedPressable
+                      key={value}
+                      style={[
+                        styles.scheduleTypeButton,
+                        active && styles.scheduleTypeButtonActive,
+                      ]}
+                      onPress={() => setScheduleType(value)}
+                      testID={E2E_IDS.programSettings.dayScheduleType(
+                        day.id,
+                        value,
+                      )}
+                    >
+                      <Text
+                        style={[
+                          styles.scheduleTypeText,
+                          active && styles.scheduleTypeTextActive,
+                        ]}
+                      >
+                        {t(`programSettings.day.scheduleTypes.${value}`)}
+                      </Text>
+                    </AnimatedPressable>
+                  );
+                },
+              )}
+            </View>
+
+            {scheduleType !== 'unscheduled' ? (
+              <>
+                <Text style={styles.sectionLabel}>
+                  {scheduleType === 'fixed_day'
+                    ? t('programSettings.day.pickDay')
+                    : t('programSettings.day.pickWindow')}
+                </Text>
+                <View style={styles.weekdayRow}>
+                  {WEEKDAY_VALUES.map((weekday) => {
+                    const active = selectedWeekdays.includes(weekday);
+                    return (
+                      <AnimatedPressable
+                        key={weekday}
+                        style={[
+                          styles.weekdayButton,
+                          active && styles.weekdayButtonActive,
+                        ]}
+                        onPress={() => toggleWeekday(weekday)}
+                        testID={E2E_IDS.programSettings.dayScheduleWeekday(
+                          day.id,
+                          weekday,
+                        )}
+                      >
+                        <Text
+                          style={[
+                            styles.weekdayText,
+                            active && styles.weekdayTextActive,
+                          ]}
+                        >
+                          {getNarrowWeekdayLabel(weekday)}
+                        </Text>
+                      </AnimatedPressable>
+                    );
+                  })}
+                </View>
+              </>
+            ) : null}
+
+            <Text style={styles.sectionLabel}>
+              {t('programSettings.program.defaultRest')}
+            </Text>
+            <TextInput
+              value={workoutRestValue}
+              onChangeText={(text) => handleWorkoutRestChange(day.id, text)}
+              placeholder={t('programSettings.program.defaultRestPlaceholder')}
+              placeholderTextColor={tokens.colors.textMuted}
+              style={styles.input}
+              keyboardType="number-pad"
+              testID={E2E_IDS.programSettings.dayDefaultRest(day.id)}
+            />
           </View>
         </View>
       );
     },
     [
+      draftWorkoutRestById,
       draftDays.length,
       removeDay,
       styles,
       t,
+      getNarrowWeekdayLabel,
+      getShortWeekdayLabel,
+      handleWorkoutRestChange,
       tokens.colors.accentDanger,
       tokens.colors.accentPrimary,
       tokens.colors.textMuted,
       tokens.colors.textSecondary,
+      updateDaySchedule,
       updateDay,
     ],
   );
@@ -537,6 +934,151 @@ export function ProgramSettingsModal({
   const renderDaySortableItem = useCallback<SortableGridRenderItem<DayConfig>>(
     ({ item, index }) => renderDayItem({ item, index }),
     [renderDayItem],
+  );
+
+  const handleProgramFieldChange = useCallback(
+    (
+      key:
+        | 'name'
+        | 'subtitle'
+        | 'goal'
+        | 'description'
+        | 'sourceLabel'
+        | 'startDate',
+      value: string,
+    ) => {
+      setDraftProgram((prev) => {
+        const next = { ...prev, [key]: value };
+        onProgramChange({
+          name: next.name.trim() || 'Main Program',
+          subtitle: next.subtitle.trim() || undefined,
+          goal: next.goal.trim() || undefined,
+          description: next.description.trim() || undefined,
+          source: {
+            type: next.sourceType,
+            ...(next.sourceLabel.trim().length > 0
+              ? { label: next.sourceLabel.trim() }
+              : {}),
+            ...(next.sourceImportedAt.trim().length > 0
+              ? { importedAt: next.sourceImportedAt }
+              : {}),
+          },
+          startDate: next.startDate.trim() || undefined,
+        });
+        return next;
+      });
+    },
+    [onProgramChange],
+  );
+
+  const handleProgramRestChange = useCallback(
+    (value: string) => {
+      const sanitized = value.replace(/[^0-9]/g, '');
+      setDraftProgram((prev) => ({
+        ...prev,
+        defaultRestSeconds: sanitized,
+      }));
+      onProgramChange({
+        defaultRestSeconds:
+          sanitized.trim().length > 0 ? Number(sanitized) : undefined,
+      });
+    },
+    [onProgramChange],
+  );
+
+  const handleProgressionModelChange = useCallback(
+    (value: NonNullable<TrainingProgram['progressionModel']>) => {
+      setDraftProgram((prev) => ({
+        ...prev,
+        progressionModel: value,
+      }));
+      onProgramChange({ progressionModel: value });
+    },
+    [onProgramChange],
+  );
+
+  const handleSourceTypeChange = useCallback(
+    (value: NonNullable<TrainingProgram['source']>['type']) => {
+      setDraftProgram((prev) => ({
+        ...prev,
+        sourceType: value,
+      }));
+      onProgramChange({
+        source: {
+          type: value,
+          ...(draftProgram.sourceLabel.trim().length > 0
+            ? { label: draftProgram.sourceLabel.trim() }
+            : {}),
+          ...(draftProgram.sourceImportedAt.trim().length > 0
+            ? { importedAt: draftProgram.sourceImportedAt }
+            : {}),
+        },
+      });
+    },
+    [draftProgram.sourceImportedAt, draftProgram.sourceLabel, onProgramChange],
+  );
+
+  const handleDurationWeeksChange = useCallback(
+    (value: string) => {
+      const sanitized = value.replace(/[^0-9]/g, '');
+      setDraftProgram((prev) => ({
+        ...prev,
+        durationWeeks: sanitized,
+      }));
+      onProgramChange({
+        durationWeeks:
+          sanitized.trim().length > 0 ? Number(sanitized) : undefined,
+      });
+    },
+    [onProgramChange],
+  );
+
+  const addFrequencyTarget = useCallback(() => {
+    setDraftFrequencySummary((prev) => {
+      if (prev.length >= MAX_FREQUENCY_TARGETS) {
+        return prev;
+      }
+      const next = [
+        ...prev,
+        {
+          uiKey: createFrequencyUiKey(),
+          muscleGroup:
+            muscleGroups[prev.length % muscleGroups.length] ?? 'Chest',
+          targetPerWeek: 2,
+        },
+      ];
+      commitFrequencySummary(next);
+      return next;
+    });
+  }, [commitFrequencySummary, createFrequencyUiKey]);
+
+  const updateFrequencyTarget = useCallback(
+    (
+      uiKey: string,
+      update: Partial<
+        Pick<MuscleFrequencyTarget, 'muscleGroup' | 'targetPerWeek'>
+      >,
+    ) => {
+      setDraftFrequencySummary((prev) => {
+        const next = prev.map((item) =>
+          item.uiKey === uiKey ? { ...item, ...update } : item,
+        );
+        commitFrequencySummary(next);
+        return next;
+      });
+    },
+    [commitFrequencySummary],
+  );
+
+  const removeFrequencyTarget = useCallback(
+    (uiKey: string) => {
+      setDraftFrequencySummary((prev) => {
+        const next = prev.filter((item) => item.uiKey !== uiKey);
+        commitFrequencySummary(next);
+        return next;
+      });
+    },
+    [commitFrequencySummary],
   );
 
   const content = (
@@ -556,6 +1098,22 @@ export function ProgramSettingsModal({
       <View style={styles.content}>
         <View style={styles.listSection}>
           <View style={styles.tabRow}>
+            <AnimatedPressable
+              style={[
+                styles.tabButton,
+                activeTab === 'program' && styles.tabActive,
+              ]}
+              onPress={() => setActiveTab('program')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'program' && styles.tabTextActive,
+                ]}
+              >
+                {t('programSettings.tabs.program')}
+              </Text>
+            </AnimatedPressable>
             <AnimatedPressable
               style={[
                 styles.tabButton,
@@ -596,6 +1154,287 @@ export function ProgramSettingsModal({
             <View
               style={[
                 styles.listWrapper,
+                activeTab !== 'program' && styles.listHidden,
+              ]}
+            >
+              <Animated.ScrollView
+                style={styles.list}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.listContent}
+              >
+                <View style={styles.card}>
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.name')}
+                  </Text>
+                  <TextInput
+                    value={draftProgram.name}
+                    onChangeText={(text) =>
+                      handleProgramFieldChange('name', text)
+                    }
+                    placeholder={t('programSettings.program.namePlaceholder')}
+                    placeholderTextColor={tokens.colors.textMuted}
+                    style={styles.input}
+                  />
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.subtitle')}
+                  </Text>
+                  <TextInput
+                    value={draftProgram.subtitle}
+                    onChangeText={(text) =>
+                      handleProgramFieldChange('subtitle', text)
+                    }
+                    placeholder={t(
+                      'programSettings.program.subtitlePlaceholder',
+                    )}
+                    placeholderTextColor={tokens.colors.textMuted}
+                    style={styles.input}
+                  />
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.goal')}
+                  </Text>
+                  <TextInput
+                    value={draftProgram.goal}
+                    onChangeText={(text) =>
+                      handleProgramFieldChange('goal', text)
+                    }
+                    placeholder={t('programSettings.program.goalPlaceholder')}
+                    placeholderTextColor={tokens.colors.textMuted}
+                    style={styles.input}
+                  />
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.description')}
+                  </Text>
+                  <TextInput
+                    value={draftProgram.description}
+                    onChangeText={(text) =>
+                      handleProgramFieldChange('description', text)
+                    }
+                    placeholder={t(
+                      'programSettings.program.descriptionPlaceholder',
+                    )}
+                    placeholderTextColor={tokens.colors.textMuted}
+                    style={[styles.input, styles.programDescriptionInput]}
+                    multiline
+                  />
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.sourceType')}
+                  </Text>
+                  <View style={styles.scheduleTypeRow}>
+                    {sourceTypeOptions.map((value) => {
+                      const active = draftProgram.sourceType === value;
+                      return (
+                        <AnimatedPressable
+                          key={value}
+                          style={[
+                            styles.scheduleTypeButton,
+                            active && styles.scheduleTypeButtonActive,
+                          ]}
+                          onPress={() => handleSourceTypeChange(value)}
+                        >
+                          <Text
+                            style={[
+                              styles.scheduleTypeText,
+                              active && styles.scheduleTypeTextActive,
+                            ]}
+                          >
+                            {t(`programSettings.program.sourceTypes.${value}`)}
+                          </Text>
+                        </AnimatedPressable>
+                      );
+                    })}
+                  </View>
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.sourceLabel')}
+                  </Text>
+                  <TextInput
+                    value={draftProgram.sourceLabel}
+                    onChangeText={(text) =>
+                      handleProgramFieldChange('sourceLabel', text)
+                    }
+                    placeholder={t(
+                      'programSettings.program.sourceLabelPlaceholder',
+                    )}
+                    placeholderTextColor={tokens.colors.textMuted}
+                    style={styles.input}
+                  />
+
+                  <View style={styles.weekInputRow}>
+                    <View style={styles.weekInputCol}>
+                      <Text style={styles.sectionLabel}>
+                        {t('programSettings.program.startDate')}
+                      </Text>
+                      <TextInput
+                        value={draftProgram.startDate}
+                        onChangeText={(text) =>
+                          handleProgramFieldChange('startDate', text)
+                        }
+                        placeholder={t(
+                          'programSettings.program.startDatePlaceholder',
+                        )}
+                        placeholderTextColor={tokens.colors.textMuted}
+                        style={styles.input}
+                      />
+                    </View>
+                    <View style={styles.weekInputCol}>
+                      <Text style={styles.sectionLabel}>
+                        {t('programSettings.program.durationWeeks')}
+                      </Text>
+                      <TextInput
+                        value={draftProgram.durationWeeks}
+                        onChangeText={handleDurationWeeksChange}
+                        placeholder={t(
+                          'programSettings.program.durationWeeksPlaceholder',
+                        )}
+                        placeholderTextColor={tokens.colors.textMuted}
+                        style={styles.input}
+                        keyboardType="number-pad"
+                      />
+                    </View>
+                  </View>
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.defaultRest')}
+                  </Text>
+                  <TextInput
+                    value={draftProgram.defaultRestSeconds}
+                    onChangeText={handleProgramRestChange}
+                    placeholder={t(
+                      'programSettings.program.defaultRestPlaceholder',
+                    )}
+                    placeholderTextColor={tokens.colors.textMuted}
+                    style={styles.input}
+                    keyboardType="number-pad"
+                  />
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.progressionModel')}
+                  </Text>
+                  <View style={styles.scheduleTypeRow}>
+                    {progressionModelOptions.map((value) => {
+                      const active = draftProgram.progressionModel === value;
+                      return (
+                        <AnimatedPressable
+                          key={value}
+                          style={[
+                            styles.scheduleTypeButton,
+                            active && styles.scheduleTypeButtonActive,
+                          ]}
+                          onPress={() => handleProgressionModelChange(value)}
+                        >
+                          <Text
+                            style={[
+                              styles.scheduleTypeText,
+                              active && styles.scheduleTypeTextActive,
+                            ]}
+                          >
+                            {t(
+                              `programSettings.program.progressionModels.${value}`,
+                            )}
+                          </Text>
+                        </AnimatedPressable>
+                      );
+                    })}
+                  </View>
+
+                  <Text style={styles.sectionLabel}>
+                    {t('programSettings.program.frequencySummary')}
+                  </Text>
+                  {draftFrequencySummary.map((item) => (
+                    <View key={item.uiKey} style={styles.frequencyCard}>
+                      <View style={styles.cardHeader}>
+                        <TextInput
+                          value={item.muscleGroup}
+                          onChangeText={(text) =>
+                            updateFrequencyTarget(item.uiKey, {
+                              muscleGroup: text,
+                            })
+                          }
+                          placeholder={t(
+                            'programSettings.program.frequencyGroupPlaceholder',
+                          )}
+                          placeholderTextColor={tokens.colors.textMuted}
+                          style={styles.weekNameHeaderInput}
+                        />
+                        <AnimatedPressable
+                          style={[styles.rowButton, styles.rowButtonDelete]}
+                          hitSlop={8}
+                          onPress={() => removeFrequencyTarget(item.uiKey)}
+                        >
+                          <Trash2
+                            size={16}
+                            color={tokens.colors.accentDanger}
+                          />
+                        </AnimatedPressable>
+                      </View>
+                      <Text style={styles.sectionLabel}>
+                        {t('programSettings.program.frequencyTarget')}
+                      </Text>
+                      <View style={styles.loadControlRow}>
+                        <AnimatedPressable
+                          style={styles.stepButton}
+                          onPress={() =>
+                            updateFrequencyTarget(item.uiKey, {
+                              targetPerWeek: Math.max(
+                                1,
+                                item.targetPerWeek - 1,
+                              ),
+                            })
+                          }
+                        >
+                          <Minus
+                            size={18}
+                            color={tokens.colors.textSecondary}
+                          />
+                        </AnimatedPressable>
+                        <View style={styles.loadValueWrap}>
+                          <Text style={styles.loadValue}>
+                            {t('programSettings.program.frequencyPerWeek', {
+                              count: item.targetPerWeek,
+                            })}
+                          </Text>
+                        </View>
+                        <AnimatedPressable
+                          style={styles.stepButton}
+                          onPress={() =>
+                            updateFrequencyTarget(item.uiKey, {
+                              targetPerWeek: Math.min(
+                                7,
+                                item.targetPerWeek + 1,
+                              ),
+                            })
+                          }
+                        >
+                          <Plus size={18} color={tokens.colors.textSecondary} />
+                        </AnimatedPressable>
+                      </View>
+                    </View>
+                  ))}
+                  {draftFrequencySummary.length < MAX_FREQUENCY_TARGETS ? (
+                    <AnimatedPressable
+                      style={styles.ghostCard}
+                      onPress={addFrequencyTarget}
+                    >
+                      <Plus
+                        size={16}
+                        color={withAlpha(tokens.colors.primary, 0.7)}
+                      />
+                      <Text style={styles.ghostCardText}>
+                        {t('programSettings.program.addFrequencyTarget')}
+                      </Text>
+                    </AnimatedPressable>
+                  ) : null}
+                </View>
+              </Animated.ScrollView>
+            </View>
+            <View
+              style={[
+                styles.listWrapper,
                 activeTab !== 'weeks' && styles.listHidden,
               ]}
             >
@@ -626,21 +1465,19 @@ export function ProgramSettingsModal({
                     onWeekConfigsChange(toWeekConfigs(reordered));
                   }}
                 />
-                {draftWeeks.length < MAX_WEEKS && (
-                  <AnimatedPressable
-                    style={styles.ghostCard}
-                    onPress={addWeek}
-                    testID={E2E_IDS.programSettings.addWeek}
-                  >
-                    <Plus
-                      size={16}
-                      color={withAlpha(tokens.colors.primary, 0.7)}
-                    />
-                    <Text style={styles.ghostCardText}>
-                      {t('programSettings.week.addWeek')}
-                    </Text>
-                  </AnimatedPressable>
-                )}
+                <AnimatedPressable
+                  style={styles.ghostCard}
+                  onPress={addWeek}
+                  testID={E2E_IDS.programSettings.addWeek}
+                >
+                  <Plus
+                    size={16}
+                    color={withAlpha(tokens.colors.primary, 0.7)}
+                  />
+                  <Text style={styles.ghostCardText}>
+                    {t('programSettings.week.addWeek')}
+                  </Text>
+                </AnimatedPressable>
               </Animated.ScrollView>
             </View>
             <View
@@ -875,6 +1712,20 @@ function createStyles(
       paddingHorizontal: tokens.spacing.sm,
       paddingVertical: 0,
     },
+    sessionLabelInput: {
+      width: 58,
+      height: 44,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      borderRadius: tokens.radius.sm,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      color: tokens.colors.textPrimary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.label,
+      paddingHorizontal: tokens.spacing.xs,
+      paddingVertical: 0,
+      textAlign: 'center',
+    },
     rowButton: {
       width: 44,
       height: 44,
@@ -904,6 +1755,14 @@ function createStyles(
       fontSize: tokens.type.body,
       paddingHorizontal: tokens.spacing.sm,
       paddingVertical: 9,
+    },
+    textareaCompact: {
+      minHeight: 72,
+      textAlignVertical: 'top',
+    },
+    programDescriptionInput: {
+      minHeight: 88,
+      textAlignVertical: 'top',
     },
     loadControlRow: {
       flexDirection: 'row',
@@ -996,6 +1855,14 @@ function createStyles(
       flex: 1,
       gap: tokens.spacing.xs,
     },
+    frequencyCard: {
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      padding: tokens.spacing.sm,
+      gap: tokens.spacing.sm,
+    },
     inputLabel: {
       color: tokens.colors.textMuted,
       fontSize: tokens.type.label - 1,
@@ -1043,6 +1910,64 @@ function createStyles(
     },
     iconLabelCustom: {
       color: withAlpha(tokens.colors.accentPrimary, 0.9),
+    },
+    scheduleTypeRow: {
+      flexDirection: 'row',
+      gap: tokens.spacing.xs,
+      marginTop: tokens.spacing.xs,
+    },
+    scheduleTypeButton: {
+      flex: 1,
+      minHeight: 40,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      justifyContent: 'center',
+      alignItems: 'center',
+      paddingHorizontal: tokens.spacing.xs,
+      paddingVertical: tokens.spacing.xs,
+    },
+    scheduleTypeButtonActive: {
+      borderColor: tokens.colors.primary,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.14),
+    },
+    scheduleTypeText: {
+      color: tokens.colors.textSecondary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.label - 1,
+      textAlign: 'center',
+    },
+    scheduleTypeTextActive: {
+      color: tokens.colors.primary,
+    },
+    weekdayRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: tokens.spacing.xs,
+      marginTop: tokens.spacing.xs,
+    },
+    weekdayButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: tokens.colors.outlineVariant,
+      backgroundColor: tokens.colors.surfaceContainerHighest,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    weekdayButtonActive: {
+      borderColor: tokens.colors.primary,
+      backgroundColor: withAlpha(tokens.colors.primary, 0.14),
+    },
+    weekdayText: {
+      color: tokens.colors.textSecondary,
+      fontFamily: 'SpaceGrotesk_700Bold',
+      fontSize: tokens.type.label,
+    },
+    weekdayTextActive: {
+      color: tokens.colors.primary,
     },
     ghostCard: {
       borderRadius: tokens.radius.lg,

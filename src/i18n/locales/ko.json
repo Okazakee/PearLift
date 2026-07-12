@@ -4,7 +4,9 @@
     "delete": "삭제",
     "back": "뒤로",
     "next": "다음",
-    "ok": "확인"
+    "ok": "확인",
+    "close": "닫기",
+    "save": "저장"
   },
   "app": {
     "loading": "운동 데이터 준비 중"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "유휴",
         "connecting": "검색 중",
+        "waiting": "대기 중",
+        "dht_ready": "DHT 준비 완료",
+        "peer_connected": "Peer 연결됨",
+        "handshake_ok": "Handshake 완료",
+        "replicating": "복제 중",
         "synced": "연결됨",
         "error": "오류"
       },
@@ -134,6 +141,19 @@
         "connecting": "동기화 그룹 검색 중.",
         "off": "동기화가 현재 이 기기에서 비활성화되어 있습니다."
       },
+      "dht": "DHT",
+      "dhtReady": "준비",
+      "dhtBootstrapping": "부트스트래핑 중…",
+      "dhtError": "오류",
+      "dhtInactive": "비활성",
+      "dhtWaiting": "대기 중",
+      "status": "상태",
+      "peers": "피어",
+      "peersConnected": "{{count}} 연결됨",
+      "peersNone": "없음",
+      "connectionsActive": "{{count}} 활성",
+      "connectionsNone": "없음",
+      "more": "더 보기",
       "lastSyncAt": "마지막 동기화: {{at}}",
       "lastSyncNever": "마지막 동기화: 없음",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "문제 해결",
         "stop": "동기화 중지"
       }
+    },
+    "manage": {
+      "title": "기기 동기화",
+      "subtitle": "그룹 설정 및 동기화 유지 관리를 한 곳에서 관리하세요.",
+      "roomSetup": "그룹 설정",
+      "roomSetupHint": "이 기기가 새 그룹을 시작할지 아니면 기존 그룹에 가입할지 선택하세요.",
+      "onboardingTitle": "클라우드 없음. 계정 없음.",
+      "onboardingMessage": "PearLift는 기기 간에 운동 데이터를 직접 동기화합니다 — 피어 투 피어. 데이터가 서버에 저장되지 않습니다. 첫 연결에는 동일한 Wi-Fi 또는 근처에 있기만 하면 됩니다.",
+      "onboardingDismiss": "확인했습니다",
+      "createRoom": "그룹 생성",
+      "joinRoom": "그룹 가입",
+      "roomActive": "그룹 활성",
+      "status": "동기화 상태",
+      "turnOn": "켜기",
+      "turnOff": "끄기",
+      "refresh": "새로 고침",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "그룹 소유자",
+        "joiner": "구성원"
+      },
+      "binding": {
+        "unconfigured": "설정되지 않음",
+        "pending_first_sync": "첫 동기화 대기 중",
+        "active": "활성",
+        "conflict_requires_decision": "결정 필요",
+        "active_conflict_requires_decision": "동기화 충돌, 결정 필요"
+      },
+      "thisDeviceCode": "이 기기 코드: {{code}}",
+      "deviceCode": "코드 {{code}}",
+      "deviceNamePlaceholder": "기기 이름 지정",
+      "saveDeviceName": "기기 이름 저장",
+      "deviceNameSyncPending": "기기 이름이 로컬에 저장되었습니다. 동기화가 곧 피어와 공유를 다시 시도합니다.",
+      "masterKey": "동기화 코드",
+      "masterKeyHint": "데이터를 공유할 모든 기기에서 동일한 64자 동기화 코드를 사용하세요.",
+      "masterKeyPlaceholder": "64자 동기화 코드를 붙여넣거나 편집하세요.",
+      "showQR": "QR 코드 표시",
+      "copyKey": "코드 복사",
+      "applyKey": "코드 적용",
+      "leaveRoom": "그룹 떠나기",
+      "leaveRoomConfirmTitle": "이 그룹을 떠나시겠습니까?",
+      "leaveRoomConfirmMessage": "동기화를 끄고, 이 기기의 현재 그룹 바인딩을 지우고, 로컬 그룹 연결 기록을 제거합니다.",
+      "syncedDevices": "기기 {{count}}개",
+      "syncedDevicesTitle": "기기",
+      "noDevices": "아직 동기화된 기기가 없습니다.",
+      "showMore": "{{count}}개 더 보기",
+      "lastSeen": "마지막 확인 {{at}}",
+      "lastSyncAt": "마지막 동기화 {{at}}",
+      "removeDevice": "목록에서 제거",
+      "removeDeviceConfirmTitle": "이 기기를 목록에서 제거하시겠습니까?",
+      "removeDeviceConfirmMessage": "이 기기에서만 목록에서 해당 기기를 숨깁니다. 나중에 이 그룹과 동기화하면 다시 나타날 수 있습니다.",
+      "debug": "디버그 정보",
+      "never": "없음"
+    },
+    "create": {
+      "title": "그룹 생성",
+      "subtitle": "이 기기가 새 동기화 그룹을 시작하고 다른 기기와 동기화 코드를 공유할 수 있습니다.",
+      "room": "새 그룹",
+      "explainer": "이 기기가 초기 그룹을 정의하고 다른 기기를 초대해야 할 때 사용하세요.",
+      "datasetSummary": "이 기기에는 현재 운동 {{workouts}}개와 운동 종목 {{exercises}}개가 있습니다.",
+      "masterKey": "동기화 코드",
+      "inviteStarting": "그룹 시작 및 QR 초대 생성 중…",
+      "invitePending": "QR 초대를 생성하려면 그룹을 시작하세요.",
+      "copy": "코드 복사",
+      "startRoom": "이 그룹 시작"
+    },
+    "join": {
+      "title": "그룹 가입",
+      "subtitle": "다른 기기의 동기화 코드를 사용하여 이 기기를 동일한 동기화 그룹에 연결하세요.",
+      "preflight": "가입 전",
+      "localSummary": "이 기기에는 현재 운동 {{workouts}}개와 운동 종목 {{exercises}}개가 있습니다.",
+      "remoteSummaryHint": "두 기기에 이미 중복 변경 사항이 많으면 PearLift가 어떤 데이터를 유지할지 묻습니다.",
+      "masterKey": "동기화 코드",
+      "keyPlaceholder": "64자 동기화 코드를 붙여넣으세요",
+      "paste": "붙여넣기",
+      "scanQr": "QR 스캔",
+      "scanHelp": "동기화 코드가 포함된 QR 코드에 카메라를 맞추세요.",
+      "invalidKey": "유효하지 않은 동기화 코드입니다. 64개의 16진수 문자여야 합니다.",
+      "keyValid": "유효한 초대 코드",
+      "pasteSuccess": "클립보드에서 붙여넣음",
+      "pasteEmpty": "클립보드가 비어 있습니다",
+      "joinRoom": "그룹 가입"
+    },
+    "decision": {
+      "title": "첫 동기화 데이터 선택",
+      "subtitle": "양쪽에 이미 의미 있는 데이터가 있습니다. 이 그룹이 유지할 기준을 선택하세요.",
+      "thisDevice": "이 기기",
+      "roomData": "그룹 데이터",
+      "datasetSummary": "운동 {{workouts}}개 · 운동 종목 {{exercises}}개",
+      "conflictTitle": "중복 변경 사항 감지됨",
+      "conflictWorkouts": "운동",
+      "conflictExercises": "운동 종목",
+      "conflictSummary": "운동 {{workouts}}개 중복 및 운동 종목 {{exercises}}개 중복이 감지되었습니다.",
+      "configConflictSummary": "주 {{weeks}}개 구성 중복, 일 {{days}}개 구성 중복, 그룹 업데이트 {{backlog}}개 대기 중.",
+      "useThisDeviceHint": "이 기기를 그룹 기준으로 게시합니다.",
+      "useRoomDataHint": "앱 설정은 유지하면서 이 기기의 운동 데이터를 교체합니다.",
+      "useMerge": "둘 다 병합",
+      "useMergeHint": "중복이 없을 때 이 기기와 그룹의 데이터를 결합합니다.",
+      "mergeUnavailableHint": "일부 운동이나 운동 종목이 두 기기에 다른 값으로 존재하므로 병합이 불가능합니다.",
+      "useThisDevice": "이 기기의 데이터 사용",
+      "useRoomData": "그룹 데이터 사용"
+    },
+    "debug": {
+      "title": "동기화 디버그 정보",
+      "subtitle": "런타임 상태, 연결 세부 정보 및 최근 동기화 로그.",
+      "snapshot": "런타임 스냅샷",
+      "connections": "연결",
+      "lastError": "마지막 오류",
+      "logs": "최근 로그",
+      "logCount": "전체 {{total}}개 중 {{shown}}개 로그 항목 표시",
+      "clear": "지우기"
     }
   },
   "workout": {
     "weekDay": "주 {{week}} - 일 {{day}}",
-    "addExercise": "운동 추가"
+    "addExercise": "운동 추가",
+    "logWorkout": "운동 기록",
+    "progressionSuggestions": "제안",
+    "suggestedToday": "오늘의 제안: {{workout}}",
+    "showDetails": "세부 정보 보기",
+    "hideDetails": "세부 정보 숨기기",
+    "details": {
+      "notes": "메모",
+      "tempo": "템포",
+      "equipment": "장비",
+      "primaryMuscles": "주요 근육",
+      "secondaryMuscles": "보조 근육",
+      "technique": "기법",
+      "cues": "신호",
+      "perSetTargets": "세트별 목표",
+      "progression": "진행",
+      "weekOverrides": "주별 재정의",
+      "active": "활성",
+      "intensity": "강도",
+      "target": "목표",
+      "estimatedOneRepMax": "추정 1RM",
+      "notSet": "설정되지 않음",
+      "intensityRange": "강도 범위",
+      "weightSettings": "중량 설정",
+      "weightMode": "중량 모드",
+      "increment": "증분",
+      "exerciseSettings": "운동 설정"
+    }
+  },
+  "workoutLog": {
+    "title": "운동 기록",
+    "subtitle": "{{workout}} · 주 {{week}}",
+    "progress": "{{logged}} / {{total}} 세트 기록됨",
+    "loading": "운동 기록 불러오는 중…",
+    "done": "완료",
+    "skip": "건너뛰기",
+    "save": "기록 저장",
+    "saving": "저장 중…",
+    "useTarget": "목표로 완료",
+    "reset": "초기화",
+    "setLabel": "세트 {{set}}",
+    "targetRir": "목표 RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "실제 중량",
+    "actualReps": "실제 반복",
+    "leftReps": "왼쪽 반복",
+    "rightReps": "오른쪽 반복",
+    "perSideReps": "측면별",
+    "sharedReps": "공유",
+    "actualRir": "실제 RIR",
+    "errors": {
+      "load": "이 운동 기록을 불러올 수 없습니다.",
+      "save": "이 운동 기록을 저장할 수 없습니다."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "진행 제안",
+    "subtitle": "다음 부하를 지금 적용하거나 나중을 위해 보류하세요.",
+    "current": "현재 중량",
+    "next": "다음 중량",
+    "reason": "이유: {{reason}}",
+    "apply": "적용",
+    "skip": "건너뛰기"
+  },
+  "exerciseSettings": {
+    "title": "운동 설정",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "작업 중량",
+    "weightMode": "중량 모드",
+    "increment": "증분",
+    "estimatedOneRepMax": "추정 1RM",
+    "notes": "메모",
+    "history": "최근 기록",
+    "linkedVariants": "연결된 변형",
+    "historyLoading": "기록 불러오는 중…",
+    "historyEmpty": "아직 기록된 세션이 없습니다.",
+    "historyError": "기록을 불러올 수 없습니다.",
+    "historySets": "{{completed}} / {{total}} 세트",
+    "historyBestReps": "최고 {{reps}}회"
   },
   "restTimer": {
     "title": "휴식 타이머",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "프로그램 설정",
     "tabs": {
+      "program": "프로그램",
       "weeks": "주",
       "days": "일"
+    },
+    "program": {
+      "name": "프로그램 이름",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "부제목",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "목표",
+      "goalPlaceholder": "근력 및 비대",
+      "description": "설명",
+      "descriptionPlaceholder": "이 훈련 블록에 대한 선택적 메모",
+      "sourceType": "출처",
+      "sourceLabel": "출처 레이블",
+      "sourceLabelPlaceholder": "코치 PDF, 템플릿 또는 메모",
+      "startDate": "시작 날짜",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "기간(주)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "기본 휴식(초)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "진행 모델",
+      "frequencySummary": "주간 목표",
+      "frequencyGroupPlaceholder": "근육 그룹",
+      "frequencyTarget": "주당 목표",
+      "frequencyPerWeek_one": "주 {{count}}회",
+      "frequencyPerWeek_other": "주 {{count}}회",
+      "addFrequencyTarget": "주간 목표 추가",
+      "progressionModels": {
+        "simple_load_modifier": "단순",
+        "exercise_rules": "규칙",
+        "mixed": "혼합",
+        "manual": "수동"
+      },
+      "sourceTypes": {
+        "manual": "수동",
+        "coach": "코치",
+        "template": "템플릿",
+        "imported_pdf": "가져온 PDF",
+        "imported_json": "가져온 JSON"
+      }
     },
     "week": {
       "namePlaceholder": "주 이름",
       "loadModifier": "부하 수정자",
+      "volumeModifier": "볼륨 수정자",
       "rir": "RIR (예비 반복)",
+      "notes": "주 메모",
+      "notesPlaceholder": "이번 주에 대한 선택적 메모",
       "baseline": "기준선",
       "addWeek": "주 추가",
       "deleteTitle": "주 삭제",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "일 {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "아이콘",
+      "schedule": "일정",
+      "pickDay": "요일 선택",
+      "pickWindow": "요일 선택",
       "iconMore": "더 보기",
       "iconRefresh": "새로 고침",
+      "scheduleTypes": {
+        "unscheduled": "모든",
+        "fixed_day": "고정",
+        "day_window": "범위"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "월",
+          "tue": "화",
+          "wed": "수",
+          "thu": "목",
+          "fri": "금",
+          "sat": "토",
+          "sun": "일"
+        },
+        "narrow": {
+          "mon": "월",
+          "tue": "화",
+          "wed": "수",
+          "thu": "목",
+          "fri": "금",
+          "sat": "토",
+          "sun": "일"
+        }
+      },
       "addDay": "일 추가",
       "deleteTitle": "일 삭제",
       "deleteMessage": "\"{{name}}\"을(를) 삭제하시겠습니까? 모든 주에서 제거됩니다."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "운동 추가",
     "titleEdit": "운동 편집",
+    "tabs": {
+      "basic": "기본",
+      "advanced": "고급"
+    },
     "name": "이름",
     "namePlaceholder": "운동 이름",
     "muscleGroup": "근육 그룹",
@@ -202,11 +487,52 @@
     "reps": "반복",
     "notes": "메모",
     "notesPlaceholder": "선택적 메모...",
+    "advanced": {
+      "show": "고급 필드 표시",
+      "hide": "고급 필드 숨기기",
+      "rest": "휴식(초)",
+      "restUseDefault": "전역 기본값",
+      "restCustom": "사용자 설정",
+      "restPlaceholder": "180",
+      "rir": "RIR 목표",
+      "rirPlaceholder": "1-2",
+      "intensity": "강도",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "템포",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "진행 규칙",
+      "progressionRulePlaceholder": "+5kg (모든 세트가 2 RIR로 최고 반복에 도달 시)",
+      "unilateral": "편측 모드",
+      "unilateralPlaceholder": "다리별, 측면별, 좌/우, 번갈아",
+      "equipment": "장비",
+      "equipmentPlaceholder": "바벨, 덤벨, 케이블, 머신",
+      "primaryMuscles": "주요 근육",
+      "primaryMusclesPlaceholder": "한 줄에 하나의 근육",
+      "secondaryMuscles": "보조 근육",
+      "secondaryMusclesPlaceholder": "한 줄에 하나의 근육",
+      "canonicalExerciseId": "표준 운동 ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "변형 레이블",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "별칭",
+      "aliasesPlaceholder": "한 줄에 하나의 별칭",
+      "sessionSpecific": "세션별",
+      "sessionSpecificToggle": "세션 전용 변형으로 추적",
+      "technicalNotes": "기술 노트",
+      "technicalNotesPlaceholder": "한 줄에 하나의 메모",
+      "executionCues": "실행 신호",
+      "executionCuesPlaceholder": "한 줄에 하나의 신호",
+      "perSetTargets": "세트별 목표",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "주별 재정의",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "운동 추가",
     "submitEdit": "변경 사항 저장",
     "errors": {
       "nameRequired": "운동 이름은 필수입니다.",
-      "setsInvalid": "세트는 유효한 양의 정수여야 합니다."
+      "setsInvalid": "세트는 유효한 양의 정수여야 합니다.",
+      "restInvalid": "휴식은 유효한 음수가 아닌 정수여야 합니다."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "동기화 상태",
       "status": "상태",
+      "enabled": "동기화 켜짐",
+      "disabled": "동기화 꺼짐",
       "syncingWith_one": "{{count}}개의 기기와 동기화 중",
       "syncingWith_other": "{{count}}개의 기기와 동기화 중",
       "off": "동기화가 꺼져 있습니다",
@@ -263,8 +591,11 @@
       "title": "백업",
       "export": "기기에 백업 저장",
       "import": "백업에서 복원",
+      "shareBackup": "백업 공유",
       "shareToDevice": "다른 기기에 공유",
-      "scanFromDevice": "다른 기기에서 스캔"
+      "scanFromDevice": "다른 기기에서 스캔",
+      "localSaveRestore": "로컬 저장 / 복원",
+      "qrShareRestore": "QR 공유 / 복원"
     },
     "pairingDevices": {
       "title": "페어링 및 기기",
@@ -317,27 +648,64 @@
   },
   "importPreview": {
     "title": "가져오기 미리보기",
+    "titleWithProgram": "가져오기: {{program}}",
     "changesDetected": "{{count}}개의 변경 사항이 감지되었습니다.",
     "noChanges": "변경 사항이 감지되지 않았습니다. 백업이 현재 데이터와 동일합니다.",
+    "modeHint": "새로 가져오기는 현재 계획을 유지합니다. 활성 프로그램 교체는 이 기기의 현재 계획을 덮어씁니다.",
+    "stats": {
+      "workouts": "업데이트할 운동",
+      "exercises": "생성 또는 업데이트할 운동",
+      "preservedWeights": "보존된 중량",
+      "needsWeight": "시작 중량 필요"
+    },
+    "exerciseStatus": {
+      "matching": "일치하는 운동",
+      "changed": "변경된 운동",
+      "new": "새 운동",
+      "removed": "제거된 운동"
+    },
     "sections": {
+      "exerciseStatus": "운동 상태",
+      "preservedWeights": "보존된 중량",
+      "missingWeights": "저장된 중량이 없는 새 운동",
+      "removedExercises": "활성 프로그램에서 제거됨",
       "workouts": "운동",
+      "program": "프로그램",
       "settings": "설정",
       "weeks": "주",
       "days": "일"
     },
+    "currentWeightKept": "현재 중량 유지됨",
+    "noPreviousWeight": "이전 중량을 찾을 수 없음",
     "cancel": "취소",
-    "confirm": "백업 가져오기"
+    "confirm": "백업 가져오기",
+    "importAsNewProgram": "새 프로그램으로 가져오기",
+    "replaceActiveProgram": "활성 프로그램 교체"
+  },
+  "programLibrary": {
+    "title": "프로그램",
+    "summary": "저장된 프로그램 {{count}}개",
+    "active": "활성",
+    "empty": "아직 저장된 프로그램이 없습니다."
   },
   "deviceTransfer": {
     "shareTitle": "다른 기기에 공유",
     "shareDescription": "다른 기기에서 설정 → 백업 → 다른 기기에서 스캔을 여세요.",
+    "shareChunkCounter": "청크 {{current}}/{{total}}",
+    "shareChunkHint": "두 기기를 안정적으로 유지하세요. QR이 자동으로 회전합니다.",
+    "pauseRotation": "회전 일시 정지",
+    "resumeRotation": "회전 재개",
     "scanTitle": "다른 기기에서 스캔",
     "scanDescription": "카메라를 PearLift 백업 QR 코드에 맞추세요.",
+    "chunkProgress": "스캔 진행: {{received}}/{{total}}",
+    "transferCorrupted": "QR 전송 무결성 검사에 실패했습니다. 첫 번째 청크부터 다시 스캔하세요.",
     "cameraPermissionTitle": "카메라 권한이 필요합니다",
     "cameraPermissionMessage": "백업 QR 코드를 스캔하려면 카메라 접근을 허용하세요.",
     "cameraPermissionButton": "카메라 허용",
+    "cameraUnavailableTitle": "카메라를 사용할 수 없음",
+    "cameraUnavailableMessage": "PearLift가 이 기기에서 사용 가능한 후면 카메라에 접근할 수 없습니다.",
     "invalidQr": "이 QR 코드는 PearLift 백업으로 보이지 않습니다.",
-    "tooLarge": "백업이 하나의 QR 코드에 담기에는 너무 큽니다. 대신 “기기에 백업 저장”을 사용하세요."
+    "tooLarge": "백업이 하나의 QR 코드에 담기에는 너무 큽니다. 대신 \"기기에 백업 저장\"을 사용하세요."
   },
   "prompts": {
     "deleteExercise": {
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "이 기기/플랫폼에서는 공유를 사용할 수 없습니다."
     },
     "importBackup": {
-      "failedTitle": "가져오기 실패"
+      "failedTitle": "가져오기 실패",
+      "confirmReplaceTitle": "활성 프로그램을 교체할까요?",
+      "confirmReplaceMessage": "이 기기의 현재 활성 프로그램을 \"{{program}}\"(으)로 교체합니다. 가능한 경우 기존 일치하는 중량은 보존됩니다.",
+      "confirmReplaceAction": "프로그램 교체"
     },
     "forgetDevice": {
       "authPromptMessage": "기기 삭제 확인",

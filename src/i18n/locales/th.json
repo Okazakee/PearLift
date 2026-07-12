@@ -4,7 +4,9 @@
     "delete": "ลบ",
     "back": "กลับ",
     "next": "ถัดไป",
-    "ok": "ตกลง"
+    "ok": "ตกลง",
+    "close": "ปิด",
+    "save": "บันทึก"
   },
   "app": {
     "loading": "กำลังเตรียมข้อมูลการฝึกซ้อมของคุณ"
@@ -30,12 +32,12 @@
     },
     "getStarted": "เริ่มต้น",
     "notNow": "ไม่ตอนนี้",
-    "skipSync": "Skip",
+    "skipSync": "ข้าม",
     "setupSync": "ตั้งค่าซิงค์",
     "settingUp": "กำลังตั้งค่า...",
     "syncPrompt": {
-      "title": "Sync across your devices",
-      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+      "title": "ซิงค์ข้ามอุปกรณ์",
+      "description": "ข้อมูลของคุณไม่เคยออกจากอุปกรณ์ของคุณ คุณสามารถตั้งค่าได้ทุกเมื่อในการตั้งค่า"
     }
   },
   "sync": {
@@ -51,104 +53,311 @@
       "scanQr": "สแกนรหัส QR",
       "scanEnableCamera": "เปิดใช้งานกล้อง",
       "scanHelp": "เล็งกล้องไปที่โค้ด QR บนอุปกรณ์อีกเครื่องของคุณ",
-      "waitForConnection": "Connection in progress. Scanner paused for stability.",
+      "waitForConnection": "กำลังเชื่อมต่อ ระบบสแกนหยุดชั่วคราวเพื่อความเสถียร",
       "codePlaceholder": "กรอกรหัสแบ่งปันของคุณ",
-      "replaceJoinLabel": "Replace my data with their data",
-      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
+      "replaceJoinLabel": "แทนที่ข้อมูลของฉันด้วยข้อมูลของพวกเขา",
+      "replaceJoinHint": "ก่อนการซิงค์ครั้งแรก ให้รีเซ็ตการฝึกซ้อม น้ำหนักท่า และการตั้งค่าโปรแกรมเฉพาะบนอุปกรณ์นี้เท่านั้น",
       "copy": "คัดลอกรหัส",
-      "copied": "Copied!",
-      "paste": "Paste",
+      "copied": "คัดลอกแล้ว!",
+      "paste": "วาง",
       "start": "เริ่มการซิงค์",
       "stop": "หยุดการซิงค์",
       "invalidCode": "รหัสไม่ถูกต้อง ต้องเป็นอักขระฐานสิบหก 64 ตัว",
       "connecting": "Searching for peers…",
-      "connectedTitle": "Connected",
-      "connectedSubtitle_one": "{{count}} device in sync group.",
-      "connectedSubtitle_other": "{{count}} devices in sync group.",
-      "viewInfo": "View connection info",
-      "done": "Done"
+      "connectedTitle": "เชื่อมต่อแล้ว",
+      "connectedSubtitle_one": "{{count}} อุปกรณ์ในกลุ่มซิงค์",
+      "connectedSubtitle_other": "{{count}} อุปกรณ์ในกลุ่มซิงค์",
+      "viewInfo": "ดูข้อมูลการเชื่อมต่อ",
+      "done": "เสร็จ"
     },
     "info": {
-      "title": "Connection info",
-      "statusLabel": "Status",
+      "title": "ข้อมูลการเชื่อมต่อ",
+      "statusLabel": "สถานะ",
       "status": {
-        "idle": "Idle",
-        "connecting": "Searching",
-        "synced": "Connected",
-        "error": "Error"
+        "idle": "ว่าง",
+        "connecting": "กำลังค้นหา",
+        "waiting": "กำลังรอ",
+        "dht_ready": "DHT พร้อม",
+        "peer_connected": "เพียร์เชื่อมต่อแล้ว",
+        "handshake_ok": "Handshake สำเร็จ",
+        "replicating": "กำลังจำลองข้อมูล",
+        "synced": "เชื่อมต่อแล้ว",
+        "error": "ข้อผิดพลาด"
       },
       "peers": "Peers",
       "bootstrapped": "DHT",
-      "bootstrappedYes": "Reachable",
-      "bootstrappedNo": "Waiting",
+      "bootstrappedYes": "เชื่อมต่อได้",
+      "bootstrappedNo": "กำลังรอ",
       "lastSync": "Last peer sync",
-      "never": "Never",
-      "thisDevice": "This device",
-      "deviceId": "Device ID",
-      "localKey": "Local key",
-      "syncGroup": "Sync group",
-      "autobaseKey": "Autobase key",
-      "topic": "Topic",
+      "never": "ไม่เคย",
+      "thisDevice": "อุปกรณ์นี้",
+      "deviceId": "ID อุปกรณ์",
+      "localKey": "คีย์ในเครื่อง",
+      "syncGroup": "กลุ่มซิงค์",
+      "autobaseKey": "คีย์ Autobase",
+      "topic": "หัวข้อ",
       "connectedPeers": "Connected peers",
       "noPeers": "No peers connected.",
-      "storagePath": "Storage",
-      "copy": "Copy",
-      "copied": "Copied",
-      "refresh": "Refresh",
-      "reconnectAttempts": "Reconnect attempts",
+      "storagePath": "ที่จัดเก็บ",
+      "copy": "คัดลอก",
+      "copied": "คัดลอกแล้ว",
+      "refresh": "รีเฟรช",
+      "reconnectAttempts": "พยายามเชื่อมต่อใหม่",
       "debugLog": {
-        "title": "Debug log",
-        "refresh": "Refresh",
-        "empty": "No log entries yet."
+        "title": "บันทึกดีบัก",
+        "refresh": "รีเฟรช",
+        "empty": "ยังไม่มีรายการบันทึก"
       }
     },
     "toast": {
-      "newPeerTitle": "New device connected",
+      "newPeerTitle": "เชื่อมต่ออุปกรณ์ใหม่แล้ว",
       "newPeerMessage": "A paired device joined the sync group."
     },
     "quick": {
-      "title": "Sync Status",
-      "statusLabel": "Status",
+      "title": "สถานะซิงค์",
+      "statusLabel": "สถานะ",
       "button": {
-        "issue": "Issue",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync"
+        "issue": "ปัญหา",
+        "connected": "เชื่อมต่อแล้ว",
+        "connecting": "กำลังเชื่อมต่อ",
+        "off": "ซิงค์"
       },
       "state": {
-        "issue": "Issue detected",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync off"
+        "issue": "ตรวจพบปัญหา",
+        "connected": "เชื่อมต่อแล้ว",
+        "connecting": "กำลังเชื่อมต่อ",
+        "off": "ซิงค์ปิด"
       },
       "summary": {
-        "issue": "Sync needs attention",
-        "connected_one": "Connected to {{count}} device",
-        "connected_other": "Connected to {{count}} devices",
-        "connecting": "Looking for devices",
-        "off": "Sync is off"
+        "issue": "ซิงค์ต้องได้รับการดูแล",
+        "connected_one": "เชื่อมต่อกับ {{count}} อุปกรณ์",
+        "connected_other": "เชื่อมต่อกับ {{count}} อุปกรณ์",
+        "connecting": "กำลังมองหาอุปกรณ์",
+        "off": "ซิงค์ปิดอยู่"
       },
       "description": {
-        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
-        "connected": "Your device is syncing with the group.",
-        "connecting": "Searching for your sync group.",
-        "off": "Sync is currently disabled on this device."
+        "issue": "ซิงค์ต้องได้รับการดูแล เปิดการตั้งค่าหรือการวินิจฉัยเพื่อแก้ไข",
+        "connected": "อุปกรณ์ของคุณกำลังซิงค์กับกลุ่ม",
+        "connecting": "กำลังค้นหากลุ่มซิงค์ของคุณ",
+        "off": "ซิงค์ถูกปิดใช้งานบนอุปกรณ์นี้"
       },
-      "lastSyncAt": "Last sync: {{at}}",
-      "lastSyncNever": "Last sync: never",
+      "dht": "DHT",
+      "dhtReady": "พร้อม",
+      "dhtBootstrapping": "กำลังบูตสแทรป…",
+      "dhtError": "ข้อผิดพลาด",
+      "dhtInactive": "ไม่ทำงาน",
+      "dhtWaiting": "กำลังรอ",
+      "status": "สถานะ",
+      "peers": "เพียร์",
+      "peersConnected": "{{count}} เชื่อมต่อ",
+      "peersNone": "ไม่มี",
+      "connectionsActive": "{{count}} ทำงานอยู่",
+      "connectionsNone": "ไม่มี",
+      "more": "เพิ่มเติม",
+      "lastSyncAt": "ซิงค์ล่าสุด: {{at}}",
+      "lastSyncNever": "ซิงค์ล่าสุด: ไม่เคย",
       "actions": {
-        "setup": "Set up sync",
-        "pair": "Pair new device",
-        "manage": "Manage devices",
-        "openHub": "Open Sync Hub",
-        "troubleshoot": "Troubleshoot",
-        "stop": "Stop sync"
+        "setup": "ตั้งค่าซิงค์",
+        "pair": "จับคู่อุปกรณ์ใหม่",
+        "manage": "จัดการอุปกรณ์",
+        "openHub": "เปิด Sync Hub",
+        "troubleshoot": "แก้ปัญหา",
+        "stop": "หยุดซิงค์"
       }
+    },
+    "manage": {
+      "title": "ซิงค์อุปกรณ์",
+      "subtitle": "จัดการการตั้งค่ากลุ่มและการบำรุงรักษาซิงค์ในที่เดียว",
+      "roomSetup": "การตั้งค่ากลุ่ม",
+      "roomSetupHint": "เลือกว่าอุปกรณ์นี้จะสร้างกลุ่มใหม่หรือเข้าร่วมกลุ่มที่มีอยู่",
+      "onboardingTitle": "ไม่มีคลาวด์ ไม่ต้องมีบัญชี",
+      "onboardingMessage": "PearLift ซิงค์การฝึกของคุณระหว่างอุปกรณ์โดยตรง — peer-to-peer ข้อมูลของคุณไม่เคยไปถึงเซิร์ฟเวอร์ แค่เชื่อมต่อ Wi‑Fi เดียวกันหรืออยู่ใกล้กันสำหรับการเชื่อมต่อครั้งแรก",
+      "onboardingDismiss": "เข้าใจแล้ว",
+      "createRoom": "สร้างกลุ่ม",
+      "joinRoom": "เข้าร่วมกลุ่ม",
+      "roomActive": "กลุ่มทำงานอยู่",
+      "status": "สถานะซิงค์",
+      "turnOn": "เปิด",
+      "turnOff": "ปิด",
+      "refresh": "รีเฟรช",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "เจ้าของกลุ่ม",
+        "joiner": "สมาชิก"
+      },
+      "binding": {
+        "unconfigured": "ไม่ได้ตั้งค่า",
+        "pending_first_sync": "รอการซิงค์ครั้งแรก",
+        "active": "ทำงานอยู่",
+        "conflict_requires_decision": "ต้องตัดสินใจ",
+        "active_conflict_requires_decision": "ข้อขัดแย้งซิงค์ต้องตัดสินใจ"
+      },
+      "thisDeviceCode": "รหัสอุปกรณ์นี้: {{code}}",
+      "deviceCode": "รหัส {{code}}",
+      "deviceNamePlaceholder": "ตั้งชื่ออุปกรณ์นี้",
+      "saveDeviceName": "บันทึกชื่ออุปกรณ์",
+      "deviceNameSyncPending": "ชื่ออุปกรณ์ถูกบันทึกในเครื่อง ซิงค์จะลองแชร์กับเพียร์เร็วๆ นี้",
+      "masterKey": "รหัสซิงค์",
+      "masterKeyHint": "ใช้รหัสซิงค์ 64 ตัวอักษรเดียวกันบนทุกอุปกรณ์ที่ต้องการแชร์ข้อมูล",
+      "masterKeyPlaceholder": "วางหรือแก้ไขรหัสซิงค์ 64 ตัวอักษร",
+      "showQR": "แสดง QR",
+      "copyKey": "คัดลอกรหัส",
+      "applyKey": "ใช้รหัส",
+      "leaveRoom": "ออกจากกลุ่ม",
+      "leaveRoomConfirmTitle": "ออกจากกลุ่มนี้?",
+      "leaveRoomConfirmMessage": "การดำเนินการนี้จะปิดซิงค์ ล้างการผูกกลุ่มปัจจุบันบนอุปกรณ์นี้ และลบประวัติการเชื่อมต่อกลุ่มในเครื่อง",
+      "syncedDevices": "{{count}} อุปกรณ์",
+      "syncedDevicesTitle": "อุปกรณ์",
+      "noDevices": "ยังไม่มีอุปกรณ์ที่ซิงค์",
+      "showMore": "แสดงเพิ่มอีก {{count}}",
+      "lastSeen": "เห็นล่าสุด {{at}}",
+      "lastSyncAt": "ซิงค์ล่าสุด {{at}}",
+      "removeDevice": "ลบออกจากรายการ",
+      "removeDeviceConfirmTitle": "ลบอุปกรณ์นี้ออกจากรายการ?",
+      "removeDeviceConfirmMessage": "การดำเนินการนี้จะซ่อนอุปกรณ์จากรายการนี้บนอุปกรณ์นี้เท่านั้น อุปกรณ์สามารถปรากฏอีกครั้งหากซิงค์กับกลุ่มนี้ในภายหลัง",
+      "debug": "ข้อมูลดีบัก",
+      "never": "ไม่เคย"
+    },
+    "create": {
+      "title": "สร้างกลุ่ม",
+      "subtitle": "อุปกรณ์นี้เริ่มกลุ่มซิงค์ใหม่และสามารถแชร์รหัสซิงค์กับอุปกรณ์อื่น",
+      "room": "กลุ่มใหม่",
+      "explainer": "ใช้เมื่ออุปกรณ์นี้ควรกำหนดกลุ่มเริ่มต้นและเชิญอุปกรณ์อื่น",
+      "datasetSummary": "อุปกรณ์นี้มี {{workouts}} การฝึก และ {{exercises}} ท่าออกกำลังกาย",
+      "masterKey": "รหัสซิงค์",
+      "inviteStarting": "กำลังเริ่มกลุ่มและสร้าง QR เชิญ…",
+      "invitePending": "เริ่มกลุ่มเพื่อสร้าง QR เชิญ",
+      "copy": "คัดลอกรหัส",
+      "startRoom": "เริ่มกลุ่มนี้"
+    },
+    "join": {
+      "title": "เข้าร่วมกลุ่ม",
+      "subtitle": "ใช้รหัสซิงค์จากอุปกรณ์อื่นเพื่อเชื่อมต่ออุปกรณ์นี้กับกลุ่มซิงค์เดียวกัน",
+      "preflight": "ก่อนเข้าร่วม",
+      "localSummary": "อุปกรณ์นี้มี {{workouts}} การฝึก และ {{exercises}} ท่าออกกำลังกาย",
+      "remoteSummaryHint": "หากอุปกรณ์ทั้งสองมีการเปลี่ยนแปลงที่ทับซ้อนกันมาก PearLift จะถามว่าต้องการเก็บชุดข้อมูลใด",
+      "masterKey": "รหัสซิงค์",
+      "keyPlaceholder": "วางรหัสซิงค์ 64 ตัวอักษร",
+      "paste": "วาง",
+      "scanQr": "สแกน QR",
+      "scanHelp": "เล็งกล้องไปที่ QR ที่มีรหัสซิงค์",
+      "invalidKey": "รหัสซิงค์ไม่ถูกต้อง ต้องเป็นอักขระฐานสิบหก 64 ตัว",
+      "keyValid": "รหัสเชิญที่ถูกต้อง",
+      "pasteSuccess": "วางจากคลิปบอร์ดแล้ว",
+      "pasteEmpty": "คลิปบอร์ดว่างเปล่า",
+      "joinRoom": "เข้าร่วมกลุ่ม"
+    },
+    "decision": {
+      "title": "เลือกข้อมูลซิงค์ครั้งแรก",
+      "subtitle": "ทั้งสองฝ่ายมีข้อมูลที่มีความหมายแล้ว เลือกว่ากลุ่มนี้ควรใช้ข้อมูลใดเป็นฐาน",
+      "thisDevice": "อุปกรณ์นี้",
+      "roomData": "ข้อมูลกลุ่ม",
+      "datasetSummary": "{{workouts}} การฝึก · {{exercises}} ท่าออกกำลังกาย",
+      "conflictTitle": "ตรวจพบการเปลี่ยนแปลงที่ทับซ้อนกัน",
+      "conflictWorkouts": "การฝึก",
+      "conflictExercises": "ท่าออกกำลังกาย",
+      "conflictSummary": "พบการฝึกที่ทับซ้อน {{workouts}} รายการ และท่าที่ทับซ้อน {{exercises}} รายการ",
+      "configConflictSummary": "การตั้งค่าสัปดาห์ทับซ้อน {{weeks}} รายการ การตั้งค่าวันทับซ้อน {{days}} รายการ การอัปเดตกลุ่มรออยู่ {{backlog}} รายการ",
+      "useThisDeviceHint": "การดำเนินการนี้จะเผยแพร่อุปกรณ์นี้เป็นฐานของกลุ่ม",
+      "useRoomDataHint": "การดำเนินการนี้จะแทนที่ข้อมูลการฝึกบนอุปกรณ์นี้ แต่ยังคงการตั้งค่าแอปไว้",
+      "useMerge": "รวมทั้งสอง",
+      "useMergeHint": "รวมข้อมูลจากอุปกรณ์นี้และกลุ่มเมื่อไม่มีการทับซ้อน",
+      "mergeUnavailableHint": "การฝึกหรือท่าบางอย่างมีอยู่ในทั้งสองอุปกรณ์ด้วยค่าที่ต่างกัน จึงไม่สามารถรวมได้",
+      "useThisDevice": "ใช้ข้อมูลของอุปกรณ์นี้",
+      "useRoomData": "ใช้ข้อมูลกลุ่ม"
+    },
+    "debug": {
+      "title": "ข้อมูลดีบักซิงค์",
+      "subtitle": "สถานะขณะทำงาน รายละเอียดการเชื่อมต่อ และบันทึกซิงค์ล่าสุด",
+      "snapshot": "ภาพรวมขณะทำงาน",
+      "connections": "การเชื่อมต่อ",
+      "lastError": "ข้อผิดพลาดล่าสุด",
+      "logs": "บันทึกล่าสุด",
+      "logCount": "แสดง {{shown}} จาก {{total}} รายการบันทึก",
+      "clear": "ล้าง"
     }
   },
   "workout": {
     "weekDay": "สัปดาห์ {{week}} - วัน {{day}}",
-    "addExercise": "เพิ่มการฝึก"
+    "addExercise": "เพิ่มการฝึก",
+    "logWorkout": "บันทึกการฝึก",
+    "progressionSuggestions": "คำแนะนำ",
+    "suggestedToday": "แนะนำวันนี้: {{workout}}",
+    "showDetails": "แสดงรายละเอียด",
+    "hideDetails": "ซ่อนรายละเอียด",
+    "details": {
+      "notes": "หมายเหตุ",
+      "tempo": "จังหวะ",
+      "equipment": "อุปกรณ์",
+      "primaryMuscles": "กล้ามเนื้อหลัก",
+      "secondaryMuscles": "กล้ามเนื้อรอง",
+      "technique": "เทคนิค",
+      "cues": "คำแนะนำ",
+      "perSetTargets": "เป้าหมายต่อเซ็ต",
+      "progression": "การเพิ่มน้ำหนัก",
+      "weekOverrides": "การปรับเปลี่ยนรายสัปดาห์",
+      "active": "เปิดใช้งาน",
+      "intensity": "ความเข้มข้น",
+      "target": "เป้าหมาย",
+      "estimatedOneRepMax": "ประมาณค่า 1RM",
+      "notSet": "ไม่ได้ตั้งค่า",
+      "intensityRange": "ช่วงความเข้มข้น",
+      "weightSettings": "การตั้งค่าน้ำหนัก",
+      "weightMode": "โหมดน้ำหนัก",
+      "increment": "เพิ่มทีละ",
+      "exerciseSettings": "การตั้งค่าท่าออกกำลังกาย"
+    }
+  },
+  "workoutLog": {
+    "title": "บันทึกการฝึก",
+    "subtitle": "{{workout}} · สัปดาห์ {{week}}",
+    "progress": "บันทึก {{logged}} / {{total}} เซ็ต",
+    "loading": "กำลังโหลดบันทึกการฝึก…",
+    "done": "เสร็จ",
+    "skip": "ข้าม",
+    "save": "บันทึก",
+    "saving": "กำลังบันทึก…",
+    "useTarget": "ทำครบตามเป้าหมาย",
+    "reset": "รีเซ็ต",
+    "setLabel": "เซ็ต {{set}}",
+    "targetRir": "เป้าหมาย RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "น้ำหนักจริง",
+    "actualReps": "จำนวนครั้งจริง",
+    "leftReps": "จำนวนครั้งซ้าย",
+    "rightReps": "จำนวนครั้งขวา",
+    "perSideReps": "ต่อข้าง",
+    "sharedReps": "รวม",
+    "actualRir": "RIR จริง",
+    "errors": {
+      "load": "ไม่สามารถโหลดบันทึกการฝึกนี้",
+      "save": "ไม่สามารถบันทึกบันทึกการฝึกนี้"
+    }
+  },
+  "progressionSuggestions": {
+    "title": "คำแนะนำการเพิ่มน้ำหนัก",
+    "subtitle": "เพิ่มน้ำหนักตอนนี้หรือรอไว้ทีหลัง",
+    "current": "น้ำหนักปัจจุบัน",
+    "next": "น้ำหนักถัดไป",
+    "reason": "เหตุผล: {{reason}}",
+    "apply": "ใช้",
+    "skip": "ข้าม"
+  },
+  "exerciseSettings": {
+    "title": "การตั้งค่าท่าออกกำลังกาย",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "น้ำหนักใช้งาน",
+    "weightMode": "โหมดน้ำหนัก",
+    "increment": "เพิ่มทีละ",
+    "estimatedOneRepMax": "ประมาณค่า 1RM",
+    "notes": "หมายเหตุ",
+    "history": "ประวัติล่าสุด",
+    "linkedVariants": "รูปแบบที่เชื่อมโยง",
+    "historyLoading": "กำลังโหลดประวัติ…",
+    "historyEmpty": "ยังไม่มีเซสชันที่บันทึก",
+    "historyError": "ไม่สามารถโหลดประวัติ",
+    "historySets": "{{completed}} / {{total}} เซ็ต",
+    "historyBestReps": "จำนวนครั้งสูงสุด {{reps}}"
   },
   "restTimer": {
     "title": "ตัวจับเวลาพัก",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "การตั้งค่าโปรแกรม",
     "tabs": {
+      "program": "โปรแกรม",
       "weeks": "สัปดาห์",
       "days": "วัน"
+    },
+    "program": {
+      "name": "ชื่อโปรแกรม",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "หัวข้อย่อย",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "เป้าหมาย",
+      "goalPlaceholder": "ความแข็งแรงและกล้ามเนื้อโต",
+      "description": "คำอธิบาย",
+      "descriptionPlaceholder": "หมายเหตุเกี่ยวกับบล็อกการฝึกนี้",
+      "sourceType": "แหล่งที่มา",
+      "sourceLabel": "ป้ายกำกับแหล่งที่มา",
+      "sourceLabelPlaceholder": "PDF โค้ช เทมเพลต หรือบันทึก",
+      "startDate": "วันที่เริ่ม",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "ระยะเวลา (สัปดาห์)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "พักเริ่มต้น (วินาที)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "รูปแบบการเพิ่มน้ำหนัก",
+      "frequencySummary": "เป้าหมายรายสัปดาห์",
+      "frequencyGroupPlaceholder": "กลุ่มกล้ามเนื้อ",
+      "frequencyTarget": "เป้าหมายต่อสัปดาห์",
+      "frequencyPerWeek_one": "{{count}}x / สัปดาห์",
+      "frequencyPerWeek_other": "{{count}}x / สัปดาห์",
+      "addFrequencyTarget": "เพิ่มเป้าหมายรายสัปดาห์",
+      "progressionModels": {
+        "simple_load_modifier": "ง่าย",
+        "exercise_rules": "กฎ",
+        "mixed": "ผสม",
+        "manual": "ด้วยตนเอง"
+      },
+      "sourceTypes": {
+        "manual": "ด้วยตนเอง",
+        "coach": "โค้ช",
+        "template": "เทมเพลต",
+        "imported_pdf": "นำเข้า PDF",
+        "imported_json": "นำเข้า JSON"
+      }
     },
     "week": {
       "namePlaceholder": "ชื่อสัปดาห์",
       "loadModifier": "ตัวแก้ไขโหลด",
+      "volumeModifier": "ตัวปรับปริมาณ",
       "rir": "RIR (จำนวนครั้งสำรอง)",
+      "notes": "หมายเหตุประจำสัปดาห์",
+      "notesPlaceholder": "หมายเหตุสำหรับสัปดาห์นี้",
       "baseline": "พื้นฐาน",
       "addWeek": "เพิ่มสัปดาห์",
       "deleteTitle": "ลบสัปดาห์",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "วัน {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "ไอคอน",
+      "schedule": "ตารางเวลา",
+      "pickDay": "เลือกวัน",
+      "pickWindow": "เลือกช่วงวัน",
       "iconMore": "เพิ่มเติม",
       "iconRefresh": "รีเฟรช",
+      "scheduleTypes": {
+        "unscheduled": "วันไหนก็ได้",
+        "fixed_day": "วันตายตัว",
+        "day_window": "ช่วงวัน"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "จ.",
+          "tue": "อ.",
+          "wed": "พ.",
+          "thu": "พฤ.",
+          "fri": "ศ.",
+          "sat": "ส.",
+          "sun": "อา."
+        },
+        "narrow": {
+          "mon": "จ",
+          "tue": "อ",
+          "wed": "พ",
+          "thu": "พฤ",
+          "fri": "ศ",
+          "sat": "ส",
+          "sun": "อา"
+        }
+      },
       "addDay": "เพิ่มวัน",
       "deleteTitle": "ลบวัน",
       "deleteMessage": "ลบ \"{{name}}\"? จะลบออกจากทุกสัปดาห์"
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "เพิ่มการฝึก",
     "titleEdit": "แก้ไขการฝึก",
+    "tabs": {
+      "basic": "พื้นฐาน",
+      "advanced": "ขั้นสูง"
+    },
     "name": "ชื่อ",
     "namePlaceholder": "ชื่อการฝึก",
     "muscleGroup": "กลุ่มกล้ามเนื้อ",
@@ -202,11 +487,52 @@
     "reps": "จำนวนครั้ง",
     "notes": "หมายเหตุ",
     "notesPlaceholder": "หมายเหตุเพิ่มเติม...",
+    "advanced": {
+      "show": "แสดงฟิลด์ขั้นสูง",
+      "hide": "ซ่อนฟิลด์ขั้นสูง",
+      "rest": "พัก (วินาที)",
+      "restUseDefault": "ค่าเริ่มต้นทั่วโลก",
+      "restCustom": "กำหนดเอง",
+      "restPlaceholder": "180",
+      "rir": "เป้าหมาย RIR",
+      "rirPlaceholder": "1-2",
+      "intensity": "ความเข้มข้น",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "จังหวะ",
+      "tempoPlaceholder": "Eccentrica 2 วินาที",
+      "progressionRule": "กฎการเพิ่มน้ำหนัก",
+      "progressionRulePlaceholder": "+5กก. เมื่อทุกเซ็ตทำจำนวนครั้งสูงสุดได้โดยมี 2 RIR",
+      "unilateral": "โหมดข้างเดียว",
+      "unilateralPlaceholder": "ต่อขา, ต่อข้าง, ซ้าย/ขวา, สลับ",
+      "equipment": "อุปกรณ์",
+      "equipmentPlaceholder": "บาร์เบล, ดัมเบล, เคเบิล, เครื่อง",
+      "primaryMuscles": "กล้ามเนื้อหลัก",
+      "primaryMusclesPlaceholder": "กล้ามเนื้อหนึ่งอย่างต่อบรรทัด",
+      "secondaryMuscles": "กล้ามเนื้อรอง",
+      "secondaryMusclesPlaceholder": "กล้ามเนื้อหนึ่งอย่างต่อบรรทัด",
+      "canonicalExerciseId": "ID ท่าออกกำลังกายหลัก",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "ป้ายรูปแบบ",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "ชื่ออื่น",
+      "aliasesPlaceholder": "ชื่ออื่นหนึ่งอย่างต่อบรรทัด",
+      "sessionSpecific": "เฉพาะเซสชัน",
+      "sessionSpecificToggle": "บันทึกเป็นรูปแบบเฉพาะเซสชัน",
+      "technicalNotes": "หมายเหตุทางเทคนิค",
+      "technicalNotesPlaceholder": "บันทึกหนึ่งข้อต่อบรรทัด",
+      "executionCues": "คำแนะนำการปฏิบัติ",
+      "executionCuesPlaceholder": "คำแนะนำหนึ่งข้อต่อบรรทัด",
+      "perSetTargets": "เป้าหมายต่อเซ็ต",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "การปรับเปลี่ยนรายสัปดาห์",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "เพิ่มการฝึก",
     "submitEdit": "บันทึกการเปลี่ยนแปลง",
     "errors": {
       "nameRequired": "ต้องระบุชื่อการฝึก",
-      "setsInvalid": "เซ็ตต้องเป็นจำนวนเต็มบวกที่ถูกต้อง"
+      "setsInvalid": "เซ็ตต้องเป็นจำนวนเต็มบวกที่ถูกต้อง",
+      "restInvalid": "พักต้องเป็นจำนวนเต็มที่ไม่ติดลบ"
     }
   },
   "settings": {
@@ -247,24 +573,29 @@
       "peers_one": "{{count}} เพียร์เชื่อมต่อแล้ว",
       "peers_other": "{{count}} เพียร์เชื่อมต่อแล้ว",
       "stopSync": "หยุดซิงค์",
-      "connectionInfo": "Connection info",
-      "openSyncHub": "Open Sync Hub"
+      "connectionInfo": "ข้อมูลการเชื่อมต่อ",
+      "openSyncHub": "เปิด Sync Hub"
     },
     "syncStatus": {
-      "title": "Sync Status",
-      "status": "Status",
-      "syncingWith_one": "Syncing with {{count}} device",
-      "syncingWith_other": "Syncing with {{count}} devices",
-      "off": "Sync is off",
-      "lastSuccessfulSync": "Last successful sync",
-      "manage": "Manage Sync"
+      "title": "สถานะซิงค์",
+      "status": "สถานะ",
+      "enabled": "ซิงค์เปิดอยู่",
+      "disabled": "ซิงค์ปิดอยู่",
+      "syncingWith_one": "กำลังซิงค์กับ {{count}} อุปกรณ์",
+      "syncingWith_other": "กำลังซิงค์กับ {{count}} อุปกรณ์",
+      "off": "ซิงค์ปิดอยู่",
+      "lastSuccessfulSync": "ซิงค์สำเร็จล่าสุด",
+      "manage": "จัดการซิงค์"
     },
     "localBackup": {
       "title": "สำรองข้อมูล",
       "export": "บันทึกข้อมูลสำรองลงเครื่อง",
       "import": "กู้คืนจากข้อมูลสำรอง",
+      "shareBackup": "แชร์ข้อมูลสำรอง",
       "shareToDevice": "แชร์ไปยังอุปกรณ์อื่น",
-      "scanFromDevice": "สแกนจากอุปกรณ์อื่น"
+      "scanFromDevice": "สแกนจากอุปกรณ์อื่น",
+      "localSaveRestore": "บันทึก / กู้คืนในเครื่อง",
+      "qrShareRestore": "แชร์ / กู้คืนด้วย QR"
     },
     "pairingDevices": {
       "title": "Pairing & Devices",
@@ -272,16 +603,16 @@
       "count_other": "{{count}} paired devices"
     },
     "syncAdvanced": {
-      "title": "Sync Hub",
-      "description": "Debug logs and device identifiers for troubleshooting."
+      "title": "ศูนย์ซิงค์",
+      "description": "บันทึกดีบักและรหัสอุปกรณ์สำหรับการแก้ปัญหา"
     },
     "syncHub": {
-      "title": "Sync Hub",
-      "overview": "Overview",
-      "ids": "Device & Group IDs",
-      "connections": "Connections",
-      "localWriterKey": "Local writer key",
-      "management": "Management"
+      "title": "ศูนย์ซิงค์",
+      "overview": "ภาพรวม",
+      "ids": "ID อุปกรณ์และกลุ่ม",
+      "connections": "การเชื่อมต่อ",
+      "localWriterKey": "คีย์ผู้เขียนในเครื่อง",
+      "management": "การจัดการ"
     },
     "data": {
       "title": "ข้อมูล",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "แสดงตัวอย่างการนำเข้า",
+    "titleWithProgram": "นำเข้า: {{program}}",
     "changesDetected": "พบการเปลี่ยนแปลง {{count}} รายการ",
     "noChanges": "ไม่พบการเปลี่ยนแปลง ข้อมูลสำรองเหมือนกับข้อมูลปัจจุบัน",
+    "modeHint": "นำเข้าเป็นใหม่จะเก็บแผนปัจจุบันไว้ การแทนที่โปรแกรมที่ใช้งานอยู่จะเขียนทับแผนปัจจุบันบนอุปกรณ์นี้",
+    "stats": {
+      "workouts": "การฝึกที่ต้องอัปเดต",
+      "exercises": "ท่าออกกำลังกายที่ต้องสร้างหรืออัปเดต",
+      "preservedWeights": "น้ำหนักที่เก็บไว้",
+      "needsWeight": "ต้องระบุน้ำหนักเริ่มต้น"
+    },
+    "exerciseStatus": {
+      "matching": "ท่าที่ตรงกัน",
+      "changed": "ท่าที่เปลี่ยนแปลง",
+      "new": "ท่าใหม่",
+      "removed": "ท่าที่ถูกลบ"
+    },
     "sections": {
+      "exerciseStatus": "สถานะท่าออกกำลังกาย",
+      "preservedWeights": "น้ำหนักที่เก็บไว้",
+      "missingWeights": "ท่าใหม่ที่ไม่มีน้ำหนักที่บันทึกไว้",
+      "removedExercises": "ถูกลบออกจากโปรแกรมที่ใช้งาน",
       "workouts": "การฝึกซ้อม",
+      "program": "โปรแกรม",
       "settings": "การตั้งค่า",
       "weeks": "สัปดาห์",
       "days": "วัน"
     },
+    "currentWeightKept": "น้ำหนักปัจจุบันคงไว้",
+    "noPreviousWeight": "ไม่พบน้ำหนักก่อนหน้า",
     "cancel": "ยกเลิก",
-    "confirm": "นำเข้าข้อมูลสำรอง"
+    "confirm": "นำเข้าข้อมูลสำรอง",
+    "importAsNewProgram": "นำเข้าเป็นโปรแกรมใหม่",
+    "replaceActiveProgram": "แทนที่โปรแกรมที่ใช้งานอยู่"
+  },
+  "programLibrary": {
+    "title": "โปรแกรม",
+    "summary": "{{count}} โปรแกรมที่บันทึกไว้",
+    "active": "ที่ใช้งานอยู่",
+    "empty": "ยังไม่มีโปรแกรมที่บันทึกไว้"
   },
   "deviceTransfer": {
     "shareTitle": "แชร์ไปยังอุปกรณ์อื่น",
     "shareDescription": "บนอีกอุปกรณ์: การตั้งค่า → สำรองข้อมูล → สแกนจากอุปกรณ์อื่น",
+    "shareChunkCounter": "ส่วน {{current}}/{{total}}",
+    "shareChunkHint": "ถืออุปกรณ์ทั้งสองให้นิ่ง QR หมุนอัตโนมัติ",
+    "pauseRotation": "หยุดหมุน",
+    "resumeRotation": "หมุนต่อ",
     "scanTitle": "สแกนจากอุปกรณ์อื่น",
     "scanDescription": "เล็งกล้องไปที่ QR ของข้อมูลสำรอง PearLift",
+    "chunkProgress": "สแกนไป: {{received}}/{{total}}",
+    "transferCorrupted": "การส่ง QR ล้มเหลวการตรวจสอบข้อมูล กรุณาสแกนตั้งแต่ส่วนแรกอีกครั้ง",
     "cameraPermissionTitle": "ต้องขออนุญาตใช้กล้อง",
     "cameraPermissionMessage": "อนุญาตให้ใช้กล้องเพื่อสแกน QR ของข้อมูลสำรอง",
     "cameraPermissionButton": "อนุญาตกล้อง",
+    "cameraUnavailableTitle": "ไม่มีกล้อง",
+    "cameraUnavailableMessage": "PearLift ไม่สามารถเข้าถึงกล้องหลังที่ใช้งานได้บนอุปกรณ์นี้",
     "invalidQr": "QR นี้ไม่เหมือนข้อมูลสำรองของ PearLift",
     "tooLarge": "ข้อมูลสำรองใหญ่เกินกว่าจะใส่ใน QR เดียวได้ ให้ใช้ “บันทึกข้อมูลสำรองลงเครื่อง” แทน"
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "ไม่สามารถแชร์ได้บนอุปกรณ์/แพลตฟอร์มนี้"
     },
     "importBackup": {
-      "failedTitle": "นำเข้าไม่สำเร็จ"
+      "failedTitle": "นำเข้าไม่สำเร็จ",
+      "confirmReplaceTitle": "แทนที่โปรแกรมที่ใช้งานอยู่?",
+      "confirmReplaceMessage": "การดำเนินการนี้จะแทนที่โปรแกรมที่ใช้งานอยู่ด้วย \"{{program}}\" บนอุปกรณ์นี้ น้ำหนักที่ตรงกันจะถูกเก็บไว้เท่าที่เป็นไปได้",
+      "confirmReplaceAction": "แทนที่โปรแกรม"
     },
     "forgetDevice": {
       "authPromptMessage": "ยืนยันเพื่อลืมอุปกรณ์",

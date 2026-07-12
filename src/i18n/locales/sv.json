@@ -4,7 +4,9 @@
     "delete": "Ta bort",
     "back": "Tillbaka",
     "next": "Nästa",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Stäng",
+    "save": "Spara"
   },
   "app": {
     "loading": "Förbereder dina träningsdata"
@@ -29,13 +31,13 @@
       }
     },
     "getStarted": "Kom igång",
-    "notNow": "Not now",
-    "skipSync": "Skip",
-    "setupSync": "Set up sync",
+    "notNow": "Inte nu",
+    "skipSync": "Hoppa över",
+    "setupSync": "Konfigurera synk",
     "settingUp": "Konfigurerar...",
     "syncPrompt": {
-      "title": "Sync across your devices",
-      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+      "title": "Synka mellan dina enheter",
+      "description": "Din data lämnar aldrig dina enheter. Du kan konfigurera det när som helst i Inställningar."
     }
   },
   "sync": {
@@ -46,109 +48,316 @@
       "join": "Gå med",
       "yourCode": "Din synkroniseringskod",
       "shareHint": "Dela denna synkroniseringskod (eller QR) med din andra enhet. Den enheten måste ange samma kod för att gå med i din synkgrupp.",
-      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
+      "startSyncFirst": "Tryck på Starta synkronisering först, dela sedan denna QR med din andra enhet.",
       "enterCode": "Ange synkroniseringskod",
       "scanQr": "Skanna QR-koden",
       "scanEnableCamera": "Aktivera kamera",
       "scanHelp": "Rikta kameran mot QR-koden på din andra enhet.",
-      "waitForConnection": "Connection in progress. Scanner paused for stability.",
+      "waitForConnection": "Anslutning pågår. Skannern pausad för stabilitet.",
       "codePlaceholder": "Ange din delningskod",
-      "replaceJoinLabel": "Replace my data with their data",
-      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
+      "replaceJoinLabel": "Ersätt min data med deras data",
+      "replaceJoinHint": "Före första synk återställer detta lokala träningar, övningsvikter och programkonfigurationer endast på denna enhet.",
       "copy": "Kopiera kod",
-      "copied": "Copied!",
-      "paste": "Paste",
+      "copied": "Kopierad!",
+      "paste": "Klistra in",
       "start": "Starta synkronisering",
       "stop": "Stoppa synkronisering",
       "invalidCode": "Ogiltig kod. Det måste vara 64 hexadecken.",
-      "connecting": "Searching for peers…",
-      "connectedTitle": "Connected",
-      "connectedSubtitle_one": "{{count}} device in sync group.",
-      "connectedSubtitle_other": "{{count}} devices in sync group.",
-      "viewInfo": "View connection info",
-      "done": "Done"
+      "connecting": "Söker efter enheter...",
+      "connectedTitle": "Ansluten",
+      "connectedSubtitle_one": "{{count}} enhet i synkgruppen.",
+      "connectedSubtitle_other": "{{count}} enheter i synkgruppen.",
+      "viewInfo": "Visa anslutningsinfo",
+      "done": "Klar"
     },
     "info": {
-      "title": "Connection info",
+      "title": "Anslutningsinfo",
       "statusLabel": "Status",
       "status": {
-        "idle": "Idle",
-        "connecting": "Searching",
-        "synced": "Connected",
-        "error": "Error"
+        "idle": "Inaktiv",
+        "connecting": "Söker",
+        "waiting": "Väntar",
+        "dht_ready": "DHT ready",
+        "peer_connected": "Enhet ansluten",
+        "handshake_ok": "Handskakning OK",
+        "replicating": "Replikerar",
+        "synced": "Ansluten",
+        "error": "Fel"
       },
-      "peers": "Peers",
+      "peers": "Enheter",
       "bootstrapped": "DHT",
-      "bootstrappedYes": "Reachable",
-      "bootstrappedNo": "Waiting",
-      "lastSync": "Last peer sync",
-      "never": "Never",
-      "thisDevice": "This device",
-      "deviceId": "Device ID",
-      "localKey": "Local key",
-      "syncGroup": "Sync group",
-      "autobaseKey": "Autobase key",
-      "topic": "Topic",
-      "connectedPeers": "Connected peers",
-      "noPeers": "No peers connected.",
-      "storagePath": "Storage",
-      "copy": "Copy",
-      "copied": "Copied",
-      "refresh": "Refresh",
-      "reconnectAttempts": "Reconnect attempts",
+      "bootstrappedYes": "Nåbar",
+      "bootstrappedNo": "Väntar",
+      "lastSync": "Senaste enhetssynk",
+      "never": "Aldrig",
+      "thisDevice": "Denna enhet",
+      "deviceId": "Enhets-ID",
+      "localKey": "Lokal nyckel",
+      "syncGroup": "Synkgrupp",
+      "autobaseKey": "Autobasnyckel",
+      "topic": "Ämne",
+      "connectedPeers": "Anslutna enheter",
+      "noPeers": "Inga enheter anslutna.",
+      "storagePath": "Lagring",
+      "copy": "Kopiera",
+      "copied": "Kopierad",
+      "refresh": "Uppdatera",
+      "reconnectAttempts": "Återanslutningsförsök",
       "debugLog": {
-        "title": "Debug log",
-        "refresh": "Refresh",
-        "empty": "No log entries yet."
+        "title": "Felsökningslogg",
+        "refresh": "Uppdatera",
+        "empty": "Inga loggposter än."
       }
     },
     "toast": {
-      "newPeerTitle": "New device connected",
-      "newPeerMessage": "A paired device joined the sync group."
+      "newPeerTitle": "Ny enhet ansluten",
+      "newPeerMessage": "En parad enhet gick med i synkgruppen."
     },
     "quick": {
-      "title": "Sync Status",
+      "title": "Synkstatus",
       "statusLabel": "Status",
       "button": {
-        "issue": "Issue",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync"
+        "issue": "Problem",
+        "connected": "Ansluten",
+        "connecting": "Ansluter",
+        "off": "Synk"
       },
       "state": {
-        "issue": "Issue detected",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync off"
+        "issue": "Problem upptäckt",
+        "connected": "Ansluten",
+        "connecting": "Ansluter",
+        "off": "Synk av"
       },
       "summary": {
-        "issue": "Sync needs attention",
-        "connected_one": "Connected to {{count}} device",
-        "connected_other": "Connected to {{count}} devices",
-        "connecting": "Looking for devices",
-        "off": "Sync is off"
+        "issue": "Synk behöver uppmärksamhet",
+        "connected_one": "Ansluten till {{count}} enhet",
+        "connected_other": "Ansluten till {{count}} enheter",
+        "connecting": "Letar efter enheter",
+        "off": "Synk är avstängd"
       },
       "description": {
-        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
-        "connected": "Your device is syncing with the group.",
-        "connecting": "Searching for your sync group.",
-        "off": "Sync is currently disabled on this device."
+        "issue": "Synk behöver uppmärksamhet. Öppna inställningar eller diagnostik för att åtgärda det.",
+        "connected": "Din enhet synkroniseras med gruppen.",
+        "connecting": "Söker efter din synkgrupp.",
+        "off": "Synk är för närvarande inaktiverad på denna enhet."
       },
-      "lastSyncAt": "Last sync: {{at}}",
-      "lastSyncNever": "Last sync: never",
+      "dht": "DHT",
+      "dhtReady": "Redo",
+      "dhtBootstrapping": "Startar upp...",
+      "dhtError": "Fel",
+      "dhtInactive": "Inaktiv",
+      "dhtWaiting": "Väntar",
+      "status": "Status",
+      "peers": "Enheter",
+      "peersConnected": "{{count}} anslutna",
+      "peersNone": "Inga",
+      "connectionsActive": "{{count}} aktiva",
+      "connectionsNone": "Inga",
+      "more": "Mer",
+      "lastSyncAt": "Senaste synk: {{at}}",
+      "lastSyncNever": "Senaste synk: aldrig",
       "actions": {
-        "setup": "Set up sync",
-        "pair": "Pair new device",
-        "manage": "Manage devices",
-        "openHub": "Open Sync Hub",
-        "troubleshoot": "Troubleshoot",
-        "stop": "Stop sync"
+        "setup": "Konfigurera synk",
+        "pair": "Para ny enhet",
+        "manage": "Hantera enheter",
+        "openHub": "Öppna Synk Hub",
+        "troubleshoot": "Felsök",
+        "stop": "Stoppa synk"
       }
+    },
+    "manage": {
+      "title": "Enhetssynk",
+      "subtitle": "Håll gruppinställning och synkunderhåll på ett ställe.",
+      "roomSetup": "Gruppinställning",
+      "roomSetupHint": "Välj om denna enhet startar en ny grupp eller går med i en som redan finns.",
+      "onboardingTitle": "Inget moln. Inget konto.",
+      "onboardingMessage": "PearLift synkroniserar dina träningar direkt mellan dina enheter — peer-to-peer. Din data når aldrig en server. Allt som behövs är att vara på samma Wi-Fi eller i närheten för den första anslutningen.",
+      "onboardingDismiss": "Jag förstår",
+      "createRoom": "Skapa grupp",
+      "joinRoom": "Gå med i grupp",
+      "roomActive": "Grupp aktiv",
+      "status": "Synkstatus",
+      "turnOn": "Slå på",
+      "turnOff": "Slå av",
+      "refresh": "Uppdatera",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Gruppägare",
+        "joiner": "Medlem"
+      },
+      "binding": {
+        "unconfigured": "Inte konfigurerad",
+        "pending_first_sync": "Väntar på första synk",
+        "active": "Aktiv",
+        "conflict_requires_decision": "Behöver ditt beslut",
+        "active_conflict_requires_decision": "Synkkonflikt behöver ditt beslut"
+      },
+      "thisDeviceCode": "Denna enhets kod: {{code}}",
+      "deviceCode": "Kod {{code}}",
+      "deviceNamePlaceholder": "Namnge denna enhet",
+      "saveDeviceName": "Spara enhetsnamn",
+      "deviceNameSyncPending": "Enhetsnamnet sparades lokalt. Synk kommer att försöka dela det med enheter inom kort.",
+      "masterKey": "Synk-kod",
+      "masterKeyHint": "Använd samma 64-teckens synk-kod på varje enhet som ska dela data.",
+      "masterKeyPlaceholder": "Klistra in eller redigera 64-teckens synk-koden",
+      "showQR": "Visa QR-kod",
+      "copyKey": "Kopiera kod",
+      "applyKey": "Använd kod",
+      "leaveRoom": "Lämna grupp",
+      "leaveRoomConfirmTitle": "Lämna denna grupp?",
+      "leaveRoomConfirmMessage": "Detta stänger av synk, rensar den aktuella gruppbindningen på denna enhet och tar bort lokal gruppanslutningshistorik.",
+      "syncedDevices": "{{count}} enheter",
+      "syncedDevicesTitle": "Enheter",
+      "noDevices": "Inga enheter har synkats än.",
+      "showMore": "Visa {{count}} till",
+      "lastSeen": "Senast sedd {{at}}",
+      "lastSyncAt": "Senaste synk {{at}}",
+      "removeDevice": "Ta bort från lista",
+      "removeDeviceConfirmTitle": "Ta bort denna enhet från listan?",
+      "removeDeviceConfirmMessage": "Detta döljer enheten från listan endast på denna enhet. Den kan visas igen om den synkroniseras med denna grupp senare.",
+      "debug": "Felsökningsinfo",
+      "never": "Aldrig"
+    },
+    "create": {
+      "title": "Skapa grupp",
+      "subtitle": "Denna enhet startar en ny synkgrupp och kan dela synk-koden med andra enheter.",
+      "room": "Ny grupp",
+      "explainer": "Använd detta när denna enhet ska definiera den initiala gruppen och bjuda in de andra.",
+      "datasetSummary": "Denna enhet har för närvarande {{workouts}} träningar och {{exercises}} övningar.",
+      "masterKey": "Synk-kod",
+      "inviteStarting": "Startar grupp och genererar QR-inbjudan...",
+      "invitePending": "Starta gruppen för att generera QR-inbjudan.",
+      "copy": "Kopiera kod",
+      "startRoom": "Starta denna grupp"
+    },
+    "join": {
+      "title": "Gå med i grupp",
+      "subtitle": "Använd synk-koden från en annan enhet för att ansluta denna enhet till samma synkgrupp.",
+      "preflight": "Innan du går med",
+      "localSummary": "Denna enhet har för närvarande {{workouts}} träningar och {{exercises}} övningar.",
+      "remoteSummaryHint": "Om båda enheterna redan har många överlappande ändringar kommer PearLift att fråga vilken datauppsättning som ska behållas.",
+      "masterKey": "Synk-kod",
+      "keyPlaceholder": "Klistra in 64-teckens synk-koden",
+      "paste": "Klistra in",
+      "scanQr": "Skanna QR",
+      "scanHelp": "Rikta kameran mot QR-koden som innehåller synk-koden.",
+      "invalidKey": "Ogiltig synk-kod. Det måste vara 64 hextecken.",
+      "keyValid": "Giltig inbjudningskod",
+      "pasteSuccess": "Klistrad från urklipp",
+      "pasteEmpty": "Urklipp är tomt",
+      "joinRoom": "Gå med i grupp"
+    },
+    "decision": {
+      "title": "Välj första synkdata",
+      "subtitle": "Båda sidor innehåller redan meningsfull data. Välj vilken baslinje denna grupp ska behålla.",
+      "thisDevice": "Denna enhet",
+      "roomData": "Gruppdata",
+      "datasetSummary": "{{workouts}} träningar · {{exercises}} övningar",
+      "conflictTitle": "Överlappande ändringar upptäckta",
+      "conflictWorkouts": "Träningar",
+      "conflictExercises": "Övningar",
+      "conflictSummary": "{{workouts}} träningsöverlapp och {{exercises}} övningsöverlapp upptäcktes.",
+      "configConflictSummary": "{{weeks}} veckokonfigurationsöverlapp, {{days}} dagskonfigurationsöverlapp, {{backlog}} gruppuppdateringar väntar.",
+      "useThisDeviceHint": "Detta publicerar denna enhet som gruppens baslinje.",
+      "useRoomDataHint": "Detta ersätter träningsdata på denna enhet men behåller appinställningar.",
+      "useMerge": "Slå ihop båda",
+      "useMergeHint": "Kombinera data från denna enhet och gruppen när det inte finns några överlapp.",
+      "mergeUnavailableHint": "Vissa träningar eller övningar finns på båda enheterna med olika värden, så sammanslagning är inte möjlig.",
+      "useThisDevice": "Använd denna enhets data",
+      "useRoomData": "Använd gruppdata"
+    },
+    "debug": {
+      "title": "Synk felsökningsinfo",
+      "subtitle": "Körningsstatus, anslutningsdetaljer och senaste synkloggar.",
+      "snapshot": "Körningsögonblicksbild",
+      "connections": "Anslutningar",
+      "lastError": "Senaste fel",
+      "logs": "Senaste loggar",
+      "logCount": "Visar {{shown}} av {{total}} loggposter",
+      "clear": "Rensa"
     }
   },
   "workout": {
     "weekDay": "Vecka {{week}} - {{day}}",
-    "addExercise": "Lägg till övning"
+    "addExercise": "Lägg till övning",
+    "logWorkout": "Logga träning",
+    "progressionSuggestions": "Förslag",
+    "suggestedToday": "Föreslagen idag: {{workout}}",
+    "showDetails": "Visa detaljer",
+    "hideDetails": "Dölj detaljer",
+    "details": {
+      "notes": "Anteckningar",
+      "tempo": "Tempo",
+      "equipment": "Utrustning",
+      "primaryMuscles": "Primära muskler",
+      "secondaryMuscles": "Sekundära muskler",
+      "technique": "Teknik",
+      "cues": "Signalord",
+      "perSetTargets": "Mål per set",
+      "progression": "Progression",
+      "weekOverrides": "Veckoöverstyrningar",
+      "active": "Aktiv",
+      "intensity": "Intensitet",
+      "target": "Mål",
+      "estimatedOneRepMax": "Beräknad 1RM",
+      "notSet": "Inte angivet",
+      "intensityRange": "Intensitetsintervall",
+      "weightSettings": "Viktinställningar",
+      "weightMode": "Viktläge",
+      "increment": "Stegring",
+      "exerciseSettings": "Övningsinställningar"
+    }
+  },
+  "workoutLog": {
+    "title": "Träningslogg",
+    "subtitle": "{{workout}} · Vecka {{week}}",
+    "progress": "{{logged}} / {{total}} set loggade",
+    "loading": "Laddar träningslogg...",
+    "done": "Klar",
+    "skip": "Hoppa över",
+    "save": "Spara logg",
+    "saving": "Sparar...",
+    "useTarget": "Slutför med mål",
+    "reset": "Återställ",
+    "setLabel": "Set {{set}}",
+    "targetRir": "Mål-RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Faktisk vikt",
+    "actualReps": "Faktiska reps",
+    "leftReps": "Vänster reps",
+    "rightReps": "Höger reps",
+    "perSideReps": "Per sida",
+    "sharedReps": "Delad",
+    "actualRir": "Faktisk RIR",
+    "errors": {
+      "load": "Kunde inte ladda denna träningslogg.",
+      "save": "Kunde inte spara denna träningslogg."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progressionsförslag",
+    "subtitle": "Applicera nästa vikt nu eller lämna den väntande för senare.",
+    "current": "Nuvarande vikt",
+    "next": "Nästa vikt",
+    "reason": "Anledning: {{reason}}",
+    "apply": "Applicera",
+    "skip": "Hoppa över"
+  },
+  "exerciseSettings": {
+    "title": "Övningsinställningar",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Arbetsvikt",
+    "weightMode": "Viktläge",
+    "increment": "Stegring",
+    "estimatedOneRepMax": "Beräknad 1RM",
+    "notes": "Anteckningar",
+    "history": "Senaste historik",
+    "linkedVariants": "Länkade varianter",
+    "historyLoading": "Laddar historik...",
+    "historyEmpty": "Inga loggade pass än.",
+    "historyError": "Kunde inte ladda historik.",
+    "historySets": "{{completed}} / {{total}} set",
+    "historyBestReps": "Bästa {{reps}} reps"
   },
   "restTimer": {
     "title": "Vilotimer",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Programinställningar",
     "tabs": {
+      "program": "Program",
       "weeks": "Veckor",
       "days": "Dagar"
+    },
+    "program": {
+      "name": "Programnamn",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Undertext",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Mål",
+      "goalPlaceholder": "Strength and hypertrophy",
+      "description": "Beskrivning",
+      "descriptionPlaceholder": "Optional notes about this training block",
+      "sourceType": "Källa",
+      "sourceLabel": "Källabel",
+      "sourceLabelPlaceholder": "Coach PDF, template, or note",
+      "startDate": "Startdatum",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Varaktighet (veckor)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Standardvila (sek)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progressionsmodell",
+      "frequencySummary": "Veckomål",
+      "frequencyGroupPlaceholder": "Muskelgrupp",
+      "frequencyTarget": "Mål per vecka",
+      "frequencyPerWeek_one": "{{count}}x / vecka",
+      "frequencyPerWeek_other": "{{count}}x / vecka",
+      "addFrequencyTarget": "Lägg till veckomål",
+      "progressionModels": {
+        "simple_load_modifier": "Enkel",
+        "exercise_rules": "Regler",
+        "mixed": "Blandad",
+        "manual": "Manuell"
+      },
+      "sourceTypes": {
+        "manual": "Manuell",
+        "coach": "Tränare",
+        "template": "Mall",
+        "imported_pdf": "Importerad PDF",
+        "imported_json": "Importerad JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Vecka namn",
       "loadModifier": "Lastmodifierare",
+      "volumeModifier": "Volymmodifierare",
       "rir": "RIR (Reserverepetitioner)",
+      "notes": "Veckoanteckningar",
+      "notesPlaceholder": "Optional notes for this week",
       "baseline": "Baslinje",
       "addWeek": "Lägg till vecka",
       "deleteTitle": "Ta bort vecka",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Dag {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikon",
+      "schedule": "Schema",
+      "pickDay": "Välj dag",
+      "pickWindow": "Välj dagar",
       "iconMore": "Mer",
       "iconRefresh": "Uppdatera",
+      "scheduleTypes": {
+        "unscheduled": "Valfri",
+        "fixed_day": "Fast",
+        "day_window": "Fönster"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Mån",
+          "tue": "Tis",
+          "wed": "Ons",
+          "thu": "Tor",
+          "fri": "Fre",
+          "sat": "Lör",
+          "sun": "Sön"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "W",
+          "thu": "T",
+          "fri": "F",
+          "sat": "S",
+          "sun": "S"
+        }
+      },
       "addDay": "Lägg till dag",
       "deleteTitle": "Ta bort dag",
       "deleteMessage": "Ta bort \"{{name}}\"? Detta tar bort den från alla veckor."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Lägg till övning",
     "titleEdit": "Redigera övning",
+    "tabs": {
+      "basic": "Grundläggande",
+      "advanced": "Avancerad"
+    },
     "name": "Namn",
     "namePlaceholder": "Övningsnamn",
     "muscleGroup": "Muskelgrupp",
@@ -202,11 +487,52 @@
     "reps": "Repetitioner",
     "notes": "Anteckningar",
     "notesPlaceholder": "Valfria anteckningar...",
+    "advanced": {
+      "show": "Visa avancerade fält",
+      "hide": "Dölj avancerade fält",
+      "rest": "Vila (sek)",
+      "restUseDefault": "Global standard",
+      "restCustom": "Anpassad",
+      "restPlaceholder": "180",
+      "rir": "RIR-mål",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensitet",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "Progressionsregel",
+      "progressionRulePlaceholder": "+5kg when all sets hit top reps with 2 RIR",
+      "unilateral": "Unilateralt läge",
+      "unilateralPlaceholder": "per leg, per side, left/right, alternating",
+      "equipment": "Utrustning",
+      "equipmentPlaceholder": "Barbell, dumbbell, cable, machine",
+      "primaryMuscles": "Primära muskler",
+      "primaryMusclesPlaceholder": "One muscle per line",
+      "secondaryMuscles": "Sekundära muskler",
+      "secondaryMusclesPlaceholder": "One muscle per line",
+      "canonicalExerciseId": "Kanoniskt övnings-ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Variantetikett",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Alias",
+      "aliasesPlaceholder": "One alias per line",
+      "sessionSpecific": "Pass-specifik",
+      "sessionSpecificToggle": "Spåra som pass-endast variant",
+      "technicalNotes": "Tekniska anteckningar",
+      "technicalNotesPlaceholder": "One note per line",
+      "executionCues": "Utförandesignaler",
+      "executionCuesPlaceholder": "One cue per line",
+      "perSetTargets": "Mål per set",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Veckoöverstyrningar",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "Lägg till övning",
     "submitEdit": "Spara ändringar",
     "errors": {
       "nameRequired": "Övningsnamn krävs.",
-      "setsInvalid": "Set måste vara ett giltigt positivt heltal."
+      "setsInvalid": "Set måste vara ett giltigt positivt heltal.",
+      "restInvalid": "Vila måste vara ett giltigt icke-negativt heltal."
     }
   },
   "settings": {
@@ -247,41 +573,46 @@
       "peers_one": "{{count}} peer connected",
       "peers_other": "{{count}} peers connected",
       "stopSync": "Stoppa synkronisering",
-      "connectionInfo": "Connection info",
-      "openSyncHub": "Open Sync Hub"
+      "connectionInfo": "Anslutningsinfo",
+      "openSyncHub": "Öppna Synk Hub"
     },
     "syncStatus": {
-      "title": "Sync Status",
+      "title": "Synkstatus",
       "status": "Status",
-      "syncingWith_one": "Syncing with {{count}} device",
-      "syncingWith_other": "Syncing with {{count}} devices",
-      "off": "Sync is off",
-      "lastSuccessfulSync": "Last successful sync",
-      "manage": "Manage Sync"
+      "enabled": "Synk är på",
+      "disabled": "Synk är av",
+      "syncingWith_one": "Synkroniserar med {{count}} enhet",
+      "syncingWith_other": "Synkroniserar med {{count}} enheter",
+      "off": "Synk är av",
+      "lastSuccessfulSync": "Senaste lyckade synk",
+      "manage": "Hantera synk"
     },
     "localBackup": {
       "title": "Säkerhetskopia",
       "export": "Spara säkerhetskopia på enheten",
       "import": "Återställ från säkerhetskopia",
+      "shareBackup": "Dela säkerhetskopia",
       "shareToDevice": "Dela till en annan enhet",
-      "scanFromDevice": "Skanna från en annan enhet"
+      "scanFromDevice": "Skanna från en annan enhet",
+      "localSaveRestore": "Lokal spara / återställ",
+      "qrShareRestore": "QR-dela / återställ"
     },
     "pairingDevices": {
-      "title": "Pairing & Devices",
-      "count_one": "{{count}} paired device",
-      "count_other": "{{count}} paired devices"
+      "title": "Parning och enheter",
+      "count_one": "{{count}} parad enhet",
+      "count_other": "{{count}} parade enheter"
     },
     "syncAdvanced": {
-      "title": "Sync Hub",
-      "description": "Debug logs and device identifiers for troubleshooting."
+      "title": "Synk-nav",
+      "description": "Felsökningsloggar och enhetsidentifierare för felsökning."
     },
     "syncHub": {
-      "title": "Sync Hub",
-      "overview": "Overview",
-      "ids": "Device & Group IDs",
-      "connections": "Connections",
-      "localWriterKey": "Local writer key",
-      "management": "Management"
+      "title": "Synk-nav",
+      "overview": "Översikt",
+      "ids": "Enhets- och grupp-ID",
+      "connections": "Anslutningar",
+      "localWriterKey": "Lokal skrivarnyckel",
+      "management": "Hantering"
     },
     "data": {
       "title": "Data",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Importförhandsvisning",
+    "titleWithProgram": "Importera: {{program}}",
     "changesDetected": "{{count}} ändring(ar) upptäckta.",
     "noChanges": "Inga ändringar upptäckta. Säkerhetskopian är identisk med aktuella data.",
+    "modeHint": "Importera som ny behåller det aktuella programmet tillgängligt. Ersätt aktivt program skriver över det aktuella programmet på denna enhet.",
+    "stats": {
+      "workouts": "Träningar att uppdatera",
+      "exercises": "Övningar att skapa eller uppdatera",
+      "preservedWeights": "Vikter bevarade",
+      "needsWeight": "Behöver startvikt"
+    },
+    "exerciseStatus": {
+      "matching": "Matchande övningar",
+      "changed": "Ändrade övningar",
+      "new": "Nya övningar",
+      "removed": "Borttagna övningar"
+    },
     "sections": {
+      "exerciseStatus": "Övningsstatus",
+      "preservedWeights": "Bevarade vikter",
+      "missingWeights": "Nya övningar utan sparad vikt",
+      "removedExercises": "Borttagna från aktivt program",
       "workouts": "Träningar",
+      "program": "Program",
       "settings": "Inställningar",
       "weeks": "Veckor",
       "days": "Dagar"
     },
+    "currentWeightKept": "Nuvarande vikt behållen",
+    "noPreviousWeight": "Ingen tidigare vikt hittad",
     "cancel": "Avbryt",
-    "confirm": "Importera säkerhetskopia"
+    "confirm": "Importera säkerhetskopia",
+    "importAsNewProgram": "Importera som nytt program",
+    "replaceActiveProgram": "Ersätt aktivt program"
+  },
+  "programLibrary": {
+    "title": "Program",
+    "summary": "{{count}} sparat/sparade program",
+    "active": "Aktiv",
+    "empty": "Inga sparade program än."
   },
   "deviceTransfer": {
     "shareTitle": "Dela till en annan enhet",
     "shareDescription": "På den andra enheten: Inställningar → Säkerhetskopia → Skanna från en annan enhet.",
+    "shareChunkCounter": "Del {{current}}/{{total}}",
+    "shareChunkHint": "Håll båda enheterna stilla. QR roterar automatiskt.",
+    "pauseRotation": "Pausa rotation",
+    "resumeRotation": "Återuppta rotation",
     "scanTitle": "Skanna från en annan enhet",
     "scanDescription": "Rikta kameran mot PearLifts säkerhetskopie-QR-kod.",
+    "chunkProgress": "Skanningsframsteg: {{received}}/{{total}}",
+    "transferCorrupted": "QR-överföring misslyckades med integritetskontroll. Skanna från första delen igen.",
     "cameraPermissionTitle": "Kamerabehörighet krävs",
     "cameraPermissionMessage": "Tillåt kameraåtkomst för att skanna en säkerhetskopie-QR-kod.",
     "cameraPermissionButton": "Tillåt kamera",
+    "cameraUnavailableTitle": "Kamera ej tillgänglig",
+    "cameraUnavailableMessage": "PearLift kunde inte komma åt en användbar bakkamera på denna enhet.",
     "invalidQr": "Den QR-koden ser inte ut som en PearLift-säkerhetskopia.",
     "tooLarge": "Säkerhetskopian är för stor för en enda QR-kod. Använd “Spara säkerhetskopia på enheten” istället."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Delning är inte tillgänglig på den här enheten/plattformen."
     },
     "importBackup": {
-      "failedTitle": "Import misslyckades"
+      "failedTitle": "Import misslyckades",
+      "confirmReplaceTitle": "Ersätt aktivt program?",
+      "confirmReplaceMessage": "Detta kommer att ersätta ditt aktuella aktiva program med \"{{program}}\" på denna enhet. Befintliga matchande vikter bevaras där det är möjligt.",
+      "confirmReplaceAction": "Ersätt program"
     },
     "forgetDevice": {
       "authPromptMessage": "Bekräfta för att glömma enheten",

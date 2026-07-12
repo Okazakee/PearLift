@@ -57,6 +57,7 @@ import {
   triggerCompletionFeedback,
 } from '@/utils/timerAudio';
 import {
+  adjustRestTimerDuration,
   computeRemainingSeconds,
   formatSeconds,
   safeParsePersistedState,
@@ -66,6 +67,8 @@ import { Text } from './AppText';
 interface RestTimerProps {
   tokens: ThemeTokens;
   duration: number;
+  presetDuration?: number | null;
+  openRequest?: number;
   onDurationChange: (duration: number) => void;
   fabBottom: number;
   panelBottom: number;
@@ -77,6 +80,8 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 export function RestTimer({
   tokens,
   duration,
+  presetDuration = null,
+  openRequest = 0,
   onDurationChange,
   fabBottom,
   panelBottom,
@@ -88,6 +93,7 @@ export function RestTimer({
   const [showSettings, setShowSettings] = useState(false);
   const [mode, setMode] = useState<RestTimerMode>('idle');
   const [endAtMs, setEndAtMs] = useState<number | null>(null);
+  const [configuredDuration, setConfiguredDuration] = useState(duration);
   const [remainingSec, setRemainingSec] = useState(duration);
   const [startedDurationSec, setStartedDurationSec] = useState(duration);
   const [scheduledNotificationId, setScheduledNotificationId] = useState<
@@ -104,6 +110,8 @@ export function RestTimer({
   );
   const scheduleTokenRef = useRef(0);
   const previousDurationRef = useRef(duration);
+  const previousOpenRequestRef = useRef(openRequest);
+  const previousPresetDurationRef = useRef<number | null>(presetDuration);
   const panelMountRafRef = useRef<number | null>(null);
   const panelUnmountTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
@@ -180,6 +188,13 @@ export function RestTimer({
   useEffect(() => {
     const previousDuration = previousDurationRef.current;
     previousDurationRef.current = duration;
+    const shouldSyncFromDefault = configuredDuration === previousDuration;
+
+    if (!shouldSyncFromDefault) {
+      return;
+    }
+
+    setConfiguredDuration(duration);
 
     // Keep the "configured duration" and the "displayed remaining time" aligned when not running.
     // For paused timers, changes should reflect immediately like typical timer apps.
@@ -195,7 +210,38 @@ export function RestTimer({
       setStartedDurationSec(duration);
       return;
     }
-  }, [duration, mode]);
+  }, [configuredDuration, duration, mode]);
+
+  useEffect(() => {
+    if (openRequest === previousOpenRequestRef.current) {
+      return;
+    }
+
+    previousOpenRequestRef.current = openRequest;
+    setExpandedState(true);
+  }, [openRequest, setExpandedState]);
+
+  useEffect(() => {
+    if (presetDuration === previousPresetDurationRef.current) {
+      return;
+    }
+
+    previousPresetDurationRef.current = presetDuration;
+    if (presetDuration == null || mode === 'running') {
+      return;
+    }
+
+    const nextDuration = Math.max(
+      MIN_DURATION,
+      Math.min(MAX_DURATION, Math.round(presetDuration)),
+    );
+    setConfiguredDuration(nextDuration);
+    setRemainingSec(nextDuration);
+    setStartedDurationSec(nextDuration);
+    if (mode === 'complete') {
+      setMode('idle');
+    }
+  }, [mode, presetDuration]);
 
   useEffect(() => {
     endAtMsRef.current = endAtMs;
@@ -626,8 +672,8 @@ export function RestTimer({
               // Explicit stop/cancel path.
               setMode('idle');
               setEndAtMs(null);
-              setRemainingSec(duration);
-              setStartedDurationSec(duration);
+              setRemainingSec(configuredDuration);
+              setStartedDurationSec(configuredDuration);
             }
             setScheduledNotificationId(null);
             scheduledIdRef.current = null;
@@ -681,7 +727,7 @@ export function RestTimer({
   }, [
     cancelScheduledNotificationIfAny,
     clearIntervalIfAny,
-    duration,
+    configuredDuration,
     mode,
     refreshRemainingFromEndAt,
     startTicking,
@@ -710,7 +756,7 @@ export function RestTimer({
   }, [isRunning]);
 
   const effectiveStarted =
-    startedDurationSec > 0 ? startedDurationSec : duration;
+    startedDurationSec > 0 ? startedDurationSec : configuredDuration;
   const ringOffsetAnimated = useSharedValue(
     RING_CIRCUMFERENCE *
       (1 -
@@ -803,17 +849,18 @@ export function RestTimer({
 
     // start/resume
     if (mode === 'complete') {
-      setRemainingSec(duration);
-      setStartedDurationSec(duration);
+      setRemainingSec(configuredDuration);
+      setStartedDurationSec(configuredDuration);
     }
-    const runRemaining = mode === 'complete' ? duration : remainingSec;
+    const runRemaining =
+      mode === 'complete' ? configuredDuration : remainingSec;
     const nextEnd = Date.now() + Math.max(0, runRemaining) * 1000;
     // Keep progress relative to the initial duration for this timer run.
     // Resuming from pause should not reset the baseline to 100%.
     if (mode !== 'paused') {
       setStartedDurationSec(runRemaining);
     } else if (startedDurationSec <= 0) {
-      setStartedDurationSec(duration);
+      setStartedDurationSec(configuredDuration);
     }
     setEndAtMs(nextEnd);
     setMode('running');
@@ -830,8 +877,8 @@ export function RestTimer({
     ringOffsetAnimated.value = 0;
     setMode('idle');
     setEndAtMs(null);
-    setRemainingSec(duration);
-    setStartedDurationSec(duration);
+    setRemainingSec(configuredDuration);
+    setStartedDurationSec(configuredDuration);
     void cancelScheduledNotificationIfAny();
     if (RestTimerForegroundService.isAvailable()) {
       void RestTimerForegroundService.cancel();
@@ -839,15 +886,30 @@ export function RestTimer({
   };
 
   const handleAdjustDuration = (delta: number) => {
-    const newDuration = Math.max(
-      MIN_DURATION,
-      Math.min(MAX_DURATION, duration + delta),
-    );
-    onDurationChange(newDuration);
-    if (mode !== 'running') {
-      setRemainingSec(newDuration);
-      setStartedDurationSec(newDuration);
-      if (mode === 'complete') setMode('idle');
+    const next = adjustRestTimerDuration({
+      mode,
+      configuredDuration,
+      startedDurationSec,
+      endAtMs: endAtMsRef.current,
+      delta,
+    });
+
+    setConfiguredDuration(next.configuredDuration);
+    setMode(next.mode);
+    setEndAtMs(next.endAtMs);
+    setRemainingSec(next.remainingSec);
+    setStartedDurationSec(next.startedDurationSec);
+
+    if (next.rescheduleNotification && next.endAtMs != null) {
+      const nextEndAtMs = next.endAtMs;
+      scheduleTokenRef.current += 1;
+      void cancelScheduledNotificationIfAny().then(() =>
+        scheduleCompletionNotification(nextEndAtMs),
+      );
+    }
+
+    if (next.persistDefaultDuration) {
+      onDurationChange(next.configuredDuration);
     }
   };
 
@@ -1011,11 +1073,11 @@ export function RestTimer({
                       <Pressable
                         style={[
                           styles.adjustButton,
-                          duration <= MIN_DURATION &&
+                          configuredDuration <= MIN_DURATION &&
                             styles.adjustButtonDisabled,
                         ]}
                         onPress={() => handleAdjustDuration(-STEP)}
-                        disabled={duration <= MIN_DURATION}
+                        disabled={configuredDuration <= MIN_DURATION}
                       >
                         <View
                           collapsable={false}
@@ -1025,16 +1087,16 @@ export function RestTimer({
                         </View>
                       </Pressable>
                       <Text style={styles.durationValue}>
-                        {formatSeconds(duration)}
+                        {formatSeconds(configuredDuration)}
                       </Text>
                       <Pressable
                         style={[
                           styles.adjustButton,
-                          duration >= MAX_DURATION &&
+                          configuredDuration >= MAX_DURATION &&
                             styles.adjustButtonDisabled,
                         ]}
                         onPress={() => handleAdjustDuration(STEP)}
-                        disabled={duration >= MAX_DURATION}
+                        disabled={configuredDuration >= MAX_DURATION}
                       >
                         <View
                           collapsable={false}

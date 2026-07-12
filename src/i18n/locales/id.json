@@ -4,7 +4,9 @@
     "delete": "Hapus",
     "back": "Kembali",
     "next": "Berikutnya",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Tutup",
+    "save": "Simpan"
   },
   "app": {
     "loading": "Mempersiapkan data latihan Anda"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Menganggur",
         "connecting": "Mencari",
+        "waiting": "Menunggu",
+        "dht_ready": "DHT siap",
+        "peer_connected": "Peer terhubung",
+        "handshake_ok": "Handshake Berhasil",
+        "replicating": "Mereplikasi",
         "synced": "Terhubung",
         "error": "Kesalahan"
       },
@@ -134,6 +141,19 @@
         "connecting": "Mencari grup sinkronisasi Anda.",
         "off": "Sinkronisasi saat ini dinonaktifkan di perangkat ini."
       },
+      "dht": "DHT",
+      "dhtReady": "Siap",
+      "dhtBootstrapping": "Inisialisasi…",
+      "dhtError": "Error",
+      "dhtInactive": "Nonaktif",
+      "dhtWaiting": "Menunggu",
+      "status": "Status",
+      "peers": "Peer",
+      "peersConnected": "{{count}} terhubung",
+      "peersNone": "Tidak ada",
+      "connectionsActive": "{{count}} aktif",
+      "connectionsNone": "Tidak ada",
+      "more": "Lainnya",
       "lastSyncAt": "Sinkronisasi terakhir: {{at}}",
       "lastSyncNever": "Sinkronisasi terakhir: tidak pernah",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Perbaiki masalah",
         "stop": "Hentikan sinkronisasi"
       }
+    },
+    "manage": {
+      "title": "Sinkronisasi perangkat",
+      "subtitle": "Kelola pengaturan grup dan pemeliharaan sinkronisasi di satu tempat.",
+      "roomSetup": "Pengaturan grup",
+      "roomSetupHint": "Pilih apakah perangkat ini memulai grup baru atau bergabung dengan yang sudah ada.",
+      "onboardingTitle": "Tanpa cloud. Tanpa akun.",
+      "onboardingMessage": "PearLift menyinkronkan latihan Anda langsung antar perangkat — peer-to-peer. Data Anda tidak pernah menyentuh server. Yang Anda perlukan hanyalah berada di Wi‑Fi yang sama atau berdekatan untuk koneksi pertama.",
+      "onboardingDismiss": "Mengerti",
+      "createRoom": "Buat grup",
+      "joinRoom": "Bergabung grup",
+      "roomActive": "Grup aktif",
+      "status": "Status sinkronisasi",
+      "turnOn": "Aktifkan",
+      "turnOff": "Nonaktifkan",
+      "refresh": "Segarkan",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Pemilik grup",
+        "joiner": "Anggota"
+      },
+      "binding": {
+        "unconfigured": "Belum dikonfigurasi",
+        "pending_first_sync": "Menunggu sinkronisasi pertama",
+        "active": "Aktif",
+        "conflict_requires_decision": "Memerlukan keputusan Anda",
+        "active_conflict_requires_decision": "Konflik sinkronisasi memerlukan keputusan Anda"
+      },
+      "thisDeviceCode": "Kode perangkat ini: {{code}}",
+      "deviceCode": "Kode {{code}}",
+      "deviceNamePlaceholder": "Beri nama perangkat ini",
+      "saveDeviceName": "Simpan nama perangkat",
+      "deviceNameSyncPending": "Nama perangkat disimpan secara lokal. Sinkronisasi akan mencoba membagikannya dengan peer sebentar lagi.",
+      "masterKey": "Kode sinkronisasi",
+      "masterKeyHint": "Gunakan kode sinkronisasi 64 karakter yang sama di setiap perangkat yang harus berbagi data.",
+      "masterKeyPlaceholder": "Tempel atau edit kode sinkronisasi 64 karakter",
+      "showQR": "Tampilkan kode QR",
+      "copyKey": "Salin kode",
+      "applyKey": "Terapkan kode",
+      "leaveRoom": "Tinggalkan grup",
+      "leaveRoomConfirmTitle": "Tinggalkan grup ini?",
+      "leaveRoomConfirmMessage": "Ini mematikan sinkronisasi, menghapus pengikatan grup saat ini di perangkat ini, dan menghapus riwayat koneksi grup lokal.",
+      "syncedDevices": "{{count}} perangkat",
+      "syncedDevicesTitle": "Perangkat",
+      "noDevices": "Belum ada perangkat yang tersinkronisasi.",
+      "showMore": "Tampilkan {{count}} lagi",
+      "lastSeen": "Terakhir terlihat {{at}}",
+      "lastSyncAt": "Sinkronisasi terakhir {{at}}",
+      "removeDevice": "Hapus dari daftar",
+      "removeDeviceConfirmTitle": "Hapus perangkat ini dari daftar?",
+      "removeDeviceConfirmMessage": "Ini menyembunyikan perangkat dari daftar ini hanya di perangkat ini. Perangkat dapat muncul lagi jika tersinkronisasi dengan grup ini nanti.",
+      "debug": "Info debug",
+      "never": "Tidak pernah"
+    },
+    "create": {
+      "title": "Buat grup",
+      "subtitle": "Perangkat ini memulai grup sinkronisasi baru dan dapat membagikan kode sinkronisasi dengan perangkat lain.",
+      "room": "Grup baru",
+      "explainer": "Gunakan ini ketika perangkat ini harus menentukan grup awal dan mengundang yang lain.",
+      "datasetSummary": "Perangkat ini saat ini memiliki {{workouts}} latihan dan {{exercises}} gerakan.",
+      "masterKey": "Kode sinkronisasi",
+      "inviteStarting": "Memulai grup dan menghasilkan undangan QR…",
+      "invitePending": "Mulai grup untuk menghasilkan undangan QR.",
+      "copy": "Salin kode",
+      "startRoom": "Mulai grup ini"
+    },
+    "join": {
+      "title": "Bergabung grup",
+      "subtitle": "Gunakan kode sinkronisasi dari perangkat lain untuk menghubungkan perangkat ini ke grup sinkronisasi yang sama.",
+      "preflight": "Sebelum bergabung",
+      "localSummary": "Perangkat ini saat ini memiliki {{workouts}} latihan dan {{exercises}} gerakan.",
+      "remoteSummaryHint": "Jika kedua perangkat sudah memiliki banyak perubahan yang tumpang tindih, PearLift akan menanyakan dataset mana yang akan disimpan.",
+      "masterKey": "Kode sinkronisasi",
+      "keyPlaceholder": "Tempel kode sinkronisasi 64 karakter",
+      "paste": "Tempel",
+      "scanQr": "Pindai QR",
+      "scanHelp": "Arahkan kamera ke kode QR yang berisi kode sinkronisasi.",
+      "invalidKey": "Kode sinkronisasi tidak valid. Harus 64 karakter hex.",
+      "keyValid": "Kode undangan valid",
+      "pasteSuccess": "Disalin dari clipboard",
+      "pasteEmpty": "Clipboard kosong",
+      "joinRoom": "Bergabung grup"
+    },
+    "decision": {
+      "title": "Pilih data sinkronisasi pertama",
+      "subtitle": "Kedua sisi sudah berisi data yang bermakna. Pilih baseline mana yang harus disimpan grup ini.",
+      "thisDevice": "Perangkat ini",
+      "roomData": "Data grup",
+      "datasetSummary": "{{workouts}} latihan · {{exercises}} gerakan",
+      "conflictTitle": "Perubahan tumpang tindih terdeteksi",
+      "conflictWorkouts": "Latihan",
+      "conflictExercises": "Gerakan",
+      "conflictSummary": "{{workouts}} tumpang tindih latihan dan {{exercises}} tumpang tindih gerakan terdeteksi.",
+      "configConflictSummary": "{{weeks}} tumpang tindih konfigurasi minggu, {{days}} tumpang tindih konfigurasi hari, {{backlog}} pembaruan grup menunggu.",
+      "useThisDeviceHint": "Ini mempublikasikan perangkat ini sebagai baseline grup.",
+      "useRoomDataHint": "Ini mengganti data latihan di perangkat ini sambil mempertahankan preferensi aplikasi.",
+      "useMerge": "Gabungkan keduanya",
+      "useMergeHint": "Gabungkan data dari perangkat ini dan grup ketika tidak ada tumpang tindih.",
+      "mergeUnavailableHint": "Beberapa latihan atau gerakan ada di kedua perangkat dengan nilai berbeda, sehingga penggabungan tidak memungkinkan.",
+      "useThisDevice": "Gunakan data perangkat ini",
+      "useRoomData": "Gunakan data grup"
+    },
+    "debug": {
+      "title": "Info debug sinkronisasi",
+      "subtitle": "Status runtime, detail koneksi, dan log sinkronisasi terbaru.",
+      "snapshot": "Snapshot runtime",
+      "connections": "Koneksi",
+      "lastError": "Error terakhir",
+      "logs": "Log terbaru",
+      "logCount": "Menampilkan {{shown}} dari {{total}} entri log",
+      "clear": "Bersihkan"
     }
   },
   "workout": {
     "weekDay": "Minggu {{week}} - Hari {{day}}",
-    "addExercise": "Tambah latihan"
+    "addExercise": "Tambah latihan",
+    "logWorkout": "Catat latihan",
+    "progressionSuggestions": "Saran",
+    "suggestedToday": "Disarankan hari ini: {{workout}}",
+    "showDetails": "Tampilkan detail",
+    "hideDetails": "Sembunyikan detail",
+    "details": {
+      "notes": "Catatan",
+      "tempo": "Tempo",
+      "equipment": "Alat",
+      "primaryMuscles": "Otot utama",
+      "secondaryMuscles": "Otot pendukung",
+      "technique": "Teknik",
+      "cues": "Isyarat",
+      "perSetTargets": "Target per set",
+      "progression": "Progresi",
+      "weekOverrides": "Penggantian minggu",
+      "active": "Aktif",
+      "intensity": "Intensitas",
+      "target": "Target",
+      "estimatedOneRepMax": "Estimasi 1RM",
+      "notSet": "Belum diatur",
+      "intensityRange": "Rentang intensitas",
+      "weightSettings": "Pengaturan berat",
+      "weightMode": "Mode berat",
+      "increment": "Kenaikan",
+      "exerciseSettings": "Pengaturan latihan"
+    }
+  },
+  "workoutLog": {
+    "title": "Catatan latihan",
+    "subtitle": "{{workout}} · Minggu {{week}}",
+    "progress": "{{logged}} / {{total}} set tercatat",
+    "loading": "Memuat catatan latihan…",
+    "done": "Selesai",
+    "skip": "Lewati",
+    "save": "Simpan catatan",
+    "saving": "Menyimpan…",
+    "useTarget": "Selesaikan dengan target",
+    "reset": "Reset",
+    "setLabel": "Set {{set}}",
+    "targetRir": "Target RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Berat aktual",
+    "actualReps": "Repetisi aktual",
+    "leftReps": "Repetisi kiri",
+    "rightReps": "Repetisi kanan",
+    "perSideReps": "Per sisi",
+    "sharedReps": "Bersama",
+    "actualRir": "RIR aktual",
+    "errors": {
+      "load": "Tidak dapat memuat catatan latihan ini.",
+      "save": "Tidak dapat menyimpan catatan latihan ini."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Saran progresi",
+    "subtitle": "Terapkan beban berikutnya sekarang atau biarkan tertunda untuk nanti.",
+    "current": "Berat saat ini",
+    "next": "Berat berikutnya",
+    "reason": "Alasan: {{reason}}",
+    "apply": "Terapkan",
+    "skip": "Lewati"
+  },
+  "exerciseSettings": {
+    "title": "Pengaturan latihan",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Berat kerja",
+    "weightMode": "Mode berat",
+    "increment": "Kenaikan",
+    "estimatedOneRepMax": "Estimasi 1RM",
+    "notes": "Catatan",
+    "history": "Riwayat terbaru",
+    "linkedVariants": "Varian terkait",
+    "historyLoading": "Memuat riwayat…",
+    "historyEmpty": "Belum ada sesi yang tercatat.",
+    "historyError": "Tidak dapat memuat riwayat.",
+    "historySets": "{{completed}} / {{total}} set",
+    "historyBestReps": "Terbaik {{reps}} repetisi"
   },
   "restTimer": {
     "title": "Timer istirahat",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Pengaturan program",
     "tabs": {
+      "program": "Program",
       "weeks": "Minggu",
       "days": "Hari"
+    },
+    "program": {
+      "name": "Nama program",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Subjudul",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Tujuan",
+      "goalPlaceholder": "Kekuatan dan hipertrofi",
+      "description": "Deskripsi",
+      "descriptionPlaceholder": "Catatan opsional tentang blok latihan ini",
+      "sourceType": "Sumber",
+      "sourceLabel": "Label sumber",
+      "sourceLabelPlaceholder": "PDF pelatih, template, atau catatan",
+      "startDate": "Tanggal mulai",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Durasi (minggu)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Istirahat default (detik)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Model progresi",
+      "frequencySummary": "Target mingguan",
+      "frequencyGroupPlaceholder": "Grup otot",
+      "frequencyTarget": "Target per minggu",
+      "frequencyPerWeek_one": "{{count}}x / minggu",
+      "frequencyPerWeek_other": "{{count}}x / minggu",
+      "addFrequencyTarget": "Tambah target mingguan",
+      "progressionModels": {
+        "simple_load_modifier": "Sederhana",
+        "exercise_rules": "Aturan",
+        "mixed": "Campuran",
+        "manual": "Manual"
+      },
+      "sourceTypes": {
+        "manual": "Manual",
+        "coach": "Pelatih",
+        "template": "Template",
+        "imported_pdf": "PDF impor",
+        "imported_json": "JSON impor"
+      }
     },
     "week": {
       "namePlaceholder": "Nama minggu",
       "loadModifier": "Modifikasi beban",
+      "volumeModifier": "Modifikasi volume",
       "rir": "RIR (Repetisi cadangan)",
+      "notes": "Catatan minggu",
+      "notesPlaceholder": "Catatan opsional untuk minggu ini",
       "baseline": "Dasar",
       "addWeek": "Tambah minggu",
       "deleteTitle": "Hapus minggu",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Hari {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikon",
+      "schedule": "Jadwal",
+      "pickDay": "Pilih hari",
+      "pickWindow": "Pilih hari",
       "iconMore": "Lagi",
       "iconRefresh": "Segarkan",
+      "scheduleTypes": {
+        "unscheduled": "Kapan saja",
+        "fixed_day": "Tetap",
+        "day_window": "Jendela"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Sen",
+          "tue": "Sel",
+          "wed": "Rab",
+          "thu": "Kam",
+          "fri": "Jum",
+          "sat": "Sab",
+          "sun": "Min"
+        },
+        "narrow": {
+          "mon": "S",
+          "tue": "S",
+          "wed": "R",
+          "thu": "K",
+          "fri": "J",
+          "sat": "S",
+          "sun": "M"
+        }
+      },
       "addDay": "Tambah hari",
       "deleteTitle": "Hapus hari",
       "deleteMessage": "Hapus \"{{name}}\"? Ini akan menghapusnya dari semua minggu."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Tambah latihan",
     "titleEdit": "Edit latihan",
+    "tabs": {
+      "basic": "Dasar",
+      "advanced": "Lanjutan"
+    },
     "name": "Nama",
     "namePlaceholder": "Nama latihan",
     "muscleGroup": "Grup otot",
@@ -202,11 +487,52 @@
     "reps": "Repetisi",
     "notes": "Catatan",
     "notesPlaceholder": "Catatan opsional...",
+    "advanced": {
+      "show": "Tampilkan bidang lanjutan",
+      "hide": "Sembunyikan bidang lanjutan",
+      "rest": "Istirahat (detik)",
+      "restUseDefault": "Default global",
+      "restCustom": "Kustom",
+      "restPlaceholder": "180",
+      "rir": "Target RIR",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensitas",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eksentrik 2 detik",
+      "progressionRule": "Aturan progresi",
+      "progressionRulePlaceholder": "+5kg ketika semua set mencapai repetisi tertinggi dengan 2 RIR",
+      "unilateral": "Mode unilateral",
+      "unilateralPlaceholder": "per kaki, per sisi, kiri/kanan, bergantian",
+      "equipment": "Alat",
+      "equipmentPlaceholder": "Barbel, dumbbel, kabel, mesin",
+      "primaryMuscles": "Otot utama",
+      "primaryMusclesPlaceholder": "Satu otot per baris",
+      "secondaryMuscles": "Otot pendukung",
+      "secondaryMusclesPlaceholder": "Satu otot per baris",
+      "canonicalExerciseId": "ID latihan kanonis",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Label varian",
+      "variantLabelPlaceholder": "Sesi B",
+      "aliases": "Alias",
+      "aliasesPlaceholder": "Satu alias per baris",
+      "sessionSpecific": "Khusus sesi",
+      "sessionSpecificToggle": "Catat sebagai varian khusus sesi",
+      "technicalNotes": "Catatan teknis",
+      "technicalNotesPlaceholder": "Satu catatan per baris",
+      "executionCues": "Isyarat eksekusi",
+      "executionCuesPlaceholder": "Satu isyarat per baris",
+      "perSetTargets": "Target per set",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Penggantian minggu",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Tambah satu set"
+    },
     "submitAdd": "Tambah latihan",
     "submitEdit": "Simpan perubahan",
     "errors": {
       "nameRequired": "Nama latihan diperlukan.",
-      "setsInvalid": "Set harus berupa bilangan bulat positif yang valid."
+      "setsInvalid": "Set harus berupa bilangan bulat positif yang valid.",
+      "restInvalid": "Istirahat harus berupa bilangan bulat non-negatif yang valid."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Status Sinkronisasi",
       "status": "Status",
+      "enabled": "Sinkronisasi aktif",
+      "disabled": "Sinkronisasi nonaktif",
       "syncingWith_one": "Menyinkronkan dengan {{count}} perangkat",
       "syncingWith_other": "Menyinkronkan dengan {{count}} perangkat",
       "off": "Sinkronisasi mati",
@@ -263,8 +591,11 @@
       "title": "Cadangan",
       "export": "Simpan cadangan ke perangkat",
       "import": "Pulihkan dari cadangan",
+      "shareBackup": "Bagikan cadangan",
       "shareToDevice": "Bagikan ke perangkat lain",
-      "scanFromDevice": "Pindai dari perangkat lain"
+      "scanFromDevice": "Pindai dari perangkat lain",
+      "localSaveRestore": "Simpan / Pulihkan Lokal",
+      "qrShareRestore": "Bagikan / Pulihkan QR"
     },
     "pairingDevices": {
       "title": "Pemasangan & Perangkat",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Pratinjau impor",
+    "titleWithProgram": "Impor: {{program}}",
     "changesDetected": "{{count}} perubahan terdeteksi.",
     "noChanges": "Tidak ada perubahan terdeteksi. Cadangan identik dengan data saat ini.",
+    "modeHint": "Impor sebagai baru membuat rencana saat ini tetap tersedia. Ganti program aktif akan menimpa rencana saat ini di perangkat ini.",
+    "stats": {
+      "workouts": "Latihan yang diperbarui",
+      "exercises": "Gerakan yang dibuat atau diperbarui",
+      "preservedWeights": "Berat yang dipertahankan",
+      "needsWeight": "Butuh berat awal"
+    },
+    "exerciseStatus": {
+      "matching": "Gerakan yang cocok",
+      "changed": "Gerakan yang diubah",
+      "new": "Gerakan baru",
+      "removed": "Gerakan dihapus"
+    },
     "sections": {
+      "exerciseStatus": "Status gerakan",
+      "preservedWeights": "Berat yang dipertahankan",
+      "missingWeights": "Gerakan baru tanpa berat tersimpan",
+      "removedExercises": "Dihapus dari program aktif",
       "workouts": "Latihan",
+      "program": "Program",
       "settings": "Pengaturan",
       "weeks": "Minggu",
       "days": "Hari"
     },
+    "currentWeightKept": "Berat saat ini dipertahankan",
+    "noPreviousWeight": "Tidak ada berat sebelumnya ditemukan",
     "cancel": "Batal",
-    "confirm": "Impor cadangan"
+    "confirm": "Impor cadangan",
+    "importAsNewProgram": "Impor sebagai Program Baru",
+    "replaceActiveProgram": "Ganti Program Aktif"
+  },
+  "programLibrary": {
+    "title": "Program",
+    "summary": "{{count}} program tersimpan",
+    "active": "Aktif",
+    "empty": "Belum ada program tersimpan."
   },
   "deviceTransfer": {
     "shareTitle": "Bagikan ke perangkat lain",
     "shareDescription": "Di perangkat lain: Pengaturan → Cadangan → Pindai dari perangkat lain.",
+    "shareChunkCounter": "Bagian {{current}}/{{total}}",
+    "shareChunkHint": "Jaga kedua perangkat tetap stabil. QR berotasi secara otomatis.",
+    "pauseRotation": "Jeda rotasi",
+    "resumeRotation": "Lanjutkan rotasi",
     "scanTitle": "Pindai dari perangkat lain",
     "scanDescription": "Arahkan kamera ke QR cadangan PearLift.",
+    "chunkProgress": "Progres pemindaian: {{received}}/{{total}}",
+    "transferCorrupted": "Transfer QR gagal pemeriksaan integritas. Silakan pindai dari chunk pertama lagi.",
     "cameraPermissionTitle": "Izin kamera diperlukan",
     "cameraPermissionMessage": "Izinkan akses kamera untuk memindai QR cadangan.",
     "cameraPermissionButton": "Izinkan Kamera",
+    "cameraUnavailableTitle": "Kamera tidak tersedia",
+    "cameraUnavailableMessage": "PearLift tidak dapat mengakses kamera belakang yang dapat digunakan di perangkat ini.",
     "invalidQr": "QR tersebut tidak terlihat seperti cadangan PearLift.",
     "tooLarge": "Cadangan terlalu besar untuk satu QR. Gunakan “Simpan cadangan ke perangkat” sebagai gantinya."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Berbagi tidak tersedia di perangkat/platform ini."
     },
     "importBackup": {
-      "failedTitle": "Impor gagal"
+      "failedTitle": "Impor gagal",
+      "confirmReplaceTitle": "Ganti program aktif?",
+      "confirmReplaceMessage": "Ini akan mengganti program aktif Anda saat ini dengan \"{{program}}\" di perangkat ini. Berat yang cocok akan dipertahankan jika memungkinkan.",
+      "confirmReplaceAction": "Ganti program"
     },
     "forgetDevice": {
       "authPromptMessage": "Konfirmasikan untuk melupakan perangkat",

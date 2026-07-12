@@ -1,4 +1,7 @@
-import type { PearLiftRuntimeState } from '@/backup/types';
+import type {
+  BackupProgramCollection,
+  PearLiftRuntimeState,
+} from '@/backup/types';
 import type {
   MutationContext,
   PairedDevice,
@@ -7,6 +10,11 @@ import type {
   WorkoutStoreSnapshot,
 } from '@/storage/types';
 import type { SyncDeviceProfile, SyncMutation } from '@/sync/types';
+import type {
+  ProgramSummary,
+  UserExerciseSettings,
+  WorkoutSessionLog,
+} from '@/types';
 
 export interface WorkoutRepositoryPort {
   initialize(): Promise<void>;
@@ -14,6 +22,21 @@ export interface WorkoutRepositoryPort {
   isSetupDone(): Promise<boolean>;
   markSetupDone(): Promise<void>;
   getRuntimeState(): Promise<PearLiftRuntimeState>;
+  getBackupProgramCollection(): Promise<BackupProgramCollection>;
+  getAvailablePrograms(): Promise<ProgramSummary[]>;
+  setActiveProgram(programId: string): Promise<void>;
+  importProgram(input: {
+    runtime: PearLiftRuntimeState;
+    sessionLogs: WorkoutSessionLog[];
+    mode: 'import_as_new' | 'replace_active';
+    activate?: boolean;
+  }): Promise<void>;
+  saveWorkoutSessionLog(log: WorkoutSessionLog): Promise<void>;
+  saveUserExerciseSettings(settings: UserExerciseSettings): Promise<void>;
+  getWorkoutSessionLogs(input?: {
+    workoutId?: string;
+    limit?: number | null;
+  }): Promise<WorkoutSessionLog[]>;
   applyMutation(
     mutation: WorkoutMutation,
     ctx?: MutationContext,

@@ -4,7 +4,9 @@
     "delete": "हटाएं",
     "back": "वापस",
     "next": "अगला",
-    "ok": "ठीक है"
+    "ok": "ठीक है",
+    "close": "बंद करें",
+    "save": "सहेजें"
   },
   "app": {
     "loading": "आपके प्रशिक्षण डेटा की तैयारी हो रही है"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "निष्क्रिय",
         "connecting": "खोज रहे हैं",
+        "waiting": "प्रतीक्षा",
+        "dht_ready": "DHT तैयार",
+        "peer_connected": "पीयर कनेक्टेड",
+        "handshake_ok": "हैंडशेक OK",
+        "replicating": "प्रतिकृति बना रहा है",
         "synced": "कनेक्टेड",
         "error": "त्रुटि"
       },
@@ -122,7 +129,7 @@
         "off": "सिंक बंद है"
       },
       "summary": {
-        "issue": "सिंक को ध्यान देने ��ी जरूरत है",
+        "issue": "सिंक को ध्यान देने की जरूरत है",
         "connected_one": "{{count}} डिवाइस से कनेक्टेड",
         "connected_other": "{{count}} डिवाइसों से कनेक्टेड",
         "connecting": "डिवाइस खोज रहे हैं",
@@ -134,6 +141,19 @@
         "connecting": "आपके सिंक ग्रुप को खोज रहे हैं।",
         "off": "सिंक इस समय इस डिवाइस पर अक्षम है।"
       },
+      "dht": "DHT",
+      "dhtReady": "तैयार",
+      "dhtBootstrapping": "बूटस्ट्रैपिंग…",
+      "dhtError": "त्रुटि",
+      "dhtInactive": "निष्क्रिय",
+      "dhtWaiting": "प्रतीक्षा",
+      "status": "स्थिति",
+      "peers": "पीयर्स",
+      "peersConnected": "{{count}} कनेक्टेड",
+      "peersNone": "कोई नहीं",
+      "connectionsActive": "{{count}} सक्रिय",
+      "connectionsNone": "कोई नहीं",
+      "more": "और",
       "lastSyncAt": "अंतिम सिंक: {{at}}",
       "lastSyncNever": "अंतिम सिंक: कभी नहीं",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "समस्या निवारण",
         "stop": "सिंक बंद करें"
       }
+    },
+    "manage": {
+      "title": "डिवाइस सिंक",
+      "subtitle": "ग्रुप सेटअप और सिंक रखरखाव को एक जगह पर रखें।",
+      "roomSetup": "ग्रुप सेटअप",
+      "roomSetupHint": "चुनें कि यह डिवाइस एक नया ग्रुप शुरू करता है या किसी मौजूदा ग्रुप में शामिल होता है।",
+      "onboardingTitle": "कोई क्लाउड नहीं। कोई खाता नहीं।",
+      "onboardingMessage": "PearLift आपके वर्कआउट को सीधे आपके डिवाइसों के बीच सिंक करता है — पीयर-टू-पीयर। आपका डेटा कभी सर्वर को स्पर्श नहीं करता। पहले कनेक्शन के लिए आपको बस उसी वाई-फ़ाई पर या पास में होना होगा।",
+      "onboardingDismiss": "समझ गया",
+      "createRoom": "ग्रुप बनाएं",
+      "joinRoom": "ग्रुप में शामिल हों",
+      "roomActive": "ग्रुप सक्रिय",
+      "status": "सिंक स्थिति",
+      "turnOn": "चालू करें",
+      "turnOff": "बंद करें",
+      "refresh": "रीफ़्रेश करें",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "ग्रुप स्वामी",
+        "joiner": "सदस्य"
+      },
+      "binding": {
+        "unconfigured": "कॉन्फ़िगर नहीं किया गया",
+        "pending_first_sync": "पहले सिंक की प्रतीक्षा",
+        "active": "सक्रिय",
+        "conflict_requires_decision": "आपके निर्णय की आवश्यकता",
+        "active_conflict_requires_decision": "सिंक विरोध के लिए आपके निर्णय की आवश्यकता"
+      },
+      "thisDeviceCode": "इस डिवाइस का कोड: {{code}}",
+      "deviceCode": "कोड {{code}}",
+      "deviceNamePlaceholder": "इस डिवाइस को नाम दें",
+      "saveDeviceName": "डिवाइस का नाम सहेजें",
+      "deviceNameSyncPending": "डिवाइस का नाम स्थानीय रूप से सहेजा गया। सिंक शीघ्र ही इसे पीयर्स के साथ साझा करने का पुनः प्रयास करेगा।",
+      "masterKey": "सिंक कोड",
+      "masterKeyHint": "हर डिवाइस पर समान 64-अक्षर वाला सिंक कोड उपयोग करें जिसे डेटा साझा करना चाहिए।",
+      "masterKeyPlaceholder": "64-अक्षर वाला सिंक कोड पेस्ट करें या संपादित करें",
+      "showQR": "QR कोड दिखाएं",
+      "copyKey": "कोड कॉपी करें",
+      "applyKey": "कोड लागू करें",
+      "leaveRoom": "ग्रुप छोड़ें",
+      "leaveRoomConfirmTitle": "यह ग्रुप छोड़ें?",
+      "leaveRoomConfirmMessage": "यह सिंक बंद करता है, इस डिवाइस पर मौजूदा ग्रुप बाइंडिंग साफ़ करता है, और स्थानीय ग्रुप कनेक्शन इतिहास हटाता है।",
+      "syncedDevices": "{{count}} डिवाइस",
+      "syncedDevicesTitle": "डिवाइस",
+      "noDevices": "अभी तक कोई डिवाइस सिंक नहीं हुआ है।",
+      "showMore": "{{count}} और दिखाएं",
+      "lastSeen": "अंतिम बार देखा गया {{at}}",
+      "lastSyncAt": "अंतिम सिंक {{at}}",
+      "removeDevice": "सूची से हटाएं",
+      "removeDeviceConfirmTitle": "इस डिवाइस को सूची से हटाएं?",
+      "removeDeviceConfirmMessage": "यह डिवाइस को केवल इस डिवाइस पर सूची से छुपाता है। यदि यह बाद में इस ग्रुप के साथ सिंक करता है तो यह फिर से प्रकट हो सकता है।",
+      "debug": "डीबग जानकारी",
+      "never": "कभी नहीं"
+    },
+    "create": {
+      "title": "ग्रुप बनाएं",
+      "subtitle": "यह डिवाइस एक नया सिंक ग्रुप शुरू करता है और सिंक कोड अन्य डिवाइसों के साथ साझा कर सकता है।",
+      "room": "नया ग्रुप",
+      "explainer": "इसका उपयोग करें जब यह डिवाइस प्रारंभिक ग्रुप को परिभाषित करे और दूसरों को आमंत्रित करे।",
+      "datasetSummary": "इस डिवाइस में वर्तमान में {{workouts}} वर्कआउट और {{exercises}} व्यायाम हैं।",
+      "masterKey": "सिंक कोड",
+      "inviteStarting": "ग्रुप शुरू हो रहा है और QR आमंत्रण बन रहा है…",
+      "invitePending": "QR आमंत्रण उत्पन्न करने के लिए ग्रुप शुरू करें।",
+      "copy": "कोड कॉपी करें",
+      "startRoom": "यह ग्रुप शुरू करें"
+    },
+    "join": {
+      "title": "ग्रुप में शामिल हों",
+      "subtitle": "इस डिवाइस को उसी सिंक ग्रुप से जोड़ने के लिए किसी अन्य डिवाइस से सिंक कोड का उपयोग करें।",
+      "preflight": "शामिल होने से पहले",
+      "localSummary": "इस डिवाइस में वर्तमान में {{workouts}} वर्कआउट और {{exercises}} व्यायाम हैं।",
+      "remoteSummaryHint": "यदि दोनों डिवाइसों में पहले से बहुत अधिक ओवरलैपिंग परिवर्तन हैं, तो PearLift पूछेगा कि कौन सा डेटासेट रखना है।",
+      "masterKey": "सिंक कोड",
+      "keyPlaceholder": "64-अक्षर वाला सिंक कोड पेस्ट करें",
+      "paste": "पेस्ट करें",
+      "scanQr": "QR स्कैन करें",
+      "scanHelp": "कैमरे को QR कोड पर इंगित करें जिसमें सिंक कोड है।",
+      "invalidKey": "अमान्य सिंक कोड। यह 64 हेक्स अक्षर होना चाहिए।",
+      "keyValid": "मान्य आमंत्रण कोड",
+      "pasteSuccess": "क्लिपबोर्ड से पेस्ट किया गया",
+      "pasteEmpty": "क्लिपबोर्ड खाली है",
+      "joinRoom": "ग्रुप में शामिल हों"
+    },
+    "decision": {
+      "title": "पहला सिंक डेटा चुनें",
+      "subtitle": "दोनों पक्षों में पहले से ही सार्थक डेटा है। चुनें कि इस ग्रुप को कौन सा बेसलाइन रखना चाहिए।",
+      "thisDevice": "यह डिवाइस",
+      "roomData": "ग्रुप डेटा",
+      "datasetSummary": "{{workouts}} वर्कआउट · {{exercises}} व्यायाम",
+      "conflictTitle": "ओवरलैपिंग परिवर्तन पाए गए",
+      "conflictWorkouts": "वर्कआउट",
+      "conflictExercises": "व्यायाम",
+      "conflictSummary": "{{workouts}} वर्कआउट ओवरलैप और {{exercises}} व्यायाम ओवरलैप पाए गए।",
+      "configConflictSummary": "{{weeks}} सप्ताह कॉन्फ़िग ओवरलैप, {{days}} दिन कॉन्फ़िग ओवरलैप, {{backlog}} ग्रुप अपडेट प्रतीक्षा।",
+      "useThisDeviceHint": "यह इस डिवाइस को ग्रुप बेसलाइन के रूप में प्रकाशित करता है।",
+      "useRoomDataHint": "यह ऐप प्राथमिकताओं को रखते हुए इस डिवाइस पर वर्कआउट डेटा को बदलता है।",
+      "useMerge": "दोनों मर्ज करें",
+      "useMergeHint": "जब कोई ओवरलैप न हो तो इस डिवाइस और ग्रुप से डेटा संयोजित करें।",
+      "mergeUnavailableHint": "कुछ वर्कआउट या व्यायाम अलग-अलग मानों के साथ दोनों डिवाइसों पर मौजूद हैं, इसलिए मर्ज करना संभव नहीं है।",
+      "useThisDevice": "इस डिवाइस का डेटा उपयोग करें",
+      "useRoomData": "ग्रुप डेटा उपयोग करें"
+    },
+    "debug": {
+      "title": "सिंक डीबग जानकारी",
+      "subtitle": "रनटाइम स्थिति, कनेक्शन विवरण और हाल के सिंक लॉग।",
+      "snapshot": "रनटाइम स्नैपशॉट",
+      "connections": "कनेक्शन",
+      "lastError": "अंतिम त्रुटि",
+      "logs": "हाल के लॉग",
+      "logCount": "कुल {{total}} लॉग में से {{shown}} दिखा रहा है",
+      "clear": "साफ़ करें"
     }
   },
   "workout": {
-    "weekDay": "सप्ताह {{week}} - दिन {{day}}",
-    "addExercise": "व्यायाम जोड़ें"
+    "weekDay": "सप्ताह {{week}} - {{day}}",
+    "addExercise": "व्यायाम जोड़ें",
+    "logWorkout": "वर्कआउट लॉग करें",
+    "progressionSuggestions": "सुझाव",
+    "suggestedToday": "आज का सुझाव: {{workout}}",
+    "showDetails": "विवरण दिखाएं",
+    "hideDetails": "विवरण छुपाएं",
+    "details": {
+      "notes": "नोट्स",
+      "tempo": "गति",
+      "equipment": "उपकरण",
+      "primaryMuscles": "प्रमुख मांसपेशियां",
+      "secondaryMuscles": "सहायक मांसपेशियां",
+      "technique": "तकनीक",
+      "cues": "संकेत",
+      "perSetTargets": "प्रति-सेट लक्ष्य",
+      "progression": "प्रगति",
+      "weekOverrides": "सप्ताह ओवरराइड",
+      "active": "सक्रिय",
+      "intensity": "तीव्रता",
+      "target": "लक्ष्य",
+      "estimatedOneRepMax": "अनुमानित 1RM",
+      "notSet": "सेट नहीं",
+      "intensityRange": "तीव्रता सीमा",
+      "weightSettings": "वज़न सेटिंग्स",
+      "weightMode": "वज़न मोड",
+      "increment": "वृद्धि",
+      "exerciseSettings": "व्यायाम सेटिंग्स"
+    }
+  },
+  "workoutLog": {
+    "title": "वर्कआउट लॉग",
+    "subtitle": "{{workout}} · सप्ताह {{week}}",
+    "progress": "{{logged}} / {{total}} सेट लॉग किए गए",
+    "loading": "वर्कआउट लॉग लोड हो रहा है…",
+    "done": "हो गया",
+    "skip": "छोड़ें",
+    "save": "लॉग सहेजें",
+    "saving": "सहेजा जा रहा है…",
+    "useTarget": "लक्ष्य के साथ पूर्ण करें",
+    "reset": "रीसेट",
+    "setLabel": "सेट {{set}}",
+    "targetRir": "लक्ष्य RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "वास्तविक वज़न",
+    "actualReps": "वास्तविक रेप्स",
+    "leftReps": "बाएं रेप्स",
+    "rightReps": "दाएं रेप्स",
+    "perSideReps": "प्रति पक्ष",
+    "sharedReps": "साझा",
+    "actualRir": "वास्तविक RIR",
+    "errors": {
+      "load": "यह वर्कआउट लॉग लोड नहीं किया जा सका।",
+      "save": "यह वर्कआउट लॉग सहेजा नहीं जा सका।"
+    }
+  },
+  "progressionSuggestions": {
+    "title": "प्रगति सुझाव",
+    "subtitle": "अगला लोड अभी लागू करें या बाद के लिए लंबित रखें।",
+    "current": "वर्तमान वज़न",
+    "next": "अगला वज़न",
+    "reason": "कारण: {{reason}}",
+    "apply": "लागू करें",
+    "skip": "छोड़ें"
+  },
+  "exerciseSettings": {
+    "title": "व्यायाम सेटिंग्स",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "कार्य वज़न",
+    "weightMode": "वज़न मोड",
+    "increment": "वृद्धि",
+    "estimatedOneRepMax": "अनुमानित 1RM",
+    "notes": "नोट्स",
+    "history": "हाल का इतिहास",
+    "linkedVariants": "लिंक किए गए वेरिएंट",
+    "historyLoading": "इतिहास लोड हो रहा है…",
+    "historyEmpty": "अभी तक कोई लॉग किया गया सत्र नहीं।",
+    "historyError": "इतिहास लोड नहीं किया जा सका।",
+    "historySets": "{{completed}} / {{total}} सेट",
+    "historyBestReps": "सर्वश्रेष्ठ {{reps}} रेप्स"
   },
   "restTimer": {
     "title": "रेस्ट टाइमर",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "प्रोग्राम सेटिंग्स",
     "tabs": {
+      "program": "प्रोग्राम",
       "weeks": "सप्ताह",
       "days": "दिन"
+    },
+    "program": {
+      "name": "प्रोग्राम का नाम",
+      "namePlaceholder": "ब्लॉको इंटेन्सिटा",
+      "subtitle": "उपशीर्षक",
+      "subtitlePlaceholder": "फ़ोर्ज़ा + इपरट्रोफ़िया",
+      "goal": "लक्ष्य",
+      "goalPlaceholder": "शक्ति और अतिवृद्धि",
+      "description": "विवरण",
+      "descriptionPlaceholder": "इस प्रशिक्षण ब्लॉक के बारे में वैकल्पिक नोट्स",
+      "sourceType": "स्रोत",
+      "sourceLabel": "स्रोत लेबल",
+      "sourceLabelPlaceholder": "कोच PDF, टेम्पलेट, या नोट",
+      "startDate": "आरंभ तिथि",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "अवधि (सप्ताह)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "डिफ़ॉल्ट आराम (सेकंड)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "प्रगति मॉडल",
+      "frequencySummary": "साप्ताहिक लक्ष्य",
+      "frequencyGroupPlaceholder": "मांसपेशी समूह",
+      "frequencyTarget": "प्रति सप्ताह लक्ष्य",
+      "frequencyPerWeek_one": "{{count}}x / सप्ताह",
+      "frequencyPerWeek_other": "{{count}}x / सप्ताह",
+      "addFrequencyTarget": "साप्ताहिक लक्ष्य जोड़ें",
+      "progressionModels": {
+        "simple_load_modifier": "सरल",
+        "exercise_rules": "नियम",
+        "mixed": "मिश्रित",
+        "manual": "मैनुअल"
+      },
+      "sourceTypes": {
+        "manual": "मैनुअल",
+        "coach": "कोच",
+        "template": "टेम्पलेट",
+        "imported_pdf": "आयातित PDF",
+        "imported_json": "आयातित JSON"
+      }
     },
     "week": {
       "namePlaceholder": "सप्ताह का नाम",
       "loadModifier": "लोड संशोधक",
+      "volumeModifier": "वॉल्यूम संशोधक",
       "rir": "RIR (रिज़र्व में रेप्स)",
+      "notes": "सप्ताह नोट्स",
+      "notesPlaceholder": "इस सप्ताह के लिए वैकल्पिक नोट्स",
       "baseline": "आधार रेखा",
       "addWeek": "सप्ताह जोड़ें",
       "deleteTitle": "सप्ताह हटाएं",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "दिन {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "आइकन",
+      "schedule": "अनुसूची",
+      "pickDay": "दिन चुनें",
+      "pickWindow": "दिन चुनें",
       "iconMore": "अधिक",
       "iconRefresh": "रीफ़्रेश",
+      "scheduleTypes": {
+        "unscheduled": "कोई भी",
+        "fixed_day": "निश्चित",
+        "day_window": "विंडो"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "सोम",
+          "tue": "मंगल",
+          "wed": "बुध",
+          "thu": "गुरु",
+          "fri": "शुक्र",
+          "sat": "शनि",
+          "sun": "रवि"
+        },
+        "narrow": {
+          "mon": "सो",
+          "tue": "मं",
+          "wed": "बु",
+          "thu": "गु",
+          "fri": "शु",
+          "sat": "श",
+          "sun": "र"
+        }
+      },
       "addDay": "दिन जोड़ें",
       "deleteTitle": "दिन हटाएं",
       "deleteMessage": "\"{{name}}\" हटाएं? यह इसे सभी सप्ताहों से हटा देता है।"
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "व्यायाम जोड़ें",
     "titleEdit": "व्यायाम संपादित करें",
+    "tabs": {
+      "basic": "मूल",
+      "advanced": "उन्नत"
+    },
     "name": "नाम",
     "namePlaceholder": "व्यायाम का नाम",
     "muscleGroup": "मांसपेशी समूह",
@@ -202,11 +487,52 @@
     "reps": "रेप्स",
     "notes": "नोट्स",
     "notesPlaceholder": "वैकल्पिक नोट्स...",
+    "advanced": {
+      "show": "उन्नत फ़ील्ड दिखाएं",
+      "hide": "उन्नत फ़ील्ड छुपाएं",
+      "rest": "आराम (सेकंड)",
+      "restUseDefault": "वैश्विक डिफ़ॉल्ट",
+      "restCustom": "कस्टम",
+      "restPlaceholder": "180",
+      "rir": "RIR लक्ष्य",
+      "rirPlaceholder": "1-2",
+      "intensity": "तीव्रता",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "गति",
+      "tempoPlaceholder": "एक्सेंट्रिका 2 सेकंड",
+      "progressionRule": "प्रगति नियम",
+      "progressionRulePlaceholder": "+5kg जब सभी सेट 2 RIR के साथ शीर्ष रेप्स तक पहुंचें",
+      "unilateral": "एकतरफा मोड",
+      "unilateralPlaceholder": "प्रति पैर, प्रति पक्ष, बाएं/दाएं, वैकल्पिक",
+      "equipment": "उपकरण",
+      "equipmentPlaceholder": "बारबेल, डम्बल, केबल, मशीन",
+      "primaryMuscles": "प्रमुख मांसपेशियां",
+      "primaryMusclesPlaceholder": "प्रति पंक्ति एक मांसपेशी",
+      "secondaryMuscles": "सहायक मांसपेशियां",
+      "secondaryMusclesPlaceholder": "प्रति पंक्ति एक मांसपेशी",
+      "canonicalExerciseId": "कैननिकल व्यायाम ID",
+      "canonicalExerciseIdPlaceholder": "अल्टरनेटिंग-कर्ल",
+      "variantLabel": "वेरिएंट लेबल",
+      "variantLabelPlaceholder": "सत्र B",
+      "aliases": "उपनाम",
+      "aliasesPlaceholder": "प्रति पंक्ति एक उपनाम",
+      "sessionSpecific": "सत्र-विशिष्ट",
+      "sessionSpecificToggle": "केवल-सत्र वेरिएंट के रूप में ट्रैक करें",
+      "technicalNotes": "तकनीकी नोट्स",
+      "technicalNotesPlaceholder": "प्रति पंक्ति एक नोट",
+      "executionCues": "निष्पादन संकेत",
+      "executionCuesPlaceholder": "प्रति पंक्ति एक संकेत",
+      "perSetTargets": "प्रति-सेट लक्ष्य",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=असफलता तक जाएं",
+      "weekOverrides": "सप्ताह ओवरराइड",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=एक सेट जोड़ें"
+    },
     "submitAdd": "व्यायाम जोड़ें",
     "submitEdit": "परिवर्तन सहेजें",
     "errors": {
       "nameRequired": "व्यायाम का नाम आवश्यक है।",
-      "setsInvalid": "सेट्स एक मान्य सकारात्मक पूर्णांक होना चाहिए।"
+      "setsInvalid": "सेट्स एक मान्य सकारात्मक पूर्णांक होना चाहिए।",
+      "restInvalid": "आराम एक मान्य गैर-ऋणात्मक पूर्णांक होना चाहिए।"
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "सिंक स्थिति",
       "status": "स्थिति",
+      "enabled": "सिंक चालू है",
+      "disabled": "सिंक बंद है",
       "syncingWith_one": "{{count}} डिवाइस के साथ सिंक हो रहा है",
       "syncingWith_other": "{{count}} डिवाइसों के साथ सिंक हो रहा है",
       "off": "सिंक बंद है",
@@ -263,8 +591,11 @@
       "title": "बैकअप",
       "export": "डिवाइस में बैकअप सहेजें",
       "import": "बैकअप से पुनर्स्थापित करें",
+      "shareBackup": "बैकअप साझा करें",
       "shareToDevice": "दूसरे डिवाइस पर शेयर करें",
-      "scanFromDevice": "दूसरे डिवाइस से स्कैन करें"
+      "scanFromDevice": "दूसरे डिवाइस से स्कैन करें",
+      "localSaveRestore": "स्थानीय सहेजें / पुनर्स्थापित करें",
+      "qrShareRestore": "QR साझा / पुनर्स्थापित करें"
     },
     "pairingDevices": {
       "title": "जोड़ना और डिवाइस",
@@ -317,27 +648,64 @@
   },
   "importPreview": {
     "title": "इम्पोर्ट पूर्वावलोकन",
+    "titleWithProgram": "आयात: {{program}}",
     "changesDetected": "{{count}} परिवर्तन मिले।",
     "noChanges": "कोई परिवर्तन नहीं मिला। बैकअप वर्तमान डेटा के समान है।",
+    "modeHint": "नए के रूप में आयात करने पर वर्तमान योजना उपलब्ध रहती है। सक्रिय प्रोग्राम बदलने पर इस डिवाइस पर वर्तमान योजना अधिलेखित हो जाती है।",
+    "stats": {
+      "workouts": "अद्यतन करने के लिए वर्कआउट",
+      "exercises": "बनाने या अद्यतन करने के लिए व्यायाम",
+      "preservedWeights": "संरक्षित वज़न",
+      "needsWeight": "आरंभिक वज़न चाहिए"
+    },
+    "exerciseStatus": {
+      "matching": "मेल खाने वाले व्यायाम",
+      "changed": "बदले गए व्यायाम",
+      "new": "नए व्यायाम",
+      "removed": "हटाए गए व्यायाम"
+    },
     "sections": {
+      "exerciseStatus": "व्यायाम स्थिति",
+      "preservedWeights": "संरक्षित वज़न",
+      "missingWeights": "बिना सहेजे वज़न के नए व्यायाम",
+      "removedExercises": "सक्रिय प्रोग्राम से हटाए गए",
       "workouts": "वर्कआउट्स",
+      "program": "प्रोग्राम",
       "settings": "सेटिंग्स",
       "weeks": "सप्ताह",
       "days": "दिन"
     },
+    "currentWeightKept": "वर्तमान वज़न रखा गया",
+    "noPreviousWeight": "कोई पिछला वज़न नहीं मिला",
     "cancel": "रद्द करें",
-    "confirm": "बैकअप इम्पोर्ट करें"
+    "confirm": "बैकअप इम्पोर्ट करें",
+    "importAsNewProgram": "नए प्रोग्राम के रूप में आयात करें",
+    "replaceActiveProgram": "सक्रिय प्रोग्राम बदलें"
+  },
+  "programLibrary": {
+    "title": "प्रोग्राम",
+    "summary": "{{count}} सहेजा गया प्रोग्राम",
+    "active": "सक्रिय",
+    "empty": "अभी तक कोई सहेजा गया प्रोग्राम नहीं।"
   },
   "deviceTransfer": {
     "shareTitle": "दूसरे डिवाइस पर शेयर करें",
     "shareDescription": "दूसरे डिवाइस पर: सेटिंग्स → बैकअप → दूसरे डिवाइस से स्कैन खोलें।",
+    "shareChunkCounter": "भाग {{current}}/{{total}}",
+    "shareChunkHint": "दोनों डिवाइसों को स्थिर रखें। QR स्वचालित रूप से घूमता है।",
+    "pauseRotation": "घूर्णन रोकें",
+    "resumeRotation": "घूर्णन पुनः शुरू करें",
     "scanTitle": "दूसरे डिवाइस से स्कैन करें",
     "scanDescription": "कैमरा PearLift बैकअप QR कोड पर रखें।",
+    "chunkProgress": "स्कैन प्रगति: {{received}}/{{total}}",
+    "transferCorrupted": "QR स्थानांतरण अखंडता जांच में विफल रहा। कृपया पहले भाग से पुनः स्कैन करें।",
     "cameraPermissionTitle": "कैमरा अनुमति आवश्यक है",
     "cameraPermissionMessage": "बैकअप QR कोड स्कैन करने के लिए कैमरा एक्सेस की अनुमति दें।",
     "cameraPermissionButton": "कैमरा अनुमति दें",
+    "cameraUnavailableTitle": "कैमरा उपलब्ध नहीं",
+    "cameraUnavailableMessage": "PearLift इस डिवाइस पर उपयोग योग्य बैक कैमरा एक्सेस नहीं कर सका।",
     "invalidQr": "यह QR कोड PearLift बैकअप जैसा नहीं लगता।",
-    "tooLarge": "यह बैकअप एक QR कोड में फिट होने के लिए बहुत बड़ा है। इसके बजाय “डिवाइस में बैकअप सहेजें” का उपयोग करें।"
+    "tooLarge": "यह बैकअप एक QR कोड में फिट होने के लिए बहुत बड़ा है। इसके बजाय \"डिवाइस में बैकअप सहेजें\" का उपयोग करें।"
   },
   "prompts": {
     "deleteExercise": {
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "इस डिवाइस/प्लेटफ़ॉर्म पर साझा करना उपलब्ध नहीं है।"
     },
     "importBackup": {
-      "failedTitle": "आयात विफल"
+      "failedTitle": "आयात विफल",
+      "confirmReplaceTitle": "सक्रिय प्रोग्राम बदलें?",
+      "confirmReplaceMessage": "यह इस डिवाइस पर आपके वर्तमान सक्रिय प्रोग्राम को \"{{program}}\" से बदल देगा। जहां संभव हो, मौजूदा मेल खाने वाले वज़न संरक्षित रहेंगे।",
+      "confirmReplaceAction": "प्रोग्राम बदलें"
     },
     "forgetDevice": {
       "authPromptMessage": "डिवाइस भूलने की पुष्टि करें",

@@ -4,7 +4,9 @@
     "delete": "Izbriši",
     "back": "Nazaj",
     "next": "Naprej",
-    "ok": "V redu"
+    "ok": "V redu",
+    "close": "Zapri",
+    "save": "Shrani"
   },
   "app": {
     "loading": "Priprava podatkov za trening"
@@ -30,12 +32,12 @@
     },
     "getStarted": "Začnite",
     "notNow": "Ne zdaj",
-    "skipSync": "Skip",
+    "skipSync": "Preskoči",
     "setupSync": "Nastavi sinhronizacijo",
     "settingUp": "Nastavljanje...",
     "syncPrompt": {
-      "title": "Sync across your devices",
-      "description": "Your data never leaves your devices. You can set it up anytime in Settings."
+      "title": "Sinhronizacija med napravami",
+      "description": "Vaši podatki nikoli ne zapustijo vaših naprav. Nastavite lahko kadar koli v Nastavitvah."
     }
   },
   "sync": {
@@ -46,109 +48,316 @@
       "join": "Pridruži se",
       "yourCode": "Vaša sinhronizacijska koda",
       "shareHint": "Delite to sinhronizacijsko kodo (ali QR) z drugo napravo. Ta naprava mora vnesti isto kodo, da se pridruži vaši sinhronizacijski skupini.",
-      "startSyncFirst": "Press Start Sync first, then share this QR with your other device.",
+      "startSyncFirst": "Najprej pritisnite Začni sinhronizacijo, nato delite ta QR z drugo napravo.",
       "enterCode": "Vnesite kodo za sinhronizacijo",
       "scanQr": "Skenirajte kodo QR",
       "scanEnableCamera": "Omogoči kamero",
       "scanHelp": "Usmerite fotoaparat proti kodi QR na drugi napravi.",
-      "waitForConnection": "Connection in progress. Scanner paused for stability.",
-      "codePlaceholder": "Vnesite kodo za skupno rabo",
-      "replaceJoinLabel": "Replace my data with their data",
-      "replaceJoinHint": "Before first sync, this resets local workouts, exercise weights, and program configs on this device only.",
+      "waitForConnection": "Povezava v teku. Skeniranje začasno ustavljeno zaradi stabilnosti.",
+      "codePlaceholder": "Vnesite kodo za sinhronizacijo",
+      "replaceJoinLabel": "Zamenjaj moje podatke z njihovimi podatki",
+      "replaceJoinHint": "Pred prvo sinhronizacijo to ponastavi lokalne treninge, teže vaj in konfiguracije programa samo na tej napravi.",
       "copy": "Kopiraj kodo",
-      "copied": "Copied!",
-      "paste": "Paste",
+      "copied": "Kopirano!",
+      "paste": "Prilepi",
       "start": "Začni sinhronizacijo",
       "stop": "Ustavi sinhronizacijo",
       "invalidCode": "Neveljavna koda. Vsebovati mora 64 šestnajstiških znakov.",
-      "connecting": "Searching for peers…",
-      "connectedTitle": "Connected",
-      "connectedSubtitle_one": "{{count}} device in sync group.",
-      "connectedSubtitle_other": "{{count}} devices in sync group.",
-      "viewInfo": "View connection info",
-      "done": "Done"
+      "connecting": "Iskanje kolegov…",
+      "connectedTitle": "Povezan",
+      "connectedSubtitle_one": "{{count}} naprava v sinhronizacijski skupini.",
+      "connectedSubtitle_other": "{{count}} naprav v sinhronizacijski skupini.",
+      "viewInfo": "Pokaži informacije o povezavi",
+      "done": "Končano"
     },
     "info": {
-      "title": "Connection info",
-      "statusLabel": "Status",
+      "title": "Informacije o povezavi",
+      "statusLabel": "Stanje",
       "status": {
-        "idle": "Idle",
-        "connecting": "Searching",
-        "synced": "Connected",
-        "error": "Error"
+        "idle": "V mirovanju",
+        "connecting": "Iskanje",
+        "waiting": "Čakanje",
+        "dht_ready": "DHT pripravljen",
+        "peer_connected": "Koleg povezan",
+        "handshake_ok": "Rokovanje OK",
+        "replicating": "Repliciranje",
+        "synced": "Povezan",
+        "error": "Napaka"
       },
-      "peers": "Peers",
+      "peers": "Kolegi",
       "bootstrapped": "DHT",
-      "bootstrappedYes": "Reachable",
-      "bootstrappedNo": "Waiting",
-      "lastSync": "Last peer sync",
-      "never": "Never",
-      "thisDevice": "This device",
-      "deviceId": "Device ID",
-      "localKey": "Local key",
-      "syncGroup": "Sync group",
-      "autobaseKey": "Autobase key",
-      "topic": "Topic",
-      "connectedPeers": "Connected peers",
-      "noPeers": "No peers connected.",
-      "storagePath": "Storage",
-      "copy": "Copy",
-      "copied": "Copied",
-      "refresh": "Refresh",
-      "reconnectAttempts": "Reconnect attempts",
+      "bootstrappedYes": "Dosegljiv",
+      "bootstrappedNo": "Čakanje",
+      "lastSync": "Zadnja sinhronizacija s kolegi",
+      "never": "Nikoli",
+      "thisDevice": "Ta naprava",
+      "deviceId": "ID naprave",
+      "localKey": "Lokalni ključ",
+      "syncGroup": "Skupina za sinhronizacijo",
+      "autobaseKey": "Ključ Autobase",
+      "topic": "Tema",
+      "connectedPeers": "Povezani kolegi",
+      "noPeers": "Nobeni kolegi niso povezani.",
+      "storagePath": "Shramba",
+      "copy": "Kopiraj",
+      "copied": "Kopirano",
+      "refresh": "Osveži",
+      "reconnectAttempts": "Poskusi ponovne povezave",
       "debugLog": {
-        "title": "Debug log",
-        "refresh": "Refresh",
-        "empty": "No log entries yet."
+        "title": "Dnevnik razhroščevanja",
+        "refresh": "Osveži",
+        "empty": "Ni še vnosov v dnevnik."
       }
     },
     "toast": {
-      "newPeerTitle": "New device connected",
-      "newPeerMessage": "A paired device joined the sync group."
+      "newPeerTitle": "Nova naprava povezana",
+      "newPeerMessage": "Seznanjena naprava se je pridružila skupini za sinhronizacijo."
     },
     "quick": {
-      "title": "Sync Status",
-      "statusLabel": "Status",
+      "title": "Stanje sinhronizacije",
+      "statusLabel": "Stanje",
       "button": {
-        "issue": "Issue",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync"
+        "issue": "Težava",
+        "connected": "Povezan",
+        "connecting": "Povezovanje",
+        "off": "Sinhronizacija"
       },
       "state": {
-        "issue": "Issue detected",
-        "connected": "Connected",
-        "connecting": "Connecting",
-        "off": "Sync off"
+        "issue": "Zaznana težava",
+        "connected": "Povezan",
+        "connecting": "Povezovanje",
+        "off": "Sinhronizacija izklopljena"
       },
       "summary": {
-        "issue": "Sync needs attention",
-        "connected_one": "Connected to {{count}} device",
-        "connected_other": "Connected to {{count}} devices",
-        "connecting": "Looking for devices",
-        "off": "Sync is off"
+        "issue": "Sinhronizacija zahteva pozornost",
+        "connected_one": "Povezano z {{count}} napravo",
+        "connected_other": "Povezano z {{count}} napravami",
+        "connecting": "Iskanje naprav",
+        "off": "Sinhronizacija je izklopljena"
       },
       "description": {
-        "issue": "Sync needs attention. Open setup or diagnostics to resolve it.",
-        "connected": "Your device is syncing with the group.",
-        "connecting": "Searching for your sync group.",
-        "off": "Sync is currently disabled on this device."
+        "issue": "Sinhronizacija zahteva pozornost. Odprite nastavitve ali diagnostiko.",
+        "connected": "Vaša naprava sinhronizira s skupino.",
+        "connecting": "Iskanje vaše skupine za sinhronizacijo.",
+        "off": "Sinhronizacija je trenutno onemogočena na tej napravi."
       },
-      "lastSyncAt": "Last sync: {{at}}",
-      "lastSyncNever": "Last sync: never",
+      "dht": "DHT",
+      "dhtReady": "Pripravljen",
+      "dhtBootstrapping": "Vzpostavljanje…",
+      "dhtError": "Napaka",
+      "dhtInactive": "Neaktivno",
+      "dhtWaiting": "Čakanje",
+      "status": "Stanje",
+      "peers": "Kolegi",
+      "peersConnected": "{{count}} povezanih",
+      "peersNone": "Brez",
+      "connectionsActive": "{{count}} aktivnih",
+      "connectionsNone": "Brez",
+      "more": "Več",
+      "lastSyncAt": "Zadnja sinhronizacija: {{at}}",
+      "lastSyncNever": "Zadnja sinhronizacija: nikoli",
       "actions": {
-        "setup": "Set up sync",
-        "pair": "Pair new device",
-        "manage": "Manage devices",
-        "openHub": "Open Sync Hub",
-        "troubleshoot": "Troubleshoot",
-        "stop": "Stop sync"
+        "setup": "Nastavi sinhronizacijo",
+        "pair": "Seznani novo napravo",
+        "manage": "Upravljaj naprave",
+        "openHub": "Odpri Sync Hub",
+        "troubleshoot": "Odpravi težave",
+        "stop": "Ustavi sinhronizacijo"
       }
+    },
+    "manage": {
+      "title": "Sinhronizacija naprav",
+      "subtitle": "Vzdrževanje nastavitve skupine in sinhronizacije na enem mestu.",
+      "roomSetup": "Nastavitev skupine",
+      "roomSetupHint": "Izberite, ali to napravo ustvari novo skupino ali se pridruži obstoječi.",
+      "onboardingTitle": "Ni oblaka. Ni računa.",
+      "onboardingMessage": "PearLift sinhronizira treninge neposredno med napravami — peer-to-peer. Vaši podatki nikoli ne gredo na strežnik. Potrebujete le isto Wi‑Fi omrežje ali bližino za prvo povezavo.",
+      "onboardingDismiss": "Razumem",
+      "createRoom": "Ustvari skupino",
+      "joinRoom": "Pridruži se skupini",
+      "roomActive": "Skupina aktivna",
+      "status": "Stanje sinhronizacije",
+      "turnOn": "Vklopi",
+      "turnOff": "Izklopi",
+      "refresh": "Osveži",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Lastnik skupine",
+        "joiner": "Član"
+      },
+      "binding": {
+        "unconfigured": "Ni konfigurirano",
+        "pending_first_sync": "Čakanje na prvo sinhronizacijo",
+        "active": "Aktivno",
+        "conflict_requires_decision": "Potrebuje vašo odločitev",
+        "active_conflict_requires_decision": "Konflikt sinhronizacije potrebuje vašo odločitev"
+      },
+      "thisDeviceCode": "Koda te naprave: {{code}}",
+      "deviceCode": "Koda {{code}}",
+      "deviceNamePlaceholder": "Poimenuj to napravo",
+      "saveDeviceName": "Shrani ime naprave",
+      "deviceNameSyncPending": "Ime naprave je bilo shranjeno lokalno. Sinhronizacija bo kmalu poskusila deliti s kolegi.",
+      "masterKey": "Koda za sinhronizacijo",
+      "masterKeyHint": "Uporabite isto 64-znakovno kodo za sinhronizacijo na vsaki napravi, ki naj si deli podatke.",
+      "masterKeyPlaceholder": "Prilepite ali uredite 64-znakovno kodo za sinhronizacijo",
+      "showQR": "Pokaži QR kodo",
+      "copyKey": "Kopiraj kodo",
+      "applyKey": "Uporabi kodo",
+      "leaveRoom": "Zapusti skupino",
+      "leaveRoomConfirmTitle": "Zapustiti to skupino?",
+      "leaveRoomConfirmMessage": "To izklopi sinhronizacijo, počisti trenutno vezavo skupine in odstrani lokalno zgodovino povezav skupine.",
+      "syncedDevices": "{{count}} naprav",
+      "syncedDevicesTitle": "Naprave",
+      "noDevices": "Nobena naprava še ni sinhronizirala.",
+      "showMore": "Pokaži {{count}} več",
+      "lastSeen": "Nazadnje videno {{at}}",
+      "lastSyncAt": "Zadnja sinhronizacija {{at}}",
+      "removeDevice": "Odstrani s seznama",
+      "removeDeviceConfirmTitle": "Odstraniti to napravo s seznama?",
+      "removeDeviceConfirmMessage": "Skrije napravo samo s tega seznama na tej napravi. Lahko se ponovno pojavi, če se pozneje sinhronizira s to skupino.",
+      "debug": "Informacije za razhroščevanje",
+      "never": "Nikoli"
+    },
+    "create": {
+      "title": "Ustvari skupino",
+      "subtitle": "Ta naprava ustvari novo skupino za sinhronizacijo in lahko deli kodo z drugimi napravami.",
+      "room": "Nova skupina",
+      "explainer": "Uporabite, ko naj ta naprava določi začetno skupino in povabi druge.",
+      "datasetSummary": "Ta naprava ima trenutno {{workouts}} treningov in {{exercises}} vaj.",
+      "masterKey": "Koda za sinhronizacijo",
+      "inviteStarting": "Zaganjam skupino in generiram QR povabilo…",
+      "invitePending": "Zaženite skupino za generiranje QR povabila.",
+      "copy": "Kopiraj kodo",
+      "startRoom": "Zaženi to skupino"
+    },
+    "join": {
+      "title": "Pridruži se skupini",
+      "subtitle": "Uporabite kodo za sinhronizacijo druge naprave za povezavo te naprave v isto skupino.",
+      "preflight": "Pred pridružitvijo",
+      "localSummary": "Ta naprava ima trenutno {{workouts}} treningov in {{exercises}} vaj.",
+      "remoteSummaryHint": "Če imata obe napravi že veliko prekrivajočih se sprememb, bo PearLift vprašal, kateri nabor podatkov ohraniti.",
+      "masterKey": "Koda za sinhronizacijo",
+      "keyPlaceholder": "Prilepite 64-znakovno kodo za sinhronizacijo",
+      "paste": "Prilepi",
+      "scanQr": "Skeniraj QR",
+      "scanHelp": "Usmerite kamero v QR kodo, ki vsebuje kodo za sinhronizacijo.",
+      "invalidKey": "Neveljavna koda za sinhronizacijo. Vsebovati mora 64 šestnajstiških znakov.",
+      "keyValid": "Veljavna koda povabila",
+      "pasteSuccess": "Prilepljeno iz odložišča",
+      "pasteEmpty": "Odložišče je prazno",
+      "joinRoom": "Pridruži se skupini"
+    },
+    "decision": {
+      "title": "Izberite prve podatke za sinhronizacijo",
+      "subtitle": "Obe strani že vsebujeta smiselne podatke. Izberite, katero osnovo naj skupina ohrani.",
+      "thisDevice": "Ta naprava",
+      "roomData": "Podatki skupine",
+      "datasetSummary": "{{workouts}} treningov · {{exercises}} vaj",
+      "conflictTitle": "Zaznane prekrivajoče se spremembe",
+      "conflictWorkouts": "Treningi",
+      "conflictExercises": "Vaje",
+      "conflictSummary": "Zaznanih je bilo {{workouts}} prekrivanj treningov in {{exercises}} prekrivanj vaj.",
+      "configConflictSummary": "{{weeks}} prekrivanj konfiguracij tednov, {{days}} prekrivanj konfiguracij dni, {{backlog}} čakajočih posodobitev skupine.",
+      "useThisDeviceHint": "To objavi to napravo kot osnovo skupine.",
+      "useRoomDataHint": "To nadomesti podatke o treningu na tej napravi, hkrati pa ohrani nastavitve aplikacije.",
+      "useMerge": "Združi oboje",
+      "useMergeHint": "Združite podatke iz te naprave in skupine, ko ni prekrivanj.",
+      "mergeUnavailableHint": "Nekatere vaje ali treningi obstajajo na obeh napravah z različnimi vrednostmi, zato združevanje ni mogoče.",
+      "useThisDevice": "Uporabi podatke te naprave",
+      "useRoomData": "Uporabi podatke skupine"
+    },
+    "debug": {
+      "title": "Informacije za razhroščevanje sinhronizacije",
+      "subtitle": "Stanje izvajanja, podrobnosti povezave in nedavni dnevniki sinhronizacije.",
+      "snapshot": "Posnetek izvajanja",
+      "connections": "Povezave",
+      "lastError": "Zadnja napaka",
+      "logs": "Nedavni dnevnik",
+      "logCount": "Prikazanih {{shown}} od {{total}} vnosov dnevnika",
+      "clear": "Počisti"
     }
   },
   "workout": {
     "weekDay": "Teden {{week}} - {{day}}",
-    "addExercise": "Dodaj vajo"
+    "addExercise": "Dodaj vajo",
+    "logWorkout": "Dnevnik treninga",
+    "progressionSuggestions": "Predlogi",
+    "suggestedToday": "Danes predlagano: {{workout}}",
+    "showDetails": "Pokaži podrobnosti",
+    "hideDetails": "Skrij podrobnosti",
+    "details": {
+      "notes": "Opombe",
+      "tempo": "Tempo",
+      "equipment": "Oprema",
+      "primaryMuscles": "Glavne mišice",
+      "secondaryMuscles": "Pomožne mišice",
+      "technique": "Tehnika",
+      "cues": "Namigi",
+      "perSetTargets": "Cilji na serijo",
+      "progression": "Progresija",
+      "weekOverrides": "Nadomestila tedna",
+      "active": "Aktivno",
+      "intensity": "Intenzivnost",
+      "target": "Cilj",
+      "estimatedOneRepMax": "Ocenjeni 1RM",
+      "notSet": "Ni nastavljeno",
+      "intensityRange": "Razpon intenzivnosti",
+      "weightSettings": "Nastavitve teže",
+      "weightMode": "Način teže",
+      "increment": "Povečanje",
+      "exerciseSettings": "Nastavitve vaje"
+    }
+  },
+  "workoutLog": {
+    "title": "Dnevnik treninga",
+    "subtitle": "{{workout}} · Teden {{week}}",
+    "progress": "{{logged}} / {{total}} serij zabeleženih",
+    "loading": "Nalaganje dnevnika treninga…",
+    "done": "Končano",
+    "skip": "Preskoči",
+    "save": "Shrani dnevnik",
+    "saving": "Shranjevanje…",
+    "useTarget": "Zaključi s ciljem",
+    "reset": "Ponastavi",
+    "setLabel": "Serija {{set}}",
+    "targetRir": "Ciljni RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Dejanska teža",
+    "actualReps": "Dejanska ponovitve",
+    "leftReps": "Leva stran",
+    "rightReps": "Desna stran",
+    "perSideReps": "Na stran",
+    "sharedReps": "Skupno",
+    "actualRir": "Dejanski RIR",
+    "errors": {
+      "load": "Ni mogoče naložiti dnevnika treninga.",
+      "save": "Ni mogoče shraniti dnevnika treninga."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Predlogi progresije",
+    "subtitle": "Uporabi naslednjo obremenitev zdaj ali pusti za kasneje.",
+    "current": "Trenutna teža",
+    "next": "Naslednja teža",
+    "reason": "Razlog: {{reason}}",
+    "apply": "Uporabi",
+    "skip": "Preskoči"
+  },
+  "exerciseSettings": {
+    "title": "Nastavitve vaje",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Delovna teža",
+    "weightMode": "Način teže",
+    "increment": "Povečanje",
+    "estimatedOneRepMax": "Ocenjeni 1RM",
+    "notes": "Opombe",
+    "history": "Zgodovina",
+    "linkedVariants": "Povezane različice",
+    "historyLoading": "Nalaganje zgodovine…",
+    "historyEmpty": "Ni še zabeleženih sej.",
+    "historyError": "Ni mogoče naložiti zgodovine.",
+    "historySets": "{{completed}} / {{total}} serij",
+    "historyBestReps": "Najboljših {{reps}} ponovitev"
   },
   "restTimer": {
     "title": "Časovnik za počitek",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Nastavitve programa",
     "tabs": {
+      "program": "Program",
       "weeks": "Tedni",
       "days": "Dnevi"
+    },
+    "program": {
+      "name": "Ime programa",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Podnaslov",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Cilj",
+      "goalPlaceholder": "Moč in hipertrofija",
+      "description": "Opis",
+      "descriptionPlaceholder": "Izbirne opombe o tem trening bloku",
+      "sourceType": "Vir",
+      "sourceLabel": "Oznaka vira",
+      "sourceLabelPlaceholder": "PDF trenerja, predloga ali opomba",
+      "startDate": "Začetni datum",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Trajanje (tedni)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Privzeti počitek (s)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Model progresije",
+      "frequencySummary": "Tedenski cilji",
+      "frequencyGroupPlaceholder": "Mišična skupina",
+      "frequencyTarget": "Cilj na teden",
+      "frequencyPerWeek_one": "{{count}}x / teden",
+      "frequencyPerWeek_other": "{{count}}x / teden",
+      "addFrequencyTarget": "Dodaj tedenski cilj",
+      "progressionModels": {
+        "simple_load_modifier": "Preprosto",
+        "exercise_rules": "Pravila",
+        "mixed": "Mešano",
+        "manual": "Ročno"
+      },
+      "sourceTypes": {
+        "manual": "Ročno",
+        "coach": "Trener",
+        "template": "Predloga",
+        "imported_pdf": "Uvožen PDF",
+        "imported_json": "Uvožen JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Ime tedna",
       "loadModifier": "Modifikator obremenitve",
+      "volumeModifier": "Modifikator volumna",
       "rir": "RIR (Ponovitve v rezervi)",
+      "notes": "Opombe tedna",
+      "notesPlaceholder": "Izbirne opombe za ta teden",
       "baseline": "Izhodišče",
       "addWeek": "Dodaj teden",
       "deleteTitle": "Izbriši teden",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Dan {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikona",
+      "schedule": "Urnik",
+      "pickDay": "Izberi dan",
+      "pickWindow": "Izberi dni",
       "iconMore": "Več",
       "iconRefresh": "Osveži",
+      "scheduleTypes": {
+        "unscheduled": "Poljuben",
+        "fixed_day": "Fiksen",
+        "day_window": "Okno"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Pon",
+          "tue": "Tor",
+          "wed": "Sre",
+          "thu": "Čet",
+          "fri": "Pet",
+          "sat": "Sob",
+          "sun": "Ned"
+        },
+        "narrow": {
+          "mon": "P",
+          "tue": "T",
+          "wed": "S",
+          "thu": "Č",
+          "fri": "P",
+          "sat": "S",
+          "sun": "N"
+        }
+      },
       "addDay": "Dodaj dan",
       "deleteTitle": "Izbriši dan",
       "deleteMessage": "Izbrišite \"{{name}}\"? To ga odstrani iz vseh tednov."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Dodaj vajo",
     "titleEdit": "Uredi vajo",
+    "tabs": {
+      "basic": "Osnovno",
+      "advanced": "Napredno"
+    },
     "name": "Ime",
     "namePlaceholder": "Ime vaje",
     "muscleGroup": "Mišična skupina",
@@ -202,11 +487,52 @@
     "reps": "Ponovitve",
     "notes": "Opombe",
     "notesPlaceholder": "Izbirne opombe...",
+    "advanced": {
+      "show": "Pokaži napredna polja",
+      "hide": "Skrij napredna polja",
+      "rest": "Počitek (s)",
+      "restUseDefault": "Globalna privzeta",
+      "restCustom": "Po meri",
+      "restPlaceholder": "180",
+      "rir": "Ciljni RIR",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intenzivnost",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "Pravilo progresije",
+      "progressionRulePlaceholder": "+5kg when all sets hit top reps with 2 RIR",
+      "unilateral": "Enostranski način",
+      "unilateralPlaceholder": "na nogo, na stran, levo/desno, izmenično",
+      "equipment": "Oprema",
+      "equipmentPlaceholder": "Olimpijska palica, ročka, kabel, trenažer",
+      "primaryMuscles": "Glavne mišice",
+      "primaryMusclesPlaceholder": "Ena mišica na vrstico",
+      "secondaryMuscles": "Pomožne mišice",
+      "secondaryMusclesPlaceholder": "Ena mišica na vrstico",
+      "canonicalExerciseId": "Kanonični ID vaje",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Oznaka različice",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Vzdevki",
+      "aliasesPlaceholder": "En vzdevek na vrstico",
+      "sessionSpecific": "Specifično za sejo",
+      "sessionSpecificToggle": "Sledi kot različico samo za to sejo",
+      "technicalNotes": "Tehnične opombe",
+      "technicalNotesPlaceholder": "Ena opomba na vrstico",
+      "executionCues": "Namigi za izvedbo",
+      "executionCuesPlaceholder": "En namig na vrstico",
+      "perSetTargets": "Cilji na serijo",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Nadomestila tedna",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "Dodaj vajo",
     "submitEdit": "Shrani spremembe",
     "errors": {
       "nameRequired": "Ime vaje je obvezno.",
-      "setsInvalid": "Nize morajo biti veljavno pozitivno celo število."
+      "setsInvalid": "Nize morajo biti veljavno pozitivno celo število.",
+      "restInvalid": "Počitek mora biti ne-negativno celo število."
     }
   },
   "settings": {
@@ -247,41 +573,46 @@
       "peers_one": "{{count}} enakovredna naprava povezana",
       "peers_other": "{{count}} enakovrednih naprav povezanih",
       "stopSync": "Ustavi sinhronizacijo",
-      "connectionInfo": "Connection info",
-      "openSyncHub": "Open Sync Hub"
+      "connectionInfo": "Informacije o povezavi",
+      "openSyncHub": "Odpri Sync Hub"
     },
     "syncStatus": {
-      "title": "Sync Status",
-      "status": "Status",
-      "syncingWith_one": "Syncing with {{count}} device",
-      "syncingWith_other": "Syncing with {{count}} devices",
-      "off": "Sync is off",
-      "lastSuccessfulSync": "Last successful sync",
-      "manage": "Manage Sync"
+      "title": "Stanje sinhronizacije",
+      "status": "Stanje",
+      "enabled": "Sinhronizacija je vklopljena",
+      "disabled": "Sinhronizacija je izklopljena",
+      "syncingWith_one": "Sinhronizacija z {{count}} napravo",
+      "syncingWith_other": "Sinhronizacija z {{count}} napravami",
+      "off": "Sinhronizacija je izklopljena",
+      "lastSuccessfulSync": "Zadnja uspešna sinhronizacija",
+      "manage": "Upravljanje sinhronizacije"
     },
     "localBackup": {
       "title": "Varnostna kopija",
       "export": "Shrani varnostno kopijo v napravo",
       "import": "Obnovi iz varnostne kopije",
+      "shareBackup": "Deli varnostno kopijo",
       "shareToDevice": "Deli z drugo napravo",
-      "scanFromDevice": "Skeniraj iz druge naprave"
+      "scanFromDevice": "Skeniraj iz druge naprave",
+      "localSaveRestore": "Lokalno shranjevanje / obnovitev",
+      "qrShareRestore": "QR deljenje / obnovitev"
     },
     "pairingDevices": {
-      "title": "Pairing & Devices",
-      "count_one": "{{count}} paired device",
-      "count_other": "{{count}} paired devices"
+      "title": "Seznanjanje in naprave",
+      "count_one": "{{count}} seznanjena naprava",
+      "count_other": "{{count}} seznanjenih naprav"
     },
     "syncAdvanced": {
-      "title": "Sync Hub",
-      "description": "Debug logs and device identifiers for troubleshooting."
+      "title": "Sinhronizacijsko središče",
+      "description": "Dnevniki razhroščevanja in identifikatorji naprav za odpravljanje težav."
     },
     "syncHub": {
-      "title": "Sync Hub",
-      "overview": "Overview",
-      "ids": "Device & Group IDs",
-      "connections": "Connections",
-      "localWriterKey": "Local writer key",
-      "management": "Management"
+      "title": "Sinhronizacijsko središče",
+      "overview": "Pregled",
+      "ids": "ID naprave in skupine",
+      "connections": "Povezave",
+      "localWriterKey": "Lokalni pisalni ključ",
+      "management": "Upravljanje"
     },
     "data": {
       "title": "Podatki",
@@ -297,7 +628,7 @@
       "title": "Info o aplikaciji",
       "name": "Ime",
       "version": "Različica",
-      "build": "Build",
+      "build": "Zgradba",
       "buildType": "Tip builda"
     }
   },
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Predogled uvoza",
+    "titleWithProgram": "Uvoz: {{program}}",
     "changesDetected": "Zaznanih {{count}} sprememb.",
     "noChanges": "Nobene spremembe zaznane. Varnostna kopija je identična trenutnim podatkom.",
+    "modeHint": "Uvoz kot nov ohrani trenutni načrt na voljo. Zamenjava aktivnega programa prepiše trenutni načrt na tej napravi.",
+    "stats": {
+      "workouts": "Treningi za posodobitev",
+      "exercises": "Vaje za ustvarjanje ali posodobitev",
+      "preservedWeights": "Ohranjene teže",
+      "needsWeight": "Potrebna začetna teža"
+    },
+    "exerciseStatus": {
+      "matching": "Ujemajoče se vaje",
+      "changed": "Spremenjene vaje",
+      "new": "Nove vaje",
+      "removed": "Odstranjene vaje"
+    },
     "sections": {
+      "exerciseStatus": "Stanje vaj",
+      "preservedWeights": "Ohranjene teže",
+      "missingWeights": "Nove vaje brez shranjene teže",
+      "removedExercises": "Odstranjeno iz aktivnega programa",
       "workouts": "Treningi",
+      "program": "Program",
       "settings": "Nastavitve",
       "weeks": "Tedni",
       "days": "Dnevi"
     },
+    "currentWeightKept": "Trenutna teža ohranjena",
+    "noPreviousWeight": "Ni najdene predhodne teže",
     "cancel": "Prekliči",
-    "confirm": "Uvozi varnostno kopijo"
+    "confirm": "Uvozi varnostno kopijo",
+    "importAsNewProgram": "Uvozi kot nov program",
+    "replaceActiveProgram": "Zamenjaj aktivni program"
+  },
+  "programLibrary": {
+    "title": "Programi",
+    "summary": "{{count}} shranjen(i) program(i)",
+    "active": "Aktivno",
+    "empty": "Ni še shranjenih programov."
   },
   "deviceTransfer": {
     "shareTitle": "Deli z drugo napravo",
     "shareDescription": "Na drugi napravi: Nastavitve → Varnostna kopija → Skeniraj iz druge naprave.",
+    "shareChunkCounter": "Del {{current}}/{{total}}",
+    "shareChunkHint": "Obe napravi držite pri miru. QR se vrti samodejno.",
+    "pauseRotation": "Ustavi vrtenje",
+    "resumeRotation": "Nadaljuj vrtenje",
     "scanTitle": "Skeniraj iz druge naprave",
     "scanDescription": "Usmeri kamero v QR kodo varnostne kopije PearLift.",
+    "chunkProgress": "Napredek skeniranja: {{received}}/{{total}}",
+    "transferCorrupted": "Prenos QR ni prestal preverjanja celovitosti. Skenirajte znova od prvega kosa.",
     "cameraPermissionTitle": "Potrebno je dovoljenje za kamero",
     "cameraPermissionMessage": "Dovoli dostop do kamere za skeniranje QR kode varnostne kopije.",
     "cameraPermissionButton": "Dovoli kamero",
+    "cameraUnavailableTitle": "Kamera ni na voljo",
+    "cameraUnavailableMessage": "PearLift ni mogel dostopati do uporabne zadnje kamere na tej napravi.",
     "invalidQr": "Ta QR koda ne izgleda kot varnostna kopija PearLift.",
     "tooLarge": "Varnostna kopija je prevelika za eno QR kodo. Namesto tega uporabi “Shrani varnostno kopijo v napravo”."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Deljenje ni na voljo na tej napravi/platformi."
     },
     "importBackup": {
-      "failedTitle": "Uvoz ni uspel"
+      "failedTitle": "Uvoz ni uspel",
+      "confirmReplaceTitle": "Zamenjati aktivni program?",
+      "confirmReplaceMessage": "To bo zamenjalo vaš trenutni aktivni program z \"{{program}}\" na tej napravi. Obstoječe ujemajoče se teže bodo ohranjene, kjer je mogoče.",
+      "confirmReplaceAction": "Zamenjaj program"
     },
     "forgetDevice": {
       "authPromptMessage": "Potrditev pozabljenja naprave",

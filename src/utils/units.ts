@@ -36,6 +36,26 @@ export function fromDisplayWeight(value: number, unit: WeightUnit): number {
   return value;
 }
 
+export function normalizeLoadModifier(
+  loadModifier: number | null | undefined,
+): number {
+  if (
+    !Number.isFinite(loadModifier) ||
+    loadModifier == null ||
+    loadModifier <= 0
+  ) {
+    return 1;
+  }
+  return loadModifier;
+}
+
+export function removeLoadModifier(
+  valueKg: number,
+  loadModifier: number | null | undefined,
+): number {
+  return valueKg / normalizeLoadModifier(loadModifier);
+}
+
 export function getWeightStep(displayWeight: number, unit: WeightUnit): number {
   if (unit === 'lb') {
     return displayWeight >= 45 ? 5 : 2.5;

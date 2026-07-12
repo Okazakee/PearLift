@@ -4,7 +4,9 @@
     "delete": "削除",
     "back": "戻る",
     "next": "次へ",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "閉じる",
+    "save": "保存"
   },
   "app": {
     "loading": "トレーニングデータの準備中"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "アイドル",
         "connecting": "検索中",
+        "waiting": "待機中",
+        "dht_ready": "DHT準備完了",
+        "peer_connected": "ピア接続済み",
+        "handshake_ok": "ハンドシェイクOK",
+        "replicating": "複製中",
         "synced": "接続済み",
         "error": "エラー"
       },
@@ -134,6 +141,19 @@
         "connecting": "同期グループを検索中。",
         "off": "同期は現在このデバイスで無効です。"
       },
+      "dht": "DHT",
+      "dhtReady": "準備完了",
+      "dhtBootstrapping": "ブートストラップ中…",
+      "dhtError": "エラー",
+      "dhtInactive": "非アクティブ",
+      "dhtWaiting": "待機中",
+      "status": "ステータス",
+      "peers": "ピア",
+      "peersConnected": "{{count}}接続済み",
+      "peersNone": "なし",
+      "connectionsActive": "{{count}}アクティブ",
+      "connectionsNone": "なし",
+      "more": "もっと見る",
       "lastSyncAt": "最後の同期: {{at}}",
       "lastSyncNever": "最後の同期: なし",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "トラブルシューティング",
         "stop": "同期を停止"
       }
+    },
+    "manage": {
+      "title": "デバイス同期",
+      "subtitle": "グループ設定と同期メンテナンスを一元管理します。",
+      "roomSetup": "グループ設定",
+      "roomSetupHint": "このデバイスが新しいグループを開始するか、既存のグループに参加するかを選択します。",
+      "onboardingTitle": "クラウド不要。アカウント不要。",
+      "onboardingMessage": "PearLiftはワークアウトをデバイス間で直接同期します—ピアツーピア。データがサーバーに触れることはありません。最初の接続には同じWi‑Fiか近距離であることだけが必要です。",
+      "onboardingDismiss": "わかりました",
+      "createRoom": "グループを作成",
+      "joinRoom": "グループに参加",
+      "roomActive": "グループアクティブ",
+      "status": "同期ステータス",
+      "turnOn": "オン",
+      "turnOff": "オフ",
+      "refresh": "更新",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "グループ所有者",
+        "joiner": "メンバー"
+      },
+      "binding": {
+        "unconfigured": "未設定",
+        "pending_first_sync": "初回同期待機中",
+        "active": "アクティブ",
+        "conflict_requires_decision": "判断が必要です",
+        "active_conflict_requires_decision": "同期の競合に判断が必要です"
+      },
+      "thisDeviceCode": "このデバイスのコード: {{code}}",
+      "deviceCode": "コード {{code}}",
+      "deviceNamePlaceholder": "このデバイスに名前を付ける",
+      "saveDeviceName": "デバイス名を保存",
+      "deviceNameSyncPending": "デバイス名はローカルに保存されました。同期がピアとの共有を再試行します。",
+      "masterKey": "同期コード",
+      "masterKeyHint": "データを共有するすべてのデバイスで同じ64文字の同期コードを使用します。",
+      "masterKeyPlaceholder": "64文字の同期コードを貼り付けまたは編集",
+      "showQR": "QRコードを表示",
+      "copyKey": "コードをコピー",
+      "applyKey": "コードを適用",
+      "leaveRoom": "グループを退出",
+      "leaveRoomConfirmTitle": "このグループを退出しますか？",
+      "leaveRoomConfirmMessage": "これにより同期がオフになり、このデバイスの現在のグループバインディングがクリアされ、ローカルのグループ接続履歴が削除されます。",
+      "syncedDevices": "{{count}}台のデバイス",
+      "syncedDevicesTitle": "デバイス",
+      "noDevices": "まだ同期したデバイスはありません。",
+      "showMore": "あと{{count}}件表示",
+      "lastSeen": "最終確認 {{at}}",
+      "lastSyncAt": "最終同期 {{at}}",
+      "removeDevice": "リストから削除",
+      "removeDeviceConfirmTitle": "このデバイスをリストから削除しますか？",
+      "removeDeviceConfirmMessage": "このデバイスのリストからのみ非表示になります。後でこのグループと同期すると再表示されます。",
+      "debug": "デバッグ情報",
+      "never": "なし"
+    },
+    "create": {
+      "title": "グループを作成",
+      "subtitle": "このデバイスが新しい同期グループを開始し、同期コードを他のデバイスと共有できます。",
+      "room": "新しいグループ",
+      "explainer": "このデバイスが初期グループを定義し、他のデバイスを招待する場合に使用します。",
+      "datasetSummary": "このデバイスには現在{{workouts}}件のワークアウトと{{exercises}}件のエクササイズがあります。",
+      "masterKey": "同期コード",
+      "inviteStarting": "グループを開始し、QR招待状を生成中…",
+      "invitePending": "グループを開始してQR招待状を生成します。",
+      "copy": "コードをコピー",
+      "startRoom": "このグループを開始"
+    },
+    "join": {
+      "title": "グループに参加",
+      "subtitle": "別のデバイスの同期コードを使用して、このデバイスを同じ同期グループに接続します。",
+      "preflight": "参加前",
+      "localSummary": "このデバイスには現在{{workouts}}件のワークアウトと{{exercises}}件のエクササイズがあります。",
+      "remoteSummaryHint": "両方のデバイスに重複する変更が多い場合、PearLiftはどちらのデータセットを保持するか尋ねます。",
+      "masterKey": "同期コード",
+      "keyPlaceholder": "64文字の同期コードを貼り付け",
+      "paste": "貼り付け",
+      "scanQr": "QRをスキャン",
+      "scanHelp": "同期コードを含むQRコードにカメラを向けます。",
+      "invalidKey": "無効な同期コードです。64桁の16進数である必要があります。",
+      "keyValid": "有効な招待コード",
+      "pasteSuccess": "クリップボードから貼り付けました",
+      "pasteEmpty": "クリップボードは空です",
+      "joinRoom": "グループに参加"
+    },
+    "decision": {
+      "title": "初回同期データを選択",
+      "subtitle": "両方に意味のあるデータが既に含まれています。このグループが保持するベースラインを選択してください。",
+      "thisDevice": "このデバイス",
+      "roomData": "グループデータ",
+      "datasetSummary": "{{workouts}}件のワークアウト · {{exercises}}件のエクササイズ",
+      "conflictTitle": "重複する変更が検出されました",
+      "conflictWorkouts": "ワークアウト",
+      "conflictExercises": "エクササイズ",
+      "conflictSummary": "{{workouts}}件のワークアウト重複と{{exercises}}件のエクササイズ重複が検出されました。",
+      "configConflictSummary": "{{weeks}}週間の設定重複、{{days}}日の設定重複、{{backlog}}件のグループ更新待機中。",
+      "useThisDeviceHint": "このデバイスをグループのベースラインとして公開します。",
+      "useRoomDataHint": "アプリ設定を保持しつつ、このデバイスのワークアウトデータを置き換えます。",
+      "useMerge": "両方をマージ",
+      "useMergeHint": "重複がない場合、このデバイスとグループのデータを結合します。",
+      "mergeUnavailableHint": "一部のワークアウトまたはエクササイズが両方のデバイスに異なる値で存在するため、マージできません。",
+      "useThisDevice": "このデバイスのデータを使用",
+      "useRoomData": "グループデータを使用"
+    },
+    "debug": {
+      "title": "同期デバッグ情報",
+      "subtitle": "ランタイムステータス、接続詳細、最近の同期ログ。",
+      "snapshot": "ランタイムスナップショット",
+      "connections": "接続",
+      "lastError": "最終エラー",
+      "logs": "最近のログ",
+      "logCount": "ログエントリ{{total}}件中{{shown}}件を表示",
+      "clear": "クリア"
     }
   },
   "workout": {
     "weekDay": "週 {{week}} - 日 {{day}}",
-    "addExercise": "エクササイズを追加"
+    "addExercise": "エクササイズを追加",
+    "logWorkout": "ワークアウトを記録",
+    "progressionSuggestions": "提案",
+    "suggestedToday": "本日の提案: {{workout}}",
+    "showDetails": "詳細を表示",
+    "hideDetails": "詳細を隠す",
+    "details": {
+      "notes": "メモ",
+      "tempo": "テンポ",
+      "equipment": "器具",
+      "primaryMuscles": "主動筋",
+      "secondaryMuscles": "補助筋",
+      "technique": "テクニック",
+      "cues": "キュー",
+      "perSetTargets": "セットごとの目標",
+      "progression": "プログレッション",
+      "weekOverrides": "週の上書き",
+      "active": "アクティブ",
+      "intensity": "強度",
+      "target": "目標",
+      "estimatedOneRepMax": "推定1RM",
+      "notSet": "未設定",
+      "intensityRange": "強度範囲",
+      "weightSettings": "重量設定",
+      "weightMode": "重量モード",
+      "increment": "増分",
+      "exerciseSettings": "エクササイズ設定"
+    }
+  },
+  "workoutLog": {
+    "title": "ワークアウトログ",
+    "subtitle": "{{workout}} · 第{{week}}週",
+    "progress": "{{logged}} / {{total}}セット記録済み",
+    "loading": "ワークアウトログを読み込み中…",
+    "done": "完了",
+    "skip": "スキップ",
+    "save": "ログを保存",
+    "saving": "保存中…",
+    "useTarget": "目標で完了",
+    "reset": "リセット",
+    "setLabel": "セット{{set}}",
+    "targetRir": "目標RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}}{{unit}} · RIR {{rir}}",
+    "actualWeight": "実際の重量",
+    "actualReps": "実際の反復数",
+    "leftReps": "左の反復数",
+    "rightReps": "右の反復数",
+    "perSideReps": "片側",
+    "sharedReps": "共有",
+    "actualRir": "実際のRIR",
+    "errors": {
+      "load": "このワークアウトログを読み込めませんでした。",
+      "save": "このワークアウトログを保存できませんでした。"
+    }
+  },
+  "progressionSuggestions": {
+    "title": "プログレッションの提案",
+    "subtitle": "次の負荷を今適用するか、後で保留にします。",
+    "current": "現在の重量",
+    "next": "次の重量",
+    "reason": "理由: {{reason}}",
+    "apply": "適用",
+    "skip": "スキップ"
+  },
+  "exerciseSettings": {
+    "title": "エクササイズ設定",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "作業重量",
+    "weightMode": "重量モード",
+    "increment": "増分",
+    "estimatedOneRepMax": "推定1RM",
+    "notes": "メモ",
+    "history": "最近の履歴",
+    "linkedVariants": "関連バリエーション",
+    "historyLoading": "履歴を読み込み中…",
+    "historyEmpty": "まだ記録されたセッションはありません。",
+    "historyError": "履歴を読み込めませんでした。",
+    "historySets": "{{completed}} / {{total}}セット",
+    "historyBestReps": "最高{{reps}}回"
   },
   "restTimer": {
     "title": "リタイマー",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "プログラム設定",
     "tabs": {
+      "program": "プログラム",
       "weeks": "週",
       "days": "日"
+    },
+    "program": {
+      "name": "プログラム名",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "サブタイトル",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "目標",
+      "goalPlaceholder": "筋力と筋肥大",
+      "description": "説明",
+      "descriptionPlaceholder": "このトレーニングブロックに関するオプションのメモ",
+      "sourceType": "ソース",
+      "sourceLabel": "ソースラベル",
+      "sourceLabelPlaceholder": "コーチのPDF、テンプレート、メモ",
+      "startDate": "開始日",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "期間（週）",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "デフォルトの休憩（秒）",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "プログレッションモデル",
+      "frequencySummary": "週間目標",
+      "frequencyGroupPlaceholder": "筋肉グループ",
+      "frequencyTarget": "週あたりの目標",
+      "frequencyPerWeek_one": "週{{count}}回",
+      "frequencyPerWeek_other": "週{{count}}回",
+      "addFrequencyTarget": "週間目標を追加",
+      "progressionModels": {
+        "simple_load_modifier": "シンプル",
+        "exercise_rules": "ルール",
+        "mixed": "混合",
+        "manual": "手動"
+      },
+      "sourceTypes": {
+        "manual": "手動",
+        "coach": "コーチ",
+        "template": "テンプレート",
+        "imported_pdf": "インポートしたPDF",
+        "imported_json": "インポートしたJSON"
+      }
     },
     "week": {
       "namePlaceholder": "週名",
       "loadModifier": "負荷モディファイア",
+      "volumeModifier": "ボリュームモディファイア",
       "rir": "RIR（リバースレップ）",
+      "notes": "週メモ",
+      "notesPlaceholder": "今週のオプションのメモ",
       "baseline": "ベースライン",
       "addWeek": "週を追加",
       "deleteTitle": "週を削除",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "日 {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "アイコン",
+      "schedule": "スケジュール",
+      "pickDay": "曜日を選択",
+      "pickWindow": "曜日を選択",
       "iconMore": "更多",
       "iconRefresh": "更新",
+      "scheduleTypes": {
+        "unscheduled": "任意",
+        "fixed_day": "固定",
+        "day_window": "期間"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "月",
+          "tue": "火",
+          "wed": "水",
+          "thu": "木",
+          "fri": "金",
+          "sat": "土",
+          "sun": "日"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "W",
+          "thu": "T",
+          "fri": "F",
+          "sat": "S",
+          "sun": "S"
+        }
+      },
       "addDay": "日を追加",
       "deleteTitle": "日を削除",
       "deleteMessage": "\"{{name}}\"を削除しますか？これは全ての週から削除します。"
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "エクササイズを追加",
     "titleEdit": "エクササイズを編集",
+    "tabs": {
+      "basic": "基本",
+      "advanced": "詳細"
+    },
     "name": "名前",
     "namePlaceholder": "エクササイズ名",
     "muscleGroup": "筋肉グループ",
@@ -202,11 +487,52 @@
     "reps": "反復",
     "notes": "メモ",
     "notesPlaceholder": "任意メモ...",
+    "advanced": {
+      "show": "詳細フィールドを表示",
+      "hide": "詳細フィールドを隠す",
+      "rest": "休憩（秒）",
+      "restUseDefault": "グローバルデフォルト",
+      "restCustom": "カスタム",
+      "restPlaceholder": "180",
+      "rir": "RIR目標",
+      "rirPlaceholder": "1-2",
+      "intensity": "強度",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "テンポ",
+      "tempoPlaceholder": "エキセントリック2秒",
+      "progressionRule": "プログレッションルール",
+      "progressionRulePlaceholder": "全セットが2RIRで最大反復に達した場合+5kg",
+      "unilateral": "片側モード",
+      "unilateralPlaceholder": "片脚、片側、左/右、交互",
+      "equipment": "器具",
+      "equipmentPlaceholder": "バーベル、ダンベル、ケーブル、マシン",
+      "primaryMuscles": "主動筋",
+      "primaryMusclesPlaceholder": "1行に1つの筋肉",
+      "secondaryMuscles": "補助筋",
+      "secondaryMusclesPlaceholder": "1行に1つの筋肉",
+      "canonicalExerciseId": "標準エクササイズID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "バリアントラベル",
+      "variantLabelPlaceholder": "セッションB",
+      "aliases": "別名",
+      "aliasesPlaceholder": "1行に1つの別名",
+      "sessionSpecific": "セッション固有",
+      "sessionSpecificToggle": "セッション限定バリアントとして記録",
+      "technicalNotes": "テクニカルノート",
+      "technicalNotesPlaceholder": "1行に1つのノート",
+      "executionCues": "実行キュー",
+      "executionCuesPlaceholder": "1行に1つのキュー",
+      "perSetTargets": "セットごとの目標",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=限界まで",
+      "weekOverrides": "週の上書き",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=1セット追加"
+    },
     "submitAdd": "エクササイズを追加",
     "submitEdit": "変更を保存",
     "errors": {
       "nameRequired": "エクササイズ名は必須です。",
-      "setsInvalid": "セットは有効な正の整数である必要があります。"
+      "setsInvalid": "セットは有効な正の整数である必要があります。",
+      "restInvalid": "休憩は有効な0以上の整数である必要があります。"
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "同期ステータス",
       "status": "ステータス",
+      "enabled": "同期がオンです",
+      "disabled": "同期がオフです",
       "syncingWith_one": "{{count}} 台のデバイスと同期中",
       "syncingWith_other": "{{count}} 台のデバイスと同期中",
       "off": "同期がオフです",
@@ -263,8 +591,11 @@
       "title": "バックアップ",
       "export": "端末にバックアップを保存",
       "import": "バックアップから復元",
+      "shareBackup": "バックアップを共有",
       "shareToDevice": "別の端末に共有",
-      "scanFromDevice": "別の端末からスキャン"
+      "scanFromDevice": "別の端末からスキャン",
+      "localSaveRestore": "ローカル保存 / 復元",
+      "qrShareRestore": "QR共有 / 復元"
     },
     "pairingDevices": {
       "title": "ペアリングとデバイス",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "インポートプレビュー",
+    "titleWithProgram": "インポート: {{program}}",
     "changesDetected": "{{count}}件の変更が検出されました。",
     "noChanges": "変更は検出されませんでした。バックアップは現在のデータと同じです。",
+    "modeHint": "新規インポートは現在の計画を維持します。アクティブプログラムの置き換えはこのデバイスの現在の計画を上書きします。",
+    "stats": {
+      "workouts": "更新するワークアウト",
+      "exercises": "作成または更新するエクササイズ",
+      "preservedWeights": "保存された重量",
+      "needsWeight": "開始重量が必要"
+    },
+    "exerciseStatus": {
+      "matching": "一致するエクササイズ",
+      "changed": "変更されたエクササイズ",
+      "new": "新しいエクササイズ",
+      "removed": "削除されたエクササイズ"
+    },
     "sections": {
+      "exerciseStatus": "エクササイズステータス",
+      "preservedWeights": "保存された重量",
+      "missingWeights": "保存された重量のない新しいエクササイズ",
+      "removedExercises": "アクティブプログラムから削除",
       "workouts": "ワークアウト",
+      "program": "プログラム",
       "settings": "設定",
       "weeks": "週",
       "days": "日"
     },
+    "currentWeightKept": "現在の重量を維持",
+    "noPreviousWeight": "以前の重量が見つかりません",
     "cancel": "キャンセル",
-    "confirm": "バックアップをインポート"
+    "confirm": "バックアップをインポート",
+    "importAsNewProgram": "新規プログラムとしてインポート",
+    "replaceActiveProgram": "アクティブプログラムを置き換え"
+  },
+  "programLibrary": {
+    "title": "プログラム",
+    "summary": "{{count}}件の保存済みプログラム",
+    "active": "アクティブ",
+    "empty": "保存されたプログラムはまだありません。"
   },
   "deviceTransfer": {
     "shareTitle": "別の端末に共有",
     "shareDescription": "別の端末で「設定 → バックアップ → 別の端末からスキャン」を開いてください。",
+    "shareChunkCounter": "チャンク {{current}}/{{total}}",
+    "shareChunkHint": "両方のデバイスを固定してください。QRは自動的に回転します。",
+    "pauseRotation": "回転を一時停止",
+    "resumeRotation": "回転を再開",
     "scanTitle": "別の端末からスキャン",
     "scanDescription": "PearLiftのバックアップQRコードにカメラを向けてください。",
+    "chunkProgress": "スキャン進捗: {{received}}/{{total}}",
+    "transferCorrupted": "QR転送の整合性チェックに失敗しました。最初のチャンクから再度スキャンしてください。",
     "cameraPermissionTitle": "カメラの許可が必要です",
     "cameraPermissionMessage": "バックアップQRコードを読み取るためにカメラへのアクセスを許可してください。",
     "cameraPermissionButton": "カメラを許可",
+    "cameraUnavailableTitle": "カメラが利用できません",
+    "cameraUnavailableMessage": "PearLiftがこのデバイスで使用可能な背面カメラにアクセスできませんでした。",
     "invalidQr": "このQRコードはPearLiftのバックアップではないようです。",
     "tooLarge": "バックアップが1つのQRコードに収まりません。代わりに「端末にバックアップを保存」を使用してください。"
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "このデバイス/プラットフォームでは共有を利用できません。"
     },
     "importBackup": {
-      "failedTitle": "インポートに失敗しました"
+      "failedTitle": "インポートに失敗しました",
+      "confirmReplaceTitle": "アクティブプログラムを置き換えますか？",
+      "confirmReplaceMessage": "これにより、このデバイスの現在のアクティブプログラムが「{{program}}」に置き換えられます。既存の一致する重量は可能な限り保持されます。",
+      "confirmReplaceAction": "プログラムを置き換え"
     },
     "forgetDevice": {
       "authPromptMessage": "デバイスを忘れることを確認します",

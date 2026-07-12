@@ -4,7 +4,9 @@
     "delete": "Törlés",
     "back": "Vissza",
     "next": "Tovább",
-    "ok": "Rendben"
+    "ok": "Rendben",
+    "close": "Bezárás",
+    "save": "Mentés"
   },
   "app": {
     "loading": "Edzésadatok előkészítése"
@@ -56,7 +58,7 @@
       "replaceJoinLabel": "Saját adatok cseréje az ő adataikra",
       "replaceJoinHint": "Az első szinkronizálás előtt ez visszaállítja a helyi edzéseket, gyakorlati súlyokat és programkonfigurációkat csak ezen az eszközön.",
       "copy": "Kód másolása",
-      "copied": "Copied!",
+      "copied": "Másolva!",
       "paste": "Beillesztés",
       "start": "Indítsa el a szinkronizálást",
       "stop": "Szinkronizálás leállítása",
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Tétlen",
         "connecting": "Keresés",
+        "waiting": "Várakozás",
+        "dht_ready": "DHT kész",
+        "peer_connected": "Társ csatlakozott",
+        "handshake_ok": "Kézfogás OK",
+        "replicating": "Replikálás",
         "synced": "Csatlakoztatva",
         "error": "Hiba"
       },
@@ -134,6 +141,19 @@
         "connecting": "A szinkronizálási csoportodat keresi.",
         "off": "A szinkronizálás jelenleg le van tiltva ezen az eszközön."
       },
+      "dht": "DHT",
+      "dhtReady": "Kész",
+      "dhtBootstrapping": "Betöltés…",
+      "dhtError": "Hiba",
+      "dhtInactive": "Inaktív",
+      "dhtWaiting": "Várakozás",
+      "status": "Állapot",
+      "peers": "Társak",
+      "peersConnected": "{{count}} csatlakoztatva",
+      "peersNone": "Nincs",
+      "connectionsActive": "{{count}} aktív",
+      "connectionsNone": "Nincs",
+      "more": "Több",
       "lastSyncAt": "Utolsó szinkronizálás: {{at}}",
       "lastSyncNever": "Utolsó szinkronizálás: soha",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Hibaelhárítás",
         "stop": "Szinkronizálás leállítása"
       }
+    },
+    "manage": {
+      "title": "Eszköz szinkronizáció",
+      "subtitle": "Tartsd a csoportbeállítást és a szinkronizáció karbantartását egy helyen.",
+      "roomSetup": "Csoport beállítás",
+      "roomSetupHint": "Válaszd ki, hogy ez az eszköz új csoportot indít vagy egy meglévőhöz csatlakozik.",
+      "onboardingTitle": "Nincs felhő. Nincs fiók.",
+      "onboardingMessage": "A PearLift közvetlenül az eszközeid között szinkronizálja az edzéseidet — peer-to-peer. Az adataid soha nem érintenek szervert. Csak annyi kell, hogy ugyanazon a Wi‑Fi hálózaton vagy a közelben legyél az első kapcsolódáshoz.",
+      "onboardingDismiss": "Értem",
+      "createRoom": "Csoport létrehozása",
+      "joinRoom": "Csatlakozás csoporthoz",
+      "roomActive": "Csoport aktív",
+      "status": "Szinkronizálás állapota",
+      "turnOn": "Bekapcsolás",
+      "turnOff": "Kikapcsolás",
+      "refresh": "Frissít",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Csoport tulajdonos",
+        "joiner": "Tag"
+      },
+      "binding": {
+        "unconfigured": "Nincs beállítva",
+        "pending_first_sync": "Első szinkronizálásra vár",
+        "active": "Aktív",
+        "conflict_requires_decision": "Döntésedre van szükség",
+        "active_conflict_requires_decision": "Szinkronizációs konfliktus döntésedre vár"
+      },
+      "thisDeviceCode": "Eszköz kódja: {{code}}",
+      "deviceCode": "Kód: {{code}}",
+      "deviceNamePlaceholder": "Nevezd el ezt az eszközt",
+      "saveDeviceName": "Eszköznév mentése",
+      "deviceNameSyncPending": "Az eszköznév helyileg lett mentve. A szinkronizálás hamarosan újra megpróbálja megosztani a társakkal.",
+      "masterKey": "Szinkronizálási kód",
+      "masterKeyHint": "Használd ugyanazt a 64 karakteres szinkronizálási kódot minden eszközön, amelynek adatokat kell megosztania.",
+      "masterKeyPlaceholder": "Illeszd be vagy szerkeszd a 64 karakteres szinkronizálási kódot",
+      "showQR": "QR kód megjelenítése",
+      "copyKey": "Kód másolása",
+      "applyKey": "Kód alkalmazása",
+      "leaveRoom": "Csoport elhagyása",
+      "leaveRoomConfirmTitle": "Elhagyod ezt a csoportot?",
+      "leaveRoomConfirmMessage": "Ez kikapcsolja a szinkronizálást, törli a jelenlegi csoportkötést ezen az eszközön, és eltávolítja a helyi csoportkapcsolati előzményeket.",
+      "syncedDevices": "{{count}} eszköz",
+      "syncedDevicesTitle": "Eszközök",
+      "noDevices": "Még egy eszköz sem szinkronizált.",
+      "showMore": "Még {{count}} mutatása",
+      "lastSeen": "Utoljára látva {{at}}",
+      "lastSyncAt": "Utolsó szinkronizálás {{at}}",
+      "removeDevice": "Eltávolítás a listáról",
+      "removeDeviceConfirmTitle": "Eltávolítod ezt az eszközt a listáról?",
+      "removeDeviceConfirmMessage": "Ez csak ezen az eszközön rejti el az eszközt ebből a listából. Később újra megjelenhet, ha szinkronizál ezzel a csoporttal.",
+      "debug": "Hibakeresési információ",
+      "never": "Soha"
+    },
+    "create": {
+      "title": "Csoport létrehozása",
+      "subtitle": "Ez az eszköz új szinkronizációs csoportot indít, és megoszthatja a szinkronizálási kódot más eszközökkel.",
+      "room": "Új csoport",
+      "explainer": "Használd, ha ennek az eszköznek kell meghatároznia a kezdeti csoportot és meghívnia a többieket.",
+      "datasetSummary": "Ezen az eszközön jelenleg {{workouts}} edzés és {{exercises}} gyakorlat van.",
+      "masterKey": "Szinkronizálási kód",
+      "inviteStarting": "Csoport indítása és QR meghívó generálása…",
+      "invitePending": "Indítsd el a csoportot a QR meghívó létrehozásához.",
+      "copy": "Kód másolása",
+      "startRoom": "Csoport indítása"
+    },
+    "join": {
+      "title": "Csatlakozás csoporthoz",
+      "subtitle": "Használd egy másik eszköz szinkronizálási kódját, hogy ezt az eszközt ugyanahhoz a szinkronizációs csoporthoz csatlakoztasd.",
+      "preflight": "Csatlakozás előtt",
+      "localSummary": "Ezen az eszközön jelenleg {{workouts}} edzés és {{exercises}} gyakorlat van.",
+      "remoteSummaryHint": "Ha mindkét eszközön már sok átfedő változtatás van, a PearLift megkérdezi, melyik adatkészletet tartsa meg.",
+      "masterKey": "Szinkronizálási kód",
+      "keyPlaceholder": "Illeszd be a 64 karakteres szinkronizálási kódot",
+      "paste": "Beillesztés",
+      "scanQr": "QR beolvasása",
+      "scanHelp": "Irányítsd a kamerát a QR kódra, amely a szinkronizálási kódot tartalmazza.",
+      "invalidKey": "Érvénytelen szinkronizálási kód. 64 hexadecimális karakterből kell állnia.",
+      "keyValid": "Érvényes meghívókód",
+      "pasteSuccess": "Beillesztve a vágólapról",
+      "pasteEmpty": "A vágólap üres",
+      "joinRoom": "Csatlakozás csoporthoz"
+    },
+    "decision": {
+      "title": "Válaszd ki az első szinkronizálási adatokat",
+      "subtitle": "Mindkét oldal már tartalmaz értelmes adatokat. Válaszd ki, melyik alapvonalat tartsa meg a csoport.",
+      "thisDevice": "Ez az eszköz",
+      "roomData": "Csoport adatai",
+      "datasetSummary": "{{workouts}} edzés · {{exercises}} gyakorlat",
+      "conflictTitle": "Átfedő változtatások észlelve",
+      "conflictWorkouts": "Edzések",
+      "conflictExercises": "Gyakorlatok",
+      "conflictSummary": "{{workouts}} edzés és {{exercises}} gyakorlat átfedés észlelve.",
+      "configConflictSummary": "{{weeks}} hét konfigurációs átfedés, {{days}} nap konfigurációs átfedés, {{backlog}} csoportfrissítés vár.",
+      "useThisDeviceHint": "Ez közzéteszi ezt az eszközt a csoport alapvonalaként.",
+      "useRoomDataHint": "Ez lecseréli az edzésadatokat ezen az eszközön, miközben megtartja az alkalmazás beállításait.",
+      "useMerge": "Mindkettő egyesítése",
+      "useMergeHint": "Az eszköz és a csoport adatainak egyesítése, ha nincsenek átfedések.",
+      "mergeUnavailableHint": "Egyes edzések vagy gyakorlatok mindkét eszközön eltérő értékekkel léteznek, így az egyesítés nem lehetséges.",
+      "useThisDevice": "Használd ennek az eszköznek az adatait",
+      "useRoomData": "Használd a csoport adatait"
+    },
+    "debug": {
+      "title": "Szinkronizálás hibakeresési információ",
+      "subtitle": "Futásidejű állapot, kapcsolati adatok és friss szinkronizálási naplók.",
+      "snapshot": "Futásidejű pillanatkép",
+      "connections": "Kapcsolatok",
+      "lastError": "Utolsó hiba",
+      "logs": "Friss naplók",
+      "logCount": "{{shown}} / {{total}} naplóbejegyzés megjelenítve",
+      "clear": "Törlés"
     }
   },
   "workout": {
     "weekDay": "{{week}}. hét - {{day}}. nap",
-    "addExercise": "Gyakorlat hozzáadása"
+    "addExercise": "Gyakorlat hozzáadása",
+    "logWorkout": "Edzés naplózása",
+    "progressionSuggestions": "Javaslatok",
+    "suggestedToday": "Ma javasolt: {{workout}}",
+    "showDetails": "Részletek mutatása",
+    "hideDetails": "Részletek elrejtése",
+    "details": {
+      "notes": "Jegyzetek",
+      "tempo": "Tempó",
+      "equipment": "Felszerelés",
+      "primaryMuscles": "Elsődleges izmok",
+      "secondaryMuscles": "Másodlagos izmok",
+      "technique": "Technika",
+      "cues": "Útmutatások",
+      "perSetTargets": "Szett célok",
+      "progression": "Haladás",
+      "weekOverrides": "Hét felülbírálások",
+      "active": "Aktív",
+      "intensity": "Intenzitás",
+      "target": "Cél",
+      "estimatedOneRepMax": "Becsült 1RM",
+      "notSet": "Nincs beállítva",
+      "intensityRange": "Intenzitás tartomány",
+      "weightSettings": "Súly beállítások",
+      "weightMode": "Súly mód",
+      "increment": "Növekmény",
+      "exerciseSettings": "Gyakorlat beállítások"
+    }
+  },
+  "workoutLog": {
+    "title": "Edzés napló",
+    "subtitle": "{{workout}} · {{week}}. hét",
+    "progress": "{{logged}} / {{total}} szett naplózva",
+    "loading": "Edzésnapló betöltése…",
+    "done": "Kész",
+    "skip": "Kihagyás",
+    "save": "Napló mentése",
+    "saving": "Mentés…",
+    "useTarget": "Teljesítés céllal",
+    "reset": "Visszaállítás",
+    "setLabel": "{{set}}. szett",
+    "targetRir": "Cél RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Tényleges súly",
+    "actualReps": "Tényleges ismétlések",
+    "leftReps": "Bal ismétlések",
+    "rightReps": "Jobb ismétlések",
+    "perSideReps": "Oldalanként",
+    "sharedReps": "Megosztott",
+    "actualRir": "Tényleges RIR",
+    "errors": {
+      "load": "Nem sikerült betölteni ezt az edzésnaplót.",
+      "save": "Nem sikerült menteni ezt az edzésnaplót."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Haladási javaslatok",
+    "subtitle": "Alkalmazd a következő terhelést most, vagy hagyd függőben későbbre.",
+    "current": "Jelenlegi súly",
+    "next": "Következő súly",
+    "reason": "Ok: {{reason}}",
+    "apply": "Alkalmaz",
+    "skip": "Kihagyás"
+  },
+  "exerciseSettings": {
+    "title": "Gyakorlat beállítások",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Munkasúly",
+    "weightMode": "Súly mód",
+    "increment": "Növekmény",
+    "estimatedOneRepMax": "Becsült 1RM",
+    "notes": "Jegyzetek",
+    "history": "Friss előzmények",
+    "linkedVariants": "Kapcsolt változatok",
+    "historyLoading": "Előzmények betöltése…",
+    "historyEmpty": "Még nincs naplózott edzés.",
+    "historyError": "Nem sikerült betölteni az előzményeket.",
+    "historySets": "{{completed}} / {{total}} szett",
+    "historyBestReps": "Legjobb {{reps}} ismétlés"
   },
   "restTimer": {
     "title": "Pihenő időzítő",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Program beállításai",
     "tabs": {
+      "program": "Program",
       "weeks": "Hetek",
       "days": "Napok"
+    },
+    "program": {
+      "name": "Program neve",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Alcím",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Cél",
+      "goalPlaceholder": "Erő és hipertrófia",
+      "description": "Leírás",
+      "descriptionPlaceholder": "Opcionális jegyzetek erről az edzésblokkról",
+      "sourceType": "Forrás",
+      "sourceLabel": "Forrás címke",
+      "sourceLabelPlaceholder": "Edző PDF, sablon vagy jegyzet",
+      "startDate": "Kezdő dátum",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Időtartam (hetek)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Alapértelmezett pihenő (mp)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Haladási modell",
+      "frequencySummary": "Heti célok",
+      "frequencyGroupPlaceholder": "Izomcsoport",
+      "frequencyTarget": "Cél hetente",
+      "frequencyPerWeek_one": "{{count}}x / hét",
+      "frequencyPerWeek_other": "{{count}}x / hét",
+      "addFrequencyTarget": "Heti cél hozzáadása",
+      "progressionModels": {
+        "simple_load_modifier": "Egyszerű",
+        "exercise_rules": "Szabályok",
+        "mixed": "Vegyes",
+        "manual": "Kézi"
+      },
+      "sourceTypes": {
+        "manual": "Kézi",
+        "coach": "Edző",
+        "template": "Sablon",
+        "imported_pdf": "Importált PDF",
+        "imported_json": "Importált JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Hét neve",
       "loadModifier": "Terhelés módosító",
+      "volumeModifier": "Volumen módosító",
       "rir": "RIR (Tartalék ismétlés)",
+      "notes": "Heti jegyzetek",
+      "notesPlaceholder": "Opcionális jegyzetek ehhez a héthez",
       "baseline": "Alap",
       "addWeek": "Hét hozzáadása",
       "deleteTitle": "Hét törlése",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "{{number}}. nap",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikon",
+      "schedule": "Ütemterv",
+      "pickDay": "Nap kiválasztása",
+      "pickWindow": "Napok kiválasztása",
       "iconMore": "Több",
       "iconRefresh": "Frissít",
+      "scheduleTypes": {
+        "unscheduled": "Bármikor",
+        "fixed_day": "Rögzített",
+        "day_window": "Ablak"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "H",
+          "tue": "K",
+          "wed": "Sze",
+          "thu": "Cs",
+          "fri": "P",
+          "sat": "Szo",
+          "sun": "V"
+        },
+        "narrow": {
+          "mon": "H",
+          "tue": "K",
+          "wed": "Sze",
+          "thu": "K",
+          "fri": "P",
+          "sat": "Szo",
+          "sun": "Szo"
+        }
+      },
       "addDay": "Nap hozzáadása",
       "deleteTitle": "Nap törlése",
       "deleteMessage": "\"{{name}}\" törlése? Ez eltávolítja az összes hétből."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Gyakorlat hozzáadása",
     "titleEdit": "Gyakorlat szerkesztése",
+    "tabs": {
+      "basic": "Alap",
+      "advanced": "Speciális"
+    },
     "name": "Név",
     "namePlaceholder": "Gyakorlat neve",
     "muscleGroup": "Izomcsoport",
@@ -202,11 +487,52 @@
     "reps": "Ismétlések",
     "notes": "Megjegyzések",
     "notesPlaceholder": "Opcionális megjegyzések...",
+    "advanced": {
+      "show": "Speciális mezők mutatása",
+      "hide": "Speciális mezők elrejtése",
+      "rest": "Pihenő (mp)",
+      "restUseDefault": "Globális alapértelmezett",
+      "restCustom": "Egyéni",
+      "restPlaceholder": "180",
+      "rir": "RIR cél",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intenzitás",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempó",
+      "tempoPlaceholder": "Eccentrica 2 mp",
+      "progressionRule": "Haladási szabály",
+      "progressionRulePlaceholder": "+5kg ha minden szett eléri a maximális ismétlést 2 RIR-rel",
+      "unilateral": "Egyoldali mód",
+      "unilateralPlaceholder": "lábanként, oldalanként, bal/jobb, váltakozva",
+      "equipment": "Felszerelés",
+      "equipmentPlaceholder": "Rúd, kézi súlyzó, kábel, gép",
+      "primaryMuscles": "Elsődleges izmok",
+      "primaryMusclesPlaceholder": "Egy izom soronként",
+      "secondaryMuscles": "Másodlagos izmok",
+      "secondaryMusclesPlaceholder": "Egy izom soronként",
+      "canonicalExerciseId": "Kanónikus gyakorlat azonosító",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Változat címke",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Álnevek",
+      "aliasesPlaceholder": "Egy álnév soronként",
+      "sessionSpecific": "Edzés-specifikus",
+      "sessionSpecificToggle": "Csak edzésváltozatként követés",
+      "technicalNotes": "Technikai jegyzetek",
+      "technicalNotesPlaceholder": "Egy jegyzet soronként",
+      "executionCues": "Végrehajtási útmutatások",
+      "executionCuesPlaceholder": "Egy útmutatás soronként",
+      "perSetTargets": "Szett célok",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; jegyzetek=Tolás kudarcig",
+      "weekOverrides": "Hét felülbírálások",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; jegyzetek=Egy szett hozzáadása"
+    },
     "submitAdd": "Gyakorlat hozzáadása",
     "submitEdit": "Módosítások mentése",
     "errors": {
       "nameRequired": "A gyakorlat neve kötelező.",
-      "setsInvalid": "A szettek érvényes pozitív egész szám kell legyen."
+      "setsInvalid": "A szettek érvényes pozitív egész szám kell legyen.",
+      "restInvalid": "A pihenőnek érvényes nem-negatív egész számnak kell lennie."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Szinkronizálási állapot",
       "status": "Állapot",
+      "enabled": "Szinkronizálás bekapcsolva",
+      "disabled": "Szinkronizálás kikapcsolva",
       "syncingWith_one": "Szinkronizál {{count}} eszközzel",
       "syncingWith_other": "Szinkronizál {{count}} eszközzel",
       "off": "A szinkronizálás ki van kapcsolva",
@@ -263,8 +591,11 @@
       "title": "Biztonsági mentés",
       "export": "Mentés eszközre",
       "import": "Visszaállítás mentésből",
+      "shareBackup": "Biztonsági mentés megosztása",
       "shareToDevice": "Megosztás másik eszközre",
-      "scanFromDevice": "Beolvasás másik eszközről"
+      "scanFromDevice": "Beolvasás másik eszközről",
+      "localSaveRestore": "Helyi mentés / visszaállítás",
+      "qrShareRestore": "QR megosztás / visszaállítás"
     },
     "pairingDevices": {
       "title": "Párosítás és eszközök",
@@ -297,7 +628,7 @@
       "title": "Alkalmazás info",
       "name": "Név",
       "version": "Verzió",
-      "build": "Build",
+      "build": "Builde",
       "buildType": "Build típus"
     }
   },
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Import előnézet",
+    "titleWithProgram": "Importálás: {{program}}",
     "changesDetected": "{{count}} változás észlelve.",
     "noChanges": "Nincs változás észlelve. A biztonsági mentés azonos a jelenlegi adatokkal.",
+    "modeHint": "Az újként importálás megtartja a jelenlegi tervet. Az aktív program cseréje felülírja a jelenlegi tervet ezen az eszközön.",
+    "stats": {
+      "workouts": "Frissítendő edzések",
+      "exercises": "Létrehozandó vagy frissítendő gyakorlatok",
+      "preservedWeights": "Megtartott súlyok",
+      "needsWeight": "Kezdő súly szükséges"
+    },
+    "exerciseStatus": {
+      "matching": "Egyező gyakorlatok",
+      "changed": "Módosított gyakorlatok",
+      "new": "Új gyakorlatok",
+      "removed": "Eltávolított gyakorlatok"
+    },
     "sections": {
+      "exerciseStatus": "Gyakorlat állapota",
+      "preservedWeights": "Megtartott súlyok",
+      "missingWeights": "Új gyakorlatok mentett súly nélkül",
+      "removedExercises": "Eltávolítva az aktív programból",
       "workouts": "Edzések",
+      "program": "Program",
       "settings": "Beállítások",
       "weeks": "Hetek",
       "days": "Napok"
     },
+    "currentWeightKept": "Jelenlegi súly megtartva",
+    "noPreviousWeight": "Nincs korábbi súly",
     "cancel": "Mégse",
-    "confirm": "Biztonsági mentés importálása"
+    "confirm": "Biztonsági mentés importálása",
+    "importAsNewProgram": "Importálás új programként",
+    "replaceActiveProgram": "Aktív program cseréje"
+  },
+  "programLibrary": {
+    "title": "Programok",
+    "summary": "{{count}} mentett program",
+    "active": "Aktív",
+    "empty": "Még nincs mentett program."
   },
   "deviceTransfer": {
     "shareTitle": "Megosztás másik eszközre",
     "shareDescription": "A másik eszközön: Beállítások → Biztonsági mentés → Beolvasás másik eszközről.",
+    "shareChunkCounter": "Rész {{current}}/{{total}}",
+    "shareChunkHint": "Tartsd mindkét eszközt mozdulatlanul. A QR automatikusan forog.",
+    "pauseRotation": "Forgatás szüneteltetése",
+    "resumeRotation": "Forgatás folytatása",
     "scanTitle": "Beolvasás másik eszközről",
     "scanDescription": "Irányítsd a kamerát a PearLift mentés QR-kódjára.",
+    "chunkProgress": "Beolvasás állapota: {{received}}/{{total}}",
+    "transferCorrupted": "A QR átvitel integritás-ellenőrzése sikertelen. Kérlek, olvasd be újra az első résztől.",
     "cameraPermissionTitle": "Kameraengedély szükséges",
     "cameraPermissionMessage": "Engedélyezd a kamerát a mentés QR-kódjának beolvasásához.",
     "cameraPermissionButton": "Kamera engedélyezése",
+    "cameraUnavailableTitle": "Kamera nem érhető el",
+    "cameraUnavailableMessage": "A PearLift nem fért hozzá egy használható hátsó kamerához ezen az eszközön.",
     "invalidQr": "Ez a QR-kód nem tűnik PearLift mentésnek.",
     "tooLarge": "A mentés túl nagy egyetlen QR-kódhoz. Használd inkább a „Mentés eszközre” lehetőséget."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "A megosztás nem érhető el ezen az eszközön/platformon."
     },
     "importBackup": {
-      "failedTitle": "Importálás sikertelen"
+      "failedTitle": "Importálás sikertelen",
+      "confirmReplaceTitle": "Aktív program cseréje?",
+      "confirmReplaceMessage": "Ez lecseréli az aktuális aktív programodat \"{{program}}\" programra ezen az eszközön. A meglévő egyező súlyok lehetőség szerint megmaradnak.",
+      "confirmReplaceAction": "Program cseréje"
     },
     "forgetDevice": {
       "authPromptMessage": "Erősítse meg az eszköz elfelejtését",

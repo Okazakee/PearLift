@@ -1,4 +1,4 @@
-import { Plus, Sliders } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, Plus, Sliders } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -16,12 +16,22 @@ import { useResponsiveLayout } from '@/hooks/useResponsiveLayout';
 import type { ThemeTokens } from '@/theme/tokens';
 import { withAlpha } from '@/theme/tokens';
 import type {
+  DayConfig,
   Exercise,
-  UserWeights,
+  TrainingProgram,
+  UserExerciseSettingsMap,
   WeekConfig,
   WeightUnit,
   WorkoutSession,
 } from '@/types';
+import { getExerciseTargetForWeek } from '@/utils/exerciseTargets';
+import {
+  getWeekTitle,
+  hasNamedWeekConfigs,
+  resolveAppliedLoadModifier,
+} from '@/utils/program';
+import { getRestSeconds, shouldShowRestChip } from '@/utils/rest';
+import { getDayDisplayInfo } from '@/utils/schedule';
 import { Text } from './AppText';
 
 interface WorkoutViewProps {
@@ -33,13 +43,22 @@ interface WorkoutViewProps {
   contentMaxWidth: number;
   exerciseColumns: number;
   workout: WorkoutSession;
+  dayConfig?: DayConfig | null;
+  program?: TrainingProgram | null;
   currentWeek: number;
   weekConfigs: WeekConfig[];
-  userWeights: UserWeights;
+  userExerciseSettings: UserExerciseSettingsMap;
+  restDuration: number;
   getAdjustedWeight: (exerciseId: string, weekId?: number) => number;
+  suggestedDayName?: string | null;
   onWeekChange: (id: number) => void;
   onOpenProgramSettings: () => void;
+  onOpenProgressionSuggestions: () => void;
+  onOpenWorkoutLog: () => void;
+  pendingProgressionSuggestionCount: number;
   onOpenAddExercise: () => void;
+  onOpenExerciseSettings: (exercise: Exercise) => void;
+  onApplyRestPreset: (restSeconds: number) => void;
   onEditExercise: (exercise: Exercise) => void;
   onDeleteExercise: (exercise: Exercise) => void;
   onAdjustWeight: (exerciseId: string, delta: number) => void;
@@ -56,13 +75,22 @@ export function WorkoutView({
   contentMaxWidth,
   exerciseColumns,
   workout,
+  dayConfig = null,
+  program = null,
   currentWeek,
   weekConfigs,
-  userWeights,
+  userExerciseSettings,
+  restDuration,
   getAdjustedWeight,
+  suggestedDayName = null,
   onWeekChange,
   onOpenProgramSettings,
+  onOpenProgressionSuggestions,
+  onOpenWorkoutLog,
+  pendingProgressionSuggestionCount,
   onOpenAddExercise,
+  onOpenExerciseSettings,
+  onApplyRestPreset,
   onEditExercise,
   onDeleteExercise,
   onAdjustWeight,
@@ -103,9 +131,28 @@ export function WorkoutView({
     () => createStyles(tokens, contentBottomPadding, contentMaxWidth),
     [tokens, contentBottomPadding, contentMaxWidth],
   );
+  const hasNamedWeeks = hasNamedWeekConfigs(weekConfigs);
   const week = weekConfigs.find((w) => w.id === currentWeek) ?? weekConfigs[0];
-  const dayNumberMatch = workout.name.match(/\d+/);
-  const dayLabel = dayNumberMatch ? `Day ${dayNumberMatch[0]}` : workout.name;
+  const loadModifier = resolveAppliedLoadModifier({
+    progressionModel: program?.progressionModel ?? null,
+    loadModifier: week?.loadModifier ?? 1,
+  });
+  const volumeModifier = week?.volumeModifier ?? 1;
+  const showLoadBadge =
+    loadModifier !== 1 ||
+    program?.progressionModel === 'simple_load_modifier' ||
+    program?.progressionModel == null;
+  const dayDisplay = useMemo(
+    () => getDayDisplayInfo(dayConfig ?? { name: workout.name }),
+    [dayConfig, workout.name],
+  );
+  const suggestedDayDisplayName = useMemo(
+    () =>
+      suggestedDayName
+        ? getDayDisplayInfo({ name: suggestedDayName }).title
+        : null,
+    [suggestedDayName],
+  );
   const sortedExercises = useMemo(
     () => [...workout.exercises].sort((a, b) => a.position - b.position),
     [workout.exercises],
@@ -113,6 +160,16 @@ export function WorkoutView({
   const exerciseById = useMemo(
     () => new Map(sortedExercises.map((exercise) => [exercise.id, exercise])),
     [sortedExercises],
+  );
+  const displayExerciseById = useMemo(
+    () =>
+      new Map(
+        sortedExercises.map((exercise) => [
+          exercise.id,
+          getExerciseTargetForWeek(exercise, currentWeek),
+        ]),
+      ),
+    [currentWeek, sortedExercises],
   );
   const sortedExerciseIds = useMemo(
     () => sortedExercises.map((exercise) => exercise.id),
@@ -135,22 +192,49 @@ export function WorkoutView({
           <View style={styles.decorCircleA} />
           <View style={styles.decorCircleB} />
           <Text style={styles.metaText}>
-            {t('workout.weekDay', { week: currentWeek, day: dayLabel })}
+            {t('workout.weekDay', {
+              week: currentWeek,
+              day: dayDisplay.title,
+            })}
           </Text>
           <Text style={styles.workoutName}>
-            {week?.name ?? `Week ${currentWeek}`}
+            {getWeekTitle(week, currentWeek)}
           </Text>
+          {dayDisplay.metaLabel ? (
+            <Text style={styles.summaryHint}>{dayDisplay.metaLabel}</Text>
+          ) : null}
+          {suggestedDayDisplayName ? (
+            <Text style={styles.summaryHint}>
+              {t('workout.suggestedToday', {
+                workout: suggestedDayDisplayName,
+              })}
+            </Text>
+          ) : null}
+          {week?.notes ? (
+            <Text style={styles.summaryHint}>{week.notes}</Text>
+          ) : null}
           <View style={styles.badges}>
             <View style={styles.rirBadge}>
               <Text style={styles.rirBadgeLabel}>RIR {week?.rir ?? 2}</Text>
             </View>
+            {showLoadBadge ? (
+              <View style={styles.loadBadge}>
+                <Text style={styles.loadBadgeLabel}>
+                  {loadModifier === 1
+                    ? 'Baseline'
+                    : loadModifier < 1
+                      ? `-${Math.round((1 - loadModifier) * 100)}%`
+                      : `+${Math.round((loadModifier - 1) * 100)}%`}
+                </Text>
+              </View>
+            ) : null}
             <View style={styles.loadBadge}>
               <Text style={styles.loadBadgeLabel}>
-                {(week?.loadModifier ?? 1) === 1
-                  ? 'Baseline'
-                  : (week?.loadModifier ?? 1) < 1
-                    ? `-${Math.round((1 - (week?.loadModifier ?? 1)) * 100)}%`
-                    : `+${Math.round(((week?.loadModifier ?? 1) - 1) * 100)}%`}
+                {volumeModifier === 1
+                  ? 'Volume baseline'
+                  : volumeModifier < 1
+                    ? `Volume -${Math.round((1 - volumeModifier) * 100)}%`
+                    : `Volume +${Math.round((volumeModifier - 1) * 100)}%`}
               </Text>
             </View>
           </View>
@@ -158,45 +242,102 @@ export function WorkoutView({
 
         <View style={styles.weekTabs}>
           <View style={styles.weekTabsInner}>
-            {weekConfigs.map((item) => {
-              const active = item.id === currentWeek;
-              return (
-                <AnimatedPressable
-                  key={item.id}
-                  style={[styles.weekTab, active && styles.weekTabActive]}
-                  onPress={() => onWeekChange(item.id)}
-                  testID={E2E_IDS.workout.weekTab(item.id)}
-                >
-                  <Text
-                    style={[
-                      styles.weekTabText,
-                      active && styles.weekTabTextActive,
-                    ]}
+            {hasNamedWeeks ? (
+              weekConfigs.map((item) => {
+                const active = item.id === currentWeek;
+                return (
+                  <AnimatedPressable
+                    key={item.id}
+                    style={[styles.weekTab, active && styles.weekTabActive]}
+                    onPress={() => onWeekChange(item.id)}
+                    testID={E2E_IDS.workout.weekTab(item.id)}
                   >
-                    W{item.id}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.weekTabText,
+                        active && styles.weekTabTextActive,
+                      ]}
+                    >
+                      W{item.id}
+                    </Text>
+                  </AnimatedPressable>
+                );
+              })
+            ) : (
+              <>
+                <AnimatedPressable
+                  style={[
+                    styles.weekTab,
+                    currentWeek <= 1 && styles.weekTabDisabled,
+                  ]}
+                  disabled={currentWeek <= 1}
+                  onPress={() => onWeekChange(Math.max(1, currentWeek - 1))}
+                  accessibilityLabel={t('common.back')}
+                  testID={E2E_IDS.workout.weekPrevious}
+                >
+                  <ChevronLeft size={16} color={tokens.colors.primary} />
                 </AnimatedPressable>
-              );
-            })}
+                <AnimatedPressable
+                  style={styles.weekTab}
+                  onPress={() => onWeekChange(currentWeek + 1)}
+                  accessibilityLabel={t('common.next')}
+                  testID={E2E_IDS.workout.weekNext}
+                >
+                  <ChevronRight size={16} color={tokens.colors.primary} />
+                </AnimatedPressable>
+              </>
+            )}
           </View>
-          <AnimatedPressable
-            style={styles.settingsButton}
-            onPress={onOpenProgramSettings}
-            testID={E2E_IDS.workout.programSettings}
-          >
-            <Sliders size={16} color={tokens.colors.textSecondary} />
-          </AnimatedPressable>
+          <View style={styles.headerActions}>
+            {pendingProgressionSuggestionCount > 0 ? (
+              <AnimatedPressable
+                style={styles.logButton}
+                onPress={onOpenProgressionSuggestions}
+                testID={E2E_IDS.workout.progressionSuggestionsOpen}
+              >
+                <Text style={styles.logButtonText}>
+                  {t('workout.progressionSuggestions')}
+                  {` (${pendingProgressionSuggestionCount})`}
+                </Text>
+              </AnimatedPressable>
+            ) : null}
+            <AnimatedPressable
+              style={styles.logButton}
+              onPress={onOpenWorkoutLog}
+            >
+              <Text style={styles.logButtonText}>
+                {t('workout.logWorkout')}
+              </Text>
+            </AnimatedPressable>
+            <AnimatedPressable
+              style={styles.settingsButton}
+              onPress={onOpenProgramSettings}
+              testID={E2E_IDS.workout.programSettings}
+            >
+              <Sliders size={16} color={tokens.colors.textSecondary} />
+            </AnimatedPressable>
+          </View>
         </View>
       </>
     ),
     [
       currentWeek,
-      dayLabel,
+      dayDisplay.metaLabel,
+      dayDisplay.title,
+      hasNamedWeeks,
+      onOpenProgressionSuggestions,
+      onOpenWorkoutLog,
       onOpenProgramSettings,
       onWeekChange,
+      pendingProgressionSuggestionCount,
+      suggestedDayDisplayName,
       styles,
       t,
+      tokens.colors.primary,
       tokens.colors.textSecondary,
+      loadModifier,
+      showLoadBadge,
+      volumeModifier,
       week,
       weekConfigs,
     ],
@@ -219,14 +360,34 @@ export function WorkoutView({
   const renderItem = useCallback<SortableGridRenderItem<string>>(
     ({ item }) => {
       const exercise = exerciseById.get(item);
-      if (!exercise) return null;
+      const displayExercise = displayExerciseById.get(item) ?? exercise;
+      if (!exercise || !displayExercise) return null;
+      const restSeconds = getRestSeconds({
+        exercise: displayExercise,
+        workout,
+        program,
+        settingsRestSeconds: restDuration,
+      });
+      const showRestChip = shouldShowRestChip({
+        exercise: displayExercise,
+        workout,
+        program,
+        settingsRestSeconds: restDuration,
+      });
       return (
         <ExerciseCard
           tokens={tokens}
-          exercise={exercise}
+          exercise={displayExercise}
+          sourceExercise={exercise}
+          currentWeek={currentWeek}
           weightUnit={weightUnit}
-          baseWeight={userWeights[exercise.id] ?? exercise.baseWeight}
+          exerciseSettings={userExerciseSettings[exercise.id] ?? null}
+          restSeconds={restSeconds}
+          showRestChip={showRestChip}
+          loadModifier={loadModifier}
           adjustedWeight={getAdjustedWeight(exercise.id, currentWeek)}
+          onOpenExerciseSettings={onOpenExerciseSettings}
+          onApplyRestPreset={onApplyRestPreset}
           onAdjustWeight={onAdjustWeight}
           onSetWeight={onSetWeight}
           onEditExercise={onEditExercise}
@@ -236,15 +397,22 @@ export function WorkoutView({
     },
     [
       currentWeek,
+      displayExerciseById,
       exerciseById,
       getAdjustedWeight,
+      loadModifier,
+      program,
+      onOpenExerciseSettings,
+      onApplyRestPreset,
       onAdjustWeight,
       onDeleteExercise,
       onEditExercise,
       onSetWeight,
+      restDuration,
       tokens,
-      userWeights,
+      userExerciseSettings,
       weightUnit,
+      workout,
     ],
   );
 
@@ -361,6 +529,13 @@ function createStyles(
       letterSpacing: 0.3,
       textAlign: 'center',
     },
+    summaryHint: {
+      color: withAlpha(tokens.colors.textPrimary, 0.72),
+      fontSize: tokens.type.label - 1,
+      fontFamily: 'SpaceGrotesk_500Medium',
+      textAlign: 'center',
+      marginTop: -2,
+    },
     settingsButton: {
       width: 36,
       height: 36,
@@ -368,6 +543,26 @@ function createStyles(
       backgroundColor: tokens.colors.bgSurface,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: tokens.spacing.xs,
+    },
+    logButton: {
+      minHeight: 36,
+      borderRadius: tokens.radius.md,
+      borderWidth: 1,
+      borderColor: withAlpha(tokens.colors.primary, 0.24),
+      paddingHorizontal: tokens.spacing.sm,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: withAlpha(tokens.colors.primary, 0.08),
+    },
+    logButtonText: {
+      color: tokens.colors.primary,
+      fontSize: tokens.type.label,
+      fontWeight: '700',
     },
     badges: {
       flexDirection: 'row',
@@ -430,6 +625,9 @@ function createStyles(
     },
     weekTabTextActive: {
       color: tokens.colors.onPrimary,
+    },
+    weekTabDisabled: {
+      opacity: 0.4,
     },
     addButton: {
       marginTop: tokens.spacing.md,

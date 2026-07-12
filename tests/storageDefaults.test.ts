@@ -14,6 +14,7 @@ describe('storage defaults helpers', () => {
     const runtime = buildDefaultRuntimeState();
 
     expect(runtime.workouts.length).toBeGreaterThan(0);
+    expect(runtime.program?.workoutIds.length).toBe(runtime.workouts.length);
     expect(runtime.dayConfigs.length).toBeGreaterThan(0);
     expect(runtime.currentWeek).toBe(1);
     expect(runtime.weightUnit).toBe('kg');

@@ -4,7 +4,9 @@
     "delete": "Удалить",
     "back": "Назад",
     "next": "Далее",
-    "ok": "ОК"
+    "ok": "ОК",
+    "close": "Закрыть",
+    "save": "Сохранить"
   },
   "app": {
     "loading": "Подготовка данных тренировки"
@@ -29,7 +31,7 @@
       }
     },
     "getStarted": "Начать",
-    "notNow": "Сейчас не сейчас",
+    "notNow": "Не сейчас",
     "skipSync": "Пропустить",
     "setupSync": "Настроить синхронизацию",
     "settingUp": "Настройка...",
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Ожидание",
         "connecting": "Поиск",
+        "waiting": "Ожидание",
+        "dht_ready": "DHT готов",
+        "peer_connected": "Пир подключён",
+        "handshake_ok": "Рукопожатие ОК",
+        "replicating": "Репликация",
         "synced": "Подключено",
         "error": "Ошибка"
       },
@@ -134,6 +141,19 @@
         "connecting": "Поиск вашей группы синхронизации.",
         "off": "Синхронизация в настоящее время отключена на этом устройстве."
       },
+      "dht": "DHT",
+      "dhtReady": "Готов",
+      "dhtBootstrapping": "Загрузка…",
+      "dhtError": "Ошибка",
+      "dhtInactive": "Неактивен",
+      "dhtWaiting": "Ожидание",
+      "status": "Статус",
+      "peers": "Пиры",
+      "peersConnected": "{{count}} подключено",
+      "peersNone": "Нет",
+      "connectionsActive": "{{count}} активно",
+      "connectionsNone": "Нет",
+      "more": "Ещё",
       "lastSyncAt": "Последняя синхронизация: {{at}}",
       "lastSyncNever": "Последняя синхронизация: никогда",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Устранение неполадок",
         "stop": "Остановить синхронизацию"
       }
+    },
+    "manage": {
+      "title": "Синхронизация устройств",
+      "subtitle": "Настройка группы и обслуживание синхронизации в одном месте.",
+      "roomSetup": "Настройка группы",
+      "roomSetupHint": "Выберите, создаёт ли это устройство новую группу или присоединяется к существующей.",
+      "onboardingTitle": "Без облака. Без аккаунта.",
+      "onboardingMessage": "PearLift синхронизирует тренировки напрямую между вашими устройствами — peer-to-peer. Ваши данные никогда не попадают на сервер. Нужно лишь быть в одной сети Wi‑Fi или рядом для первого подключения.",
+      "onboardingDismiss": "Понятно",
+      "createRoom": "Создать группу",
+      "joinRoom": "Присоединиться к группе",
+      "roomActive": "Группа активна",
+      "status": "Статус синхронизации",
+      "turnOn": "Включить",
+      "turnOff": "Выключить",
+      "refresh": "Обновить",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Владелец группы",
+        "joiner": "Участник"
+      },
+      "binding": {
+        "unconfigured": "Не настроено",
+        "pending_first_sync": "Ожидание первой синхронизации",
+        "active": "Активный",
+        "conflict_requires_decision": "Требуется ваше решение",
+        "active_conflict_requires_decision": "Конфликт синхронизации требует вашего решения"
+      },
+      "thisDeviceCode": "Код этого устройства: {{code}}",
+      "deviceCode": "Код {{code}}",
+      "deviceNamePlaceholder": "Назвать это устройство",
+      "saveDeviceName": "Сохранить название устройства",
+      "deviceNameSyncPending": "Название устройства сохранено локально. Синхронизация скоро повторит попытку поделиться им.",
+      "masterKey": "Код синхронизации",
+      "masterKeyHint": "Используйте одинаковый 64-символьный код синхронизации на каждом устройстве для обмена данными.",
+      "masterKeyPlaceholder": "Вставьте или отредактируйте 64-символьный код синхронизации",
+      "showQR": "Показать QR-код",
+      "copyKey": "Копировать код",
+      "applyKey": "Применить код",
+      "leaveRoom": "Покинуть группу",
+      "leaveRoomConfirmTitle": "Покинуть эту группу?",
+      "leaveRoomConfirmMessage": "Это выключает синхронизацию, очищает текущую привязку группы и удаляет локальную историю подключений к группе.",
+      "syncedDevices": "{{count}} устройств",
+      "syncedDevicesTitle": "Устройства",
+      "noDevices": "Ещё ни одно устройство не синхронизировалось.",
+      "showMore": "Показать ещё {{count}}",
+      "lastSeen": "Последний раз {{at}}",
+      "lastSyncAt": "Последняя синхронизация {{at}}",
+      "removeDevice": "Удалить из списка",
+      "removeDeviceConfirmTitle": "Удалить это устройство из списка?",
+      "removeDeviceConfirmMessage": "Это скрывает устройство только из этого списка на этом устройстве. Оно может появиться снова, если позже синхронизируется с этой группой.",
+      "debug": "Отладочная информация",
+      "never": "Никогда"
+    },
+    "create": {
+      "title": "Создать группу",
+      "subtitle": "Это устройство создаёт новую группу синхронизации и может поделиться кодом с другими устройствами.",
+      "room": "Новая группа",
+      "explainer": "Используйте, когда это устройство должно определить начальную группу и пригласить остальные.",
+      "datasetSummary": "На этом устройстве сейчас {{workouts}} тренировок и {{exercises}} упражнений.",
+      "masterKey": "Код синхронизации",
+      "inviteStarting": "Запуск группы и генерация QR-приглашения…",
+      "invitePending": "Запустите группу, чтобы создать QR-приглашение.",
+      "copy": "Копировать код",
+      "startRoom": "Запустить эту группу"
+    },
+    "join": {
+      "title": "Присоединиться к группе",
+      "subtitle": "Используйте код синхронизации с другого устройства для подключения этого устройства к той же группе.",
+      "preflight": "Перед присоединением",
+      "localSummary": "На этом устройстве сейчас {{workouts}} тренировок и {{exercises}} упражнений.",
+      "remoteSummaryHint": "Если на обоих устройствах уже есть много пересекающихся изменений, PearLift спросит, какой набор данных сохранить.",
+      "masterKey": "Код синхронизации",
+      "keyPlaceholder": "Вставьте 64-символьный код синхронизации",
+      "paste": "Вставить",
+      "scanQr": "Сканировать QR",
+      "scanHelp": "Направьте камеру на QR-код, содержащий код синхронизации.",
+      "invalidKey": "Неверный код синхронизации. Он должен содержать 64 шестнадцатеричных символа.",
+      "keyValid": "Действительный код приглашения",
+      "pasteSuccess": "Вставлено из буфера обмена",
+      "pasteEmpty": "Буфер обмена пуст",
+      "joinRoom": "Присоединиться к группе"
+    },
+    "decision": {
+      "title": "Выберите первые данные синхронизации",
+      "subtitle": "Обе стороны уже содержат значимые данные. Выберите, какую базовую линию группа должна сохранить.",
+      "thisDevice": "Это устройство",
+      "roomData": "Данные группы",
+      "datasetSummary": "{{workouts}} тренировок · {{exercises}} упражнений",
+      "conflictTitle": "Обнаружены пересекающиеся изменения",
+      "conflictWorkouts": "Тренировки",
+      "conflictExercises": "Упражнения",
+      "conflictSummary": "Обнаружено {{workouts}} пересечений тренировок и {{exercises}} пересечений упражнений.",
+      "configConflictSummary": "{{weeks}} пересечений конфигураций недель, {{days}} пересечений конфигураций дней, {{backlog}} ожидающих обновлений группы.",
+      "useThisDeviceHint": "Это публикует данное устройство как базовую линию группы.",
+      "useRoomDataHint": "Это заменяет данные тренировок на этом устройстве, сохраняя настройки приложения.",
+      "useMerge": "Объединить оба",
+      "useMergeHint": "Объединить данные с этого устройства и группы, если нет пересечений.",
+      "mergeUnavailableHint": "Некоторые тренировки или упражнения существуют на обоих устройствах с разными значениями, поэтому объединение невозможно.",
+      "useThisDevice": "Использовать данные этого устройства",
+      "useRoomData": "Использовать данные группы"
+    },
+    "debug": {
+      "title": "Отладочная информация синхронизации",
+      "subtitle": "Состояние выполнения, детали подключения и недавние логи синхронизации.",
+      "snapshot": "Снимок выполнения",
+      "connections": "Подключения",
+      "lastError": "Последняя ошибка",
+      "logs": "Недавние логи",
+      "logCount": "Показано {{shown}} из {{total}} записей лога",
+      "clear": "Очистить"
     }
   },
   "workout": {
     "weekDay": "Неделя {{week}} - День {{day}}",
-    "addExercise": "Добавить упражнение"
+    "addExercise": "Добавить упражнение",
+    "logWorkout": "Записать тренировку",
+    "progressionSuggestions": "Предложения",
+    "suggestedToday": "Предложено сегодня: {{workout}}",
+    "showDetails": "Показать детали",
+    "hideDetails": "Скрыть детали",
+    "details": {
+      "notes": "Заметки",
+      "tempo": "Темп",
+      "equipment": "Оборудование",
+      "primaryMuscles": "Основные мышцы",
+      "secondaryMuscles": "Вспомогательные мышцы",
+      "technique": "Техника",
+      "cues": "Сигналы",
+      "perSetTargets": "Цели на подход",
+      "progression": "Прогрессия",
+      "weekOverrides": "Переопределения недели",
+      "active": "Активный",
+      "intensity": "Интенсивность",
+      "target": "Цель",
+      "estimatedOneRepMax": "Расчётный 1ПМ",
+      "notSet": "Не задано",
+      "intensityRange": "Диапазон интенсивности",
+      "weightSettings": "Настройки веса",
+      "weightMode": "Режим веса",
+      "increment": "Шаг",
+      "exerciseSettings": "Настройки упражнения"
+    }
+  },
+  "workoutLog": {
+    "title": "Журнал тренировки",
+    "subtitle": "{{workout}} · Неделя {{week}}",
+    "progress": "{{logged}} / {{total}} подходов записано",
+    "loading": "Загрузка журнала тренировки…",
+    "done": "Готово",
+    "skip": "Пропустить",
+    "save": "Сохранить журнал",
+    "saving": "Сохранение…",
+    "useTarget": "Завершить с целью",
+    "reset": "Сбросить",
+    "setLabel": "Подход {{set}}",
+    "targetRir": "Целевой RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Фактический вес",
+    "actualReps": "Фактические повторения",
+    "leftReps": "Левая сторона",
+    "rightReps": "Правая сторона",
+    "perSideReps": "На сторону",
+    "sharedReps": "Общее",
+    "actualRir": "Фактический RIR",
+    "errors": {
+      "load": "Не удалось загрузить журнал тренировки.",
+      "save": "Не удалось сохранить журнал тренировки."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Предложения прогрессии",
+    "subtitle": "Примените следующую нагрузку сейчас или оставьте на потом.",
+    "current": "Текущий вес",
+    "next": "Следующий вес",
+    "reason": "Причина: {{reason}}",
+    "apply": "Применить",
+    "skip": "Пропустить"
+  },
+  "exerciseSettings": {
+    "title": "Настройки упражнения",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Рабочий вес",
+    "weightMode": "Режим веса",
+    "increment": "Шаг",
+    "estimatedOneRepMax": "Расчётный 1ПМ",
+    "notes": "Заметки",
+    "history": "История",
+    "linkedVariants": "Связанные варианты",
+    "historyLoading": "Загрузка истории…",
+    "historyEmpty": "Ещё нет записанных сессий.",
+    "historyError": "Не удалось загрузить историю.",
+    "historySets": "{{completed}} / {{total}} подходов",
+    "historyBestReps": "Лучшие {{reps}} повторений"
   },
   "restTimer": {
     "title": "Таймер отдыха",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Настройки программы",
     "tabs": {
+      "program": "Программа",
       "weeks": "Недели",
       "days": "Дни"
+    },
+    "program": {
+      "name": "Название программы",
+      "namePlaceholder": "Блоко Интенсита",
+      "subtitle": "Подзаголовок",
+      "subtitlePlaceholder": "Форца + Ипертрофия",
+      "goal": "Цель",
+      "goalPlaceholder": "Сила и гипертрофия",
+      "description": "Описание",
+      "descriptionPlaceholder": "Необязательные заметки об этом тренировочном блоке",
+      "sourceType": "Источник",
+      "sourceLabel": "Метка источника",
+      "sourceLabelPlaceholder": "PDF тренера, шаблон или заметка",
+      "startDate": "Дата начала",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Длительность (недели)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Отдых по умолчанию (сек)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Модель прогрессии",
+      "frequencySummary": "Еженедельные цели",
+      "frequencyGroupPlaceholder": "Мышечная группа",
+      "frequencyTarget": "Цель в неделю",
+      "frequencyPerWeek_one": "{{count}} раз/нед",
+      "frequencyPerWeek_other": "{{count}} раз/нед",
+      "addFrequencyTarget": "Добавить еженедельную цель",
+      "progressionModels": {
+        "simple_load_modifier": "Простой",
+        "exercise_rules": "Правила",
+        "mixed": "Смешанный",
+        "manual": "Ручной"
+      },
+      "sourceTypes": {
+        "manual": "Ручной",
+        "coach": "Тренер",
+        "template": "Шаблон",
+        "imported_pdf": "Импортированный PDF",
+        "imported_json": "Импортированный JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Название недели",
       "loadModifier": "Модификатор нагрузки",
+      "volumeModifier": "Модификатор объёма",
       "rir": "RIR (Повторения в резерве)",
+      "notes": "Заметки недели",
+      "notesPlaceholder": "Необязательные заметки на эту неделю",
       "baseline": "Базовый уровень",
       "addWeek": "Добавить неделю",
       "deleteTitle": "Удалить неделю",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "День {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Иконка",
+      "schedule": "Расписание",
+      "pickDay": "Выбрать день",
+      "pickWindow": "Выбрать дни",
       "iconMore": "Ещё",
       "iconRefresh": "Обновить",
+      "scheduleTypes": {
+        "unscheduled": "Любой",
+        "fixed_day": "Фиксированный",
+        "day_window": "Окно"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Пн",
+          "tue": "Вт",
+          "wed": "Ср",
+          "thu": "Чт",
+          "fri": "Пт",
+          "sat": "Сб",
+          "sun": "Вс"
+        },
+        "narrow": {
+          "mon": "П",
+          "tue": "В",
+          "wed": "С",
+          "thu": "Ч",
+          "fri": "П",
+          "sat": "С",
+          "sun": "В"
+        }
+      },
       "addDay": "Добавить день",
       "deleteTitle": "Удалить день",
       "deleteMessage": "Удалить \"{{name}}\"? Это удалит его из всех недель."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Добавить упражнение",
     "titleEdit": "Редактировать упражнение",
+    "tabs": {
+      "basic": "Основные",
+      "advanced": "Расширенные"
+    },
     "name": "Название",
     "namePlaceholder": "Название упражнения",
     "muscleGroup": "Мышечная группа",
@@ -202,11 +487,52 @@
     "reps": "Повторения",
     "notes": "Заметки",
     "notesPlaceholder": "Необязательные заметки...",
+    "advanced": {
+      "show": "Показать расширенные поля",
+      "hide": "Скрыть расширенные поля",
+      "rest": "Отдых (сек)",
+      "restUseDefault": "Общее по умолчанию",
+      "restCustom": "Своё значение",
+      "restPlaceholder": "180",
+      "rir": "Целевой RIR",
+      "rirPlaceholder": "1–2",
+      "intensity": "Интенсивность",
+      "intensityPlaceholder": "80–85% 1ПМ",
+      "tempo": "Темп",
+      "tempoPlaceholder": "Эксцентрика 2 сек",
+      "progressionRule": "Правило прогрессии",
+      "progressionRulePlaceholder": "+5 кг, когда все подходы достигают макс. повторений с RIR 2",
+      "unilateral": "Односторонний режим",
+      "unilateralPlaceholder": "на ногу, на сторону, левая/правая, чередование",
+      "equipment": "Оборудование",
+      "equipmentPlaceholder": "Штанга, гантель, трос, тренажёр",
+      "primaryMuscles": "Основные мышцы",
+      "primaryMusclesPlaceholder": "По одной мышце на строку",
+      "secondaryMuscles": "Вспомогательные мышцы",
+      "secondaryMusclesPlaceholder": "По одной мышце на строку",
+      "canonicalExerciseId": "Канонический ID упражнения",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Метка варианта",
+      "variantLabelPlaceholder": "Сессия B",
+      "aliases": "Псевдонимы",
+      "aliasesPlaceholder": "По одному псевдониму на строку",
+      "sessionSpecific": "Для конкретной сессии",
+      "sessionSpecificToggle": "Отслеживать только для этой сессии",
+      "technicalNotes": "Технические заметки",
+      "technicalNotesPlaceholder": "По одной заметке на строку",
+      "executionCues": "Сигналы выполнения",
+      "executionCuesPlaceholder": "По одному сигналу на строку",
+      "perSetTargets": "Цели на подход",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Переопределения недели",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "Добавить упражнение",
     "submitEdit": "Сохранить изменения",
     "errors": {
       "nameRequired": "Название упражнения обязательно.",
-      "setsInvalid": "Подходы должны быть положительным целым числом."
+      "setsInvalid": "Подходы должны быть положительным целым числом.",
+      "restInvalid": "Отдых должен быть неотрицательным целым числом."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Статус синхронизации",
       "status": "Статус",
+      "enabled": "Синхронизация включена",
+      "disabled": "Синхронизация выключена",
       "syncingWith_one": "Синхронизация с {{count}} устройством",
       "syncingWith_other": "Синхронизация с {{count}} устройствами",
       "off": "Синхронизация выключена",
@@ -263,8 +591,11 @@
       "title": "Резервная копия",
       "export": "Сохранить резервную копию на устройстве",
       "import": "Восстановить из резервной копии",
+      "shareBackup": "Поделиться резервной копией",
       "shareToDevice": "Поделиться с другим устройством",
-      "scanFromDevice": "Сканировать с другого устройства"
+      "scanFromDevice": "Сканировать с другого устройства",
+      "localSaveRestore": "Локальное сохранение / восстановление",
+      "qrShareRestore": "QR-обмен / восстановление"
     },
     "pairingDevices": {
       "title": "Сопряжение и устройства",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Предпросмотр импорта",
+    "titleWithProgram": "Импорт: {{program}}",
     "changesDetected": "Обнаружено изменений: {{count}}.",
     "noChanges": "Изменения не обнаружены. Резервная копия идентична текущим данным.",
+    "modeHint": "Импорт как новый оставляет текущий план доступным. Замена активной программы перезаписывает текущий план на этом устройстве.",
+    "stats": {
+      "workouts": "Тренировки для обновления",
+      "exercises": "Упражнения для создания или обновления",
+      "preservedWeights": "Сохранённые веса",
+      "needsWeight": "Нужен начальный вес"
+    },
+    "exerciseStatus": {
+      "matching": "Совпадающие упражнения",
+      "changed": "Изменённые упражнения",
+      "new": "Новые упражнения",
+      "removed": "Удалённые упражнения"
+    },
     "sections": {
+      "exerciseStatus": "Статус упражнений",
+      "preservedWeights": "Сохранённые веса",
+      "missingWeights": "Новые упражнения без сохранённого веса",
+      "removedExercises": "Удалено из активной программы",
       "workouts": "Тренировки",
+      "program": "Программа",
       "settings": "Настройки",
       "weeks": "Недели",
       "days": "Дни"
     },
+    "currentWeightKept": "Текущий вес сохранён",
+    "noPreviousWeight": "Предыдущий вес не найден",
     "cancel": "Отмена",
-    "confirm": "Импорт резервной копии"
+    "confirm": "Импорт резервной копии",
+    "importAsNewProgram": "Импортировать как новую программу",
+    "replaceActiveProgram": "Заменить активную программу"
+  },
+  "programLibrary": {
+    "title": "Программы",
+    "summary": "{{count}} сохранённых программ",
+    "active": "Активный",
+    "empty": "Ещё нет сохранённых программ."
   },
   "deviceTransfer": {
     "shareTitle": "Поделиться с другим устройством",
     "shareDescription": "На другом устройстве: Настройки → Резервная копия → Сканировать с другого устройства.",
+    "shareChunkCounter": "Фрагмент {{current}}/{{total}}",
+    "shareChunkHint": "Держите оба устройства неподвижно. QR вращается автоматически.",
+    "pauseRotation": "Приостановить вращение",
+    "resumeRotation": "Возобновить вращение",
     "scanTitle": "Сканировать с другого устройства",
     "scanDescription": "Наведите камеру на QR-код резервной копии PearLift.",
+    "chunkProgress": "Прогресс сканирования: {{received}}/{{total}}",
+    "transferCorrupted": "QR-передача не прошла проверку целостности. Пожалуйста, отсканируйте снова с первого фрагмента.",
     "cameraPermissionTitle": "Требуется доступ к камере",
     "cameraPermissionMessage": "Разрешите доступ к камере для сканирования QR-кода резервной копии.",
     "cameraPermissionButton": "Разрешить камеру",
+    "cameraUnavailableTitle": "Камера недоступна",
+    "cameraUnavailableMessage": "PearLift не смог получить доступ к работающей задней камере на этом устройстве.",
     "invalidQr": "Этот QR-код не похож на резервную копию PearLift.",
     "tooLarge": "Резервная копия слишком большая для одного QR-кода. Используйте «Сохранить резервную копию на устройстве»."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Функция «Поделиться» недоступна на этом устройстве/платформе."
     },
     "importBackup": {
-      "failedTitle": "Импорт не выполнен"
+      "failedTitle": "Импорт не выполнен",
+      "confirmReplaceTitle": "Заменить активную программу?",
+      "confirmReplaceMessage": "Это заменит вашу текущую активную программу на \"{{program}}\" на этом устройстве. Существующие совпадающие веса будут сохранены, где это возможно.",
+      "confirmReplaceAction": "Заменить программу"
     },
     "forgetDevice": {
       "authPromptMessage": "Подтвердите, чтобы забыть устройство",

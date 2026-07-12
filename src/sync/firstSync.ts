@@ -5,6 +5,7 @@ import {
   defaultWeekConfigs,
   defaultWorkouts,
 } from '@/data/workouts';
+import { buildDefaultProgram } from '@/storage/repository/defaults';
 import type {
   SyncConflictSummary,
   SyncDataSummary,
@@ -54,6 +55,7 @@ function buildFingerprints<T extends string | number>(
 }
 
 function buildRuntimeFingerprint(runtime: PearLiftRuntimeState) {
+  const program = runtime.program ?? buildDefaultProgram(runtime.workouts);
   const workouts = runtime.workouts.map((workout) => ({
     id: workout.id,
     name: workout.name,
@@ -62,7 +64,11 @@ function buildRuntimeFingerprint(runtime: PearLiftRuntimeState) {
       .sort((a, b) => a.position - b.position)
       .map((exercise) => ({
         id: exercise.id,
+        canonicalExerciseId: exercise.canonicalExerciseId,
         name: exercise.name,
+        aliases: exercise.aliases ?? [],
+        variantLabel: exercise.variantLabel,
+        sessionSpecific: exercise.sessionSpecific === true,
         sets: exercise.sets,
         reps: exercise.reps,
         baseWeight: exercise.baseWeight,
@@ -74,6 +80,7 @@ function buildRuntimeFingerprint(runtime: PearLiftRuntimeState) {
   }));
 
   return stableStringify({
+    program,
     workouts,
     weekConfigs: runtime.weekConfigs,
     dayConfigs: runtime.dayConfigs,
@@ -82,6 +89,7 @@ function buildRuntimeFingerprint(runtime: PearLiftRuntimeState) {
 
 function buildDefaultRuntime(): PearLiftRuntimeState {
   return {
+    program: buildDefaultProgram(defaultWorkouts),
     workouts: defaultWorkouts,
     userWeights: buildInitialWeights(defaultWorkouts),
     weekConfigs: defaultWeekConfigs,

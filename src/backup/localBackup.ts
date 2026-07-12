@@ -1,7 +1,11 @@
-export { computeImportDiff } from '@/backup/diff';
+export { computeImportDiff, prepareImportRuntime } from '@/backup/diff';
 export { parseAndMigrateBackup, parseBackupJson } from '@/backup/migration';
 export {
+  serializePearLiftBackup,
+  serializePearLiftBackupCollection,
   serializePearLiftBackupV3,
+  toPearLiftBackup,
+  toPearLiftBackupCollection,
   toPearLiftBackupV3,
 } from '@/backup/serialization';
 

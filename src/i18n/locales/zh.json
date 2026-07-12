@@ -4,7 +4,9 @@
     "delete": "删除",
     "back": "返回",
     "next": "下一步",
-    "ok": "好"
+    "ok": "好",
+    "close": "关闭",
+    "save": "保存"
   },
   "app": {
     "loading": "正在准备您的训练数据"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "空闲",
         "connecting": "搜索中",
+        "waiting": "等待中",
+        "dht_ready": "DHT 就绪",
+        "peer_connected": "对等设备已连接",
+        "handshake_ok": "握手成功",
+        "replicating": "同步中",
         "synced": "已连接",
         "error": "错误"
       },
@@ -134,6 +141,19 @@
         "connecting": "正在搜索您的同步组。",
         "off": "同步目前在此设备上被禁用。"
       },
+      "dht": "DHT",
+      "dhtReady": "就绪",
+      "dhtBootstrapping": "引导中…",
+      "dhtError": "错误",
+      "dhtInactive": "未启用",
+      "dhtWaiting": "等待中",
+      "status": "状态",
+      "peers": "对等设备",
+      "peersConnected": "已连接 {{count}} 个",
+      "peersNone": "无",
+      "connectionsActive": "活跃 {{count}} 个",
+      "connectionsNone": "无",
+      "more": "更多",
       "lastSyncAt": "上次同步: {{at}}",
       "lastSyncNever": "上次同步: 从未",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "故障排除",
         "stop": "停止同步"
       }
+    },
+    "manage": {
+      "title": "设备同步",
+      "subtitle": "在同一位置管理组设置和同步维护。",
+      "roomSetup": "组设置",
+      "roomSetupHint": "选择此设备是创建新组还是加入现有组。",
+      "onboardingTitle": "无云端。无账户。",
+      "onboardingMessage": "PearLift 直接在设备之间同步训练数据——点对点。您的数据不会上传到服务器。首次连接只需在同一 Wi‑Fi 网络或附近即可。",
+      "onboardingDismiss": "知道了",
+      "createRoom": "创建组",
+      "joinRoom": "加入组",
+      "roomActive": "组已激活",
+      "status": "同步状态",
+      "turnOn": "开启",
+      "turnOff": "关闭",
+      "refresh": "刷新",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "组创建者",
+        "joiner": "成员"
+      },
+      "binding": {
+        "unconfigured": "未配置",
+        "pending_first_sync": "等待首次同步",
+        "active": "活跃",
+        "conflict_requires_decision": "需要您决定",
+        "active_conflict_requires_decision": "同步冲突需要您决定"
+      },
+      "thisDeviceCode": "此设备代码: {{code}}",
+      "deviceCode": "代码 {{code}}",
+      "deviceNamePlaceholder": "为此设备命名",
+      "saveDeviceName": "保存设备名称",
+      "deviceNameSyncPending": "设备名称已本地保存。同步将很快重试与对等设备共享。",
+      "masterKey": "同步代码",
+      "masterKeyHint": "在需要共享数据的每个设备上使用相同的 64 位同步代码。",
+      "masterKeyPlaceholder": "粘贴或编辑 64 位同步代码",
+      "showQR": "显示二维码",
+      "copyKey": "复制代码",
+      "applyKey": "应用代码",
+      "leaveRoom": "离开组",
+      "leaveRoomConfirmTitle": "离开此组？",
+      "leaveRoomConfirmMessage": "这将关闭同步、清除当前组的绑定记录并删除本地连接历史。",
+      "syncedDevices": "{{count}} 个设备",
+      "syncedDevicesTitle": "设备",
+      "noDevices": "暂无设备同步。",
+      "showMore": "显示更多 {{count}} 个",
+      "lastSeen": "最后在线 {{at}}",
+      "lastSyncAt": "上次同步 {{at}}",
+      "removeDevice": "从列表中移除",
+      "removeDeviceConfirmTitle": "从列表中移除此设备？",
+      "removeDeviceConfirmMessage": "这仅在此设备上从列表中隐藏该设备。如果以后与此组同步，它可能再次出现。",
+      "debug": "调试信息",
+      "never": "从未"
+    },
+    "create": {
+      "title": "创建组",
+      "subtitle": "此设备创建一个新的同步组，并可以与其他设备共享同步代码。",
+      "room": "新组",
+      "explainer": "当此设备需要定义初始组并邀请其他设备时使用。",
+      "datasetSummary": "此设备当前有 {{workouts}} 个训练和 {{exercises}} 个动作。",
+      "masterKey": "同步代码",
+      "inviteStarting": "正在创建组并生成二维码邀请…",
+      "invitePending": "启动组以生成二维码邀请。",
+      "copy": "复制代码",
+      "startRoom": "启动此组"
+    },
+    "join": {
+      "title": "加入组",
+      "subtitle": "使用其他设备的同步代码将此设备连接到同一同步组。",
+      "preflight": "加入前",
+      "localSummary": "此设备当前有 {{workouts}} 个训练和 {{exercises}} 个动作。",
+      "remoteSummaryHint": "如果两台设备已有大量重叠的更改，PearLift 将询问保留哪个数据集。",
+      "masterKey": "同步代码",
+      "keyPlaceholder": "粘贴 64 位同步代码",
+      "paste": "粘贴",
+      "scanQr": "扫描二维码",
+      "scanHelp": "将相机对准包含同步代码的二维码。",
+      "invalidKey": "同步代码无效。必须是 64 个十六进制字符。",
+      "keyValid": "有效的邀请代码",
+      "pasteSuccess": "已从剪贴板粘贴",
+      "pasteEmpty": "剪贴板为空",
+      "joinRoom": "加入组"
+    },
+    "decision": {
+      "title": "选择首次同步数据",
+      "subtitle": "双方均已包含有意义的数据。选择此组应保留的基准。",
+      "thisDevice": "此设备",
+      "roomData": "组数据",
+      "datasetSummary": "{{workouts}} 个训练 · {{exercises}} 个动作",
+      "conflictTitle": "检测到重叠变更",
+      "conflictWorkouts": "训练",
+      "conflictExercises": "动作",
+      "conflictSummary": "检测到 {{workouts}} 个训练重叠和 {{exercises}} 个动作重叠。",
+      "configConflictSummary": "{{weeks}} 周配置重叠，{{days}} 天配置重叠，{{backlog}} 个组更新等待中。",
+      "useThisDeviceHint": "这将发布此设备作为组基准。",
+      "useRoomDataHint": "这将替换此设备上的训练数据，同时保留应用偏好。",
+      "useMerge": "合并两者",
+      "useMergeHint": "在没有重叠时合并此设备和组的数据。",
+      "mergeUnavailableHint": "某些训练或动作在两台设备上存在不同值，因此无法合并。",
+      "useThisDevice": "使用此设备的数据",
+      "useRoomData": "使用组数据"
+    },
+    "debug": {
+      "title": "同步调试信息",
+      "subtitle": "运行时状态、连接详情和最近的同步日志。",
+      "snapshot": "运行时快照",
+      "connections": "连接",
+      "lastError": "最后错误",
+      "logs": "最近日志",
+      "logCount": "显示 {{total}} 条日志条目中的 {{shown}} 条",
+      "clear": "清除"
     }
   },
   "workout": {
     "weekDay": "第 {{week}} 周 - 第 {{day}} 天",
-    "addExercise": "添加动作"
+    "addExercise": "添加动作",
+    "logWorkout": "记录训练",
+    "progressionSuggestions": "建议",
+    "suggestedToday": "今日建议: {{workout}}",
+    "showDetails": "显示详情",
+    "hideDetails": "隐藏详情",
+    "details": {
+      "notes": "备注",
+      "tempo": "节奏",
+      "equipment": "器材",
+      "primaryMuscles": "主要肌肉",
+      "secondaryMuscles": "次要肌肉",
+      "technique": "技巧",
+      "cues": "提示",
+      "perSetTargets": "每组目标",
+      "progression": "进阶",
+      "weekOverrides": "周覆盖",
+      "active": "活跃",
+      "intensity": "强度",
+      "target": "目标",
+      "estimatedOneRepMax": "预估 1RM",
+      "notSet": "未设置",
+      "intensityRange": "强度范围",
+      "weightSettings": "重量设置",
+      "weightMode": "重量模式",
+      "increment": "增量",
+      "exerciseSettings": "动作设置"
+    }
+  },
+  "workoutLog": {
+    "title": "训练日志",
+    "subtitle": "{{workout}} · 第 {{week}} 周",
+    "progress": "已记录 {{logged}} / {{total}} 组",
+    "loading": "正在加载训练日志…",
+    "done": "完成",
+    "skip": "跳过",
+    "save": "保存日志",
+    "saving": "保存中…",
+    "useTarget": "按目标完成",
+    "reset": "重置",
+    "setLabel": "第 {{set}} 组",
+    "targetRir": "目标 RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "实际重量",
+    "actualReps": "实际次数",
+    "leftReps": "左次数",
+    "rightReps": "右次数",
+    "perSideReps": "每侧",
+    "sharedReps": "总计",
+    "actualRir": "实际 RIR",
+    "errors": {
+      "load": "无法加载此训练日志。",
+      "save": "无法保存此训练日志。"
+    }
+  },
+  "progressionSuggestions": {
+    "title": "进阶建议",
+    "subtitle": "立即应用下一个负荷或稍后处理。",
+    "current": "当前重量",
+    "next": "下一个重量",
+    "reason": "原因: {{reason}}",
+    "apply": "应用",
+    "skip": "跳过"
+  },
+  "exerciseSettings": {
+    "title": "动作设置",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "训练重量",
+    "weightMode": "重量模式",
+    "increment": "增量",
+    "estimatedOneRepMax": "预估 1RM",
+    "notes": "备注",
+    "history": "最近历史",
+    "linkedVariants": "关联变体",
+    "historyLoading": "正在加载历史…",
+    "historyEmpty": "暂无记录。",
+    "historyError": "无法加载历史。",
+    "historySets": "{{completed}} / {{total}} 组",
+    "historyBestReps": "最佳 {{reps}} 次"
   },
   "restTimer": {
     "title": "休息计时器",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "训练计划设置",
     "tabs": {
+      "program": "计划",
       "weeks": "周",
       "days": "天"
+    },
+    "program": {
+      "name": "计划名称",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "副标题",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "目标",
+      "goalPlaceholder": "力量与增肌",
+      "description": "描述",
+      "descriptionPlaceholder": "关于此训练模块的可选备注",
+      "sourceType": "来源",
+      "sourceLabel": "来源标签",
+      "sourceLabelPlaceholder": "教练 PDF、模板或备注",
+      "startDate": "开始日期",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "持续时间（周）",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "默认休息（秒）",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "进阶模式",
+      "frequencySummary": "每周目标",
+      "frequencyGroupPlaceholder": "肌肉群",
+      "frequencyTarget": "每周目标",
+      "frequencyPerWeek_one": "每周 {{count}} 次",
+      "frequencyPerWeek_other": "每周 {{count}} 次",
+      "addFrequencyTarget": "添加每周目标",
+      "progressionModels": {
+        "simple_load_modifier": "简单",
+        "exercise_rules": "规则",
+        "mixed": "混合",
+        "manual": "手动"
+      },
+      "sourceTypes": {
+        "manual": "手动",
+        "coach": "教练",
+        "template": "模板",
+        "imported_pdf": "导入的 PDF",
+        "imported_json": "导入的 JSON"
+      }
     },
     "week": {
       "namePlaceholder": "周名称",
       "loadModifier": "负荷调整",
+      "volumeModifier": "训练量调整",
       "rir": "RIR（储备次数）",
+      "notes": "周备注",
+      "notesPlaceholder": "关于此周的可选备注",
       "baseline": "基准",
       "addWeek": "添加周",
       "deleteTitle": "删除周",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "第 {{number}} 天",
+      "sessionLabelPlaceholder": "A",
       "icon": "图标",
+      "schedule": "日程",
+      "pickDay": "选择天",
+      "pickWindow": "选择天数范围",
       "iconMore": "更多",
       "iconRefresh": "刷新",
+      "scheduleTypes": {
+        "unscheduled": "任意",
+        "fixed_day": "固定",
+        "day_window": "范围"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "周一",
+          "tue": "周二",
+          "wed": "周三",
+          "thu": "周四",
+          "fri": "周五",
+          "sat": "周六",
+          "sun": "周日"
+        },
+        "narrow": {
+          "mon": "一",
+          "tue": "二",
+          "wed": "三",
+          "thu": "四",
+          "fri": "五",
+          "sat": "六",
+          "sun": "日"
+        }
+      },
       "addDay": "添加天",
       "deleteTitle": "删除天",
       "deleteMessage": "删除 \"{{name}}\"？这将从所有周中移除它。"
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "添加动作",
     "titleEdit": "编辑动作",
+    "tabs": {
+      "basic": "基本",
+      "advanced": "高级"
+    },
     "name": "名称",
     "namePlaceholder": "动作名称",
     "muscleGroup": "肌肉群",
@@ -202,11 +487,52 @@
     "reps": "次数",
     "notes": "备注",
     "notesPlaceholder": "可选备注...",
+    "advanced": {
+      "show": "显示高级字段",
+      "hide": "隐藏高级字段",
+      "rest": "休息（秒）",
+      "restUseDefault": "全局默认",
+      "restCustom": "自定义",
+      "restPlaceholder": "180",
+      "rir": "RIR 目标",
+      "rirPlaceholder": "1-2",
+      "intensity": "强度",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "节奏",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "进阶规则",
+      "progressionRulePlaceholder": "当所有组达到目标次数且 RIR 为 2 时增加 5kg",
+      "unilateral": "单侧模式",
+      "unilateralPlaceholder": "每条腿、每侧、左/右、交替",
+      "equipment": "器材",
+      "equipmentPlaceholder": "杠铃、哑铃、绳索、器械",
+      "primaryMuscles": "主要肌肉",
+      "primaryMusclesPlaceholder": "每行一个肌肉",
+      "secondaryMuscles": "次要肌肉",
+      "secondaryMusclesPlaceholder": "每行一个肌肉",
+      "canonicalExerciseId": "规范动作 ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "变体标签",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "别名",
+      "aliasesPlaceholder": "每行一个别名",
+      "sessionSpecific": "会话特定",
+      "sessionSpecificToggle": "仅作为会话变体追踪",
+      "technicalNotes": "技术备注",
+      "technicalNotesPlaceholder": "每行一个备注",
+      "executionCues": "执行提示",
+      "executionCuesPlaceholder": "每行一个提示",
+      "perSetTargets": "每组目标",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "周覆盖",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "添加动作",
     "submitEdit": "保存更改",
     "errors": {
       "nameRequired": "动作名称为必填项。",
-      "setsInvalid": "组数必须是有效的正整数。"
+      "setsInvalid": "组数必须是有效的正整数。",
+      "restInvalid": "休息时间必须是非负整数。"
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "同步状态",
       "status": "状态",
+      "enabled": "同步已开启",
+      "disabled": "同步已关闭",
       "syncingWith_one": "正在与 {{count}} 个设备同步",
       "syncingWith_other": "正在与 {{count}} 个设备同步",
       "off": "同步已关闭",
@@ -263,8 +591,11 @@
       "title": "备份",
       "export": "保存备份到设备",
       "import": "从备份恢复",
+      "shareBackup": "分享备份",
       "shareToDevice": "分享至另一台设备",
-      "scanFromDevice": "从另一台设备扫描"
+      "scanFromDevice": "从另一台设备扫描",
+      "localSaveRestore": "本地保存/恢复",
+      "qrShareRestore": "二维码分享/恢复"
     },
     "pairingDevices": {
       "title": "配对与设备",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "导入预览",
+    "titleWithProgram": "导入: {{program}}",
     "changesDetected": "检测到 {{count}} 项更改。",
     "noChanges": "未检测到更改。备份与当前数据相同。",
+    "modeHint": "作为新计划导入将保留当前计划。替换活动计划将覆盖此设备上的当前计划。",
+    "stats": {
+      "workouts": "要更新的训练",
+      "exercises": "要创建或更新的动作",
+      "preservedWeights": "保留的重量",
+      "needsWeight": "需要起始重量"
+    },
+    "exerciseStatus": {
+      "matching": "匹配的动作",
+      "changed": "已变更的动作",
+      "new": "新动作",
+      "removed": "已移除的动作"
+    },
     "sections": {
+      "exerciseStatus": "动作状态",
+      "preservedWeights": "保留的重量",
+      "missingWeights": "没有保存重量的新动作",
+      "removedExercises": "从活动计划中移除",
       "workouts": "训练",
+      "program": "计划",
       "settings": "设置",
       "weeks": "周",
       "days": "天"
     },
+    "currentWeightKept": "当前重量已保留",
+    "noPreviousWeight": "未找到之前的重量",
     "cancel": "取消",
-    "confirm": "导入备份"
+    "confirm": "导入备份",
+    "importAsNewProgram": "作为新计划导入",
+    "replaceActiveProgram": "替换活动计划"
+  },
+  "programLibrary": {
+    "title": "计划",
+    "summary": "已保存 {{count}} 个计划",
+    "active": "活跃",
+    "empty": "暂无保存的计划。"
   },
   "deviceTransfer": {
     "shareTitle": "分享至另一台设备",
     "shareDescription": "在另一台设备上：设置 → 备份 → 从另一台设备扫描。",
+    "shareChunkCounter": "区块 {{current}}/{{total}}",
+    "shareChunkHint": "保持两台设备稳定。二维码自动轮换。",
+    "pauseRotation": "暂停轮换",
+    "resumeRotation": "恢复轮换",
     "scanTitle": "从另一台设备扫描",
     "scanDescription": "将相机对准 PearLift 备份二维码。",
+    "chunkProgress": "扫描进度: {{received}}/{{total}}",
+    "transferCorrupted": "二维码传输完整性校验失败。请从第一个区块重新扫描。",
     "cameraPermissionTitle": "需要相机权限",
     "cameraPermissionMessage": "允许使用相机以扫描备份二维码。",
     "cameraPermissionButton": "允许相机",
+    "cameraUnavailableTitle": "相机不可用",
+    "cameraUnavailableMessage": "PearLift 无法访问此设备上可用的后置摄像头。",
     "invalidQr": "该二维码看起来不像 PearLift 的备份。",
     "tooLarge": "备份内容过大，无法放入单个二维码。请改用“保存备份到设备”。"
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "此设备/平台不支持分享。"
     },
     "importBackup": {
-      "failedTitle": "导入失败"
+      "failedTitle": "导入失败",
+      "confirmReplaceTitle": "替换活动计划？",
+      "confirmReplaceMessage": "这将在本设备上用\"{{program}}\"替换您当前的活动计划。将尽可能保留现有匹配的重量。",
+      "confirmReplaceAction": "替换计划"
     },
     "forgetDevice": {
       "authPromptMessage": "确认忘记设备",

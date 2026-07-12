@@ -4,7 +4,9 @@
     "delete": "Slet",
     "back": "Tilbage",
     "next": "Næste",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Luk",
+    "save": "Gem"
   },
   "app": {
     "loading": "Forbereder dine träningsdata"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Inaktiv",
         "connecting": "Søger",
+        "waiting": "Venter",
+        "dht_ready": "DHT klar",
+        "peer_connected": "Peer forbundet",
+        "handshake_ok": "Håndtryk OK",
+        "replicating": "Replikerer",
         "synced": "Forbundet",
         "error": "Fejl"
       },
@@ -134,6 +141,19 @@
         "connecting": "Søger efter din synkroniseringsgruppe.",
         "off": "Synkronisering er aktuelt deaktiveret på denne enhed."
       },
+      "dht": "DHT",
+      "dhtReady": "Klar",
+      "dhtBootstrapping": "Bootstrapper…",
+      "dhtError": "Fejl",
+      "dhtInactive": "Inaktiv",
+      "dhtWaiting": "Venter",
+      "status": "Status",
+      "peers": "Peers",
+      "peersConnected": "{{count}} forbundet",
+      "peersNone": "Ingen",
+      "connectionsActive": "{{count}} aktiv",
+      "connectionsNone": "Ingen",
+      "more": "Mere",
       "lastSyncAt": "Sidste synkronisering: {{at}}",
       "lastSyncNever": "Sidste synkronisering: aldrig",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Fejlfind",
         "stop": "Stop synkronisering"
       }
+    },
+    "manage": {
+      "title": "Enhedssynkronisering",
+      "subtitle": "Samlet opsætning og vedligeholdelse af synkroniseringsgruppen.",
+      "roomSetup": "Gruppeopsætning",
+      "roomSetupHint": "Vælg, om denne enhed starter en ny gruppe eller deltager i en eksisterende.",
+      "onboardingTitle": "Ingen cloud. Ingen konto.",
+      "onboardingMessage": "PearLift synkroniserer dine træninger direkte mellem dine enheder — peer-to-peer. Dine data berører aldrig en server. Alt du behøver er at være på samme Wi‑Fi eller i nærheden ved første forbindelse.",
+      "onboardingDismiss": "Forstået",
+      "createRoom": "Opret gruppe",
+      "joinRoom": "Deltag i gruppe",
+      "roomActive": "Gruppe aktiv",
+      "status": "Synkroniseringsstatus",
+      "turnOn": "Aktivér",
+      "turnOff": "Deaktivér",
+      "refresh": "Opdater",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Gruppeejer",
+        "joiner": "Medlem"
+      },
+      "binding": {
+        "unconfigured": "Ikke konfigureret",
+        "pending_first_sync": "Venter på første synkronisering",
+        "active": "Aktiv",
+        "conflict_requires_decision": "Kræver din beslutning",
+        "active_conflict_requires_decision": "Synkroniseringskonflikt kræver din beslutning"
+      },
+      "thisDeviceCode": "Denne enheds kode: {{code}}",
+      "deviceCode": "Kode {{code}}",
+      "deviceNamePlaceholder": "Navngiv denne enhed",
+      "saveDeviceName": "Gem enhedsnavn",
+      "deviceNameSyncPending": "Enhedsnavn blev gemt lokalt. Synkronisering vil forsøge at dele det med peers om kort tid.",
+      "masterKey": "Synkroniseringskode",
+      "masterKeyHint": "Brug den samme 64-tegns synkroniseringskode på alle enheder, der skal dele data.",
+      "masterKeyPlaceholder": "Indsæt eller rediger den 64-tegns synkroniseringskode",
+      "showQR": "Vis QR-kode",
+      "copyKey": "Kopiér kode",
+      "applyKey": "Anvend kode",
+      "leaveRoom": "Forlad gruppe",
+      "leaveRoomConfirmTitle": "Forlad denne gruppe?",
+      "leaveRoomConfirmMessage": "Dette deaktiverer synkronisering, rydder den nuværende gruppetilknytning på denne enhed og fjerner lokal gruppeforbindelseshistorik.",
+      "syncedDevices": "{{count}} enheder",
+      "syncedDevicesTitle": "Enheder",
+      "noDevices": "Ingen enheder har synkroniseret endnu.",
+      "showMore": "Vis {{count}} mere",
+      "lastSeen": "Sidst set {{at}}",
+      "lastSyncAt": "Sidste synkronisering {{at}}",
+      "removeDevice": "Fjern fra liste",
+      "removeDeviceConfirmTitle": "Fjern denne enhed fra listen?",
+      "removeDeviceConfirmMessage": "Dette skjuler enheden på denne enheds liste. Den kan dukke op igen, hvis den synkroniserer med denne gruppe senere.",
+      "debug": "Fejlinfo",
+      "never": "Aldrig"
+    },
+    "create": {
+      "title": "Opret gruppe",
+      "subtitle": "Denne enhed starter en ny synkroniseringsgruppe og kan dele synkroniseringskoden med andre enheder.",
+      "room": "Ny gruppe",
+      "explainer": "Brug dette, når denne enhed skal definere den første gruppe og invitere de andre.",
+      "datasetSummary": "Denne enhed har i øjeblikket {{workouts}} træninger og {{exercises}} øvelser.",
+      "masterKey": "Synkroniseringskode",
+      "inviteStarting": "Starter gruppe og genererer QR-invitation…",
+      "invitePending": "Start gruppen for at generere QR-invitationen.",
+      "copy": "Kopiér kode",
+      "startRoom": "Start denne gruppe"
+    },
+    "join": {
+      "title": "Deltag i gruppe",
+      "subtitle": "Brug synkroniseringskoden fra en anden enhed for at forbinde denne enhed til den samme synkroniseringsgruppe.",
+      "preflight": "Før deltagelse",
+      "localSummary": "Denne enhed har i øjeblikket {{workouts}} træninger og {{exercises}} øvelser.",
+      "remoteSummaryHint": "Hvis begge enheder allerede har mange overlappende ændringer, vil PearLift spørge, hvilket datasæt der skal beholdes.",
+      "masterKey": "Synkroniseringskode",
+      "keyPlaceholder": "Indsæt den 64-tegns synkroniseringskode",
+      "paste": "Indsæt",
+      "scanQr": "Scan QR-kode",
+      "scanHelp": "Ret kameraet mod QR-koden, der indeholder synkroniseringskoden.",
+      "invalidKey": "Ugyldig synkroniseringskode. Den skal være 64 hex-tegn.",
+      "keyValid": "Gyldig invitationskode",
+      "pasteSuccess": "Indsat fra udklipsholder",
+      "pasteEmpty": "Udklipsholder er tom",
+      "joinRoom": "Deltag i gruppe"
+    },
+    "decision": {
+      "title": "Vælg første synkroniseringsdata",
+      "subtitle": "Begge sider indeholder allerede meningsfulde data. Vælg hvilken basislinje denne gruppe skal beholde.",
+      "thisDevice": "Denne enhed",
+      "roomData": "Gruppedata",
+      "datasetSummary": "{{workouts}} træninger · {{exercises}} øvelser",
+      "conflictTitle": "Overlappende ændringer registreret",
+      "conflictWorkouts": "Træninger",
+      "conflictExercises": "Øvelser",
+      "conflictSummary": "{{workouts}} træningsoverlap og {{exercises}} øvelsesoverlap blev registreret.",
+      "configConflictSummary": "{{weeks}} uges konfigurationsoverlap, {{days}} dages konfigurationsoverlap, {{backlog}} gruppeopdateringer venter.",
+      "useThisDeviceHint": "Dette publicerer denne enhed som gruppens basislinje.",
+      "useRoomDataHint": "Dette erstatter træningsdata på denne enhed, mens app-indstillinger bevares.",
+      "useMerge": "Flet begge",
+      "useMergeHint": "Kombiner data fra denne enhed og gruppen, når der ikke er overlap.",
+      "mergeUnavailableHint": "Nogle træninger eller øvelser findes på begge enheder med forskellige værdier, så fletning er ikke mulig.",
+      "useThisDevice": "Brug denne enheds data",
+      "useRoomData": "Brug gruppedata"
+    },
+    "debug": {
+      "title": "Synkroniseringsfejlinfo",
+      "subtitle": "Kørselstilstand, forbindelsesdetaljer og seneste synkroniseringslogge.",
+      "snapshot": "Kørselstilstandsøjebliksbillede",
+      "connections": "Forbindelser",
+      "lastError": "Sidste fejl",
+      "logs": "Seneste logge",
+      "logCount": "Viser {{shown}} af {{total}} logposter",
+      "clear": "Ryd"
     }
   },
   "workout": {
     "weekDay": "Uge {{week}} - {{day}}",
-    "addExercise": "Tilføj øvelse"
+    "addExercise": "Tilføj øvelse",
+    "logWorkout": "Log træning",
+    "progressionSuggestions": "Forslag",
+    "suggestedToday": "Foreslået i dag: {{workout}}",
+    "showDetails": "Vis detaljer",
+    "hideDetails": "Skjul detaljer",
+    "details": {
+      "notes": "Noter",
+      "tempo": "Tempo",
+      "equipment": "Udstyr",
+      "primaryMuscles": "Primære muskler",
+      "secondaryMuscles": "Sekundære muskler",
+      "technique": "Teknik",
+      "cues": "Signaler",
+      "perSetTargets": "Mål pr. sæt",
+      "progression": "Progression",
+      "weekOverrides": "Ugetilsidesættelser",
+      "active": "Aktiv",
+      "intensity": "Intensitet",
+      "target": "Mål",
+      "estimatedOneRepMax": "Estimeret 1RM",
+      "notSet": "Ikke angivet",
+      "intensityRange": "Intensitetsområde",
+      "weightSettings": "Vægtindstillinger",
+      "weightMode": "Vægttilstand",
+      "increment": "Stigning",
+      "exerciseSettings": "Øvelsesindstillinger"
+    }
+  },
+  "workoutLog": {
+    "title": "Træningslog",
+    "subtitle": "{{workout}} · Uge {{week}}",
+    "progress": "{{logged}} / {{total}} sæt logget",
+    "loading": "Indlæser træningslog…",
+    "done": "Færdig",
+    "skip": "Spring over",
+    "save": "Gem log",
+    "saving": "Gemmer…",
+    "useTarget": "Fuldfør med mål",
+    "reset": "Nulstil",
+    "setLabel": "Sæt {{set}}",
+    "targetRir": "Mål-RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Faktisk vægt",
+    "actualReps": "Faktiske gentagelser",
+    "leftReps": "Venstre gentagelser",
+    "rightReps": "Højre gentagelser",
+    "perSideReps": "Pr. side",
+    "sharedReps": "Delt",
+    "actualRir": "Faktisk RIR",
+    "errors": {
+      "load": "Kunne ikke indlæse denne træningslog.",
+      "save": "Kunne ikke gemme denne træningslog."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progressionsforslag",
+    "subtitle": "Anvend den næste belastning nu eller lad den være afventende til senere.",
+    "current": "Nuværende vægt",
+    "next": "Næste vægt",
+    "reason": "Årsag: {{reason}}",
+    "apply": "Anvend",
+    "skip": "Spring over"
+  },
+  "exerciseSettings": {
+    "title": "Øvelsesindstillinger",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Arbejdsvægt",
+    "weightMode": "Vægttilstand",
+    "increment": "Stigning",
+    "estimatedOneRepMax": "Estimeret 1RM",
+    "notes": "Noter",
+    "history": "Seneste historik",
+    "linkedVariants": "Forbundne varianter",
+    "historyLoading": "Indlæser historik…",
+    "historyEmpty": "Ingen loggede sessioner endnu.",
+    "historyError": "Kunne ikke indlæse historik.",
+    "historySets": "{{completed}} / {{total}} sæt",
+    "historyBestReps": "Bedste {{reps}} gentagelser"
   },
   "restTimer": {
     "title": "Hviletimer",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Programindstillinger",
     "tabs": {
+      "program": "Program",
       "weeks": "Uger",
       "days": "Dage"
+    },
+    "program": {
+      "name": "Programnavn",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Undertitel",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Mål",
+      "goalPlaceholder": "Styrke og hypertrofi",
+      "description": "Beskrivelse",
+      "descriptionPlaceholder": "Valgfrie noter om denne træningsblok",
+      "sourceType": "Kilde",
+      "sourceLabel": "Kildeetiket",
+      "sourceLabelPlaceholder": "Træner-PDF, skabelon eller note",
+      "startDate": "Startdato",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Varighed (uger)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Standardhvile (sek)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progressionsmodel",
+      "frequencySummary": "Ugentlige mål",
+      "frequencyGroupPlaceholder": "Muskelgruppe",
+      "frequencyTarget": "Mål pr. uge",
+      "frequencyPerWeek_one": "{{count}}x / uge",
+      "frequencyPerWeek_other": "{{count}}x / uge",
+      "addFrequencyTarget": "Tilføj ugentligt mål",
+      "progressionModels": {
+        "simple_load_modifier": "Simpel",
+        "exercise_rules": "Regler",
+        "mixed": "Blandet",
+        "manual": "Manuel"
+      },
+      "sourceTypes": {
+        "manual": "Manuel",
+        "coach": "Træner",
+        "template": "Skabelon",
+        "imported_pdf": "Importeret PDF",
+        "imported_json": "Importeret JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Ugenavn",
       "loadModifier": "Lastmodifikator",
+      "volumeModifier": "Volumenmodifikator",
       "rir": "RIR (Reserverepetitioner)",
+      "notes": "Ugenoter",
+      "notesPlaceholder": "Valgfrie noter til denne uge",
       "baseline": "Basislinje",
       "addWeek": "Tilføj uge",
       "deleteTitle": "Slet uge",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Dag {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikon",
+      "schedule": "Plan",
+      "pickDay": "Vælg dag",
+      "pickWindow": "Vælg dage",
       "iconMore": "Mere",
       "iconRefresh": "Opdater",
+      "scheduleTypes": {
+        "unscheduled": "Enhver",
+        "fixed_day": "Fast",
+        "day_window": "Vindue"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "man",
+          "tue": "tir",
+          "wed": "ons",
+          "thu": "tor",
+          "fri": "fre",
+          "sat": "lør",
+          "sun": "søn"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "O",
+          "thu": "T",
+          "fri": "F",
+          "sat": "L",
+          "sun": "S"
+        }
+      },
       "addDay": "Tilføj dag",
       "deleteTitle": "Slet dag",
       "deleteMessage": "Slet \"{{name}}\"? Dette fjerner den fra alle uger."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Tilføj øvelse",
     "titleEdit": "Rediger øvelse",
+    "tabs": {
+      "basic": "Basis",
+      "advanced": "Avanceret"
+    },
     "name": "Navn",
     "namePlaceholder": "Øvelsens navn",
     "muscleGroup": "Muskelgruppe",
@@ -202,11 +487,52 @@
     "reps": "Gentagelser",
     "notes": "Noter",
     "notesPlaceholder": "Valgfrie notater...",
+    "advanced": {
+      "show": "Vis avancerede felter",
+      "hide": "Skjul avancerede felter",
+      "rest": "Hvile (sek)",
+      "restUseDefault": "Global standard",
+      "restCustom": "Brugerdefineret",
+      "restPlaceholder": "180",
+      "rir": "RIR-mål",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensitet",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eccentrica 2 sek",
+      "progressionRule": "Progressionsregel",
+      "progressionRulePlaceholder": "+5 kg når alle sæt når maks. gentagelser med 2 RIR",
+      "unilateral": "Unilateral tilstand",
+      "unilateralPlaceholder": "pr. ben, pr. side, venstre/højre, skiftevis",
+      "equipment": "Udstyr",
+      "equipmentPlaceholder": "Stang, håndvægt, kabel, maskine",
+      "primaryMuscles": "Primære muskler",
+      "primaryMusclesPlaceholder": "En muskel pr. linje",
+      "secondaryMuscles": "Sekundære muskler",
+      "secondaryMusclesPlaceholder": "En muskel pr. linje",
+      "canonicalExerciseId": "Kanonisk øvelses-ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Variantetiket",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Aliaser",
+      "aliasesPlaceholder": "Et alias pr. linje",
+      "sessionSpecific": "Sessionsspecifik",
+      "sessionSpecificToggle": "Registrer som sessionsspecifik variant",
+      "technicalNotes": "Tekniske noter",
+      "technicalNotesPlaceholder": "En note pr. linje",
+      "executionCues": "Udførelsessignaler",
+      "executionCuesPlaceholder": "Et signal pr. linje",
+      "perSetTargets": "Mål pr. sæt",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Pres til failure",
+      "weekOverrides": "Ugetilsidesættelser",
+      "weekOverridesPlaceholder": "W3: sæt=4; hvile=120; rir=1; notes=Tilføj et sæt"
+    },
     "submitAdd": "Tilføj øvelse",
     "submitEdit": "Gem ændringer",
     "errors": {
       "nameRequired": "Øvelsens navn er påkrævet.",
-      "setsInvalid": "Sæt skal være et gyldigt positivt heltal."
+      "setsInvalid": "Sæt skal være et gyldigt positivt heltal.",
+      "restInvalid": "Hvile skal være et gyldigt ikke-negativt heltal."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Synkroniseringsstatus",
       "status": "Status",
+      "enabled": "Synkronisering er til",
+      "disabled": "Synkronisering er fra",
       "syncingWith_one": "Synkroniserer med {{count}} enhed",
       "syncingWith_other": "Synkroniserer med {{count}} enheder",
       "off": "Synkronisering er deaktiveret",
@@ -263,8 +591,11 @@
       "title": "Backup",
       "export": "Gem backup på enhed",
       "import": "Gendan fra backup",
+      "shareBackup": "Del backup",
       "shareToDevice": "Del til en anden enhed",
-      "scanFromDevice": "Scan fra en anden enhed"
+      "scanFromDevice": "Scan fra en anden enhed",
+      "localSaveRestore": "Lokal gem / gendan",
+      "qrShareRestore": "QR-del / gendan"
     },
     "pairingDevices": {
       "title": "Parring og enheder",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Import forhåndsvisning",
+    "titleWithProgram": "Import: {{program}}",
     "changesDetected": "{{count}} ændring(er) fundet.",
     "noChanges": "Ingen ændringer fundet. Backup er identisk med aktuelle data.",
+    "modeHint": "Import som ny beholder den nuværende plan tilgængelig. Erstat aktivt program overskriver den nuværende plan på denne enhed.",
+    "stats": {
+      "workouts": "Træninger til opdatering",
+      "exercises": "Øvelser til oprettelse eller opdatering",
+      "preservedWeights": "Vægte bevaret",
+      "needsWeight": "Mangler startvægt"
+    },
+    "exerciseStatus": {
+      "matching": "Matchende øvelser",
+      "changed": "Ændrede øvelser",
+      "new": "Nye øvelser",
+      "removed": "Fjernede øvelser"
+    },
     "sections": {
+      "exerciseStatus": "Øvelsesstatus",
+      "preservedWeights": "Bevarede vægte",
+      "missingWeights": "Nye øvelser uden en gemt vægt",
+      "removedExercises": "Fjernet fra aktivt program",
       "workouts": "Träninger",
+      "program": "Program",
       "settings": "Indstillinger",
       "weeks": "Uger",
       "days": "Dage"
     },
+    "currentWeightKept": "Nuværende vægt bevaret",
+    "noPreviousWeight": "Ingen tidligere vægt fundet",
     "cancel": "Annuller",
-    "confirm": "Importer backup"
+    "confirm": "Importer backup",
+    "importAsNewProgram": "Importér som nyt program",
+    "replaceActiveProgram": "Erstat aktivt program"
+  },
+  "programLibrary": {
+    "title": "Programmer",
+    "summary": "{{count}} gemt program(mer)",
+    "active": "Aktiv",
+    "empty": "Ingen gemte programmer endnu."
   },
   "deviceTransfer": {
     "shareTitle": "Del til en anden enhed",
     "shareDescription": "På den anden enhed: Åbn Indstillinger → Backup → Scan fra en anden enhed.",
+    "shareChunkCounter": "Del {{current}}/{{total}}",
+    "shareChunkHint": "Hold begge enheder stille. QR roterer automatisk.",
+    "pauseRotation": "Sæt rotation på pause",
+    "resumeRotation": "Genoptag rotation",
     "scanTitle": "Scan fra en anden enhed",
     "scanDescription": "Ret kameraet mod PearLift-backuppens QR-kode.",
+    "chunkProgress": "Scan-fremskridt: {{received}}/{{total}}",
+    "transferCorrupted": "QR-overførsel bestod ikke integritetskontrollen. Scan venligst fra første del igen.",
     "cameraPermissionTitle": "Kameratilladelse kræves",
     "cameraPermissionMessage": "Tillad adgang til kameraet for at scanne en backup-QR-kode.",
     "cameraPermissionButton": "Tillad kamera",
+    "cameraUnavailableTitle": "Kamera utilgængeligt",
+    "cameraUnavailableMessage": "PearLift kunne ikke få adgang til et brugbart bagkamera på denne enhed.",
     "invalidQr": "Den QR-kode ligner ikke en PearLift-backup.",
     "tooLarge": "Backupen er for stor til én QR-kode. Brug “Gem backup på enhed” i stedet."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Deling er ikke tilgængelig på denne enhed/platform."
     },
     "importBackup": {
-      "failedTitle": "Import mislykkedes"
+      "failedTitle": "Import mislykkedes",
+      "confirmReplaceTitle": "Erstat aktivt program?",
+      "confirmReplaceMessage": "Dette vil erstatte dit nuværende aktive program med \"{{program}}\" på denne enhed. Eksisterende matchende vægte bevares hvor muligt.",
+      "confirmReplaceAction": "Erstat program"
     },
     "forgetDevice": {
       "authPromptMessage": "Bekræft for at glemme enheden",

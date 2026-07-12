@@ -13,6 +13,8 @@ import {
 } from '@/theme/tokens';
 import type { WeightUnit } from '@/types';
 import { roundToHalf } from '@/utils/math';
+import { resolveAppliedLoadModifier } from '@/utils/program';
+import { getSuggestedDayConfig, resolveSelectedDay } from '@/utils/schedule';
 import {
   fromDisplayWeight,
   roundToIncrement,
@@ -44,8 +46,11 @@ export function useWorkoutDerivedState(input: {
     effectiveThemeMode === 'dark' ? 'dark' : 'light';
 
   const currentWeek = snapshot?.currentWeek ?? 1;
+  const program = snapshot?.program ?? null;
+  const availablePrograms = snapshot?.availablePrograms ?? [];
   const workouts = snapshot?.workouts ?? [];
   const userWeights = snapshot?.userWeights ?? {};
+  const userExerciseSettings = snapshot?.userExerciseSettings ?? {};
   const weekConfigs = snapshot?.weekConfigs ?? [];
   const dayConfigs = snapshot?.dayConfigs ?? defaultDayConfigs;
   const rawSelectedDay =
@@ -53,12 +58,22 @@ export function useWorkoutDerivedState(input: {
     dayConfigs[0]?.id ??
     defaultDayConfigs[0]?.id ??
     'push';
-  const selectedDay = dayConfigs.some((day) => day.id === rawSelectedDay)
-    ? rawSelectedDay
-    : (dayConfigs[0]?.id ?? rawSelectedDay);
   const restDuration = snapshot?.restDuration ?? 150;
   const weightUnit: WeightUnit = snapshot?.weightUnit ?? 'kg';
   const currentLanguage = snapshot?.language ?? 'system';
+  const suggestedDay = useMemo(
+    () => getSuggestedDayConfig(dayConfigs),
+    [dayConfigs],
+  );
+  const selectedDay = useMemo(
+    () =>
+      resolveSelectedDay({
+        dayConfigs,
+        currentDay: rawSelectedDay,
+        currentDaySelectedAt: snapshot?.currentDaySelectedAt,
+      }),
+    [dayConfigs, rawSelectedDay, snapshot?.currentDaySelectedAt],
+  );
 
   const exerciseBaseWeights = useMemo(() => {
     const map = new Map<string, number>();
@@ -127,8 +142,13 @@ export function useWorkoutDerivedState(input: {
       weekConfigs.find((item) => item.id === (weekId ?? currentWeek)) ??
       weekConfigs[0];
     const fallback = exerciseBaseWeights.get(exerciseId) ?? 0;
-    const baseWeight = userWeights[exerciseId] ?? fallback;
-    const rawKg = baseWeight * (week?.loadModifier ?? 1);
+    const settingsWeight = userExerciseSettings[exerciseId]?.workingWeight;
+    const baseWeight = settingsWeight ?? userWeights[exerciseId] ?? fallback;
+    const appliedLoadModifier = resolveAppliedLoadModifier({
+      progressionModel: program?.progressionModel ?? null,
+      loadModifier: week?.loadModifier ?? 1,
+    });
+    const rawKg = baseWeight * appliedLoadModifier;
     if (weightUnit === 'lb') {
       const rawLb = toDisplayWeight(rawKg, 'lb');
       const roundedLb = roundToIncrement(rawLb, 2.5);
@@ -144,14 +164,18 @@ export function useWorkoutDerivedState(input: {
     statusBarStyle,
     navigationBarStyle,
     currentWeek,
+    program,
+    availablePrograms,
     workouts,
     userWeights,
+    userExerciseSettings,
     weekConfigs,
     dayConfigs,
     selectedDay,
     restDuration,
     weightUnit,
     currentLanguage,
+    suggestedDay,
     layout,
     currentWorkout,
     localSyncSummary,

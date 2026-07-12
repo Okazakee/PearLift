@@ -4,7 +4,9 @@
     "delete": "Kustuta",
     "back": "Tagasi",
     "next": "Edasi",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Sulge",
+    "save": "Salvesta"
   },
   "app": {
     "loading": "Treeningandmete ettevalmistamine"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Ootel",
         "connecting": "Otsimine",
+        "waiting": "Ootel",
+        "dht_ready": "DHT valmis",
+        "peer_connected": "Peer ühendatud",
+        "handshake_ok": "Käepigistus OK",
+        "replicating": "Replikeerimine",
         "synced": "Ühendatud",
         "error": "Viga"
       },
@@ -134,6 +141,19 @@
         "connecting": "Otsin teie sünkroonimisrühma.",
         "off": "Sünkroonimine on sel seadmel hetkel keelatud."
       },
+      "dht": "DHT",
+      "dhtReady": "Valmis",
+      "dhtBootstrapping": "Käivitamine…",
+      "dhtError": "Viga",
+      "dhtInactive": "Passiivne",
+      "dhtWaiting": "Ootel",
+      "status": "Staatus",
+      "peers": "Peerid",
+      "peersConnected": "{{count}} ühendatud",
+      "peersNone": "Puudub",
+      "connectionsActive": "{{count}} aktiivset",
+      "connectionsNone": "Puudub",
+      "more": "Rohkem",
       "lastSyncAt": "Viimane sünkroonimine: {{at}}",
       "lastSyncNever": "Viimane sünkroonimine: kunagi",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Tõrkeotsing",
         "stop": "Peata sünkroonimine"
       }
+    },
+    "manage": {
+      "title": "Seadmete sünkroonimine",
+      "subtitle": "Hoia grupi seadistamine ja sünkroonimise haldus ühes kohas.",
+      "roomSetup": "Grupi seadistamine",
+      "roomSetupHint": "Vali, kas see seade alustab uut gruppi või ühineb juba olemasolevaga.",
+      "onboardingTitle": "Pilve pole. Kontot pole.",
+      "onboardingMessage": "PearLift sünkroniseerib treeningud otse seadmete vahel — peer-to-peer. Sinu andmed ei puutu kunagi serveriga kokku. Kõik, mida vajad, on olla samas Wi‑Fi võrgus või läheduses esmaseks ühenduseks.",
+      "onboardingDismiss": "Sain aru",
+      "createRoom": "Loo grupp",
+      "joinRoom": "Liitu grupiga",
+      "roomActive": "Grupp aktiivne",
+      "status": "Sünkroonimise olek",
+      "turnOn": "Lülita sisse",
+      "turnOff": "Lülita välja",
+      "refresh": "Värskenda",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Grupi omanik",
+        "joiner": "Liige"
+      },
+      "binding": {
+        "unconfigured": "Pole konfigureeritud",
+        "pending_first_sync": "Ootan esimest sünkroonimist",
+        "active": "Aktiivne",
+        "conflict_requires_decision": "Vajab sinu otsust",
+        "active_conflict_requires_decision": "Sünkroonimise konflikt vajab sinu otsust"
+      },
+      "thisDeviceCode": "Selle seadme kood: {{code}}",
+      "deviceCode": "Kood {{code}}",
+      "deviceNamePlaceholder": "Nimeta see seade",
+      "saveDeviceName": "Salvesta seadme nimi",
+      "deviceNameSyncPending": "Seadme nimi salvestati kohalikult. Sünkroonimine proovib seda varsti peeridega jagada.",
+      "masterKey": "Sünkroonimiskood",
+      "masterKeyHint": "Kasuta sama 64-kohalist sünkroonimiskoodi igas seadmes, mis peaks andmeid jagama.",
+      "masterKeyPlaceholder": "Kleebi või muuda 64-kohaline sünkroonimiskood",
+      "showQR": "Näita QR-koodi",
+      "copyKey": "Kopeeri kood",
+      "applyKey": "Rakenda kood",
+      "leaveRoom": "Lahku grupist",
+      "leaveRoomConfirmTitle": "Lahkud sellest grupist?",
+      "leaveRoomConfirmMessage": "See lülitab sünkroonimise välja, tühjendab selle seadme praeguse grupisidumise ja eemaldab kohaliku grupiühenduste ajaloo.",
+      "syncedDevices": "{{count}} seadet",
+      "syncedDevicesTitle": "Seadmed",
+      "noDevices": "Ühtki seadet pole veel sünkroonitud.",
+      "showMore": "Näita veel {{count}}",
+      "lastSeen": "Viimati nähtud {{at}}",
+      "lastSyncAt": "Viimane sünkroonimine {{at}}",
+      "removeDevice": "Eemalda loendist",
+      "removeDeviceConfirmTitle": "Eemalda see seade loendist?",
+      "removeDeviceConfirmMessage": "See peidab seadme selles loendis ainult sellel seadmel. See võib ilmuda uuesti, kui see hiljem selle grupiga sünkroonib.",
+      "debug": "Silumisinfo",
+      "never": "Mitte kunagi"
+    },
+    "create": {
+      "title": "Loo grupp",
+      "subtitle": "See seade alustab uut sünkroonimisgruppi ja saab jagada sünkroonimiskoodi teiste seadmetega.",
+      "room": "Uus grupp",
+      "explainer": "Kasuta seda, kui see seade peaks määratlema algse grupi ja kutsuma teisi liituma.",
+      "datasetSummary": "Sellel seadmel on praegu {{workouts}} treeningut ja {{exercises}} harjutust.",
+      "masterKey": "Sünkroonimiskood",
+      "inviteStarting": "Grupi alustamine ja QR-kutse loomine…",
+      "invitePending": "Alusta gruppi, et luua QR-kutse.",
+      "copy": "Kopeeri kood",
+      "startRoom": "Alusta seda gruppi"
+    },
+    "join": {
+      "title": "Liitu grupiga",
+      "subtitle": "Kasuta teisest seadmest pärit sünkroonimiskoodi, et ühendada see seade sama sünkroonimisgrupiga.",
+      "preflight": "Enne liitumist",
+      "localSummary": "Sellel seadmel on praegu {{workouts}} treeningut ja {{exercises}} harjutust.",
+      "remoteSummaryHint": "Kui mõlemal seadmel on juba palju kattuvad muudatusi, küsib PearLift, millist andmekogumit säilitada.",
+      "masterKey": "Sünkroonimiskood",
+      "keyPlaceholder": "Kleebi 64-kohaline sünkroonimiskood",
+      "paste": "Kleebi",
+      "scanQr": "Skaneeri QR",
+      "scanHelp": "Suuna kaamera QR-koodile, mis sisaldab sünkroonimiskoodi.",
+      "invalidKey": "Vigane sünkroonimiskood. See peab olema 64 kuueteistkümnendmärki.",
+      "keyValid": "Kehtiv kutsekood",
+      "pasteSuccess": "Lõikelaualt kleebitud",
+      "pasteEmpty": "Lõikelaud on tühi",
+      "joinRoom": "Liitu grupiga"
+    },
+    "decision": {
+      "title": "Vali esimese sünkroonimise andmed",
+      "subtitle": "Mõlemal poolel on juba olulised andmed. Vali, millise baasjoone see grupp peaks säilitama.",
+      "thisDevice": "See seade",
+      "roomData": "Grupi andmed",
+      "datasetSummary": "{{workouts}} treeningut · {{exercises}} harjutust",
+      "conflictTitle": "Tuvastati kattuvad muudatused",
+      "conflictWorkouts": "Treeningud",
+      "conflictExercises": "Harjutused",
+      "conflictSummary": "Tuvastati {{workouts}} treeningu ja {{exercises}} harjutuse kattuvust.",
+      "configConflictSummary": "{{weeks}} nädala konfiguratsiooni kattuvust, {{days}} päeva konfiguratsiooni kattuvust, {{backlog}} grupi uuendust ootel.",
+      "useThisDeviceHint": "See avaldab selle seadme grupi baasjooneks.",
+      "useRoomDataHint": "See asendab selle seadme treeningandmed, säilitades rakenduse eelistused.",
+      "useMerge": "Ühenda mõlemad",
+      "useMergeHint": "Kombineeri selle seadme ja grupi andmed, kui kattuvusi pole.",
+      "mergeUnavailableHint": "Mõned treeningud või harjutused eksisteerivad mõlemas seadmes erinevate väärtustega, nii et ühendamine pole võimalik.",
+      "useThisDevice": "Kasuta selle seadme andmeid",
+      "useRoomData": "Kasuta grupi andmeid"
+    },
+    "debug": {
+      "title": "Sünkroonimise silumisinfo",
+      "subtitle": "Tööaja olek, ühenduse üksikasjad ja hiljutised sünkroonimislogid.",
+      "snapshot": "Tööaja hetktõmmis",
+      "connections": "Ühendused",
+      "lastError": "Viimane viga",
+      "logs": "Hiljutised logid",
+      "logCount": "Kuvatakse {{shown}} / {{total}} logikirjest",
+      "clear": "Tühjenda"
     }
   },
   "workout": {
     "weekDay": "Nädal {{week}} - {{day}}",
-    "addExercise": "Lisa harjutus"
+    "addExercise": "Lisa harjutus",
+    "logWorkout": "Logi treening",
+    "progressionSuggestions": "Soovitused",
+    "suggestedToday": "Täna soovitatud: {{workout}}",
+    "showDetails": "Näita üksikasju",
+    "hideDetails": "Peida üksikasjad",
+    "details": {
+      "notes": "Märkmed",
+      "tempo": "Tempo",
+      "equipment": "Varustus",
+      "primaryMuscles": "Primaarsed lihased",
+      "secondaryMuscles": "Sekundaarsed lihased",
+      "technique": "Tehnika",
+      "cues": "Vihjed",
+      "perSetTargets": "Seeripõhised eesmärgid",
+      "progression": "Progressioon",
+      "weekOverrides": "Nädala ülekirjutused",
+      "active": "Aktiivne",
+      "intensity": "Intensiivsus",
+      "target": "Eesmärk",
+      "estimatedOneRepMax": "Hinnanguline 1RM",
+      "notSet": "Pole määratud",
+      "intensityRange": "Intensiivsuse vahemik",
+      "weightSettings": "Kaalu seaded",
+      "weightMode": "Kaalu režiim",
+      "increment": "Samm",
+      "exerciseSettings": "Harjutuse seaded"
+    }
+  },
+  "workoutLog": {
+    "title": "Treeningulogi",
+    "subtitle": "{{workout}} · Nädal {{week}}",
+    "progress": "{{logged}} / {{total}} seerit logitud",
+    "loading": "Laen treeningulogi…",
+    "done": "Valmis",
+    "skip": "Jäta vahele",
+    "save": "Salvesta logi",
+    "saving": "Salvestamine…",
+    "useTarget": "Täida eesmärgiga",
+    "reset": "Lähtesta",
+    "setLabel": "Seeria {{set}}",
+    "targetRir": "Siht-RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Tegelik kaal",
+    "actualReps": "Tegelikud kordused",
+    "leftReps": "Vasaku kordused",
+    "rightReps": "Parema kordused",
+    "perSideReps": "Külje kohta",
+    "sharedReps": "Jagatud",
+    "actualRir": "Tegelik RIR",
+    "errors": {
+      "load": "Selle treeningulogi laadimine ebaõnnestus.",
+      "save": "Selle treeningulogi salvestamine ebaõnnestus."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progressiooni soovitused",
+    "subtitle": "Rakenda järgmine koormus kohe või jäta see hilisemaks ootel.",
+    "current": "Praegune kaal",
+    "next": "Järgmine kaal",
+    "reason": "Põhjus: {{reason}}",
+    "apply": "Rakenda",
+    "skip": "Jäta vahele"
+  },
+  "exerciseSettings": {
+    "title": "Harjutuse seaded",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Töökaal",
+    "weightMode": "Kaalu režiim",
+    "increment": "Samm",
+    "estimatedOneRepMax": "Hinnanguline 1RM",
+    "notes": "Märkmed",
+    "history": "Hiljutine ajalugu",
+    "linkedVariants": "Seotud variandid",
+    "historyLoading": "Laen ajalugu…",
+    "historyEmpty": "Veel pole logitud seansse.",
+    "historyError": "Ajaloo laadimine ebaõnnestus.",
+    "historySets": "{{completed}} / {{total}} seerit",
+    "historyBestReps": "Parim {{reps}} kordust"
   },
   "restTimer": {
     "title": "Puhkuse taimer",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Programmi seaded",
     "tabs": {
+      "program": "Programm",
       "weeks": "Nädalad",
       "days": "Päevad"
+    },
+    "program": {
+      "name": "Programmi nimi",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Alapealkiri",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Eesmärk",
+      "goalPlaceholder": "Jõud ja hüpertroofia",
+      "description": "Kirjeldus",
+      "descriptionPlaceholder": "Valikulised märkmed selle treeningploki kohta",
+      "sourceType": "Allikas",
+      "sourceLabel": "Allika silt",
+      "sourceLabelPlaceholder": "Treeneri PDF, mall või märkus",
+      "startDate": "Alguskuupäev",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Kestus (nädalad)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Vaikimisi puhkus (sek)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progressiooni mudel",
+      "frequencySummary": "Nädala eesmärgid",
+      "frequencyGroupPlaceholder": "Lihasgrupp",
+      "frequencyTarget": "Eesmärk nädalas",
+      "frequencyPerWeek_one": "{{count}}x / nädalas",
+      "frequencyPerWeek_other": "{{count}}x / nädalas",
+      "addFrequencyTarget": "Lisa nädala eesmärk",
+      "progressionModels": {
+        "simple_load_modifier": "Lihtne",
+        "exercise_rules": "Reeglid",
+        "mixed": "Segatud",
+        "manual": "Käsitsi"
+      },
+      "sourceTypes": {
+        "manual": "Käsitsi",
+        "coach": "Treener",
+        "template": "Mall",
+        "imported_pdf": "Imporditud PDF",
+        "imported_json": "Imporditud JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Nädala nimi",
       "loadModifier": "Koormuse muutja",
+      "volumeModifier": "Mahu modifikaator",
       "rir": "RIR (Reservkordused)",
+      "notes": "Nädala märkmed",
+      "notesPlaceholder": "Valikulised märkmed selle nädala kohta",
       "baseline": "Alus",
       "addWeek": "Lisa nädal",
       "deleteTitle": "Kustuta nädal",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Päev {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikoon",
+      "schedule": "Graafik",
+      "pickDay": "Vali päev",
+      "pickWindow": "Vali päevad",
       "iconMore": "Rohkem",
       "iconRefresh": "Värskenda",
+      "scheduleTypes": {
+        "unscheduled": "Ükskõik millal",
+        "fixed_day": "Fikseeritud",
+        "day_window": "Aken"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "E",
+          "tue": "T",
+          "wed": "K",
+          "thu": "N",
+          "fri": "R",
+          "sat": "L",
+          "sun": "P"
+        },
+        "narrow": {
+          "mon": "E",
+          "tue": "T",
+          "wed": "K",
+          "thu": "T",
+          "fri": "R",
+          "sat": "L",
+          "sun": "L"
+        }
+      },
       "addDay": "Lisa päev",
       "deleteTitle": "Kustuta päev",
       "deleteMessage": "Kustuta \"{{name}}\"? See eemaldab selle kõikidest nädalatest."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Lisa harjutus",
     "titleEdit": "Muuda harjutust",
+    "tabs": {
+      "basic": "Põhi",
+      "advanced": "Täpsem"
+    },
     "name": "Nimi",
     "namePlaceholder": "Harjutuse nimi",
     "muscleGroup": "Lihasgrupp",
@@ -202,11 +487,52 @@
     "reps": "Kordused",
     "notes": "Märkmed",
     "notesPlaceholder": "Valikulised märkmed...",
+    "advanced": {
+      "show": "Näita täpsemaid välju",
+      "hide": "Peida täpsemad väljad",
+      "rest": "Puhkus (sek)",
+      "restUseDefault": "Globaalne vaikimisi",
+      "restCustom": "Kohandatud",
+      "restPlaceholder": "180",
+      "rir": "RIR eesmärk",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensiivsus",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Ekstsentriline 2 sek",
+      "progressionRule": "Progressiooni reegel",
+      "progressionRulePlaceholder": "+5kg kui kõik seerid jõuavad tippkordusteni 2 RIR-iga",
+      "unilateral": "Ühepoolne režiim",
+      "unilateralPlaceholder": "jala kohta, külje kohta, vasak/parem, vahelduv",
+      "equipment": "Varustus",
+      "equipmentPlaceholder": "Kang, hantel, tross, masin",
+      "primaryMuscles": "Primaarsed lihased",
+      "primaryMusclesPlaceholder": "Üks lihas rea kohta",
+      "secondaryMuscles": "Sekundaarsed lihased",
+      "secondaryMusclesPlaceholder": "Üks lihas rea kohta",
+      "canonicalExerciseId": "Kanooniline harjutuse ID",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Variantide silt",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Aliased",
+      "aliasesPlaceholder": "Üks alias rea kohta",
+      "sessionSpecific": "Seansipõhine",
+      "sessionSpecificToggle": "Jälgi kui seansi-spetsiifiline variant",
+      "technicalNotes": "Tehnilised märkmed",
+      "technicalNotesPlaceholder": "Üks märkus rea kohta",
+      "executionCues": "Sooritusvihjed",
+      "executionCuesPlaceholder": "Üks vihje rea kohta",
+      "perSetTargets": "Seeripõhised eesmärgid",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Surv ebaõnnestumiseni",
+      "weekOverrides": "Nädala ülekirjutused",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Lisa üks seer"
+    },
     "submitAdd": "Lisa harjutus",
     "submitEdit": "Salve muudatused",
     "errors": {
       "nameRequired": "Harjutuse nimi on nõutav.",
-      "setsInvalid": "Seerid peavad olema positiivne täisarv."
+      "setsInvalid": "Seerid peavad olema positiivne täisarv.",
+      "restInvalid": "Puhkus peab olema kehtiv mittenegatiivne täisarv."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Sünkroonimise staatus",
       "status": "Staatus",
+      "enabled": "Sünkroonimine on sees",
+      "disabled": "Sünkroonimine on väljas",
       "syncingWith_one": "Sünkroonimine {{count}} seadmega",
       "syncingWith_other": "Sünkroonimine {{count}} seadmega",
       "off": "Sünkroonimine on väljas",
@@ -263,8 +591,11 @@
       "title": "Varukoopia",
       "export": "Salvesta varukoopia seadmesse",
       "import": "Taasta varukoopiast",
+      "shareBackup": "Jaga varukoopiat",
       "shareToDevice": "Jaga teise seadmega",
-      "scanFromDevice": "Skanni teisest seadmest"
+      "scanFromDevice": "Skanni teisest seadmest",
+      "localSaveRestore": "Kohalik salvestus / taastamine",
+      "qrShareRestore": "QR jagamine / taastamine"
     },
     "pairingDevices": {
       "title": "Sidumine ja seadmed",
@@ -297,7 +628,7 @@
       "title": "Rakenduse info",
       "name": "Nimi",
       "version": "Versioon",
-      "build": "Build",
+      "build": "Ehitus",
       "buildType": "Buildi tüüp"
     }
   },
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Impordi eelvaade",
+    "titleWithProgram": "Impordi: {{program}}",
     "changesDetected": "Leitud {{count}} muutust.",
     "noChanges": "Muutusi ei leitud. Varukoopia on identne praeguste andmetega.",
+    "modeHint": "Importimine uuena hoiab praeguse plaani saadaval. Aktiivse programmi asendamine kirjutab praeguse plaani sellel seadmel üle.",
+    "stats": {
+      "workouts": "Uuendatavad treeningud",
+      "exercises": "Loodavad või uuendatavad harjutused",
+      "preservedWeights": "Säilitatud kaalud",
+      "needsWeight": "Vajab alguskaalu"
+    },
+    "exerciseStatus": {
+      "matching": "Sobivad harjutused",
+      "changed": "Muudetud harjutused",
+      "new": "Uued harjutused",
+      "removed": "Eemaldatud harjutused"
+    },
     "sections": {
+      "exerciseStatus": "Harjutuste olek",
+      "preservedWeights": "Säilitatud kaalud",
+      "missingWeights": "Uued harjutused ilma salvestatud kaaluta",
+      "removedExercises": "Eemaldatud aktiivsest programmist",
       "workouts": "Treeningud",
+      "program": "Programm",
       "settings": "Seaded",
       "weeks": "Nädalad",
       "days": "Päevad"
     },
+    "currentWeightKept": "Praegune kaal säilitatud",
+    "noPreviousWeight": "Eelmist kaalu ei leitud",
     "cancel": "Tühista",
-    "confirm": "Impordi varukoopia"
+    "confirm": "Impordi varukoopia",
+    "importAsNewProgram": "Impordi uue programmina",
+    "replaceActiveProgram": "Asenda aktiivne programm"
+  },
+  "programLibrary": {
+    "title": "Programmid",
+    "summary": "{{count}} salvestatud programm(i)",
+    "active": "Aktiivne",
+    "empty": "Salvestatud programme veel pole."
   },
   "deviceTransfer": {
     "shareTitle": "Jaga teise seadmega",
     "shareDescription": "Teises seadmes ava Seaded → Varukoopia → Skanni teisest seadmest.",
+    "shareChunkCounter": "Tükk {{current}}/{{total}}",
+    "shareChunkHint": "Hoia mõlemad seadmed paigal. QR pöörleb automaatselt.",
+    "pauseRotation": "Peata pöörlemine",
+    "resumeRotation": "Jätka pöörlemist",
     "scanTitle": "Skanni teisest seadmest",
     "scanDescription": "Suuna kaamera PearLift varukoopia QR-koodile.",
+    "chunkProgress": "Skaneerimise edenemine: {{received}}/{{total}}",
+    "transferCorrupted": "QR-edastus ei läbinud terviklikkuse kontrolli. Palun skaneeri uuesti esimesest tükist alates.",
     "cameraPermissionTitle": "Kaamera luba on vajalik",
     "cameraPermissionMessage": "Luba kaamerale ligipääs varukoopia QR-koodi skannimiseks.",
     "cameraPermissionButton": "Luba kaamera",
+    "cameraUnavailableTitle": "Kaamera pole saadaval",
+    "cameraUnavailableMessage": "PearLift ei pääsenud sellel seadmel kasutatavale tagakaamerale ligi.",
     "invalidQr": "See QR-kood ei näi olevat PearLift varukoopia.",
     "tooLarge": "Varukoopia on ühe QR-koodi jaoks liiga suur. Kasuta selle asemel „Salvesta varukoopia seadmesse“."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Jagamine pole sellel seadmel/platvormil saadaval."
     },
     "importBackup": {
-      "failedTitle": "Import ebaõnnestus"
+      "failedTitle": "Import ebaõnnestus",
+      "confirmReplaceTitle": "Asenda aktiivne programm?",
+      "confirmReplaceMessage": "See asendab sinu praeguse aktiivse programmi \"{{program}}\" sellel seadmel. Olemasolevad sobivad kaalud säilitatakse võimalusel.",
+      "confirmReplaceAction": "Asenda programm"
     },
     "forgetDevice": {
       "authPromptMessage": "Kinnitage seadme unustamine",

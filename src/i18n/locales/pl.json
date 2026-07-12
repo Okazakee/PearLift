@@ -4,7 +4,9 @@
     "delete": "Usuń",
     "back": "Wstecz",
     "next": "Dalej",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Zamknij",
+    "save": "Zapisz"
   },
   "app": {
     "loading": "Przygotowywanie danych treningowych"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Bezczynny",
         "connecting": "Szukanie",
+        "waiting": "Oczekiwanie",
+        "dht_ready": "DHT gotowe",
+        "peer_connected": "Peer połączony",
+        "handshake_ok": "Uzgadnianie OK",
+        "replicating": "Replikowanie",
         "synced": "Połączono",
         "error": "Błąd"
       },
@@ -134,6 +141,19 @@
         "connecting": "Szukanie grupy synchronizacji.",
         "off": "Synchronizacja jest obecnie wyłączona na tym urządzeniu."
       },
+      "dht": "DHT",
+      "dhtReady": "Gotowe",
+      "dhtBootstrapping": "Inicjalizacja…",
+      "dhtError": "Błąd",
+      "dhtInactive": "Nieaktywny",
+      "dhtWaiting": "Oczekiwanie",
+      "status": "Stan",
+      "peers": "Peery",
+      "peersConnected": "{{count}} połączonych",
+      "peersNone": "Brak",
+      "connectionsActive": "{{count}} aktywnych",
+      "connectionsNone": "Brak",
+      "more": "Więcej",
       "lastSyncAt": "Ostatnia synchronizacja: {{at}}",
       "lastSyncNever": "Ostatnia synchronizacja: nigdy",
       "actions": {
@@ -143,12 +163,202 @@
         "openHub": "Otwórz Centrum synchronizacji",
         "troubleshoot": "Rozwiązywanie problemów",
         "stop": "Zatrzymaj synchronizację"
-      }
+      },
+      "roleState": "{{role}} · {{state}}"
+    },
+    "manage": {
+      "title": "Synchronizacja urządzeń",
+      "subtitle": "Zarządzanie grupą i synchronizacją w jednym miejscu.",
+      "roomSetup": "Konfiguracja grupy",
+      "roomSetupHint": "Wybierz, czy to urządzenie tworzy nową grupę, czy dołącza do istniejącej.",
+      "onboardingTitle": "Bez chmury. Bez konta.",
+      "onboardingMessage": "PearLift synchronizuje treningi bezpośrednio między urządzeniami — peer-to-peer. Twoje dane nigdy nie trafiają na serwer. Potrzebujesz tylko tej samej sieci Wi‑Fi lub bliskości przy pierwszym połączeniu.",
+      "onboardingDismiss": "Rozumiem",
+      "createRoom": "Utwórz grupę",
+      "joinRoom": "Dołącz do grupy",
+      "roomActive": "Grupa aktywna",
+      "status": "Stan synchronizacji",
+      "turnOn": "Włącz",
+      "turnOff": "Wyłącz",
+      "refresh": "Odśwież",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Właściciel grupy",
+        "joiner": "Członek"
+      },
+      "binding": {
+        "unconfigured": "Nie skonfigurowano",
+        "pending_first_sync": "Oczekiwanie na pierwszą synchronizację",
+        "active": "Aktywny",
+        "conflict_requires_decision": "Wymaga decyzji",
+        "active_conflict_requires_decision": "Konflikt synchronizacji wymaga decyzji"
+      },
+      "thisDeviceCode": "Kod tego urządzenia: {{code}}",
+      "deviceCode": "Kod {{code}}",
+      "deviceNamePlaceholder": "Nazwij to urządzenie",
+      "saveDeviceName": "Zapisz nazwę urządzenia",
+      "deviceNameSyncPending": "Nazwa urządzenia została zapisana lokalnie. Synchronizacja wkrótce ponowi udostępnianie.",
+      "masterKey": "Kod synchronizacji",
+      "masterKeyHint": "Użyj tego samego 64-znakowego kodu synchronizacji na każdym urządzeniu.",
+      "masterKeyPlaceholder": "Wklej lub edytuj 64-znakowy kod synchronizacji",
+      "showQR": "Pokaż kod QR",
+      "copyKey": "Kopiuj kod",
+      "applyKey": "Zastosuj kod",
+      "leaveRoom": "Opuść grupę",
+      "leaveRoomConfirmTitle": "Opuścić grupę?",
+      "leaveRoomConfirmMessage": "Wyłącza synchronizację, czyści bieżące powiązanie grupy i usuwa lokalną historię połączeń grupowych.",
+      "syncedDevices": "{{count}} urządzeń",
+      "syncedDevicesTitle": "Urządzenia",
+      "noDevices": "Żadne urządzenia jeszcze nie synchronizowały.",
+      "showMore": "Pokaż {{count}} więcej",
+      "lastSeen": "Ostatnio widziane {{at}}",
+      "lastSyncAt": "Ostatnia synchronizacja {{at}}",
+      "removeDevice": "Usuń z listy",
+      "removeDeviceConfirmTitle": "Usunąć to urządzenie z listy?",
+      "removeDeviceConfirmMessage": "Ukrywa urządzenie tylko na tej liście na tym urządzeniu. Może pojawić się ponownie, jeśli później zsynchronizuje się z tą grupą.",
+      "debug": "Informacje debugowania",
+      "never": "Nigdy"
+    },
+    "create": {
+      "title": "Utwórz grupę",
+      "subtitle": "To urządzenie tworzy nową grupę synchronizacji i może udostępnić kod synchronizacji innym urządzeniom.",
+      "room": "Nowa grupa",
+      "explainer": "Użyj, gdy to urządzenie ma zdefiniować początkową grupę i zaprosić pozostałe.",
+      "datasetSummary": "To urządzenie ma obecnie {{workouts}} treningów i {{exercises}} ćwiczeń.",
+      "masterKey": "Kod synchronizacji",
+      "inviteStarting": "Tworzenie grupy i generowanie zaproszenia QR…",
+      "invitePending": "Uruchom grupę, aby wygenerować zaproszenie QR.",
+      "copy": "Kopiuj kod",
+      "startRoom": "Uruchom tę grupę"
+    },
+    "join": {
+      "title": "Dołącz do grupy",
+      "subtitle": "Użyj kodu synchronizacji z innego urządzenia, aby podłączyć to urządzenie do tej samej grupy.",
+      "preflight": "Przed dołączeniem",
+      "localSummary": "To urządzenie ma obecnie {{workouts}} treningów i {{exercises}} ćwiczeń.",
+      "remoteSummaryHint": "Jeśli oba urządzenia mają wiele nakładających się zmian, PearLift zapyta, który zestaw danych zachować.",
+      "masterKey": "Kod synchronizacji",
+      "keyPlaceholder": "Wklej 64-znakowy kod synchronizacji",
+      "paste": "Wklej",
+      "scanQr": "Skanuj QR",
+      "scanHelp": "Skieruj aparat na kod QR zawierający kod synchronizacji.",
+      "invalidKey": "Nieprawidłowy kod synchronizacji. Musi zawierać 64 znaki szesnastkowe.",
+      "keyValid": "Prawidłowy kod zaproszenia",
+      "pasteSuccess": "Wklejono ze schowka",
+      "pasteEmpty": "Schowek jest pusty",
+      "joinRoom": "Dołącz do grupy"
+    },
+    "decision": {
+      "title": "Wybierz pierwsze dane synchronizacji",
+      "subtitle": "Obie strony zawierają już znaczące dane. Wybierz, który zestaw danych grupa ma zachować.",
+      "thisDevice": "To urządzenie",
+      "roomData": "Dane grupy",
+      "datasetSummary": "{{workouts}} treningów · {{exercises}} ćwiczeń",
+      "conflictTitle": "Wykryto nakładające się zmiany",
+      "conflictWorkouts": "Treningi",
+      "conflictExercises": "Ćwiczenia",
+      "conflictSummary": "Wykryto {{workouts}} nakładających się treningów i {{exercises}} nakładających się ćwiczeń.",
+      "configConflictSummary": "{{weeks}} nakładających się konfiguracji tygodni, {{days}} nakładających się konfiguracji dni, {{backlog}} oczekujących aktualizacji grupy.",
+      "useThisDeviceHint": "To ustawia to urządzenie jako bazę grupy.",
+      "useRoomDataHint": "To zastępuje dane treningowe na tym urządzeniu, zachowując preferencje aplikacji.",
+      "useMerge": "Scal oba",
+      "useMergeHint": "Połącz dane z tego urządzenia i grupy, gdy nie ma nakładania się.",
+      "mergeUnavailableHint": "Niektóre treningi lub ćwiczenia istnieją na obu urządzeniach z różnymi wartościami, więc scalenie nie jest możliwe.",
+      "useThisDevice": "Użyj danych tego urządzenia",
+      "useRoomData": "Użyj danych grupy"
+    },
+    "debug": {
+      "title": "Informacje debugowania synchronizacji",
+      "subtitle": "Stan środowiska wykonawczego, szczegóły połączenia i ostatnie logi synchronizacji.",
+      "snapshot": "Zrzut środowiska wykonawczego",
+      "connections": "Połączenia",
+      "lastError": "Ostatni błąd",
+      "logs": "Ostatnie logi",
+      "logCount": "Wyświetlanie {{shown}} z {{total}} wpisów logu",
+      "clear": "Wyczyść"
     }
   },
   "workout": {
     "weekDay": "Tydzień {{week}} - {{day}}",
-    "addExercise": "Dodaj ćwiczenie"
+    "addExercise": "Dodaj ćwiczenie",
+    "logWorkout": "Loguj trening",
+    "progressionSuggestions": "Sugestie",
+    "suggestedToday": "Sugerowane dzisiaj: {{workout}}",
+    "showDetails": "Pokaż szczegóły",
+    "hideDetails": "Ukryj szczegóły",
+    "details": {
+      "notes": "Notatki",
+      "tempo": "Tempo",
+      "equipment": "Sprzęt",
+      "primaryMuscles": "Mięśnie główne",
+      "secondaryMuscles": "Mięśnie pomocnicze",
+      "technique": "Technika",
+      "cues": "Wskazówki",
+      "perSetTargets": "Cele na serię",
+      "progression": "Progresja",
+      "weekOverrides": "Nadpisania tygodniowe",
+      "active": "Aktywny",
+      "intensity": "Intensywność",
+      "target": "Cel",
+      "estimatedOneRepMax": "Szacowany 1RM",
+      "notSet": "Nie ustawiono",
+      "intensityRange": "Zakres intensywności",
+      "weightSettings": "Ustawienia ciężaru",
+      "weightMode": "Tryb ciężaru",
+      "increment": "Przyrost",
+      "exerciseSettings": "Ustawienia ćwiczenia"
+    }
+  },
+  "workoutLog": {
+    "title": "Dziennik treningu",
+    "subtitle": "{{workout}} · Tydzień {{week}}",
+    "progress": "Zapisano {{logged}} / {{total}} serii",
+    "loading": "Ładowanie dziennika treningu…",
+    "done": "Gotowe",
+    "skip": "Pomiń",
+    "save": "Zapisz dziennik",
+    "saving": "Zapisywanie…",
+    "useTarget": "Zakończ zgodnie z celem",
+    "reset": "Resetuj",
+    "setLabel": "Seria {{set}}",
+    "targetRir": "Docelowy RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Rzeczywisty ciężar",
+    "actualReps": "Rzeczywiste powtórzenia",
+    "leftReps": "Lewa strona",
+    "rightReps": "Prawa strona",
+    "perSideReps": "Na stronę",
+    "sharedReps": "Wspólne",
+    "actualRir": "Rzeczywisty RIR",
+    "errors": {
+      "load": "Nie można załadować tego dziennika treningu.",
+      "save": "Nie można zapisać tego dziennika treningu."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Sugestie progresji",
+    "subtitle": "Zastosuj następne obciążenie teraz lub zostaw do późniejszego rozpatrzenia.",
+    "current": "Obecny ciężar",
+    "next": "Następny ciężar",
+    "reason": "Powód: {{reason}}",
+    "apply": "Zastosuj",
+    "skip": "Pomiń"
+  },
+  "exerciseSettings": {
+    "title": "Ustawienia ćwiczenia",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Ciężar roboczy",
+    "weightMode": "Tryb ciężaru",
+    "increment": "Przyrost",
+    "estimatedOneRepMax": "Szacowany 1RM",
+    "notes": "Notatki",
+    "history": "Historia",
+    "linkedVariants": "Powiązane warianty",
+    "historyLoading": "Ładowanie historii…",
+    "historyEmpty": "Brak zapisanych sesji.",
+    "historyError": "Nie można załadować historii.",
+    "historySets": "{{completed}} / {{total}} serii",
+    "historyBestReps": "Najlepsze {{reps}} powt."
   },
   "restTimer": {
     "title": "Minutnik odpoczynku",
@@ -170,13 +380,56 @@
   "programSettings": {
     "title": "Ustawienia programu",
     "tabs": {
+      "program": "Program",
       "weeks": "Tygodnie",
       "days": "Dni"
+    },
+    "program": {
+      "name": "Nazwa programu",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Podtytuł",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Cel",
+      "goalPlaceholder": "Siła i hipertrofia",
+      "description": "Opis",
+      "descriptionPlaceholder": "Opcjonalne notatki o tym bloku treningowym",
+      "sourceType": "Źródło",
+      "sourceLabel": "Etykieta źródła",
+      "sourceLabelPlaceholder": "PDF trenera, szablon lub notatka",
+      "startDate": "Data rozpoczęcia",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Czas trwania (tygodnie)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Domyślny odpoczynek (s)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Model progresji",
+      "frequencySummary": "Cele tygodniowe",
+      "frequencyGroupPlaceholder": "Grupa mięśniowa",
+      "frequencyTarget": "Cel na tydzień",
+      "frequencyPerWeek_one": "{{count}}x / tydzień",
+      "frequencyPerWeek_other": "{{count}}x / tydzień",
+      "addFrequencyTarget": "Dodaj cel tygodniowy",
+      "progressionModels": {
+        "simple_load_modifier": "Prosty",
+        "exercise_rules": "Zasady",
+        "mixed": "Mieszany",
+        "manual": "Ręczny"
+      },
+      "sourceTypes": {
+        "manual": "Ręczny",
+        "coach": "Trener",
+        "template": "Szablon",
+        "imported_pdf": "Zaimportowany PDF",
+        "imported_json": "Zaimportowany JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Nazwa tygodnia",
       "loadModifier": "Modyfikator obciążenia",
+      "volumeModifier": "Modyfikator objętości",
       "rir": "RIR (Rezerwa powtórzeń)",
+      "notes": "Notatki tygodniowe",
+      "notesPlaceholder": "Opcjonalne notatki na ten tydzień",
       "baseline": "Baza",
       "addWeek": "Dodaj tydzień",
       "deleteTitle": "Usuń tydzień",
@@ -184,9 +437,38 @@
     },
     "day": {
       "namePlaceholder": "Dzień {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikona",
+      "schedule": "Harmonogram",
+      "pickDay": "Wybierz dzień",
+      "pickWindow": "Wybierz dni",
       "iconMore": "Więcej",
       "iconRefresh": "Odśwież",
+      "scheduleTypes": {
+        "unscheduled": "Dowolny",
+        "fixed_day": "Stały",
+        "day_window": "Zakres"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Pon",
+          "tue": "Wt",
+          "wed": "Śr",
+          "thu": "Czw",
+          "fri": "Pt",
+          "sat": "Sob",
+          "sun": "Ndz"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "W",
+          "thu": "T",
+          "fri": "F",
+          "sat": "S",
+          "sun": "S"
+        }
+      },
       "addDay": "Dodaj dzień",
       "deleteTitle": "Usuń dzień",
       "deleteMessage": "Usunąć \"{{name}}\"? To usunie go ze wszystkich tygodni."
@@ -195,6 +477,10 @@
   "addExercise": {
     "titleAdd": "Dodaj ćwiczenie",
     "titleEdit": "Edytuj ćwiczenie",
+    "tabs": {
+      "basic": "Podstawowe",
+      "advanced": "Zaawansowane"
+    },
     "name": "Nazwa",
     "namePlaceholder": "Nazwa ćwiczenia",
     "muscleGroup": "Grupa mięśniowa",
@@ -202,11 +488,52 @@
     "reps": "Powtórzenia",
     "notes": "Notatki",
     "notesPlaceholder": "Opcjonalne notatki...",
+    "advanced": {
+      "show": "Pokaż zaawansowane pola",
+      "hide": "Ukryj zaawansowane pola",
+      "rest": "Odpoczynek (s)",
+      "restUseDefault": "Domyślne globalne",
+      "restCustom": "Niestandardowe",
+      "restPlaceholder": "180",
+      "rir": "Docelowy RIR",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensywność",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "Zasada progresji",
+      "progressionRulePlaceholder": "+5kg gdy wszystkie serie osiągną górne powtórzenia z 2 RIR",
+      "unilateral": "Tryb jednostronny",
+      "unilateralPlaceholder": "na nogę, na stronę, lewa/prawa, naprzemiennie",
+      "equipment": "Sprzęt",
+      "equipmentPlaceholder": "Sztanga, hantel, wyciąg, maszyna",
+      "primaryMuscles": "Mięśnie główne",
+      "primaryMusclesPlaceholder": "Jeden mięsień na linię",
+      "secondaryMuscles": "Mięśnie pomocnicze",
+      "secondaryMusclesPlaceholder": "Jeden mięsień na linię",
+      "canonicalExerciseId": "Kanoniczne ID ćwiczenia",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Etykieta wariantu",
+      "variantLabelPlaceholder": "Sesja B",
+      "aliases": "Aliasy",
+      "aliasesPlaceholder": "Jeden alias na linię",
+      "sessionSpecific": "Specyficzne dla sesji",
+      "sessionSpecificToggle": "Śledź jako wariant sesyjny",
+      "technicalNotes": "Notatki techniczne",
+      "technicalNotesPlaceholder": "Jedna notatka na linię",
+      "executionCues": "Wskazówki wykonawcze",
+      "executionCuesPlaceholder": "Jedna wskazówka na linię",
+      "perSetTargets": "Cele na serię",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Nadpisania tygodniowe",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Dodaj jedną serię"
+    },
     "submitAdd": "Dodaj ćwiczenie",
     "submitEdit": "Zapisz zmiany",
     "errors": {
       "nameRequired": "Nazwa ćwiczenia jest wymagana.",
-      "setsInvalid": "Serie muszą być prawidłową dodatnią liczbą całkowitą."
+      "setsInvalid": "Serie muszą być prawidłową dodatnią liczbą całkowitą.",
+      "restInvalid": "Odpoczynek musi być nieujemną liczbą całkowitą."
     }
   },
   "settings": {
@@ -253,6 +580,8 @@
     "syncStatus": {
       "title": "Stan synchronizacji",
       "status": "Stan",
+      "enabled": "Synchronizacja włączona",
+      "disabled": "Synchronizacja wyłączona",
       "syncingWith_one": "Synchronizacja z {{count}} urządzeniem",
       "syncingWith_other": "Synchronizacja z {{count}} urządzeniami",
       "off": "Sync wyłączony",
@@ -263,8 +592,11 @@
       "title": "Kopia zapasowa",
       "export": "Zapisz kopię na urządzeniu",
       "import": "Przywróć z kopii zapasowej",
+      "shareBackup": "Udostępnij kopię zapasową",
       "shareToDevice": "Udostępnij na inne urządzenie",
-      "scanFromDevice": "Skanuj z innego urządzenia"
+      "scanFromDevice": "Skanuj z innego urządzenia",
+      "localSaveRestore": "Lokalne zapisywanie / przywracanie",
+      "qrShareRestore": "Udostępnianie / przywracanie przez QR"
     },
     "pairingDevices": {
       "title": "Parowanie i urządzenia",
@@ -297,7 +629,7 @@
       "title": "Informacje o aplikacji",
       "name": "Nazwa",
       "version": "Wersja",
-      "build": "Build",
+      "build": "Wersja",
       "buildType": "Typ build"
     }
   },
@@ -317,25 +649,62 @@
   },
   "importPreview": {
     "title": "Podgląd importu",
+    "titleWithProgram": "Import: {{program}}",
     "changesDetected": "Wykryto {{count}} zmianę(y).",
     "noChanges": "Nie wykryto zmian. Kopia zapasowa jest identyczna z obecnymi danymi.",
+    "modeHint": "Import jako nowy zachowuje bieżący plan. Zastąpienie aktywnego programu nadpisuje bieżący plan na tym urządzeniu.",
+    "stats": {
+      "workouts": "Treningi do aktualizacji",
+      "exercises": "Ćwiczenia do utworzenia lub aktualizacji",
+      "preservedWeights": "Zachowane ciężary",
+      "needsWeight": "Potrzebny ciężar początkowy"
+    },
+    "exerciseStatus": {
+      "matching": "Pasujące ćwiczenia",
+      "changed": "Zmienione ćwiczenia",
+      "new": "Nowe ćwiczenia",
+      "removed": "Usunięte ćwiczenia"
+    },
     "sections": {
+      "exerciseStatus": "Stan ćwiczeń",
+      "preservedWeights": "Zachowane ciężary",
+      "missingWeights": "Nowe ćwiczenia bez zapisanego ciężaru",
+      "removedExercises": "Usunięte z aktywnego programu",
       "workouts": "Treningi",
+      "program": "Program",
       "settings": "Ustawienia",
       "weeks": "Tygodnie",
       "days": "Dni"
     },
+    "currentWeightKept": "Zachowano bieżący ciężar",
+    "noPreviousWeight": "Nie znaleziono poprzedniego ciężaru",
     "cancel": "Anuluj",
-    "confirm": "Importuj kopię zapasową"
+    "confirm": "Importuj kopię zapasową",
+    "importAsNewProgram": "Importuj jako nowy program",
+    "replaceActiveProgram": "Zastąp aktywny program"
+  },
+  "programLibrary": {
+    "title": "Programy",
+    "summary": "{{count}} zapisany program(y)",
+    "active": "Aktywny",
+    "empty": "Brak zapisanych programów."
   },
   "deviceTransfer": {
     "shareTitle": "Udostępnij na inne urządzenie",
     "shareDescription": "Na drugim urządzeniu: Ustawienia → Kopia zapasowa → Skanuj z innego urządzenia.",
+    "shareChunkCounter": "Część {{current}}/{{total}}",
+    "shareChunkHint": "Trzymaj oba urządzenia nieruchomo. QR obraca się automatycznie.",
+    "pauseRotation": "Wstrzymaj obrót",
+    "resumeRotation": "Wznów obrót",
     "scanTitle": "Skanuj z innego urządzenia",
     "scanDescription": "Skieruj aparat na kod QR kopii zapasowej PearLift.",
+    "chunkProgress": "Postęp skanowania: {{received}}/{{total}}",
+    "transferCorrupted": "Transfer QR nie przeszedł kontroli integralności. Zeskanuj ponownie od pierwszego fragmentu.",
     "cameraPermissionTitle": "Wymagane pozwolenie na aparat",
     "cameraPermissionMessage": "Zezwól na dostęp do aparatu, aby skanować kod QR kopii zapasowej.",
     "cameraPermissionButton": "Zezwól na aparat",
+    "cameraUnavailableTitle": "Kamera niedostępna",
+    "cameraUnavailableMessage": "PearLift nie może uzyskać dostępu do użytecznego tylnego aparatu na tym urządzeniu.",
     "invalidQr": "Ten kod QR nie wygląda jak kopia zapasowa PearLift.",
     "tooLarge": "Kopia zapasowa jest zbyt duża, aby zmieścić się w jednym kodzie QR. Użyj „Zapisz kopię na urządzeniu” zamiast tego."
   },
@@ -377,7 +746,10 @@
       "sharingUnavailableMessage": "Udostępnianie nie jest dostępne na tym urządzeniu/platformie."
     },
     "importBackup": {
-      "failedTitle": "Import nieudany"
+      "failedTitle": "Import nieudany",
+      "confirmReplaceTitle": "Zastąpić aktywny program?",
+      "confirmReplaceMessage": "Spowoduje to zastąpienie bieżącego aktywnego programu \"{{program}}\" na tym urządzeniu. Istniejące pasujące ciężary zostaną zachowane, jeśli to możliwe.",
+      "confirmReplaceAction": "Zastąp program"
     },
     "forgetDevice": {
       "authPromptMessage": "Potwierdź, aby zapomnieć urządzenie",

@@ -4,7 +4,9 @@
     "delete": "Poista",
     "back": "Takaisin",
     "next": "Seuraava",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Sulje",
+    "save": "Tallenna"
   },
   "app": {
     "loading": "Valmistellaan harjoittelutietojasi"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Valmis",
         "connecting": "Haetaan",
+        "waiting": "Odottaa",
+        "dht_ready": "DHT valmis",
+        "peer_connected": "Vertaislaite yhdistetty",
+        "handshake_ok": "Kättely OK",
+        "replicating": "Replikoidaan",
         "synced": "Yhdistetty",
         "error": "Virhe"
       },
@@ -134,6 +141,19 @@
         "connecting": "Haetaan synkronointiryhmääsi.",
         "off": "Synkronointi on tällä hetkellä pois käytöstä tällä laitteella."
       },
+      "dht": "DHT",
+      "dhtReady": "Valmis",
+      "dhtBootstrapping": "Käynnistetään…",
+      "dhtError": "Virhe",
+      "dhtInactive": "Ei käytössä",
+      "dhtWaiting": "Odottaa",
+      "status": "Tila",
+      "peers": "Vertaiset",
+      "peersConnected": "{{count}} yhdistetty",
+      "peersNone": "Ei yhtään",
+      "connectionsActive": "{{count}} aktiivinen",
+      "connectionsNone": "Ei yhtään",
+      "more": "Lisää",
       "lastSyncAt": "Viimeksi synkronoitu: {{at}}",
       "lastSyncNever": "Viimeksi synkronoitu: ei koskaan",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Vianetsi",
         "stop": "Pysäytä synkronointi"
       }
+    },
+    "manage": {
+      "title": "Laite-synkronointi",
+      "subtitle": "Pidä ryhmän asetukset ja synkronoinnin ylläpito yhdessä paikassa.",
+      "roomSetup": "Ryhmän asetukset",
+      "roomSetupHint": "Valitse, aloittaako tämä laite uuden ryhmän vai liittyykö se olemassa olevaan.",
+      "onboardingTitle": "Ei pilveä. Ei tiliä.",
+      "onboardingMessage": "PearLift synkronoi harjoittelusi suoraan laitteiden välillä — vertaisverkossa. Tietosi eivät koskaan mene palvelimelle. Tarvitset vain saman Wi-Fi-verkon tai läheisyyden ensimmäistä yhteyttä varten.",
+      "onboardingDismiss": "Selvä",
+      "createRoom": "Luo ryhmä",
+      "joinRoom": "Liity ryhmään",
+      "roomActive": "Ryhmä aktiivinen",
+      "status": "Synkronoinnin tila",
+      "turnOn": "Ota käyttöön",
+      "turnOff": "Poista käytöstä",
+      "refresh": "Päivitä",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Ryhmän omistaja",
+        "joiner": "Jäsen"
+      },
+      "binding": {
+        "unconfigured": "Ei määritetty",
+        "pending_first_sync": "Odotetaan ensimmäistä synkronointia",
+        "active": "Aktiivinen",
+        "conflict_requires_decision": "Tarvitsee päätöksesi",
+        "active_conflict_requires_decision": "Synkronointiristiriita tarvitsee päätöksesi"
+      },
+      "thisDeviceCode": "Tämän laitteen koodi: {{code}}",
+      "deviceCode": "Koodi {{code}}",
+      "deviceNamePlaceholder": "Nimeä tämä laite",
+      "saveDeviceName": "Tallenna laitteen nimi",
+      "deviceNameSyncPending": "Laitteen nimi tallennettiin paikallisesti. Synkronointi yrittää jakaa sen vertaisille pian.",
+      "masterKey": "Synkronointikoodi",
+      "masterKeyHint": "Käytä samaa 64-merkkistä synkronointikoodia jokaisessa laitteessa, jonka pitäisi jakaa tietoja.",
+      "masterKeyPlaceholder": "Liitä tai muokkaa 64-merkkistä synkronointikoodia",
+      "showQR": "Näytä QR-koodi",
+      "copyKey": "Kopioi koodi",
+      "applyKey": "Käytä koodia",
+      "leaveRoom": "Poistu ryhmästä",
+      "leaveRoomConfirmTitle": "Poistu tästä ryhmästä?",
+      "leaveRoomConfirmMessage": "Tämä sammuttaa synkronoinnin, poistaa nykyisen ryhmäsidoksen tältä laitteelta ja poistaa paikallisen ryhmän yhteyshistorian.",
+      "syncedDevices": "{{count}} laitetta",
+      "syncedDevicesTitle": "Laitteet",
+      "noDevices": "Mikään laite ei ole vielä synkronoinut.",
+      "showMore": "Näytä {{count}} lisää",
+      "lastSeen": "Viimeksi nähty {{at}}",
+      "lastSyncAt": "Viimeisin synkronointi {{at}}",
+      "removeDevice": "Poista listalta",
+      "removeDeviceConfirmTitle": "Poista tämä laite listalta?",
+      "removeDeviceConfirmMessage": "Tämä piilottaa laitteen tältä listalta vain tällä laitteella. Se voi ilmestyä uudelleen, jos se synkronoi tämän ryhmän kanssa myöhemmin.",
+      "debug": "Vianetsintätiedot",
+      "never": "Ei koskaan"
+    },
+    "create": {
+      "title": "Luo ryhmä",
+      "subtitle": "Tämä laite aloittaa uuden synkronointiryhmän ja voi jakaa synkronointikoodin muille laitteille.",
+      "room": "Uusi ryhmä",
+      "explainer": "Käytä tätä, kun tämän laitteen tulisi määrittää alkuperäinen ryhmä ja kutsua muut.",
+      "datasetSummary": "Tällä laitteella on tällä hetkellä {{workouts}} harjoitusta ja {{exercises}} liikettä.",
+      "masterKey": "Synkronointikoodi",
+      "inviteStarting": "Käynnistetään ryhmää ja luodaan QR-kutsua…",
+      "invitePending": "Käynnistä ryhmä luodaksesi QR-kutsun.",
+      "copy": "Kopioi koodi",
+      "startRoom": "Käynnistä tämä ryhmä"
+    },
+    "join": {
+      "title": "Liity ryhmään",
+      "subtitle": "Käytä toisen laitteen synkronointikoodia yhdistääksesi tämä laite samaan synkronointiryhmään.",
+      "preflight": "Ennen liittymistä",
+      "localSummary": "Tällä laitteella on tällä hetkellä {{workouts}} harjoitusta ja {{exercises}} liikettä.",
+      "remoteSummaryHint": "Jos molemmilla laitteilla on jo paljon päällekkäisiä muutoksia, PearLift kysyy, kumpi tietojoukko säilytetään.",
+      "masterKey": "Synkronointikoodi",
+      "keyPlaceholder": "Liitä 64-merkkijonoinen synkronointikoodi",
+      "paste": "Liitä",
+      "scanQr": "Skannaa QR",
+      "scanHelp": "Osoita kamera synkronointikoodin sisältävään QR-koodiin.",
+      "invalidKey": "Virheellinen synkronointikoodi. Sen on oltava 64 heksadesimaalimerkkiä.",
+      "keyValid": "Kelvollinen kutsukoodi",
+      "pasteSuccess": "Liitetty leikepöydältä",
+      "pasteEmpty": "Leikepöytä on tyhjä",
+      "joinRoom": "Liity ryhmään"
+    },
+    "decision": {
+      "title": "Valitse ensimmäisen synkronoinnin tiedot",
+      "subtitle": "Molemmilla puolilla on jo merkityksellistä tietoa. Valitse, mikä lähtökohta tämän ryhmän tulisi säilyttää.",
+      "thisDevice": "Tämä laite",
+      "roomData": "Ryhmän tiedot",
+      "datasetSummary": "{{workouts}} harjoitusta · {{exercises}} liikettä",
+      "conflictTitle": "Päällekkäisiä muutoksia havaittu",
+      "conflictWorkouts": "Harjoitukset",
+      "conflictExercises": "Liikkeet",
+      "conflictSummary": "{{workouts}} harjoituksen ja {{exercises}} liikkeen päällekkäisyydet havaittiin.",
+      "configConflictSummary": "{{weeks}} viikkokonfiguraation, {{days}} päiväkonfiguraation päällekkäisyydet, {{backlog}} ryhmäpäivitystä odottaa.",
+      "useThisDeviceHint": "Tämä julkaisee tämän laitteen ryhmän lähtökohdaksi.",
+      "useRoomDataHint": "Tämä korvaa harjoitustiedot tällä laitteella säilyttäen sovellusasetukset.",
+      "useMerge": "Yhdistä molemmat",
+      "useMergeHint": "Yhdistä tiedot tältä laitteelta ja ryhmältä, kun päällekkäisyyksiä ei ole.",
+      "mergeUnavailableHint": "Jotkin harjoitukset tai liikkeet ovat molemmilla laitteilla eri arvoilla, joten yhdistäminen ei ole mahdollista.",
+      "useThisDevice": "Käytä tämän laitteen tietoja",
+      "useRoomData": "Käytä ryhmän tietoja"
+    },
+    "debug": {
+      "title": "Synkronoinnin vianetsintätiedot",
+      "subtitle": "Ajonaikainen tila, yhteystiedot ja viimeisimmät synkronointilokit.",
+      "snapshot": "Ajonaikainen tilannekuva",
+      "connections": "Yhteydet",
+      "lastError": "Viimeisin virhe",
+      "logs": "Viimeisimmät lokit",
+      "logCount": "Näytetään {{shown}} / {{total}} lokimerkintää",
+      "clear": "Tyhjennä"
     }
   },
   "workout": {
     "weekDay": "Viikko {{week}} - {{day}}",
-    "addExercise": "Lisää liike"
+    "addExercise": "Lisää liike",
+    "logWorkout": "Kirjaa harjoitus",
+    "progressionSuggestions": "Ehdotukset",
+    "suggestedToday": "Ehdotettu tänään: {{workout}}",
+    "showDetails": "Näytä tiedot",
+    "hideDetails": "Piilota tiedot",
+    "details": {
+      "notes": "Muistiinpanot",
+      "tempo": "Tempo",
+      "equipment": "Välineet",
+      "primaryMuscles": "Ensisijaiset lihakset",
+      "secondaryMuscles": "Toissijaiset lihakset",
+      "technique": "Tekniikka",
+      "cues": "Vihjeet",
+      "perSetTargets": "Sarjakohtaiset tavoitteet",
+      "progression": "Progressio",
+      "weekOverrides": "Viikon ohitukset",
+      "active": "Aktiivinen",
+      "intensity": "Intensiteetti",
+      "target": "Tavoite",
+      "estimatedOneRepMax": "Arvioitu 1RM",
+      "notSet": "Ei asetettu",
+      "intensityRange": "Intensiteettialue",
+      "weightSettings": "Painoasetukset",
+      "weightMode": "Painotila",
+      "increment": "Lisäys",
+      "exerciseSettings": "Liikkeen asetukset"
+    }
+  },
+  "workoutLog": {
+    "title": "Harjoitusloki",
+    "subtitle": "{{workout}} · Viikko {{week}}",
+    "progress": "{{logged}} / {{total}} sarjaa kirjattu",
+    "loading": "Ladataan harjoituslokia…",
+    "done": "Valmis",
+    "skip": "Ohita",
+    "save": "Tallenna loki",
+    "saving": "Tallennetaan…",
+    "useTarget": "Täydennä tavoitteella",
+    "reset": "Nollaa",
+    "setLabel": "Sarja {{set}}",
+    "targetRir": "Tavoite RIR {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Todellinen paino",
+    "actualReps": "Todelliset toistot",
+    "leftReps": "Vasemman puolen toistot",
+    "rightReps": "Oikean puolen toistot",
+    "perSideReps": "Per puoli",
+    "sharedReps": "Jaetut",
+    "actualRir": "Todellinen RIR",
+    "errors": {
+      "load": "Tämän harjoituslokin lataaminen epäonnistui.",
+      "save": "Tämän harjoituslokin tallentaminen epäonnistui."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Progressioehdotukset",
+    "subtitle": "Käytä seuraavaa kuormaa nyt tai jätä se odottamaan myöhempää.",
+    "current": "Nykyinen paino",
+    "next": "Seuraava paino",
+    "reason": "Syy: {{reason}}",
+    "apply": "Käytä",
+    "skip": "Ohita"
+  },
+  "exerciseSettings": {
+    "title": "Liikkeen asetukset",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Työpaino",
+    "weightMode": "Painotila",
+    "increment": "Lisäys",
+    "estimatedOneRepMax": "Arvioitu 1RM",
+    "notes": "Muistiinpanot",
+    "history": "Viimeisin historia",
+    "linkedVariants": "Linkitetyt variantit",
+    "historyLoading": "Ladataan historiaa…",
+    "historyEmpty": "Ei vielä kirjattuja sessioita.",
+    "historyError": "Historian lataaminen epäonnistui.",
+    "historySets": "{{completed}} / {{total}} sarjaa",
+    "historyBestReps": "Paras {{reps}} toistoa"
   },
   "restTimer": {
     "title": "Lepoajastin",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Ohjelman asetukset",
     "tabs": {
+      "program": "Ohjelma",
       "weeks": "Viikot",
       "days": "Päivät"
+    },
+    "program": {
+      "name": "Ohjelman nimi",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Alaotsikko",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Tavoite",
+      "goalPlaceholder": "Voima ja hypertrofia",
+      "description": "Kuvaus",
+      "descriptionPlaceholder": "Valinnaisia muistiinpanoja tästä harjoitusjaksosta",
+      "sourceType": "Lähde",
+      "sourceLabel": "Lähteen nimi",
+      "sourceLabelPlaceholder": "Valmentajan PDF, pohja tai muistiinpano",
+      "startDate": "Aloituspäivä",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Kesto (viikot)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Oletuslepo (s)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Progressiomalli",
+      "frequencySummary": "Viikoittaiset tavoitteet",
+      "frequencyGroupPlaceholder": "Lihasryhmä",
+      "frequencyTarget": "Tavoite per viikko",
+      "frequencyPerWeek_one": "{{count}}x / viikko",
+      "frequencyPerWeek_other": "{{count}}x / viikko",
+      "addFrequencyTarget": "Lisää viikkotavoite",
+      "progressionModels": {
+        "simple_load_modifier": "Yksinkertainen",
+        "exercise_rules": "Säännöt",
+        "mixed": "Sekoitettu",
+        "manual": "Manuaalinen"
+      },
+      "sourceTypes": {
+        "manual": "Manuaalinen",
+        "coach": "Valmentaja",
+        "template": "Pohja",
+        "imported_pdf": "Tuotu PDF",
+        "imported_json": "Tuotu JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Viikon nimi",
       "loadModifier": "Kuorman muokkain",
+      "volumeModifier": "Volyymin muokkain",
       "rir": "RIR (Varatoistot)",
+      "notes": "Viikon muistiinpanot",
+      "notesPlaceholder": "Valinnaisia muistiinpanoja tälle viikolle",
       "baseline": "Perustaso",
       "addWeek": "Lisää viikko",
       "deleteTitle": "Poista viikko",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Päivä {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Kuvake",
+      "schedule": "Aikataulu",
+      "pickDay": "Valitse päivä",
+      "pickWindow": "Valitse päivät",
       "iconMore": "Lisää",
       "iconRefresh": "Päivitä",
+      "scheduleTypes": {
+        "unscheduled": "Mikä tahansa",
+        "fixed_day": "Kiinteä",
+        "day_window": "Ikkuna"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "ma",
+          "tue": "ti",
+          "wed": "ke",
+          "thu": "to",
+          "fri": "pe",
+          "sat": "la",
+          "sun": "su"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "K",
+          "thu": "T",
+          "fri": "P",
+          "sat": "L",
+          "sun": "S"
+        }
+      },
       "addDay": "Lisää päivä",
       "deleteTitle": "Poista päivä",
       "deleteMessage": "Poistetaanko \"{{name}}\"? Tämä poistaa sen kaikista viikoista."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Lisää liike",
     "titleEdit": "Muokkaa liikettä",
+    "tabs": {
+      "basic": "Perus",
+      "advanced": "Lisäasetukset"
+    },
     "name": "Nimi",
     "namePlaceholder": "Liikkeen nimi",
     "muscleGroup": "Lihasryhmä",
@@ -202,11 +487,52 @@
     "reps": "Toistot",
     "notes": "Muistiinpanot",
     "notesPlaceholder": "Valinnaiset muistiinpanot...",
+    "advanced": {
+      "show": "Näytä lisäkentät",
+      "hide": "Piilota lisäkentät",
+      "rest": "Lepo (s)",
+      "restUseDefault": "Globaali oletus",
+      "restCustom": "Mukautettu",
+      "restPlaceholder": "180",
+      "rir": "RIR-tavoite",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensiteetti",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eksentrinen 2 s",
+      "progressionRule": "Progressiosääntö",
+      "progressionRulePlaceholder": "+5 kg kun kaikki sarjat yltävät ylätoistoihin 2 RIR:llä",
+      "unilateral": "Yksipuolinen tila",
+      "unilateralPlaceholder": "per jalka, per puoli, vasen/oikea, vuorotellen",
+      "equipment": "Välineet",
+      "equipmentPlaceholder": "Tanko, käsipainot, talja, laite",
+      "primaryMuscles": "Ensisijaiset lihakset",
+      "primaryMusclesPlaceholder": "Yksi lihas per rivi",
+      "secondaryMuscles": "Toissijaiset lihakset",
+      "secondaryMusclesPlaceholder": "Yksi lihas per rivi",
+      "canonicalExerciseId": "Kanooninen liiketunnus",
+      "canonicalExerciseIdPlaceholder": "vuorotteleva-käännös",
+      "variantLabel": "Variantin nimi",
+      "variantLabelPlaceholder": "Sessio B",
+      "aliases": "Aliakset",
+      "aliasesPlaceholder": "Yksi alias per rivi",
+      "sessionSpecific": "Sessiokohtainen",
+      "sessionSpecificToggle": "Seuraa vain session varianttina",
+      "technicalNotes": "Tekniset muistiinpanot",
+      "technicalNotesPlaceholder": "Yksi muistiinpano per rivi",
+      "executionCues": "Suoritusvihjeet",
+      "executionCuesPlaceholder": "Yksi vihje per rivi",
+      "perSetTargets": "Sarjakohtaiset tavoitteet",
+      "perSetTargetsPlaceholder": "S4: toistot=8; rir=0; muistiinpanot=Pakota epäonnistumiseen",
+      "weekOverrides": "Viikon ohitukset",
+      "weekOverridesPlaceholder": "V3: sarjat=4; lepo=120; rir=1; muistiinpanot=Lisää yksi sarja"
+    },
     "submitAdd": "Lisää liike",
     "submitEdit": "Tallenna muutokset",
     "errors": {
       "nameRequired": "Liikkeen nimi vaaditaan.",
-      "setsInvalid": "Sarjat on oltava kelvollinen positiivinen kokonaisluku."
+      "setsInvalid": "Sarjat on oltava kelvollinen positiivinen kokonaisluku.",
+      "restInvalid": "Lepoajan on oltava kelvollinen ei-negatiivinen kokonaisluku."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Synkronoinnin tila",
       "status": "Tila",
+      "enabled": "Synkronointi on päällä",
+      "disabled": "Synkronointi on pois päältä",
       "syncingWith_one": "Synkronoidaan {{count}} laitteen kanssa",
       "syncingWith_other": "Synkronoidaan {{count}} laitteiden kanssa",
       "off": "Synkronointi on pois käytöstä",
@@ -263,8 +591,11 @@
       "title": "Varmuuskopio",
       "export": "Tallenna varmuuskopio laitteelle",
       "import": "Palauta varmuuskopiosta",
+      "shareBackup": "Jaa varmuuskopio",
       "shareToDevice": "Jaa toiselle laitteelle",
-      "scanFromDevice": "Skannaa toiselta laitteelta"
+      "scanFromDevice": "Skannaa toiselta laitteelta",
+      "localSaveRestore": "Paikallinen tallennus / palautus",
+      "qrShareRestore": "QR-jako / palautus"
     },
     "pairingDevices": {
       "title": "Paritus ja laitteet",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Tuontiesikatselu",
+    "titleWithProgram": "Tuonti: {{program}}",
     "changesDetected": "{{count}} muutos(tta) havaittu.",
     "noChanges": "Muutoksia ei havaittu. Varmuuskopio on identtinen nykyisten tietojen kanssa.",
+    "modeHint": "Tuo uutena pitää nykyisen ohjelman käytettävissä. Korvaa aktiivinen ohjelma ylikirjoittaa nykyisen ohjelman tällä laitteella.",
+    "stats": {
+      "workouts": "Päivitettävät harjoitukset",
+      "exercises": "Luotavat tai päivitettävät liikkeet",
+      "preservedWeights": "Säilytetyt painot",
+      "needsWeight": "Tarvitsee aloituspainon"
+    },
+    "exerciseStatus": {
+      "matching": "Vastaavat liikkeet",
+      "changed": "Muuttuneet liikkeet",
+      "new": "Uudet liikkeet",
+      "removed": "Poistetut liikkeet"
+    },
     "sections": {
+      "exerciseStatus": "Liikkeiden tila",
+      "preservedWeights": "Säilytetyt painot",
+      "missingWeights": "Uudet liikkeet ilman tallennettua painoa",
+      "removedExercises": "Poistettu aktiivisesta ohjelmasta",
       "workouts": "Harjoittelut",
+      "program": "Ohjelma",
       "settings": "Asetukset",
       "weeks": "Viikot",
       "days": "Päivät"
     },
+    "currentWeightKept": "Nykyinen paino säilytetty",
+    "noPreviousWeight": "Edellistä painoa ei löydy",
     "cancel": "Peruuta",
-    "confirm": "Tuo varmuuskopio"
+    "confirm": "Tuo varmuuskopio",
+    "importAsNewProgram": "Tuo uutena ohjelmana",
+    "replaceActiveProgram": "Korvaa aktiivinen ohjelma"
+  },
+  "programLibrary": {
+    "title": "Ohjelmat",
+    "summary": "{{count}} tallennettu(a) ohjelma(a)",
+    "active": "Aktiivinen",
+    "empty": "Ei vielä tallennettuja ohjelmia."
   },
   "deviceTransfer": {
     "shareTitle": "Jaa toiselle laitteelle",
     "shareDescription": "Toisessa laitteessa: Asetukset → Varmuuskopio → Skannaa toiselta laitteelta.",
+    "shareChunkCounter": "Pala {{current}}/{{total}}",
+    "shareChunkHint": "Pidä molemmat laitteet paikallaan. QR vaihtuu automaattisesti.",
+    "pauseRotation": "Keskeytä kierto",
+    "resumeRotation": "Jatka kiertoa",
     "scanTitle": "Skannaa toiselta laitteelta",
     "scanDescription": "Kohdista kamera PearLift-varmuuskopion QR-koodiin.",
+    "chunkProgress": "Skannauksen edistyminen: {{received}}/{{total}}",
+    "transferCorrupted": "QR-siirron eheystarkistus epäonnistui. Skannaa uudelleen ensimmäisestä palasta alkaen.",
     "cameraPermissionTitle": "Kameran käyttöoikeus tarvitaan",
     "cameraPermissionMessage": "Salli kameran käyttö varmuuskopion QR-koodin skannaamiseksi.",
     "cameraPermissionButton": "Salli kamera",
+    "cameraUnavailableTitle": "Kamera ei käytettävissä",
+    "cameraUnavailableMessage": "PearLift ei saanut käyttöön toimivaa takakameraa tällä laitteella.",
     "invalidQr": "Tuo QR-koodi ei näytä PearLift-varmuuskopiolta.",
     "tooLarge": "Varmuuskopio on liian suuri yhteen QR-koodiin. Käytä sen sijaan “Tallenna varmuuskopio laitteelle”."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Jakaminen ei ole käytettävissä tällä laitteella/alustalla."
     },
     "importBackup": {
-      "failedTitle": "Tuonti epäonnistui"
+      "failedTitle": "Tuonti epäonnistui",
+      "confirmReplaceTitle": "Korvataanko aktiivinen ohjelma?",
+      "confirmReplaceMessage": "Tämä korvaa nykyisen aktiivisen ohjelmasi ohjelmalla \"{{program}}\" tällä laitteella. Olemassa olevat vastaavat painot säilytetään, jos mahdollista.",
+      "confirmReplaceAction": "Korvaa ohjelma"
     },
     "forgetDevice": {
       "authPromptMessage": "Vahvista laitteen unohtaminen",

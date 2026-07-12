@@ -6,10 +6,10 @@ import type {
 } from '@/types';
 
 export const defaultWeekConfigs: WeekConfig[] = [
-  { id: 1, name: 'Week 1', loadModifier: 1, rir: 2 },
-  { id: 2, name: 'Week 2', loadModifier: 1, rir: 2 },
-  { id: 3, name: 'Week 3', loadModifier: 1, rir: 2 },
-  { id: 4, name: 'Week 4', loadModifier: 1, rir: 2 },
+  { id: 1, name: 'Week 1', loadModifier: 1, volumeModifier: 1, rir: 2 },
+  { id: 2, name: 'Week 2', loadModifier: 1, volumeModifier: 1, rir: 2 },
+  { id: 3, name: 'Week 3', loadModifier: 1, volumeModifier: 1, rir: 2 },
+  { id: 4, name: 'Week 4', loadModifier: 1, volumeModifier: 1, rir: 2 },
 ];
 
 export const defaultDayConfigs: DayConfig[] = [

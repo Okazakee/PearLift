@@ -4,7 +4,9 @@
     "delete": "Smazat",
     "back": "Zpět",
     "next": "Další",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Zavřít",
+    "save": "Uložit"
   },
   "app": {
     "loading": "Příprava dat tréninku"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Nečinný",
         "connecting": "Hledání",
+        "waiting": "Čekání",
+        "dht_ready": "DHT připraveno",
+        "peer_connected": "Zařízení připojeno",
+        "handshake_ok": "Handshake úspěšně",
+        "replicating": "Replikace",
         "synced": "Připojeno",
         "error": "Chyba"
       },
@@ -134,6 +141,19 @@
         "connecting": "Hledám vaši synchronizační skupinu.",
         "off": "Synchronizace je na tomto zařízení aktuálně zakázána."
       },
+      "dht": "DHT",
+      "dhtReady": "Připraveno",
+      "dhtBootstrapping": "Spouštění…",
+      "dhtError": "Chyba",
+      "dhtInactive": "Neaktivní",
+      "dhtWaiting": "Čekání",
+      "status": "Stav",
+      "peers": "Zařízení",
+      "peersConnected": "{{count}} připojeno",
+      "peersNone": "Žádné",
+      "connectionsActive": "{{count}} aktivních",
+      "connectionsNone": "Žádné",
+      "more": "Více",
       "lastSyncAt": "Poslední synchronizace: {{at}}",
       "lastSyncNever": "Poslední synchronizace: nikdy",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Odstranit problémy",
         "stop": "Zastavit synchronizaci"
       }
+    },
+    "manage": {
+      "title": "Synchronizace zařízení",
+      "subtitle": "Správa nastavení skupiny a údržba synchronizace na jednom místě.",
+      "roomSetup": "Nastavení skupiny",
+      "roomSetupHint": "Vyberte, zda toto zařízení vytvoří novou skupinu nebo se připojí k již existující.",
+      "onboardingTitle": "Bez cloudu. Bez účtu.",
+      "onboardingMessage": "PearLift synchronizuje tréninky přímo mezi vašimi zařízeními — peer-to-peer. Vaše data nikdy neopustí vaše zařízení. Stačí být ve stejné Wi‑Fi síti nebo blízko sebe pro první připojení.",
+      "onboardingDismiss": "Chápu",
+      "createRoom": "Vytvořit skupinu",
+      "joinRoom": "Připojit se ke skupině",
+      "roomActive": "Skupina aktivní",
+      "status": "Stav synchronizace",
+      "turnOn": "Zapnout",
+      "turnOff": "Vypnout",
+      "refresh": "Obnovit",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Vlastník skupiny",
+        "joiner": "Člen"
+      },
+      "binding": {
+        "unconfigured": "Nenakonfigurováno",
+        "pending_first_sync": "Čekání na první synchronizaci",
+        "active": "Aktivní",
+        "conflict_requires_decision": "Vyžaduje vaše rozhodnutí",
+        "active_conflict_requires_decision": "Konflikt synchronizace vyžaduje vaše rozhodnutí"
+      },
+      "thisDeviceCode": "Kód tohoto zařízení: {{code}}",
+      "deviceCode": "Kód {{code}}",
+      "deviceNamePlaceholder": "Pojmenujte toto zařízení",
+      "saveDeviceName": "Uložit název zařízení",
+      "deviceNameSyncPending": "Název zařízení byl uložen lokálně. Synchronizace se brzy pokusí o sdílení.",
+      "masterKey": "Synchronizační kód",
+      "masterKeyHint": "Použijte stejný 64znakový synchronizační kód na každém zařízení, které má sdílet data.",
+      "masterKeyPlaceholder": "Vložte nebo upravte 64znakový synchronizační kód",
+      "showQR": "Zobrazit QR kód",
+      "copyKey": "Kopírovat kód",
+      "applyKey": "Použít kód",
+      "leaveRoom": "Opustit skupinu",
+      "leaveRoomConfirmTitle": "Opustit tuto skupinu?",
+      "leaveRoomConfirmMessage": "Tím se vypne synchronizace, vymaže aktuální vazba na skupinu a odstraní lokální historie připojení ke skupině.",
+      "syncedDevices": "{{count}} zařízení",
+      "syncedDevicesTitle": "Zařízení",
+      "noDevices": "Žádná zařízení zatím nesynchronizovala.",
+      "showMore": "Zobrazit {{count}} dalších",
+      "lastSeen": "Naposledy viděno {{at}}",
+      "lastSyncAt": "Poslední synchronizace {{at}}",
+      "removeDevice": "Odebrat ze seznamu",
+      "removeDeviceConfirmTitle": "Odebrat toto zařízení ze seznamu?",
+      "removeDeviceConfirmMessage": "Skryje zařízení pouze v tomto seznamu na tomto zařízení. Může se znovu objevit, pokud se později synchronizuje s touto skupinou.",
+      "debug": "Ladicí informace",
+      "never": "Nikdy"
+    },
+    "create": {
+      "title": "Vytvořit skupinu",
+      "subtitle": "Toto zařízení vytváří novou synchronizační skupinu a může sdílet synchronizační kód s ostatními zařízeními.",
+      "room": "Nová skupina",
+      "explainer": "Použijte, když toto zařízení má definovat počáteční skupinu a pozvat ostatní.",
+      "datasetSummary": "Toto zařízení má aktuálně {{workouts}} tréninků a {{exercises}} cviků.",
+      "masterKey": "Synchronizační kód",
+      "inviteStarting": "Spouštění skupiny a generování QR pozvánky…",
+      "invitePending": "Spusťte skupinu pro vygenerování QR pozvánky.",
+      "copy": "Kopírovat kód",
+      "startRoom": "Spustit tuto skupinu"
+    },
+    "join": {
+      "title": "Připojit se ke skupině",
+      "subtitle": "Použijte synchronizační kód z jiného zařízení pro připojení tohoto zařízení ke stejné synchronizační skupině.",
+      "preflight": "Před připojením",
+      "localSummary": "Toto zařízení má aktuálně {{workouts}} tréninků a {{exercises}} cviků.",
+      "remoteSummaryHint": "Pokud obě zařízení již mají mnoho překrývajících se změn, PearLift se zeptá, který dataset zachovat.",
+      "masterKey": "Synchronizační kód",
+      "keyPlaceholder": "Vložte 64znakový synchronizační kód",
+      "paste": "Vložit",
+      "scanQr": "Skenovat QR",
+      "scanHelp": "Namiřte kameru na QR kód obsahující synchronizační kód.",
+      "invalidKey": "Neplatný synchronizační kód. Musí obsahovat 64 hexadecimálních znaků.",
+      "keyValid": "Platný pozvánkový kód",
+      "pasteSuccess": "Vloženo ze schránky",
+      "pasteEmpty": "Schránka je prázdná",
+      "joinRoom": "Připojit se ke skupině"
+    },
+    "decision": {
+      "title": "Vyberte první synchronizační data",
+      "subtitle": "Obě strany již obsahují smysluplná data. Vyberte, kterou základnu si má skupina ponechat.",
+      "thisDevice": "Toto zařízení",
+      "roomData": "Data skupiny",
+      "datasetSummary": "{{workouts}} tréninků · {{exercises}} cviků",
+      "conflictTitle": "Detekovány překrývající se změny",
+      "conflictWorkouts": "Tréninky",
+      "conflictExercises": "Cviky",
+      "conflictSummary": "Bylo detekováno {{workouts}} překryvů tréninků a {{exercises}} překryvů cviků.",
+      "configConflictSummary": "{{weeks}} překryvů konfigurací týdnů, {{days}} překryvů konfigurací dnů, {{backlog}} čekajících aktualizací skupiny.",
+      "useThisDeviceHint": "Tím se toto zařízení nastaví jako základna skupiny.",
+      "useRoomDataHint": "Tím se nahradí tréninková data na tomto zařízení při zachování nastavení aplikace.",
+      "useMerge": "Sloučit oboje",
+      "useMergeHint": "Zkombinovat data z tohoto zařízení a skupiny, pokud nedochází k překrytí.",
+      "mergeUnavailableHint": "Některé tréninky nebo cviky existují na obou zařízeních s různými hodnotami, sloučení není možné.",
+      "useThisDevice": "Použít data tohoto zařízení",
+      "useRoomData": "Použít data skupiny"
+    },
+    "debug": {
+      "title": "Ladicí informace synchronizace",
+      "subtitle": "Stav běhu, podrobnosti připojení a nedávné logy synchronizace.",
+      "snapshot": "Snímek běhu",
+      "connections": "Připojení",
+      "lastError": "Poslední chyba",
+      "logs": "Nedávné logy",
+      "logCount": "Zobrazeno {{shown}} z {{total}} položek logu",
+      "clear": "Vymazat"
     }
   },
   "workout": {
     "weekDay": "Týden {{week}} - {{day}}",
-    "addExercise": "Přidat cvik"
+    "addExercise": "Přidat cvik",
+    "logWorkout": "Zaznamenat trénink",
+    "progressionSuggestions": "Návrhy",
+    "suggestedToday": "Dnes navrženo: {{workout}}",
+    "showDetails": "Zobrazit detaily",
+    "hideDetails": "Skrýt detaily",
+    "details": {
+      "notes": "Poznámky",
+      "tempo": "Tempo",
+      "equipment": "Vybavení",
+      "primaryMuscles": "Hlavní svaly",
+      "secondaryMuscles": "Pomocné svaly",
+      "technique": "Technika",
+      "cues": "Signály",
+      "perSetTargets": "Cíle na sérii",
+      "progression": "Progrese",
+      "weekOverrides": "Nastavení týdne",
+      "active": "Aktivní",
+      "intensity": "Intenzita",
+      "target": "Cíl",
+      "estimatedOneRepMax": "Odhadovaný 1RM",
+      "notSet": "Nenastaveno",
+      "intensityRange": "Rozsah intenzity",
+      "weightSettings": "Nastavení váhy",
+      "weightMode": "Režim váhy",
+      "increment": "Přírůstek",
+      "exerciseSettings": "Nastavení cviku"
+    }
+  },
+  "workoutLog": {
+    "title": "Záznam tréninku",
+    "subtitle": "{{workout}} · Týden {{week}}",
+    "progress": "{{logged}} / {{total}} sérií zaznamenáno",
+    "loading": "Načítání záznamu tréninku…",
+    "done": "Hotovo",
+    "skip": "Přeskočit",
+    "save": "Uložit záznam",
+    "saving": "Ukládání…",
+    "useTarget": "Dokončit s cílem",
+    "reset": "Resetovat",
+    "setLabel": "Série {{set}}",
+    "targetRir": "Cílový RIR {{rir}}",
+    "targetSummary": "{{sets}}×{{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Skutečná váha",
+    "actualReps": "Skutečná opakování",
+    "leftReps": "Levá strana",
+    "rightReps": "Pravá strana",
+    "perSideReps": "Na stranu",
+    "sharedReps": "Sdílené",
+    "actualRir": "Skutečný RIR",
+    "errors": {
+      "load": "Nelze načíst záznam tréninku.",
+      "save": "Nelze uložit záznam tréninku."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Návrhy progrese",
+    "subtitle": "Použít další zátěž nyní nebo nechat na později.",
+    "current": "Aktuální váha",
+    "next": "Další váha",
+    "reason": "Důvod: {{reason}}",
+    "apply": "Použít",
+    "skip": "Přeskočit"
+  },
+  "exerciseSettings": {
+    "title": "Nastavení cviku",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Pracovní váha",
+    "weightMode": "Režim váhy",
+    "increment": "Přírůstek",
+    "estimatedOneRepMax": "Odhadovaný 1RM",
+    "notes": "Poznámky",
+    "history": "Historie",
+    "linkedVariants": "Propojené varianty",
+    "historyLoading": "Načítání historie…",
+    "historyEmpty": "Zatím žádné zaznamenané session.",
+    "historyError": "Nelze načíst historii.",
+    "historySets": "{{completed}} / {{total}} sérií",
+    "historyBestReps": "Nejlepší {{reps}} opakování"
   },
   "restTimer": {
     "title": "Časovač odpočinku",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Nastavení programu",
     "tabs": {
+      "program": "Program",
       "weeks": "Týdny",
       "days": "Dny"
+    },
+    "program": {
+      "name": "Název programu",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Podtitul",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Cíl",
+      "goalPlaceholder": "Síla a hypertrofie",
+      "description": "Popis",
+      "descriptionPlaceholder": "Volitelné poznámky o tomto tréninkovém bloku",
+      "sourceType": "Zdroj",
+      "sourceLabel": "Označení zdroje",
+      "sourceLabelPlaceholder": "PDF trenéra, šablona nebo poznámka",
+      "startDate": "Datum zahájení",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Doba trvání (týdny)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Výchozí odpočinek (s)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Model progrese",
+      "frequencySummary": "Týdenní cíle",
+      "frequencyGroupPlaceholder": "Svalová skupina",
+      "frequencyTarget": "Cíl na týden",
+      "frequencyPerWeek_one": "{{count}}× / týden",
+      "frequencyPerWeek_other": "{{count}}× / týden",
+      "addFrequencyTarget": "Přidat týdenní cíl",
+      "progressionModels": {
+        "simple_load_modifier": "Jednoduchý",
+        "exercise_rules": "Pravidla",
+        "mixed": "Smíšený",
+        "manual": "Ruční"
+      },
+      "sourceTypes": {
+        "manual": "Ruční",
+        "coach": "Trenér",
+        "template": "Šablona",
+        "imported_pdf": "Importované PDF",
+        "imported_json": "Importovaný JSON"
+      }
     },
     "week": {
       "namePlaceholder": "Název týdne",
       "loadModifier": "Modifikátor zátěže",
+      "volumeModifier": "Modifikátor objemu",
       "rir": "RIR (Rezervní opakování)",
+      "notes": "Poznámky k týdnu",
+      "notesPlaceholder": "Volitelné poznámky k tomuto týdnu",
       "baseline": "Základ",
       "addWeek": "Přidat týden",
       "deleteTitle": "Smazat týden",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Den {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Ikona",
+      "schedule": "Rozvrh",
+      "pickDay": "Vybrat den",
+      "pickWindow": "Vybrat dny",
       "iconMore": "Více",
       "iconRefresh": "Obnovit",
+      "scheduleTypes": {
+        "unscheduled": "Libovolný",
+        "fixed_day": "Pevný",
+        "day_window": "Okno"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Po",
+          "tue": "Út",
+          "wed": "St",
+          "thu": "Čt",
+          "fri": "Pá",
+          "sat": "So",
+          "sun": "Ne"
+        },
+        "narrow": {
+          "mon": "M",
+          "tue": "T",
+          "wed": "W",
+          "thu": "T",
+          "fri": "F",
+          "sat": "S",
+          "sun": "S"
+        }
+      },
       "addDay": "Přidat den",
       "deleteTitle": "Smazat den",
       "deleteMessage": "Smazat \"{{name}}\"? Toto ho odstraní ze všech týdnů."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Přidat cvik",
     "titleEdit": "Upravit cvik",
+    "tabs": {
+      "basic": "Základní",
+      "advanced": "Rozšířené"
+    },
     "name": "Název",
     "namePlaceholder": "Název cviku",
     "muscleGroup": "Svalová skupina",
@@ -202,11 +487,52 @@
     "reps": "Opakování",
     "notes": "Poznámky",
     "notesPlaceholder": "Volitelné poznámky...",
+    "advanced": {
+      "show": "Zobrazit rozšířená pole",
+      "hide": "Skrýt rozšířená pole",
+      "rest": "Odpočinek (s)",
+      "restUseDefault": "Globální výchozí",
+      "restCustom": "Vlastní",
+      "restPlaceholder": "180",
+      "rir": "Cílový RIR",
+      "rirPlaceholder": "1–2",
+      "intensity": "Intenzita",
+      "intensityPlaceholder": "80–85 % 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Např. 2 s excentricky",
+      "progressionRule": "Pravidlo progrese",
+      "progressionRulePlaceholder": "Např. +5 kg při splnění všech sérií s RIR 2",
+      "unilateral": "Jednostranný režim",
+      "unilateralPlaceholder": "na nohu, na stranu, levá/pravá, střídavě",
+      "equipment": "Vybavení",
+      "equipmentPlaceholder": "Činka, jednoručka, kladka, stroj",
+      "primaryMuscles": "Hlavní svaly",
+      "primaryMusclesPlaceholder": "Jeden sval na řádek",
+      "secondaryMuscles": "Pomocné svaly",
+      "secondaryMusclesPlaceholder": "Jeden sval na řádek",
+      "canonicalExerciseId": "Kanonické ID cviku",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Označení varianty",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Aliasy",
+      "aliasesPlaceholder": "Jeden alias na řádek",
+      "sessionSpecific": "Specifické pro session",
+      "sessionSpecificToggle": "Sledovat jako variantu pouze pro tuto session",
+      "technicalNotes": "Technické poznámky",
+      "technicalNotesPlaceholder": "Jedna poznámka na řádek",
+      "executionCues": "Prováděcí signály",
+      "executionCuesPlaceholder": "Jeden signál na řádek",
+      "perSetTargets": "Cíle na sérii",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Do selhání",
+      "weekOverrides": "Nastavení týdne",
+      "weekOverridesPlaceholder": "T3: sets=4; rest=120; rir=1; notes=Přidat jednu sérii"
+    },
     "submitAdd": "Přidat cvik",
     "submitEdit": "Uložit změny",
     "errors": {
       "nameRequired": "Název cviku je povinný.",
-      "setsInvalid": "Série musí být platné kladné celé číslo."
+      "setsInvalid": "Série musí být platné kladné celé číslo.",
+      "restInvalid": "Odpočinek musí být nezáporné celé číslo."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Stav synchronizace",
       "status": "Stav",
+      "enabled": "Synchronizace zapnuta",
+      "disabled": "Synchronizace vypnuta",
       "syncingWith_one": "Synchronizace s {{count}} zařízením",
       "syncingWith_other": "Synchronizace s {{count}} zařízeními",
       "off": "Synchronizace je vypnuta",
@@ -263,8 +591,11 @@
       "title": "Záloha",
       "export": "Uložit zálohu do zařízení",
       "import": "Obnovit ze zálohy",
+      "shareBackup": "Sdílet zálohu",
       "shareToDevice": "Sdílet do jiného zařízení",
-      "scanFromDevice": "Naskenovat z jiného zařízení"
+      "scanFromDevice": "Naskenovat z jiného zařízení",
+      "localSaveRestore": "Lokální uložení / obnovení",
+      "qrShareRestore": "Sdílení / obnovení přes QR"
     },
     "pairingDevices": {
       "title": "Párování a zařízení",
@@ -297,7 +628,7 @@
       "title": "Info o aplikaci",
       "name": "Název",
       "version": "Verze",
-      "build": "Build",
+      "build": "Sestavení",
       "buildType": "Typ buildu"
     }
   },
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Náhled importu",
+    "titleWithProgram": "Importovat: {{program}}",
     "changesDetected": "Zjištěno {{count}} změn(a).",
     "noChanges": "Nezjištěny žádné změny. Záloha je identická s aktuálními daty.",
+    "modeHint": "Import jako nový ponechá aktuální plán k dispozici. Nahrazení aktivního programu přepíše aktuální plán na tomto zařízení.",
+    "stats": {
+      "workouts": "Tréninky k aktualizaci",
+      "exercises": "Cviky k vytvoření nebo aktualizaci",
+      "preservedWeights": "Zachované váhy",
+      "needsWeight": "Potřeba počáteční váhy"
+    },
+    "exerciseStatus": {
+      "matching": "Odpovídající cviky",
+      "changed": "Změněné cviky",
+      "new": "Nové cviky",
+      "removed": "Odebrané cviky"
+    },
     "sections": {
+      "exerciseStatus": "Stav cviků",
+      "preservedWeights": "Zachované váhy",
+      "missingWeights": "Nové cviky bez uložené váhy",
+      "removedExercises": "Odebráno z aktivního programu",
       "workouts": "Tréninky",
+      "program": "Program",
       "settings": "Nastavení",
       "weeks": "Týdny",
       "days": "Dny"
     },
+    "currentWeightKept": "Aktuální váha zachována",
+    "noPreviousWeight": "Nenalezena předchozí váha",
     "cancel": "Zrušit",
-    "confirm": "Importovat zálohu"
+    "confirm": "Importovat zálohu",
+    "importAsNewProgram": "Importovat jako nový program",
+    "replaceActiveProgram": "Nahradit aktivní program"
+  },
+  "programLibrary": {
+    "title": "Programy",
+    "summary": "{{count}} uložený program(y)",
+    "active": "Aktivní",
+    "empty": "Zatím žádné uložené programy."
   },
   "deviceTransfer": {
     "shareTitle": "Sdílet do jiného zařízení",
     "shareDescription": "Na druhém zařízení otevřete Nastavení → Záloha → Naskenovat z jiného zařízení.",
+    "shareChunkCounter": "Část {{current}}/{{total}}",
+    "shareChunkHint": "Držte obě zařízení v klidu. QR se otáčí automaticky.",
+    "pauseRotation": "Pozastavit otáčení",
+    "resumeRotation": "Obnovit otáčení",
     "scanTitle": "Naskenovat z jiného zařízení",
     "scanDescription": "Namiřte kameru na QR kód zálohy PearLift.",
+    "chunkProgress": "Průběh skenování: {{received}}/{{total}}",
+    "transferCorrupted": "Přenos QR neprošel kontrolou integrity. Prosím skenujte znovu od prvního fragmentu.",
     "cameraPermissionTitle": "Je potřeba povolení pro kameru",
     "cameraPermissionMessage": "Povolte přístup ke kameře pro skenování QR kódu zálohy.",
     "cameraPermissionButton": "Povolit kameru",
+    "cameraUnavailableTitle": "Kamera nedostupná",
+    "cameraUnavailableMessage": "PearLift nemá přístup k použitelné zadní kameře na tomto zařízení.",
     "invalidQr": "Tento QR kód nevypadá jako záloha PearLift.",
     "tooLarge": "Záloha je příliš velká pro jeden QR kód. Použijte místo toho „Uložit zálohu do zařízení“."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Sdílení není na tomto zařízení/platformě dostupné."
     },
     "importBackup": {
-      "failedTitle": "Import se nezdařil"
+      "failedTitle": "Import se nezdařil",
+      "confirmReplaceTitle": "Nahradit aktivní program?",
+      "confirmReplaceMessage": "Toto nahradí váš aktuální aktivní program \"{{program}}\" na tomto zařízení. Stávající odpovídající váhy budou pokud možno zachovány.",
+      "confirmReplaceAction": "Nahradit program"
     },
     "forgetDevice": {
       "authPromptMessage": "Chcete-li zařízení zapomenout, potvrďte",

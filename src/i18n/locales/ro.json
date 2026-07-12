@@ -4,7 +4,9 @@
     "delete": "Șterge",
     "back": "Înapoi",
     "next": "Următorul",
-    "ok": "OK"
+    "ok": "OK",
+    "close": "Închide",
+    "save": "Salvează"
   },
   "app": {
     "loading": "Se pregătesc datele de antrenament"
@@ -74,6 +76,11 @@
       "status": {
         "idle": "Inactiv",
         "connecting": "Se caută",
+        "waiting": "În așteptare",
+        "dht_ready": "DHT pregătit",
+        "peer_connected": "Pereche conectată",
+        "handshake_ok": "Handshake reușit",
+        "replicating": "Se replicează",
         "synced": "Conectat",
         "error": "Eroare"
       },
@@ -134,6 +141,19 @@
         "connecting": "Se caută grupul tău de sincronizare.",
         "off": "Sincronizarea este dezactivată pe acest dispozitiv."
       },
+      "dht": "DHT",
+      "dhtReady": "Pregătit",
+      "dhtBootstrapping": "Inițializare…",
+      "dhtError": "Eroare",
+      "dhtInactive": "Inactiv",
+      "dhtWaiting": "În așteptare",
+      "status": "Stare",
+      "peers": "Perechi",
+      "peersConnected": "{{count}} conectată(e)",
+      "peersNone": "Niciunul",
+      "connectionsActive": "{{count}} activă(e)",
+      "connectionsNone": "Niciunul",
+      "more": "Mai mult",
       "lastSyncAt": "Ultima sincronizare: {{at}}",
       "lastSyncNever": "Ultima sincronizare: niciodată",
       "actions": {
@@ -144,11 +164,200 @@
         "troubleshoot": "Depanare",
         "stop": "Oprire sincronizare"
       }
+    },
+    "manage": {
+      "title": "Sync dispozitiv",
+      "subtitle": "Configurarea grupului și întreținerea sync într-un singur loc.",
+      "roomSetup": "Configurare grup",
+      "roomSetupHint": "Alege dacă acest dispozitiv creează un grup nou sau se alătură unuia existent.",
+      "onboardingTitle": "Fără cloud. Fără cont.",
+      "onboardingMessage": "PearLift sincronizează antrenamentele tale direct între dispozitive — peer-to-peer. Datele tale nu ajung niciodată pe un server. Ai nevoie doar să fii pe același Wi‑Fi sau în apropiere pentru prima conexiune.",
+      "onboardingDismiss": "Am înțeles",
+      "createRoom": "Creează grup",
+      "joinRoom": "Alătură-te grupului",
+      "roomActive": "Grup activ",
+      "status": "Stare sync",
+      "turnOn": "Activează",
+      "turnOff": "Dezactivează",
+      "refresh": "Reîmprospătează",
+      "roleState": "{{role}} · {{state}}",
+      "roles": {
+        "creator": "Proprietar grup",
+        "joiner": "Membru"
+      },
+      "binding": {
+        "unconfigured": "Neconfigurat",
+        "pending_first_sync": "Așteptând prima sync",
+        "active": "Activ",
+        "conflict_requires_decision": "Are nevoie de decizia ta",
+        "active_conflict_requires_decision": "Conflictul de sync are nevoie de decizia ta"
+      },
+      "thisDeviceCode": "Codul acestui dispozitiv: {{code}}",
+      "deviceCode": "Cod {{code}}",
+      "deviceNamePlaceholder": "Numește acest dispozitiv",
+      "saveDeviceName": "Salvează numele dispozitivului",
+      "deviceNameSyncPending": "Numele dispozitivului a fost salvat local. Sync va încerca să îl partajeze cu perechile în scurt timp.",
+      "masterKey": "Cod de sync",
+      "masterKeyHint": "Folosește același cod de sync de 64 de caractere pe fiecare dispozitiv care ar trebui să partajeze date.",
+      "masterKeyPlaceholder": "Lipește sau editează codul de sync de 64 de caractere",
+      "showQR": "Arată codul QR",
+      "copyKey": "Copiază codul",
+      "applyKey": "Aplică codul",
+      "leaveRoom": "Părăsește grupul",
+      "leaveRoomConfirmTitle": "Părăsești acest grup?",
+      "leaveRoomConfirmMessage": "Aceasta dezactivează sync, șterge legătura curentă a grupului pe acest dispozitiv și elimină istoricul local al conexiunii de grup.",
+      "syncedDevices": "{{count}} dispozitive",
+      "syncedDevicesTitle": "Dispozitive",
+      "noDevices": "Niciun dispozitiv nu a sincronizat încă.",
+      "showMore": "Arată încă {{count}}",
+      "lastSeen": "Văzut ultima dată {{at}}",
+      "lastSyncAt": "Ultima sync {{at}}",
+      "removeDevice": "Elimină din listă",
+      "removeDeviceConfirmTitle": "Elimini acest dispozitiv din listă?",
+      "removeDeviceConfirmMessage": "Aceasta ascunde dispozitivul din această listă doar pe acest dispozitiv. Poate apărea din nou dacă se sincronizează cu acest grup mai târziu.",
+      "debug": "Info de depanare",
+      "never": "Niciodată"
+    },
+    "create": {
+      "title": "Creează grup",
+      "subtitle": "Acest dispozitiv creează un nou grup de sync și poate partaja codul de sync cu alte dispozitive.",
+      "room": "Grup nou",
+      "explainer": "Folosește această opțiune când acest dispozitiv trebuie să definească grupul inițial și să îi invite pe ceilalți.",
+      "datasetSummary": "Acest dispozitiv are în prezent {{workouts}} antrenamente și {{exercises}} exerciții.",
+      "masterKey": "Cod de sync",
+      "inviteStarting": "Se pornește grupul și se generează invitația QR…",
+      "invitePending": "Pornește grupul pentru a genera invitația QR.",
+      "copy": "Copiază codul",
+      "startRoom": "Pornește acest grup"
+    },
+    "join": {
+      "title": "Alătură-te grupului",
+      "subtitle": "Folosește codul de sync de pe alt dispozitiv pentru a conecta acest dispozitiv la același grup.",
+      "preflight": "Înainte de a te alătura",
+      "localSummary": "Acest dispozitiv are în prezent {{workouts}} antrenamente și {{exercises}} exerciții.",
+      "remoteSummaryHint": "Dacă ambele dispozitive au deja multe modificări suprapuse, PearLift va întreba ce set de date să păstreze.",
+      "masterKey": "Cod de sync",
+      "keyPlaceholder": "Lipește codul de sync de 64 de caractere",
+      "paste": "Lipire",
+      "scanQr": "Scanează QR",
+      "scanHelp": "Îndreaptă camera spre codul QR care conține codul de sync.",
+      "invalidKey": "Cod de sync nevalid. Trebuie să aibă 64 de caractere hexadecimale.",
+      "keyValid": "Cod de invitație valid",
+      "pasteSuccess": "Lipsit din clipboard",
+      "pasteEmpty": "Clipboardul este gol",
+      "joinRoom": "Alătură-te grupului"
+    },
+    "decision": {
+      "title": "Alege primele date de sync",
+      "subtitle": "Ambele părți conțin deja date semnificative. Alege ce linie de bază ar trebui să păstreze acest grup.",
+      "thisDevice": "Acest dispozitiv",
+      "roomData": "Datele grupului",
+      "datasetSummary": "{{workouts}} antrenamente · {{exercises}} exerciții",
+      "conflictTitle": "Modificări suprapuse detectate",
+      "conflictWorkouts": "Antrenamente",
+      "conflictExercises": "Exerciții",
+      "conflictSummary": "Au fost detectate {{workouts}} suprapuneri de antrenamente și {{exercises}} suprapuneri de exerciții.",
+      "configConflictSummary": "{{weeks}} suprapuneri de config săptămâni, {{days}} suprapuneri de config zile, {{backlog}} actualizări de grup în așteptare.",
+      "useThisDeviceHint": "Aceasta publică acest dispozitiv ca linie de bază a grupului.",
+      "useRoomDataHint": "Aceasta înlocuiește datele de antrenament pe acest dispozitiv păstrând preferințele aplicației.",
+      "useMerge": "Unește ambele",
+      "useMergeHint": "Combină datele de pe acest dispozitiv și ale grupului când nu există suprapuneri.",
+      "mergeUnavailableHint": "Unele antrenamente sau exerciții există pe ambele dispozitive cu valori diferite, deci unirea nu este posibilă.",
+      "useThisDevice": "Folosește datele acestui dispozitiv",
+      "useRoomData": "Folosește datele grupului"
+    },
+    "debug": {
+      "title": "Info de depanare sync",
+      "subtitle": "Stare runtime, detalii conexiune și jurnale recente.",
+      "snapshot": "Instantaneu runtime",
+      "connections": "Conexiuni",
+      "lastError": "Ultima eroare",
+      "logs": "Jurnale recente",
+      "logCount": "Se afișează {{shown}} din {{total}} intrări în jurnal",
+      "clear": "Șterge"
     }
   },
   "workout": {
     "weekDay": "Săptămâna {{week}} - {{day}}",
-    "addExercise": "Adaugă exercițiu"
+    "addExercise": "Adaugă exercițiu",
+    "logWorkout": "Jurnal antrenament",
+    "progressionSuggestions": "Sugestii",
+    "suggestedToday": "Sugerat astăzi: {{workout}}",
+    "showDetails": "Arată detalii",
+    "hideDetails": "Ascunde detalii",
+    "details": {
+      "notes": "Note",
+      "tempo": "Tempo",
+      "equipment": "Echipament",
+      "primaryMuscles": "Mușchi primari",
+      "secondaryMuscles": "Mușchi secundari",
+      "technique": "Tehnică",
+      "cues": "Indicații",
+      "perSetTargets": "Obiective pe serie",
+      "progression": "Progresie",
+      "weekOverrides": "Suprascrieri săptămânale",
+      "active": "Activ",
+      "intensity": "Intensitate",
+      "target": "Țintă",
+      "estimatedOneRepMax": "1RM estimat",
+      "notSet": "Nesetat",
+      "intensityRange": "Interval de intensitate",
+      "weightSettings": "Setări greutate",
+      "weightMode": "Mod greutate",
+      "increment": "Creștere",
+      "exerciseSettings": "Setări exercițiu"
+    }
+  },
+  "workoutLog": {
+    "title": "Jurnal antrenament",
+    "subtitle": "{{workout}} · Săptămâna {{week}}",
+    "progress": "{{logged}} / {{total}} serii înregistrate",
+    "loading": "Se încarcă jurnalul…",
+    "done": "Terminat",
+    "skip": "Sari",
+    "save": "Salvează jurnalul",
+    "saving": "Se salvează…",
+    "useTarget": "Completează cu ținta",
+    "reset": "Resetează",
+    "setLabel": "Seria {{set}}",
+    "targetRir": "RIR țintă {{rir}}",
+    "targetSummary": "{{sets}} x {{reps}} · {{weight}} {{unit}} · RIR {{rir}}",
+    "actualWeight": "Greutate reală",
+    "actualReps": "Repetări reale",
+    "leftReps": "Repetări stânga",
+    "rightReps": "Repetări dreapta",
+    "perSideReps": "Pe parte",
+    "sharedReps": "Partajat",
+    "actualRir": "RIR real",
+    "errors": {
+      "load": "Nu s-a putut încărca acest jurnal de antrenament.",
+      "save": "Nu s-a putut salva acest jurnal de antrenament."
+    }
+  },
+  "progressionSuggestions": {
+    "title": "Sugestii de progresie",
+    "subtitle": "Aplică următoarea sarcină acum sau las-o în așteptare pentru mai târziu.",
+    "current": "Greutate actuală",
+    "next": "Următoarea greutate",
+    "reason": "Motiv: {{reason}}",
+    "apply": "Aplică",
+    "skip": "Sari"
+  },
+  "exerciseSettings": {
+    "title": "Setări exercițiu",
+    "subtitle": "{{exercise}}",
+    "workingWeight": "Greutate de lucru",
+    "weightMode": "Mod greutate",
+    "increment": "Creștere",
+    "estimatedOneRepMax": "1RM estimat",
+    "notes": "Note",
+    "history": "Istoric recent",
+    "linkedVariants": "Variante legate",
+    "historyLoading": "Se încarcă istoricul…",
+    "historyEmpty": "Nicio sesiune înregistrată încă.",
+    "historyError": "Nu s-a putut încărca istoricul.",
+    "historySets": "{{completed}} / {{total}} serii",
+    "historyBestReps": "Cele mai bune {{reps}} repetări"
   },
   "restTimer": {
     "title": "Cronometru de odihnă",
@@ -170,13 +379,56 @@
   "programSettings": {
     "title": "Setări program",
     "tabs": {
+      "program": "Program",
       "weeks": "Săptămâni",
       "days": "Zile"
+    },
+    "program": {
+      "name": "Numele programului",
+      "namePlaceholder": "Blocco Intensità",
+      "subtitle": "Subtitlu",
+      "subtitlePlaceholder": "Forza + Ipertrofia",
+      "goal": "Obiectiv",
+      "goalPlaceholder": "Forță și hipertrofie",
+      "description": "Descriere",
+      "descriptionPlaceholder": "Note opționale despre acest bloc de antrenament",
+      "sourceType": "Sursă",
+      "sourceLabel": "Eticheta sursei",
+      "sourceLabelPlaceholder": "PDF antrenor, șablon sau notă",
+      "startDate": "Data de început",
+      "startDatePlaceholder": "2026-06-12",
+      "durationWeeks": "Durată (săptămâni)",
+      "durationWeeksPlaceholder": "4",
+      "defaultRest": "Odihnă implicită (sec)",
+      "defaultRestPlaceholder": "150",
+      "progressionModel": "Model de progresie",
+      "frequencySummary": "Ținte săptămânale",
+      "frequencyGroupPlaceholder": "Grup muscular",
+      "frequencyTarget": "Țintă pe săptămână",
+      "frequencyPerWeek_one": "{{count}}x / săptămână",
+      "frequencyPerWeek_other": "{{count}}x / săptămână",
+      "addFrequencyTarget": "Adaugă țintă săptămânală",
+      "progressionModels": {
+        "simple_load_modifier": "Simplu",
+        "exercise_rules": "Reguli",
+        "mixed": "Mixt",
+        "manual": "Manual"
+      },
+      "sourceTypes": {
+        "manual": "Manual",
+        "coach": "Antrenor",
+        "template": "Șablon",
+        "imported_pdf": "PDF importat",
+        "imported_json": "JSON importat"
+      }
     },
     "week": {
       "namePlaceholder": "Nume săptămână",
       "loadModifier": "Modificator de sarcină",
+      "volumeModifier": "Modificator de volum",
       "rir": "RIR (Repetări în rezervă)",
+      "notes": "Note săptămânale",
+      "notesPlaceholder": "Note opționale pentru această săptămână",
       "baseline": "Linie de bază",
       "addWeek": "Adaugă săptămână",
       "deleteTitle": "Șterge săptămână",
@@ -184,9 +436,38 @@
     },
     "day": {
       "namePlaceholder": "Ziua {{number}}",
+      "sessionLabelPlaceholder": "A",
       "icon": "Pictogramă",
+      "schedule": "Program",
+      "pickDay": "Alege zi",
+      "pickWindow": "Alege zile",
       "iconMore": "Mai multe",
       "iconRefresh": "Actualizează",
+      "scheduleTypes": {
+        "unscheduled": "Oricare",
+        "fixed_day": "Fix",
+        "day_window": "Fereastră"
+      },
+      "weekdays": {
+        "short": {
+          "mon": "Lun",
+          "tue": "Mar",
+          "wed": "Mie",
+          "thu": "Joi",
+          "fri": "Vin",
+          "sat": "Sâm",
+          "sun": "Dum"
+        },
+        "narrow": {
+          "mon": "L",
+          "tue": "M",
+          "wed": "M",
+          "thu": "J",
+          "fri": "V",
+          "sat": "S",
+          "sun": "D"
+        }
+      },
       "addDay": "Adaugă zi",
       "deleteTitle": "Șterge zi",
       "deleteMessage": "Ștergi \"{{name}}\"? Acest lucru o elimină din toate săptămânile."
@@ -195,6 +476,10 @@
   "addExercise": {
     "titleAdd": "Adaugă exercițiu",
     "titleEdit": "Editează exercițiu",
+    "tabs": {
+      "basic": "De bază",
+      "advanced": "Avansat"
+    },
     "name": "Nume",
     "namePlaceholder": "Nume exercițiu",
     "muscleGroup": "Grup muscular",
@@ -202,11 +487,52 @@
     "reps": "Repetări",
     "notes": "Note",
     "notesPlaceholder": "Note opționale...",
+    "advanced": {
+      "show": "Arată câmpurile avansate",
+      "hide": "Ascunde câmpurile avansate",
+      "rest": "Odihnă (sec)",
+      "restUseDefault": "Implicit global",
+      "restCustom": "Personalizat",
+      "restPlaceholder": "180",
+      "rir": "Țintă RIR",
+      "rirPlaceholder": "1-2",
+      "intensity": "Intensitate",
+      "intensityPlaceholder": "80-85% 1RM",
+      "tempo": "Tempo",
+      "tempoPlaceholder": "Eccentrica 2 sec",
+      "progressionRule": "Regulă de progresie",
+      "progressionRulePlaceholder": "+5kg when all sets hit top reps with 2 RIR",
+      "unilateral": "Mod unilateral",
+      "unilateralPlaceholder": "per picior, per parte, stânga/dreapta, alternat",
+      "equipment": "Echipament",
+      "equipmentPlaceholder": "Bară, gantere, cablu, mașină",
+      "primaryMuscles": "Mușchi primari",
+      "primaryMusclesPlaceholder": "Un mușchi pe linie",
+      "secondaryMuscles": "Mușchi secundari",
+      "secondaryMusclesPlaceholder": "Un mușchi pe linie",
+      "canonicalExerciseId": "ID exercițiu canonic",
+      "canonicalExerciseIdPlaceholder": "alternating-curl",
+      "variantLabel": "Etichetă variantă",
+      "variantLabelPlaceholder": "Session B",
+      "aliases": "Aliasuri",
+      "aliasesPlaceholder": "Un alias pe linie",
+      "sessionSpecific": "Specific sesiunii",
+      "sessionSpecificToggle": "Urmărește ca variantă doar de sesiune",
+      "technicalNotes": "Note tehnice",
+      "technicalNotesPlaceholder": "O notă pe linie",
+      "executionCues": "Indicații de execuție",
+      "executionCuesPlaceholder": "O indicație pe linie",
+      "perSetTargets": "Obiective pe serie",
+      "perSetTargetsPlaceholder": "S4: reps=8; rir=0; notes=Push to failure",
+      "weekOverrides": "Suprascrieri săptămânale",
+      "weekOverridesPlaceholder": "W3: sets=4; rest=120; rir=1; notes=Add one set"
+    },
     "submitAdd": "Adaugă exercițiu",
     "submitEdit": "Salvează modificările",
     "errors": {
       "nameRequired": "Numele exercițiului este obligatoriu.",
-      "setsInvalid": "Seriile trebuie să fie un număr întreg pozitiv valid."
+      "setsInvalid": "Seriile trebuie să fie un număr întreg pozitiv valid.",
+      "restInvalid": "Odihna trebuie să fie un număr întreg nenegativ valid."
     }
   },
   "settings": {
@@ -253,6 +579,8 @@
     "syncStatus": {
       "title": "Stare sincronizare",
       "status": "Stare",
+      "enabled": "Sync activată",
+      "disabled": "Sync dezactivată",
       "syncingWith_one": "Se sincronizează cu {{count}} dispozitiv",
       "syncingWith_other": "Se sincronizează cu {{count}} dispozitive",
       "off": "Sincronizare oprită",
@@ -263,8 +591,11 @@
       "title": "Backup",
       "export": "Salvează backup pe dispozitiv",
       "import": "Restaurează din backup",
+      "shareBackup": "Partajează backup-ul",
       "shareToDevice": "Distribuie către alt dispozitiv",
-      "scanFromDevice": "Scanează de pe alt dispozitiv"
+      "scanFromDevice": "Scanează de pe alt dispozitiv",
+      "localSaveRestore": "Salvare / Restaurare locală",
+      "qrShareRestore": "Partajare / Restaurare QR"
     },
     "pairingDevices": {
       "title": "Asociere și dispozitive",
@@ -317,25 +648,62 @@
   },
   "importPreview": {
     "title": "Previzualizare import",
+    "titleWithProgram": "Importare: {{program}}",
     "changesDetected": "{{count}} modificare(i) detectată(e).",
     "noChanges": "Nicio modificare detectată. Backup-ul este identic cu datele curente.",
+    "modeHint": "Importarea ca nou păstrează planul curent disponibil. Înlocuirea programului activ suprascrie planul pe acest dispozitiv.",
+    "stats": {
+      "workouts": "Antrenamente de actualizat",
+      "exercises": "Exerciții de creat sau actualizat",
+      "preservedWeights": "Greutăți păstrate",
+      "needsWeight": "Necesită greutate de pornire"
+    },
+    "exerciseStatus": {
+      "matching": "Exerciții potrivite",
+      "changed": "Exerciții modificate",
+      "new": "Exerciții noi",
+      "removed": "Exerciții eliminate"
+    },
     "sections": {
+      "exerciseStatus": "Stare exerciții",
+      "preservedWeights": "Greutăți păstrate",
+      "missingWeights": "Exerciții noi fără greutate salvată",
+      "removedExercises": "Eliminate din programul activ",
       "workouts": "Antrenamente",
+      "program": "Program",
       "settings": "Setări",
       "weeks": "Săptămâni",
       "days": "Zile"
     },
+    "currentWeightKept": "Greutate curentă păstrată",
+    "noPreviousWeight": "Nicio greutate anterioară găsită",
     "cancel": "Anulează",
-    "confirm": "Importă backup"
+    "confirm": "Importă backup",
+    "importAsNewProgram": "Importă ca program nou",
+    "replaceActiveProgram": "Înlocuiește programul activ"
+  },
+  "programLibrary": {
+    "title": "Programe",
+    "summary": "{{count}} program(e) salvat(e)",
+    "active": "Activ",
+    "empty": "Niciun program salvat încă."
   },
   "deviceTransfer": {
     "shareTitle": "Distribuie către alt dispozitiv",
     "shareDescription": "Pe celălalt dispozitiv: Setări → Backup → Scanează de pe alt dispozitiv.",
+    "shareChunkCounter": "Fragment {{current}}/{{total}}",
+    "shareChunkHint": "Menține ambele dispozitive stabile. QR se rotește automat.",
+    "pauseRotation": "Pauză rotație",
+    "resumeRotation": "Reluare rotație",
     "scanTitle": "Scanează de pe alt dispozitiv",
     "scanDescription": "Îndreaptă camera către codul QR al backup-ului PearLift.",
+    "chunkProgress": "Progres scanare: {{received}}/{{total}}",
+    "transferCorrupted": "Transferul QR a eșuat verificarea integrității. Scanează din nou de la primul fragment.",
     "cameraPermissionTitle": "Este necesară permisiunea pentru cameră",
     "cameraPermissionMessage": "Permite accesul la cameră pentru a scana un cod QR de backup.",
     "cameraPermissionButton": "Permite camera",
+    "cameraUnavailableTitle": "Cameră indisponibilă",
+    "cameraUnavailableMessage": "PearLift nu a putut accesa o cameră posterioară utilizabilă pe acest dispozitiv.",
     "invalidQr": "Acest cod QR nu pare a fi un backup PearLift.",
     "tooLarge": "Backup-ul este prea mare pentru un singur cod QR. Folosește „Salvează backup pe dispozitiv” în schimb."
   },
@@ -377,7 +745,10 @@
       "sharingUnavailableMessage": "Partajarea nu este disponibilă pe acest dispozitiv/această platformă."
     },
     "importBackup": {
-      "failedTitle": "Import eșuat"
+      "failedTitle": "Import eșuat",
+      "confirmReplaceTitle": "Înlocuiești programul activ?",
+      "confirmReplaceMessage": "Aceasta va înlocui programul tău activ cu \"{{program}}\" pe acest dispozitiv. Greutățile existente corespunzătoare sunt păstrate acolo unde este posibil.",
+      "confirmReplaceAction": "Înlocuiește programul"
     },
     "forgetDevice": {
       "authPromptMessage": "Confirmați pentru a uita dispozitivul",

@@ -5,7 +5,8 @@ import type { ThemeTokens } from '@/theme/tokens';
 import type {
   DayConfig,
   Exercise,
-  UserWeights,
+  TrainingProgram,
+  UserExerciseSettingsMap,
   WeekConfig,
   WeightUnit,
   WorkoutDay,
@@ -22,13 +23,21 @@ interface WorkoutDayStackProps {
   dayConfigs: DayConfig[];
   workouts: WorkoutSession[];
   selectedDay: WorkoutDay;
+  program?: TrainingProgram | null;
   currentWeek: number;
   weekConfigs: WeekConfig[];
-  userWeights: UserWeights;
+  userExerciseSettings: UserExerciseSettingsMap;
+  restDuration: number;
   getAdjustedWeight: (exerciseId: string, weekId?: number) => number;
+  suggestedDayName?: string | null;
   onWeekChange: (id: number) => void;
   onOpenProgramSettings: () => void;
+  onOpenProgressionSuggestions: () => void;
+  onOpenWorkoutLog: () => void;
+  pendingProgressionSuggestionCount: number;
   onOpenAddExercise: () => void;
+  onOpenExerciseSettings: (exercise: Exercise) => void;
+  onApplyRestPreset: (restSeconds: number) => void;
   onEditExercise: (exercise: Exercise) => void;
   onDeleteExercise: (exercise: Exercise) => void;
   onAdjustWeight: (exerciseId: string, delta: number) => void;
@@ -46,13 +55,21 @@ export function WorkoutDayStack({
   dayConfigs,
   workouts,
   selectedDay,
+  program,
   currentWeek,
   weekConfigs,
-  userWeights,
+  userExerciseSettings,
+  restDuration,
   getAdjustedWeight,
+  suggestedDayName,
   onWeekChange,
   onOpenProgramSettings,
+  onOpenProgressionSuggestions,
+  onOpenWorkoutLog,
+  pendingProgressionSuggestionCount,
   onOpenAddExercise,
+  onOpenExerciseSettings,
+  onApplyRestPreset,
   onEditExercise,
   onDeleteExercise,
   onAdjustWeight,
@@ -90,13 +107,24 @@ export function WorkoutDayStack({
               tokens={tokens}
               weightUnit={weightUnit}
               workout={workout}
+              dayConfig={day}
+              program={program}
               currentWeek={currentWeek}
               weekConfigs={weekConfigs}
-              userWeights={userWeights}
+              userExerciseSettings={userExerciseSettings}
+              restDuration={restDuration}
               getAdjustedWeight={getAdjustedWeight}
+              suggestedDayName={suggestedDayName}
               onWeekChange={onWeekChange}
               onOpenProgramSettings={onOpenProgramSettings}
+              onOpenProgressionSuggestions={onOpenProgressionSuggestions}
+              onOpenWorkoutLog={onOpenWorkoutLog}
+              pendingProgressionSuggestionCount={
+                pendingProgressionSuggestionCount
+              }
               onOpenAddExercise={onOpenAddExercise}
+              onOpenExerciseSettings={onOpenExerciseSettings}
+              onApplyRestPreset={onApplyRestPreset}
               onEditExercise={onEditExercise}
               onDeleteExercise={onDeleteExercise}
               onAdjustWeight={onAdjustWeight}
